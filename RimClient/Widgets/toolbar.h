@@ -6,6 +6,7 @@
  *  @date      2017.12.11
  *  @warning
  *  @copyright GNU Public License.
+ *  @note      工具栏的组成:[T][T]XXXXX[T][T][T]    [T]表示工具按钮；XXX表示弹簧
  */
 #ifndef TOOLBAR_H
 #define TOOLBAR_H
@@ -35,18 +36,18 @@ public:
      * @return 是否插入成功
      *
      */
-    bool insertToolButton(QToolButton * toolButton);
+    bool appendToolButton(QToolButton * toolButton);
 
 
     /*!
-     * @brief 在beforeButton按钮之前插入toolButton，若beforeButton为NULL，则默认插入最后
+     * @brief 插入工具按钮
      *
      * @param[in] toolButton 待插入的工具按钮
-     * @param[in] beforeButton 在此按钮之前插入
+     * @param[in] ID 若为NULL，则从工具栏的最前面插入；不为NULL，则从指定的控件前面插入
      *
      * @return 是否插入成功
      */
-    bool insertToolButton(QToolButton * toolButton,const char * ID);
+    bool insertToolButton(QToolButton * toolButton,const char * ID = NULL);
 
     bool containButton(QToolButton * button);
 

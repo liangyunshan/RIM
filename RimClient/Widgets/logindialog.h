@@ -20,12 +20,14 @@ class LoginDialog;
 
 class QToolButton;
 class ToolBar;
-class QSystemTrayIcon;
 class QMenu;
 class QAction;
 
 class LoginDialogPrivate;
 class OnLineState;
+class SystemTrayIcon;
+
+class MainDialog;
 
 class LoginDialog : public QDialog
 {
@@ -62,14 +64,12 @@ private:
     LoginDialogPrivate * d_ptr;
 
     ToolBar * toolBar;
-
     OnLineState * onlineState;
 
     QToolButton * systemSetting;
-    QSystemTrayIcon * trayIcon;
-    QMenu * trayMenu;
-    QAction * exitAction;
-    QAction * mainPanelAction;
+    SystemTrayIcon * trayIcon;
+
+    MainDialog * mainDialog;
 };
 
 #endif // LOGINDIALOG_H

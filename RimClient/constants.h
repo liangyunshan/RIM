@@ -28,9 +28,15 @@ const char PATH_SystemIconPath[] = "/systemIcon";
 const int TOOL_WIDTH = 24;
 const int TOOL_HEIGHT = 24;
 
+const int MAIN_PANEL_MIN_WIDTH = 300;
+const int MAIN_PANEL_MIN_HEIGHT = 450;
+
+const int MAIN_PANEL_MAX_WIDTH = 600;
+
 const char TOOL_MIN[] = "Min_TOOL_Button";
 const char TOOL_CLOSE[] = "Close_TOOL_Button";
 const char TOOL_SETTING[] = "Setting_TOOL_Button";
+const char TOOL_SSG[] = "TOOL_SSG";
 
 }
 

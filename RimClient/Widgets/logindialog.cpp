@@ -8,7 +8,6 @@
 #include <QDebug>
 #include <QListView>
 #include <QMenu>
-#include <QSystemTrayIcon>
 #include <QAction>
 #include <QDesktopWidget>
 
@@ -21,6 +20,8 @@
 #include "Util/userinfofile.h"
 #include "Util/rutil.h"
 #include "Util/imagemanager.h"
+#include "maindialog.h"
+#include "systemtrayicon.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -86,6 +87,7 @@ void LoginDialog::login()
 
     int index = -1;
 
+    //Yang 20171214待将此处加入网络
     if( (index = isContainUser()) >= 0)
     {
         if(index < d->localUserInfo.size())
@@ -113,6 +115,17 @@ void LoginDialog::login()
         d->localUserInfo.append(desc);
         RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
     }
+
+    this->setVisible(false);
+    trayIcon->disconnect();
+    trayIcon->setModel(SystemTrayIcon::System_Main);
+
+    if(!mainDialog)
+    {
+        mainDialog = new MainDialog();
+    }
+
+    mainDialog->show();
 }
 
 void LoginDialog::minsize()
@@ -123,12 +136,14 @@ void LoginDialog::minsize()
         {
             trayIcon->setVisible(true);
         }
-        this->setVisible(false);
     }
+
+    this->setVisible(false);
 }
 
 void LoginDialog::closeWindow()
 {
+    qDebug()<<__LINE__<<__FUNCTION__;
     this->close();
 }
 
@@ -174,8 +189,9 @@ void LoginDialog::initWidget()
     QSize size = qApp->desktop()->size();
 
     this->setGeometry((size.width() - d->windowWidth)/2,(size.height() - d->windowHeight)/2,d->windowWidth,d->windowHeight);
-
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+
+    mainDialog = NULL;
 
     toolBar = new ToolBar(this);
     connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(minsize()));
@@ -219,22 +235,12 @@ void LoginDialog::initWidget()
 
 void LoginDialog::createTrayMenu()
 {
-    trayMenu = new QMenu();
-    exitAction = new QAction(tr("Exit"),trayMenu);
-    mainPanelAction = new QAction(tr("Open Panel"),trayMenu);
-
-    connect(mainPanelAction,SIGNAL(triggered()),this,SLOT(showNormal()));
-    connect(exitAction,SIGNAL(triggered()),this,SLOT(close()));
-
-    trayMenu->addAction(mainPanelAction);
-    trayMenu->addAction(exitAction);
-
-    trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setContextMenu(trayMenu);
-    trayIcon->setToolTip(qApp->applicationName());
-
-    trayIcon->setIcon(QIcon(Constant::ICON_SYSTEM24));
+    trayIcon = new SystemTrayIcon();
+    trayIcon->setModel(SystemTrayIcon::System_Login);
     trayIcon->setVisible(true);
+
+    connect(trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
+    connect(trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 }
 
 int LoginDialog::isContainUser()
@@ -313,6 +319,12 @@ LoginDialog::~LoginDialog()
     {
         delete toolBar;
         toolBar = NULL;
+    }
+
+    if(mainDialog)
+    {
+        delete mainDialog;
+        mainDialog = NULL;
     }
 
     delete ui;

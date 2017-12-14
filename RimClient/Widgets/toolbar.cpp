@@ -28,6 +28,7 @@ void ToolBar::initDialog()
 
     toolBarLayout->setContentsMargins(0,0,0,0);
     toolBarLayout->setSpacing(0);
+    toolBarLayout->addStretch(1);
     toolBar->setLayout(toolBarLayout);
 
     content = new QWidget(this);
@@ -52,12 +53,12 @@ void ToolBar::initDialog()
 //    closeButt->setIcon(style()->standardPixmap(QStyle::SP_TitleBarCloseButton));
     connect(closeButt,SIGNAL(pressed()),this,SIGNAL(closeWindow()));
 
-    insertToolButton(minSize);
-    insertToolButton(closeButt);
+    appendToolButton(minSize);
+    appendToolButton(closeButt);
 }
 
 
-bool ToolBar::insertToolButton(QToolButton *toolButton)
+bool ToolBar::appendToolButton(QToolButton *toolButton)
 {
     if(!containButton(toolButton))
     {
@@ -71,17 +72,25 @@ bool ToolBar::insertToolButton(QToolButton *toolButton, const char *ID)
 {
     if(!containButton(toolButton))
     {
-        int index = -1;
-        foreach(QObject * tmpObj,toolBar->children())
+        if(ID == NULL)
         {
-            QToolButton * tmpButt = dynamic_cast<QToolButton *>(tmpObj);
-            if(tmpButt && tmpButt->objectName() == QString(ID))
+            toolBarLayout->insertWidget(0,toolButton);
+            return true;
+        }
+        else
+        {
+            int index = 0;
+            foreach(QObject * tmpObj,toolBar->children())
             {
-                toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
-                toolBarLayout->insertWidget(index,toolButton);
-                return true;
+                QToolButton * tmpButt = dynamic_cast<QToolButton *>(tmpObj);
+                if(tmpButt && tmpButt->objectName() == QString(ID))
+                {
+                    toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
+                    toolBarLayout->insertWidget(index,toolButton);
+                    return true;
+                }
+                index++;
             }
-            index++;
         }
 
         return false;
