@@ -1,0 +1,366 @@
+#include "logindialog.h"
+#include "ui_logindialog.h"
+
+#include <QList>
+#include <QToolButton>
+#include <QResizeEvent>
+#include <QTimer>
+#include <QDebug>
+#include <QListView>
+#include <QMenu>
+#include <QSystemTrayIcon>
+#include <QAction>
+#include <QDesktopWidget>
+
+#include "head.h"
+#include "datastruct.h"
+#include "toolbar.h"
+#include "constants.h"
+#include "onlinestate.h"
+#include "Util/rsingleton.h"
+#include "Util/userinfofile.h"
+#include "Util/rutil.h"
+#include "Util/imagemanager.h"
+
+class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
+{
+    Q_DECLARE_PUBLIC(LoginDialog)
+public:
+    LoginDialogPrivate()
+    {
+        windowWidth = 500;
+        windowHeight = 400;
+
+        numberExp.setPattern("[1-9]\\d{6}");
+        passExp.setPattern("\\w{6,16}");
+
+        isSystemUserIcon = true;
+        isNewUser = true;
+    }
+    ~LoginDialogPrivate(){}
+
+    int userIndex(QString text);
+
+    QList<UserInfoDesc *> localUserInfo;
+
+    QPoint mousePreseePoint;
+    int windowWidth;
+    int windowHeight;
+
+    bool isSystemUserIcon;
+    QString defaultUserIconPath;
+
+    bool isNewUser;
+
+    QRegExp numberExp;
+    QRegExp passExp;
+};
+
+int LoginDialogPrivate::userIndex(QString text)
+{
+    for(int i = 0; i < localUserInfo.size(); i++)
+    {
+        if(localUserInfo.at(i)->userName == text)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+LoginDialog::LoginDialog(QWidget *parent) :
+    QDialog(parent),
+    d_ptr(new LoginDialogPrivate()),
+    ui(new Ui::LoginDialog)
+{
+    ui->setupUi(this);
+
+    initWidget();
+    createTrayMenu();
+}
+
+void LoginDialog::login()
+{
+    MQ_D(LoginDialog);
+
+    int index = -1;
+
+    if( (index = isContainUser()) >= 0)
+    {
+        if(index < d->localUserInfo.size())
+        {
+            d->localUserInfo.at(index)->userName = ui->userList->currentText();
+            d->localUserInfo.at(index)->originPassWord = ui->password->text();
+            d->localUserInfo.at(index)->password = RUtil::MD5(ui->password->text());
+            d->localUserInfo.at(index)->isAutoLogin =  ui->autoLogin->isChecked();
+            d->localUserInfo.at(index)->isRemberPassword = ui->rememberPassord->isChecked();
+            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+        }
+    }
+    else
+    {
+        UserInfoDesc * desc = new UserInfoDesc;
+        desc->userName = ui->userList->currentText();
+        desc->loginState = (int)onlineState->state();
+        desc->originPassWord = ui->password->text();
+        desc->password = RUtil::MD5(ui->password->text());
+        desc->isAutoLogin = ui->autoLogin->isChecked();
+        desc->isRemberPassword = ui->rememberPassord->isChecked();
+        desc->isSystemPixMap = d->isSystemUserIcon;
+        desc->pixmap = d->defaultUserIconPath;
+
+        d->localUserInfo.append(desc);
+        RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+    }
+}
+
+void LoginDialog::minsize()
+{
+    if(trayIcon)
+    {
+        if(!trayIcon->isVisible())
+        {
+            trayIcon->setVisible(true);
+        }
+        this->setVisible(false);
+    }
+}
+
+void LoginDialog::closeWindow()
+{
+    this->close();
+}
+
+void LoginDialog::switchUser(int index)
+{
+    MQ_D(LoginDialog);
+
+    if(d->localUserInfo.size() > 0 && index >= 0 && index < d->localUserInfo.size() )
+    {
+        UserInfoDesc * userInfo = d->localUserInfo.at(index);
+        ui->password->setText(userInfo->originPassWord);
+        ui->rememberPassord->setChecked(userInfo->isRemberPassword);
+        ui->autoLogin->setChecked(userInfo->isAutoLogin);
+        if(userInfo->isSystemPixMap)
+        {
+            QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+            if(pixmap.isNull())
+            {
+                userInfo->pixmap = d->defaultUserIconPath;
+                ui->userIcon->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap)).scaled(ui->userIcon->width(),ui->userIcon->height()));
+            }
+            else
+            {
+                ui->userIcon->setPixmap(pixmap.scaled(ui->userIcon->width(),ui->userIcon->height()));
+            }
+        }
+
+        onlineState->setState((OnLineState::UserState)userInfo->loginState);
+        d->isNewUser = false;
+
+        validateInput("");
+    }
+    else
+    {
+        d->isNewUser = true;
+    }
+}
+
+void LoginDialog::initWidget()
+{
+    MQ_D(LoginDialog);
+
+    QSize size = qApp->desktop()->size();
+
+    this->setGeometry((size.width() - d->windowWidth)/2,(size.height() - d->windowHeight)/2,d->windowWidth,d->windowHeight);
+
+    this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+
+    toolBar = new ToolBar(this);
+    connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(minsize()));
+    connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
+
+    systemSetting = new QToolButton(this);
+    systemSetting->setObjectName(Constant::TOOL_SETTING);
+    systemSetting->setToolTip(tr("System Setting"));
+
+    toolBar->insertToolButton(systemSetting,Constant::TOOL_MIN);
+
+    ui->userList->setEditable(true);
+
+    QRegExpValidator * numberValidator = new QRegExpValidator(d->numberExp);
+    ui->userList->lineEdit()->setValidator(numberValidator);
+    ui->userList->lineEdit()->setPlaceholderText(tr("Input number"));
+    ui->userList->setView(new QListView());
+    ui->userList->lineEdit()->installEventFilter(this);
+
+    QRegExpValidator * passValidator = new QRegExpValidator(d->passExp);
+    ui->password->setValidator(passValidator);
+    ui->password->setPlaceholderText(tr("Input password"));
+    ui->password->setEchoMode(QLineEdit::Password);
+    ui->password->installEventFilter(this);
+
+    ui->rememberPassord->setText(tr("Remember password"));
+    ui->autoLogin->setText(tr("Auto login"));
+    ui->login->setText(tr("Login"));
+    ui->forgetPassword->setText(tr("Forget Password"));
+
+    connect(ui->userList,SIGNAL(currentIndexChanged(int)),this,SLOT(switchUser(int)));
+    connect(ui->login,SIGNAL(pressed()),this,SLOT(login()));
+    connect(ui->autoLogin,SIGNAL(clicked(bool)),ui->rememberPassord,SLOT(setChecked(bool)));
+    connect(ui->password,SIGNAL(textEdited(QString)),this,SLOT(validateInput(QString)));
+    connect(ui->userList,SIGNAL(currentTextChanged(QString)),this,SLOT(validateInput(QString)));
+
+    onlineState = new OnLineState(this);
+
+    QTimer::singleShot(0, this, SLOT(readLocalUser()));
+}
+
+void LoginDialog::createTrayMenu()
+{
+    trayMenu = new QMenu();
+    exitAction = new QAction(tr("Exit"),trayMenu);
+    mainPanelAction = new QAction(tr("Open Panel"),trayMenu);
+
+    connect(mainPanelAction,SIGNAL(triggered()),this,SLOT(showNormal()));
+    connect(exitAction,SIGNAL(triggered()),this,SLOT(close()));
+
+    trayMenu->addAction(mainPanelAction);
+    trayMenu->addAction(exitAction);
+
+    trayIcon = new QSystemTrayIcon(this);
+    trayIcon->setContextMenu(trayMenu);
+    trayIcon->setToolTip(qApp->applicationName());
+
+    trayIcon->setIcon(QIcon(Constant::ICON_SYSTEM24));
+    trayIcon->setVisible(true);
+}
+
+int LoginDialog::isContainUser()
+{
+    MQ_D(LoginDialog);
+    return d->userIndex(ui->userList->currentText());
+}
+
+void LoginDialog::resetDefaultInput()
+{
+    MQ_D(LoginDialog);
+
+    d->isSystemUserIcon = true;
+    QString fullPath = RSingleton<ImageManager>::instance()->getSystemUserIcon();
+    QFileInfo  info(fullPath);
+    d->defaultUserIconPath = info.fileName();
+
+    ui->password->setText(tr(""));
+    ui->autoLogin->setChecked(false);
+    ui->rememberPassord->setChecked(false);
+    QPixmap pixmap(fullPath);
+
+    onlineState->setState(OnLineState::STATE_ONLINE);
+    ui->userIcon->setPixmap(pixmap.scaled(ui->userIcon->width(),ui->userIcon->height()));
+
+    ui->login->setEnabled(false);
+    ui->login->style()->unpolish(ui->login);
+    ui->login->style()->polish(ui->login);
+}
+
+void LoginDialog::readLocalUser()
+{
+    MQ_D(LoginDialog);
+
+    RSingleton<UserInfoFile>::instance()->readUsers(d->localUserInfo);
+
+    if(d->localUserInfo.size() > 0)
+    {
+        foreach(UserInfoDesc * user,d->localUserInfo)
+        {
+             ui->userList->addItem(user->userName);
+        }
+    }
+    else
+    {
+        resetDefaultInput();
+    }
+
+    QPoint point = ui->userIcon->mapTo(this,QPoint(ui->userIcon->size().width(),ui->userIcon->size().height()));
+
+    onlineState->setGeometry(point.x() - Constant::TOOL_WIDTH,point.y() - Constant::TOOL_HEIGHT,Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
+}
+
+void LoginDialog::validateInput(QString /*text*/)
+{
+    MQ_D(LoginDialog);
+    if(ui->userList->currentText().size() >0 && ui->password->text().size() > 0)
+    {
+        if(d->numberExp.exactMatch(ui->userList->currentText()) && d->passExp.exactMatch(ui->password->text()))
+        {
+            ui->login->setEnabled(true);
+            ui->login->style()->unpolish(ui->login);
+            ui->login->style()->polish(ui->login);
+            return;
+        }
+    }
+
+    ui->login->setEnabled(false);
+    ui->login->style()->unpolish(ui->login);
+    ui->login->style()->polish(ui->login);
+}
+
+LoginDialog::~LoginDialog()
+{
+    if(toolBar)
+    {
+        delete toolBar;
+        toolBar = NULL;
+    }
+
+    delete ui;
+}
+
+void LoginDialog::resizeEvent(QResizeEvent *event)
+{
+    toolBar->setGeometry(event->size().width() - toolBar->size().width(),0,toolBar->size().width(),toolBar->size().height());
+}
+
+void LoginDialog::mousePressEvent(QMouseEvent *event)
+{
+    MQ_D(LoginDialog);
+    d->mousePreseePoint = event->pos();
+}
+
+void LoginDialog::mouseMoveEvent(QMouseEvent *event)
+{
+    MQ_D(LoginDialog);
+
+    QPoint tmpPoint = event->pos() - d->mousePreseePoint;
+
+    this->setGeometry(this->x() + tmpPoint.x(),this->y() + tmpPoint.y(),d->windowWidth,d->windowHeight);
+}
+
+void LoginDialog::closeEvent(QCloseEvent */*event*/)
+{
+    qApp->exit();
+}
+
+bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
+{
+    MQ_D(LoginDialog);
+    if(event->type() == QEvent::KeyPress)
+    {
+        if(obj == ui->password)
+        {
+            QKeyEvent * keyEvent = dynamic_cast<QKeyEvent *>(event);
+            if(!d->isNewUser && keyEvent->key() == Qt::Key_Backspace)
+            {
+                ui->password->setText("");
+            }
+        }
+        //Yang 20171213待实现对输入框键盘事件的捕捉
+        else if(obj == ui->userList->lineEdit())
+        {
+
+        }
+    }
+    return QDialog::eventFilter(obj,event);
+}

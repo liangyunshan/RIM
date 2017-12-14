@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/background">
+        <file>resource/background/login.png</file>
+    </qresource>
+    <qresource prefix="/style">
+        <file>resource/RimClient.qss</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file>resource/icon/icon_setting_30.png</file>
+        <file>resource/icon/icon_close_30.png</file>
+        <file>resource/icon/icon_min_30.png</file>
+        <file>resource/icon/icon_system_16.png</file>
+        <file>resource/icon/icon_system_24.png</file>
+        <file>resource/icon/icon_system_32.png</file>
+        <file>resource/icon/icon_system_48.png</file>
+        <file>resource/icon/icon_system_64.png</file>
+        <file>resource/icon/icon_system_72.png</file>
+        <file>resource/icon/icon_system_96.png</file>
+        <file>resource/icon/icon_system_128.png</file>
+    </qresource>
+    <qresource prefix="/state">
+        <file>resource/icon/state/STATE_HIDE.png</file>
+        <file>resource/icon/state/STATE_ONLINE.png</file>
+        <file>resource/icon/state/STATE_BUSY.png</file>
+        <file>resource/icon/state/STATE_NODISTURB.png</file>
+        <file>resource/icon/state/STATE_OFFLINE.png</file>
+    </qresource>
+</RCC>

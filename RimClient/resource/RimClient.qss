@@ -1,0 +1,20 @@
+QWidget#loginBar
+{
+	border-image:url(":/background/resource/background/login.png");
+}
+
+QWidget#MainWidget
+{
+	border-radius:3px;
+}
+
+QToolButton
+{
+	border:none;
+	background-image:none;
+}
+
+QToolButton:hover
+{  
+	background-color:rgba(119,200,247,150);
+}  
