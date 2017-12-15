@@ -1,16 +1,11 @@
 #include "maindialog.h"
-#include "ui_maindialog.h"
 
 #include <QDebug>
 #include <QDesktopWidget>
 #include <QMouseEvent>
 #include <QTimer>
-#include <QMessageBox>
-
-#ifdef Q_OS_WIN
-#include <Windows.h>
-#include <windowsx.h>
-#endif //Q_OS_WIN
+#include <QHBoxLayout>
+#include <QApplication>
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
@@ -18,6 +13,9 @@
 #include "constants.h"
 #include "head.h"
 #include "toolbar.h"
+#include "panelbottomtoolbar.h"
+#include "panelcontentarea.h"
+#include "paneltoparea.h"
 
 #define PANEL_MARGIN 20
 
@@ -37,22 +35,18 @@ private:
 
 MainDialog::MainDialog(QWidget *parent) :
     d_ptr(new MainDialogPrivate()),
-    QWidget(parent),
-    ui(new Ui::MainDialog)
+    AbstractWidget(parent)
 {
-    ui->setupUi(this);
-
-    this->setWindowFlags(Qt::FramelessWindowHint |Qt::Tool);
-    this->setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
-    this->setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
-    this->setMaximumHeight(qApp->desktop()->screen()->height());
+    setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
+    setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
+    setMaximumHeight(qApp->desktop()->screen()->height());
 
     initWidget();
 }
 
 MainDialog::~MainDialog()
 {
-    delete ui;
+
 }
 
 void MainDialog::mousePressEvent(QMouseEvent *event)
@@ -90,103 +84,18 @@ void MainDialog::closeEvent(QCloseEvent *)
     QTimer::singleShot(50,qApp,SLOT(quit()));
 }
 
-bool MainDialog::nativeEvent(const QByteArray &eventType, void *message, long *result)
-{
-#ifdef Q_OS_WIN
-    MSG* msg = static_cast<MSG*>(message);
-
-    if (msg->message == WM_NCHITTEST)
-    {
-        if (isMaximized())
-        {
-            return false;
-        }
-
-        *result = 0;
-        const LONG borderWidth = 8;
-        RECT winrect;
-        GetWindowRect(reinterpret_cast<HWND>(winId()), &winrect);
-
-        // must be short to correctly work with multiple monitors (negative coordinates)
-        short x = msg->lParam & 0x0000FFFF;
-        short y = (msg->lParam & 0xFFFF0000) >> 16;
-
-        bool resizeWidth = minimumWidth() != maximumWidth();
-        bool resizeHeight = minimumHeight() != maximumHeight();
-        if (resizeWidth)
-        {
-            //left border
-            if (x >= winrect.left && x < winrect.left + borderWidth)
-            {
-                *result = HTLEFT;
-            }
-            //right border
-            if (x < winrect.right && x >= winrect.right - borderWidth)
-            {
-                *result = HTRIGHT;
-            }
-        }
-        if (resizeHeight)
-        {
-            //bottom border
-            if (y < winrect.bottom && y >= winrect.bottom - borderWidth)
-            {
-                *result = HTBOTTOM;
-            }
-            //top border
-            if (y >= winrect.top && y < winrect.top + borderWidth)
-            {
-                *result = HTTOP;
-            }
-        }
-        if (resizeWidth && resizeHeight)
-        {
-            //bottom left corner
-            if (x >= winrect.left && x < winrect.left + borderWidth &&
-                y < winrect.bottom && y >= winrect.bottom - borderWidth)
-            {
-                *result = HTBOTTOMLEFT;
-            }
-            //bottom right corner
-            if (x < winrect.right && x >= winrect.right - borderWidth &&
-                y < winrect.bottom && y >= winrect.bottom - borderWidth)
-            {
-                *result = HTBOTTOMRIGHT;
-            }
-            //top left corner
-            if (x >= winrect.left && x < winrect.left + borderWidth &&
-                y >= winrect.top && y < winrect.top + borderWidth)
-            {
-                *result = HTTOPLEFT;
-            }
-            //top right corner
-            if (x < winrect.right && x >= winrect.right - borderWidth &&
-                y >= winrect.top && y < winrect.top + borderWidth)
-            {
-                *result = HTTOPRIGHT;
-            }
-        }
-
-        if (*result != 0)
-            return true;
-
-        QWidget *action = QApplication::widgetAt(QCursor::pos());
-        if (action == this){
-            *result = HTCAPTION;
-            return true;
-        }
-        //在鼠标进入中间区域后，将图标设置默认值
-        setCursor(Qt::ArrowCursor);
-    }
-#else
-    QMessageBox::warning(this,tr("Warning"),tr("System don't support resize window!"),QMessageBox::Yes,QMessageBox::Yes);
-#endif
-    return false;
-}
-
 void MainDialog::updateWidgetGeometry()
 {
-    toolBar->setGeometry(0,0,this->width(),Constant::TOOL_HEIGHT);
+    QLayout * lay = layout();
+    int right = 0;
+    int left  = 0;
+    if(lay)
+    {
+        QMargins margins = lay->contentsMargins();
+        right = margins.right();
+        left = margins.left();
+    }
+    toolBar->setGeometry(left,0,this->width() - right * 3,Constant::TOOL_HEIGHT);
 }
 
 void MainDialog::closeWindow()
@@ -198,14 +107,62 @@ void MainDialog::closeWindow()
 
 void MainDialog::initWidget()
 {
+    MainPanel = new QWidget(this);
+    MainPanel->setObjectName("MainPanel");
+
+    setContentWidget(MainPanel);
+
+    TopBar = new QWidget(this);
+    TopBar->setFixedHeight(150);
+    TopBar->setObjectName("TopBar");
+
+    Conent = new QWidget(this);
+    Conent->setObjectName("Conent");
+
+    ToolBarWidget = new QWidget(this);
+    ToolBarWidget->setObjectName("ToolBarWidget");
+
+    QVBoxLayout * mainLayout = new QVBoxLayout();
+    mainLayout->setContentsMargins(0,0,0,0);
+    mainLayout->setSpacing(0);
+
+    mainLayout->addWidget(TopBar);
+    mainLayout->addWidget(Conent);
+    mainLayout->addWidget(ToolBarWidget);
+
+    MainPanel->setLayout(mainLayout);
+
     connect(SystemTrayIcon::instance(),SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 
     readSettings();
 
-    toolBar = new ToolBar(this);
+    toolBar = new ToolBar(MainPanel);
     connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
     connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
+
+    panelTopArea = new PanelTopArea(TopBar);
+    QHBoxLayout * topAreaLayout = new QHBoxLayout();
+    topAreaLayout->setContentsMargins(0,0,0,0);
+    topAreaLayout->setSpacing(0);
+    topAreaLayout->addWidget(panelTopArea);
+    TopBar->setLayout(topAreaLayout);
+
+    //中部内容区
+    panelContentArea = new PanelContentArea(Conent);
+    QHBoxLayout * contentLayout = new QHBoxLayout();
+    contentLayout->setContentsMargins(0,0,0,0);
+    contentLayout->setSpacing(0);
+    contentLayout->addWidget(panelContentArea);
+    Conent->setLayout(contentLayout);
+
+    //底部工具栏
+    bottomToolBar = new PanelBottomToolBar(ToolBarWidget);
+    QHBoxLayout * bottomToolLayout = new QHBoxLayout();
+    bottomToolLayout->setContentsMargins(0,0,0,0);
+    bottomToolLayout->setSpacing(0);
+    bottomToolLayout->addWidget(bottomToolBar);
+    ToolBarWidget->setLayout(bottomToolLayout);
 
     QTimer::singleShot(0,this,SLOT(updateWidgetGeometry()));
 }

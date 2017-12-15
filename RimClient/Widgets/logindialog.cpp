@@ -327,6 +327,12 @@ LoginDialog::~LoginDialog()
         mainDialog = NULL;
     }
 
+    if(trayIcon)
+    {
+       delete trayIcon;
+       trayIcon = NULL;
+    }
+
     delete ui;
 }
 

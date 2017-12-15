@@ -12,16 +12,15 @@
 #ifndef MAINDIALOG_H
 #define MAINDIALOG_H
 
-#include <QWidget>
-
-namespace Ui {
-class MainDialog;
-}
+#include "abstractwidget.h"
 
 class MainDialogPrivate;
 class ToolBar;
+class PanelBottomToolBar;
+class PanelContentArea;
+class PanelTopArea;
 
-class MainDialog : public QWidget
+class MainDialog : public AbstractWidget
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(MainDialog)
@@ -36,8 +35,6 @@ protected:
     void resizeEvent(QResizeEvent * );
     void closeEvent(QCloseEvent * event);
 
-    bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
-
 private slots:
     void updateWidgetGeometry();
     void closeWindow();
@@ -47,17 +44,19 @@ private:
     void readSettings();
     void writeSettings();
 
-    int     row(QPointF pos);                //计算九宫格行
-    int     col(QPointF pos);                //计算九宫格列
-    int     moveArea(QPointF pos);          //点击区域 相对于九宫格
-    void    setMouseStyle(int moveArea);
-
 private:
-    Ui::MainDialog *ui;
 
     MainDialogPrivate * d_ptr;
 
+    QWidget * MainPanel;
+    QWidget * TopBar;
+    QWidget * Conent;
+    QWidget * ToolBarWidget;
+
     ToolBar * toolBar;
+    PanelBottomToolBar * bottomToolBar;
+    PanelContentArea * panelContentArea;
+    PanelTopArea * panelTopArea;
 };
 
 #endif // MAINDIALOG_H

@@ -25,7 +25,7 @@ class OnLineState : public QWidget
     Q_DECLARE_PRIVATE(OnLineState)
 
 public:
-    OnLineState(QWidget * parent = 0);
+    explicit OnLineState(QWidget * parent = 0);
     ~OnLineState();
 
 public:

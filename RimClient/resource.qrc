@@ -17,6 +17,17 @@
         <file>resource/icon/icon_system_72.png</file>
         <file>resource/icon/icon_system_96.png</file>
         <file>resource/icon/icon_system_128.png</file>
+        <file>resource/icon/group_0.png</file>
+        <file>resource/icon/group_1.png</file>
+        <file>resource/icon/person_0.png</file>
+        <file>resource/icon/person_1.png</file>
+        <file>resource/icon/history_0.png</file>
+        <file>resource/icon/history_1.png</file>
+        <file>resource/icon/panel_search.png</file>
+        <file>resource/icon/panel_addPerson.png</file>
+        <file>resource/icon/panel_tool.png</file>
+        <file>resource/icon/icon_lock.png</file>
+        <file>resource/icon/icon_sign.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

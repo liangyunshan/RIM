@@ -63,6 +63,7 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
             taryMainMenu = new QMenu();
 
             lockAction = new QAction(tr("Lock"),taryMainMenu);
+            lockAction->setIcon(QIcon(Constant::ICON_LOKC24));
             connect(lockAction,SIGNAL(triggered()),this,SIGNAL(lockPanel()));
 
             taryMainMenu->addSeparator();
@@ -90,7 +91,7 @@ SystemTrayIcon::SystemTrayModel SystemTrayIcon::model()
 void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     MQ_D(SystemTrayIcon);
-    qDebug()<<__LINE__<<__FUNCTION__<<reason;
+
     switch(reason)
     {
         case QSystemTrayIcon::DoubleClick:
@@ -109,6 +110,7 @@ void SystemTrayIcon::initWidget()
     trayLoginMenu = new QMenu();
     mainPanelAction = new QAction(tr("Open Panel"),trayLoginMenu);
     exitAction = new QAction(tr("Exit"),trayLoginMenu);
+    exitAction->setIcon(QIcon(Constant::ICON_SIGN24));
 
     connect(mainPanelAction,SIGNAL(triggered()),this,SIGNAL(showMainPanel()));
     connect(exitAction,SIGNAL(triggered()),this,SIGNAL(quitApp()));

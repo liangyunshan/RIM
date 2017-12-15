@@ -14,6 +14,11 @@ namespace Constant {
 
 /*图片*/
 const char ICON_SYSTEM24[] = ":/icon/resource/icon/icon_system_24.png";
+const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
+const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
+const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
+const char Panel_Bottom_AddPersonButton[] = ":/icon/resource/icon/panel_addPerson.png";
+const char Panel_Bottom_ToolButton[] = ":/icon/resource/icon/panel_tool.png";
 
 /*文件路径*/
 const char ApplicationName[] = "RimClient";
