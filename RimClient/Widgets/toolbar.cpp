@@ -2,12 +2,12 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QToolButton>
 #include <QSpacerItem>
 #include <QStyle>
 #include <QDebug>
 
 #include "constants.h"
+#include "actionmanager/actionmanager.h"
 
 ToolBar::ToolBar(QWidget *parent) :
     QWidget(parent)
@@ -41,24 +41,20 @@ void ToolBar::initDialog()
 
     this->setLayout(layout);
 
-    minSize = new QToolButton(this);
-    minSize->setObjectName(Constant::TOOL_MIN);
+    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SIGNAL(minimumWindow()));
     minSize->setToolTip(tr("Min"));
 //    minSize->setIcon(style()->standardPixmap(QStyle::SP_TitleBarMinButton));
-    connect(minSize,SIGNAL(pressed()),this,SIGNAL(minimumWindow()));
 
-    closeButt = new QToolButton(this);
-    closeButt->setObjectName(Constant::TOOL_CLOSE);
+    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SIGNAL(closeWindow()));
     closeButt->setToolTip(tr("Close"));
 //    closeButt->setIcon(style()->standardPixmap(QStyle::SP_TitleBarCloseButton));
-    connect(closeButt,SIGNAL(pressed()),this,SIGNAL(closeWindow()));
 
     appendToolButton(minSize);
     appendToolButton(closeButt);
 }
 
 
-bool ToolBar::appendToolButton(QToolButton *toolButton)
+bool ToolBar::appendToolButton(RToolButton *toolButton)
 {
     if(!containButton(toolButton))
     {
@@ -68,7 +64,7 @@ bool ToolBar::appendToolButton(QToolButton *toolButton)
     return true;
 }
 
-bool ToolBar::insertToolButton(QToolButton *toolButton, const char *ID)
+bool ToolBar::insertToolButton(RToolButton *toolButton, const char *ID)
 {
     if(!containButton(toolButton))
     {
@@ -82,7 +78,7 @@ bool ToolBar::insertToolButton(QToolButton *toolButton, const char *ID)
             int index = 0;
             foreach(QObject * tmpObj,toolBar->children())
             {
-                QToolButton * tmpButt = dynamic_cast<QToolButton *>(tmpObj);
+                RToolButton * tmpButt = dynamic_cast<RToolButton *>(tmpObj);
                 if(tmpButt && tmpButt->objectName() == QString(ID))
                 {
                     toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
@@ -98,9 +94,9 @@ bool ToolBar::insertToolButton(QToolButton *toolButton, const char *ID)
     return true;
 }
 
-bool ToolBar::containButton(QToolButton *button)
+bool ToolBar::containButton(RToolButton *button)
 {
-    foreach(QToolButton * tmpButton,toolButts)
+    foreach(RToolButton * tmpButton,toolButts)
     {
         if(button->objectName() == tmpButton->objectName())
         {

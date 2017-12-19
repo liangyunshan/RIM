@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QApplication>
+#include <QToolButton>
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
@@ -16,6 +17,7 @@
 #include "panelbottomtoolbar.h"
 #include "panelcontentarea.h"
 #include "paneltoparea.h"
+#include "actionmanager/actionmanager.h"
 
 #define PANEL_MARGIN 20
 
@@ -103,6 +105,26 @@ void MainDialog::closeWindow()
     this->close();
 }
 
+void MainDialog::makeWindowFront(bool flag)
+{
+    Qt::WindowFlags flags = windowFlags();
+
+    if(flag)
+    {
+        setWindowFlags(flags | Qt::WindowStaysOnTopHint);
+        ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Unstick"));
+    }
+    else
+    {
+        setWindowFlags(flags & ~Qt::WindowStaysOnTopHint);
+        ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Stick"));
+    }
+
+    RUtil::globalSettings()->setValue("Main/topHint",flag);
+
+    show();
+}
+
 #include <QToolButton>
 
 void MainDialog::initWidget()
@@ -138,6 +160,12 @@ void MainDialog::initWidget()
     readSettings();
 
     toolBar = new ToolBar(MainPanel);
+
+    RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
+    toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
+
+    makeWindowFront(RUtil::globalSettings()->value("Main/topHint").toBool());
+
     connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
     connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
 

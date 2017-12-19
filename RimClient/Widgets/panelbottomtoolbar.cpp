@@ -5,6 +5,7 @@
 
 #include "head.h"
 #include "constants.h"
+#include "actionmanager/actionmanager.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -35,17 +36,13 @@ void PanelBottomToolBar::initWidget()
     contentLayout->setContentsMargins(6,1,1,1);
     contentLayout->setSpacing(2);
 
-    toolButton = new QToolButton();
+    RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,NULL,NULL);
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
-    toolButton->setObjectName("Panel_Bottom_ToolButton");
     toolButton->setToolTip(tr("Main menu"));
-    toolButton->setIcon(QIcon(Constant::Panel_Bottom_ToolButton));
 
-    searchPerson = new QToolButton();
+    RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,NULL,NULL);
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
-    searchPerson->setObjectName("Panel_Bottom_AddPersonButton");
     searchPerson->setToolTip(tr("Add Person"));
-    searchPerson->setIcon(QIcon(Constant::Panel_Bottom_AddPersonButton));
 
     contentLayout->addWidget(toolButton);
     contentLayout->addWidget(searchPerson);

@@ -24,12 +24,11 @@ public:
     ~PanelHistoryPage();
 
 private:
-    void initWidget();
+
 
 private:
     PanelHistoryPagePrivate * d_ptr;
 
-    QWidget * contentWidget;
 };
 
 #endif // PANELHISTORYPAGE_H

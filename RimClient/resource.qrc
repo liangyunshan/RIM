@@ -6,9 +6,6 @@
         <file>resource/RimClient.qss</file>
     </qresource>
     <qresource prefix="/icon">
-        <file>resource/icon/icon_setting_30.png</file>
-        <file>resource/icon/icon_close_30.png</file>
-        <file>resource/icon/icon_min_30.png</file>
         <file>resource/icon/icon_system_16.png</file>
         <file>resource/icon/icon_system_24.png</file>
         <file>resource/icon/icon_system_32.png</file>
@@ -24,10 +21,16 @@
         <file>resource/icon/history_0.png</file>
         <file>resource/icon/history_1.png</file>
         <file>resource/icon/panel_search.png</file>
-        <file>resource/icon/panel_addPerson.png</file>
-        <file>resource/icon/panel_tool.png</file>
         <file>resource/icon/icon_lock.png</file>
         <file>resource/icon/icon_sign.png</file>
+        <file>resource/icon/Tool_Close_Button.png</file>
+        <file>resource/icon/Tool_Min_Button.png</file>
+        <file>resource/icon/Tool_Panel_AddPerson.png</file>
+        <file>resource/icon/Tool_Panel_Front.png</file>
+        <file>resource/icon/Tool_Panel_Tool.png</file>
+        <file>resource/icon/Tool_Setting_Button.png</file>
+        <file>resource/icon/Group_Close_Tri.png</file>
+        <file>resource/icon/Group_Expand_Tri.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

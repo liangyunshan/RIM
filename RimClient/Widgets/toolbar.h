@@ -18,7 +18,7 @@ class ToolBar;
 }
 
 class QHBoxLayout;
-class QToolButton;
+class RToolButton;
 
 class ToolBar : public QWidget
 {
@@ -36,7 +36,7 @@ public:
      * @return 是否插入成功
      *
      */
-    bool appendToolButton(QToolButton * toolButton);
+    bool appendToolButton(RToolButton * toolButton);
 
 
     /*!
@@ -47,9 +47,9 @@ public:
      *
      * @return 是否插入成功
      */
-    bool insertToolButton(QToolButton * toolButton,const char * ID = NULL);
+    bool insertToolButton(RToolButton * toolButton,const char * ID = NULL);
 
-    bool containButton(QToolButton * button);
+    bool containButton(RToolButton * button);
 
 signals:
     void closeWindow();
@@ -64,12 +64,7 @@ private:
 
     QHBoxLayout * toolBarLayout;
 
-    QToolButton * minSize;
-    QToolButton * closeButt;
-    QToolButton * systemSetting;
-
-    QList<QToolButton *> toolButts;
-
+    QList<RToolButton *> toolButts;
 };
 
 #endif // TOOLBAR_H

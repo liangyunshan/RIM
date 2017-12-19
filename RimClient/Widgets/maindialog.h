@@ -38,6 +38,7 @@ protected:
 private slots:
     void updateWidgetGeometry();
     void closeWindow();
+    void makeWindowFront(bool flag);
 
 private:
     void initWidget();

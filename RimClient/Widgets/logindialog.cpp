@@ -22,6 +22,7 @@
 #include "Util/imagemanager.h"
 #include "maindialog.h"
 #include "systemtrayicon.h"
+#include "Widgets/actionmanager/actionmanager.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -72,6 +73,7 @@ int LoginDialogPrivate::userIndex(QString text)
 
 LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
+    m_actionManager(new ActionManager(this)),
     d_ptr(new LoginDialogPrivate()),
     ui(new Ui::LoginDialog)
 {
@@ -197,8 +199,8 @@ void LoginDialog::initWidget()
     connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(minsize()));
     connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
 
-    systemSetting = new QToolButton(this);
-    systemSetting->setObjectName(Constant::TOOL_SETTING);
+
+    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING));
     systemSetting->setToolTip(tr("System Setting"));
 
     toolBar->insertToolButton(systemSetting,Constant::TOOL_MIN);

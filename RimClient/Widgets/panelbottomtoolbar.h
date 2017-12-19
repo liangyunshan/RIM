@@ -31,10 +31,6 @@ private:
 
 private:
     QWidget * mainWidget;
-
-    QToolButton * toolButton;
-    QToolButton * searchPerson;
-
 };
 
 #endif // PANELBOTTOMTOOLBAR_H

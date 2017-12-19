@@ -24,12 +24,9 @@ public:
     ~PanelGroupPage();
 
 private:
-    void initWidget();
-
-private:
     PanelGroupPagePrivate * d_ptr;
 
-    QWidget * contentWidget;
+
 
 };
 

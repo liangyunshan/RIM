@@ -28,6 +28,7 @@ class OnLineState;
 class SystemTrayIcon;
 
 class MainDialog;
+class ActionManager;
 
 class LoginDialog : public QDialog
 {
@@ -70,6 +71,8 @@ private:
     SystemTrayIcon * trayIcon;
 
     MainDialog * mainDialog;
+
+    ActionManager *m_actionManager;
 };
 
 #endif // LOGINDIALOG_H

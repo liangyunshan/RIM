@@ -14,6 +14,7 @@
 #include <QWidget>
 
 class PanelPersonPagePrivate;
+class ToolItem;
 
 class PanelPersonPage : public QWidget
 {
@@ -23,14 +24,25 @@ public:
     explicit PanelPersonPage(QWidget * parent =0);
     ~PanelPersonPage();
 
+private slots:
+    void refreshList();
+    void addGroup();
+    void renameGroup();
+    void delGroup();
+
+    void clearItemSelection(ToolItem * item);
+    void createChatWindow(ToolItem * item);
+
+    void sendInstantMessage();
+    void showUserDetail();
+    void modifyUserInfo();
+    void deleteUser();
+
 private:
-    void initWidget();
+    void createAction();
 
 private:
     PanelPersonPagePrivate * d_ptr;
-
-    QWidget * contentWidget;
-
 };
 
 #endif // PANELPERSONPAGE_H
