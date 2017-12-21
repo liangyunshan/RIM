@@ -19,14 +19,22 @@ class ToolBar;
 
 class QHBoxLayout;
 class RToolButton;
+class ToolBarPrivate;
 
 class ToolBar : public QWidget
 {
     Q_OBJECT
+    Q_DECLARE_PRIVATE(ToolBar)
 
 public:
     explicit ToolBar(QWidget *parent = 0);
     ~ToolBar();
+
+    void setIconSize(QSize size);
+
+    void addStretch(int strech = 0);
+
+    void setContentsMargins(int left, int top, int right, int bottom);
 
     /*!
      * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
@@ -38,7 +46,6 @@ public:
      */
     bool appendToolButton(RToolButton * toolButton);
 
-
     /*!
      * @brief 插入工具按钮
      *
@@ -49,22 +56,12 @@ public:
      */
     bool insertToolButton(RToolButton * toolButton,const char * ID = NULL);
 
-    bool containButton(RToolButton * button);
-
 signals:
     void closeWindow();
     void minimumWindow();
 
 private:
-    void initDialog();
-
-private:
-    QWidget * toolBar;
-    QWidget * content;
-
-    QHBoxLayout * toolBarLayout;
-
-    QList<RToolButton *> toolButts;
+    ToolBarPrivate * d_ptr;
 };
 
 #endif // TOOLBAR_H

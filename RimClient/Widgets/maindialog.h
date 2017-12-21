@@ -19,6 +19,7 @@ class ToolBar;
 class PanelBottomToolBar;
 class PanelContentArea;
 class PanelTopArea;
+class ToolItem;
 
 class MainDialog : public AbstractWidget
 {
@@ -28,10 +29,9 @@ public:
     explicit MainDialog(QWidget *parent = 0);
     ~MainDialog();
 
+    static MainDialog * instance();
+
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent * event);
     void resizeEvent(QResizeEvent * );
     void closeEvent(QCloseEvent * event);
 
@@ -40,24 +40,16 @@ private slots:
     void closeWindow();
     void makeWindowFront(bool flag);
 
+    void showChatWindow(ToolItem*item);
+
 private:
     void initWidget();
     void readSettings();
     void writeSettings();
 
 private:
-
+    static MainDialog * dialog;
     MainDialogPrivate * d_ptr;
-
-    QWidget * MainPanel;
-    QWidget * TopBar;
-    QWidget * Conent;
-    QWidget * ToolBarWidget;
-
-    ToolBar * toolBar;
-    PanelBottomToolBar * bottomToolBar;
-    PanelContentArea * panelContentArea;
-    PanelTopArea * panelTopArea;
 };
 
 #endif // MAINDIALOG_H

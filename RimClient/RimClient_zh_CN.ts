@@ -4,12 +4,12 @@
 <context>
     <name>AbstractWidget</name>
     <message>
-        <location filename="Widgets/abstractwidget.cpp" line="167"/>
+        <location filename="Widgets/abstractwidget.cpp" line="197"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractwidget.cpp" line="167"/>
+        <location filename="Widgets/abstractwidget.cpp" line="197"/>
         <source>System don&apos;t support resize window!</source>
         <translation>系统不支持窗口缩放</translation>
     </message>
@@ -84,12 +84,12 @@
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="120"/>
+        <location filename="Widgets/maindialog.cpp" line="106"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="115"/>
+        <location filename="Widgets/maindialog.cpp" line="101"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -148,44 +148,128 @@
     </message>
 </context>
 <context>
+    <name>PanelContentArea</name>
+    <message>
+        <location filename="Widgets/panelcontentarea.cpp" line="214"/>
+        <source>Person</source>
+        <translation>联系人</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelcontentarea.cpp" line="218"/>
+        <source>Group</source>
+        <translation>群组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelcontentarea.cpp" line="222"/>
+        <source>History</source>
+        <translation>会话</translation>
+    </message>
+</context>
+<context>
+    <name>PanelGroupPage</name>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="133"/>
+        <source>Search group</source>
+        <translation>查找添加群</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="136"/>
+        <source>New group</source>
+        <translation>创建一个群</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="139"/>
+        <source>Add groups</source>
+        <translation>添加群分组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="152"/>
+        <source>Rename group</source>
+        <translation>重命名群分组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="155"/>
+        <source>Delete group</source>
+        <translation>删除群分组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="169"/>
+        <source>Send message</source>
+        <translation>发送群消息</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="172"/>
+        <source>View detail</source>
+        <translation>查看群资料</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="175"/>
+        <source>Modify name</source>
+        <translation>修改备注名称</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="178"/>
+        <source>Exit group</source>
+        <translation>退出该群</translation>
+    </message>
+</context>
+<context>
+    <name>PanelHistoryPage</name>
+    <message>
+        <location filename="Widgets/panelhistorypage.cpp" line="94"/>
+        <source>Clear list</source>
+        <translation>清空会话列表</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelhistorypage.cpp" line="102"/>
+        <source>Top session</source>
+        <translation>会话置顶</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelhistorypage.cpp" line="105"/>
+        <source>Remove session</source>
+        <translation>从会话列表移除</translation>
+    </message>
+</context>
+<context>
     <name>PanelPersonPage</name>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="159"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="164"/>
         <source>Refresh list</source>
         <translation>刷新好友列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="162"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="167"/>
         <source>Add group</source>
         <translation>添加分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="174"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="179"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="177"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="182"/>
         <source>Delete group</source>
         <translation>删除分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="189"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="194"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="192"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="197"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="195"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="200"/>
         <source>Modify Comments</source>
         <translation>修改备注</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="198"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="203"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>

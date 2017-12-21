@@ -29,8 +29,6 @@ public:
     ToolPage *addPage(QString text);
 
     ToolPage * selectedPage();
-
-    void setSelectedItem(ToolItem * item);
     ToolItem * selectedItem();
 
     int pageCount();
@@ -39,6 +37,7 @@ public:
 
 private slots:
     void setSlectedPage(ToolPage*);
+    void clearItemSelection(ToolItem*item);
 
 protected:
     void contextMenuEvent(QContextMenuEvent * event);

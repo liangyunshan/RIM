@@ -24,6 +24,23 @@ class PanelContentAreaPrivate: public GlobalData<PanelContentArea>
 {
     Q_DECLARE_PUBLIC(PanelContentArea)
 
+private:
+    PanelContentAreaPrivate(PanelContentArea * q):
+        q_ptr(q)
+    {
+
+    }
+    PanelContentArea * q_ptr;
+
+
+    QWidget * mainWidget;
+
+    PanelTabBar * panelTabBar;
+    QStackedWidget * panelStackedWidget;
+
+    PanelPersonPage * personWidget;
+    PanelHistoryPage * historyWidget;
+    PanelGroupPage * groupWidget;
 };
 
 PanelTabItem::PanelTabItem(QWidget *parent):QWidget(parent)
@@ -161,7 +178,7 @@ void PanelTabBar::switchItemIndex()
 }
 
 PanelContentArea::PanelContentArea(QWidget *parent):
-    d_ptr(new PanelContentAreaPrivate()),
+    d_ptr(new PanelContentAreaPrivate(this)),
     QWidget(parent)
 {
     initWidget();
@@ -174,40 +191,48 @@ PanelContentArea::~PanelContentArea()
 
 void PanelContentArea::initWidget()
 {
+    MQ_D(PanelContentArea);
     QHBoxLayout * layout = new QHBoxLayout();
     layout->setContentsMargins(0,0,0,0);
     layout->setMargin(0);
 
-    mainWidget = new QWidget(this);
-    mainWidget->setObjectName("MainWidget");
-    layout->addWidget(mainWidget);
+    d->mainWidget = new QWidget(this);
+    d->mainWidget->setObjectName("MainWidget");
+    layout->addWidget(d->mainWidget);
     this->setLayout(layout);
-
 
     QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout->setContentsMargins(0,0,0,0);
     mainLayout->setSpacing(0);
 
-    panelTabBar = new PanelTabBar(mainWidget);
-    panelStackedWidget = new QStackedWidget(mainWidget);
+    d->panelTabBar = new PanelTabBar(d->mainWidget);
+    d->panelStackedWidget = new QStackedWidget(d->mainWidget);
 
-    panelTabBar->addTab()->setObjectName("person");
-    panelTabBar->addTab()->setObjectName("group");
-    panelTabBar->addTab()->setObjectName("history");
+    PanelTabItem * tabItem = d->panelTabBar->addTab();
+    tabItem->setObjectName("person");
+    tabItem->setToolTip(tr("Person"));
 
-    personWidget = new PanelPersonPage(this);
-    groupWidget = new PanelGroupPage(this);
-    historyWidget = new PanelHistoryPage(this);
+    tabItem = d->panelTabBar->addTab();
+    tabItem->setObjectName("group");
+    tabItem->setToolTip(tr("Group"));
 
-    panelStackedWidget->addWidget(personWidget);
-    panelStackedWidget->addWidget(groupWidget);
-    panelStackedWidget->addWidget(historyWidget);
+    tabItem = d->panelTabBar->addTab();
+    tabItem->setObjectName("history");
+    tabItem->setToolTip(tr("History"));
 
-    connect(panelTabBar,SIGNAL(currentIndexChanged(int)),panelStackedWidget,SLOT(setCurrentIndex(int)));
+    d->personWidget = new PanelPersonPage(this);
+    d->groupWidget = new PanelGroupPage(this);
+    d->historyWidget = new PanelHistoryPage(this);
 
-    panelTabBar->setCurrentIndex(0);
+    d->panelStackedWidget->addWidget(d->personWidget);
+    d->panelStackedWidget->addWidget(d->groupWidget);
+    d->panelStackedWidget->addWidget(d->historyWidget);
 
-    mainLayout->addWidget(panelTabBar);
-    mainLayout->addWidget(panelStackedWidget);
-    mainWidget->setLayout(mainLayout);
+    connect(d->panelTabBar,SIGNAL(currentIndexChanged(int)),d->panelStackedWidget,SLOT(setCurrentIndex(int)));
+
+    d->panelTabBar->setCurrentIndex(0);
+
+    mainLayout->addWidget(d->panelTabBar);
+    mainLayout->addWidget(d->panelStackedWidget);
+    d->mainWidget->setLayout(mainLayout);
 }

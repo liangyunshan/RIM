@@ -91,16 +91,6 @@ private:
 
 private:
     PanelContentAreaPrivate * d_ptr;
-
-    QWidget * mainWidget;
-
-    PanelTabBar * panelTabBar;
-    QStackedWidget * panelStackedWidget;
-
-    PanelPersonPage * personWidget;
-    PanelHistoryPage * historyWidget;
-    PanelGroupPage * groupWidget;
-
 };
 
 #endif // PANELCONTENTAREA_H

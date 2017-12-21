@@ -9,12 +9,45 @@
 #include <QDebug>
 #include <QContextMenuEvent>
 #include <QMouseEvent>
+#include <QMetaEnum>
 
 #include "head.h"
 #include "constants.h"
+#include "util/rsingleton.h"
+#include "util/imagemanager.h"
+#include "Widgets/widget/riconlabel.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
-#define TOOL_ICON_FIXED_SIZE 40
+
+class ToolItemPrivate : public GlobalData<ToolItem>
+{
+    Q_DECLARE_PUBLIC(ToolItem)
+
+protected:
+    ToolItemPrivate(ToolItem * q):q_ptr(q)
+    {
+        initWidget();
+        checked = false;
+        contenxMenu = NULL;
+    }
+
+    ToolItem * q_ptr;
+
+    ToolPage * pagePtr;
+
+    void initWidget();
+
+    QWidget * contentWidget;
+    RIconLabel * iconLabel;             //个人、群组、历史聊天的头像
+    QLabel * nameLabel;                 //个人、群组、历史聊天的用户名
+    QLabel * nickLabel;                 //个人昵称、群组成员数量
+    QLabel * descLabel;                 //个人签名、群组和历史聊天的聊天记录信息
+    QLabel * infoLabel;                 //群组和历史聊天的日期
+
+    QMenu * contenxMenu;
+
+    bool checked;                       //是否被选中
+};
 
 void ToolItemPrivate::initWidget()
 {
@@ -32,18 +65,19 @@ void ToolItemPrivate::initWidget()
     iconLayout->setContentsMargins(0,0,0,0);
     iconLayout->setSpacing(0);
 
-    iconLabel = new QLabel();
-    iconLabel->setText("Icon");
+    iconLabel = new RIconLabel();
+    iconLabel->setTransparency(true);
+    iconLabel->setEnterCursorChanged(false);
     iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setStyleSheet("background-color:pink");
-    iconLabel->setFixedSize(TOOL_ICON_FIXED_SIZE,TOOL_ICON_FIXED_SIZE);
+    iconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    iconLabel->setFixedSize(Constant::ICON_USER_SIZE,Constant::ICON_USER_SIZE);
 
     iconLayout->addStretch(1);
     iconLayout->addWidget(iconLabel);
     iconWidget->setLayout(iconLayout);
 
     QWidget * middleWidget = new QWidget(contentWidget);
-    middleWidget->setFixedHeight(TOOL_ICON_FIXED_SIZE);
+    middleWidget->setFixedHeight(Constant::ICON_USER_SIZE);
 
     QVBoxLayout * middleLayout = new QVBoxLayout();
     middleLayout->setContentsMargins(0,0,0,0);
@@ -143,22 +177,17 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
     {
         if(event->type() == QEvent::Enter)
         {
-            d->contentWidget->setProperty("enter",true);
-            style()->unpolish(d->contentWidget);
-            style()->polish(d->contentWidget);
+            if(!d->checked)
+            {
+                setItemState(Mouse_Enter);
+            }
         }
         else if(event->type() == QEvent::Leave)
         {
             if(!d->checked)
             {
-                d->contentWidget->setProperty("enter",false);
-                style()->unpolish(d->contentWidget);
-                style()->polish(d->contentWidget);
+                setItemState(Mouse_Leave);
             }
-        }
-        else if(event->type() == QEvent::MouseButtonPress)
-        {
-
         }
         else if(event->type() == QEvent::MouseButtonRelease)
         {
@@ -179,10 +208,34 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
         }
         else if(event->type() == QEvent::MouseButtonDblClick)
         {
-            emit showChatWindow(this);
+            emit itemDoubleClick(this);
         }
     }
     return QWidget::eventFilter(watched,event);
+}
+
+void ToolItem::setItemState(ToolItem::ItemState state)
+{
+    MQ_D(ToolItem);
+#if QT_VERSION >= 0x050500
+    QMetaEnum metaEnum = QMetaEnum::fromType<ItemState>();
+    d->contentWidget->setProperty(metaEnum.name(),metaEnum.key(state));
+#else
+    switch( state)
+    {
+        case Mouse_Enter:
+                            d->contentWidget->setProperty("ItemState","Mouse_Enter");
+                            break;
+        case Mouse_Leave:
+                            d->contentWidget->setProperty("ItemState","Mouse_Leave");
+                            break;
+        case Mouse_Checked:
+                            d->contentWidget->setProperty("ItemState","Mouse_Checked");
+                            break;
+    }
+#endif
+    style()->unpolish(d->contentWidget);
+    style()->polish(d->contentWidget);
 }
 
 void ToolItem::setContentMenu(QMenu *contentMenu)
@@ -201,8 +254,13 @@ void ToolItem::setChecked(bool flag)
 {
     MQ_D(ToolItem);
     d->checked = flag;
-    d->contentWidget->setProperty("selected",flag);
-    style()->unpolish(d->contentWidget);
-    style()->polish(d->contentWidget);
+    if(flag)
+    {
+        setItemState(Mouse_Checked);
+    }
+    else
+    {
+        setItemState(Mouse_Leave);
+    }
 }
 

@@ -1,8 +1,6 @@
 #include "actionmanager.h"
 
 #include <QToolButton>
-#include <QAction>
-#include <QMenu>
 #include <QDebug>
 
 template<class T,class P>

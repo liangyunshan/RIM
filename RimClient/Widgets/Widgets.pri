@@ -16,11 +16,15 @@ HEADERS += \
     $$PWD/abstractwidget.h \
     $$PWD/actionmanager/id.h \
     $$PWD/actionmanager/actionmanager.h \
-    $$PWD/actionmanager/rtoolbutton.h \
+    $$PWD/widget/rtoolbutton.h \
     $$PWD/panelcontentpage.h \
     $$PWD/toolbox/toolbox.h \
     $$PWD/toolbox/toolpage.h \
     $$PWD/toolbox/toolitem.h \
+    $$PWD/toolbox/listbox.h \
+    $$PWD/abstractchatwidget.h \
+    $$PWD/widget/riconlabel.h \
+    $$PWD/widget/rbutton.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -37,8 +41,12 @@ SOURCES += \
     $$PWD/abstractwidget.cpp \
     $$PWD/actionmanager/id.cpp \
     $$PWD/actionmanager/actionmanager.cpp \
-    $$PWD/actionmanager/rtoolbutton.cpp \
+    $$PWD/widget/rtoolbutton.cpp \
     $$PWD/panelcontentpage.cpp \
     $$PWD/toolbox/toolbox.cpp \
     $$PWD/toolbox/toolpage.cpp \
-    $$PWD/toolbox/toolitem.cpp
+    $$PWD/toolbox/toolitem.cpp \
+    $$PWD/toolbox/listbox.cpp \
+    $$PWD/abstractchatwidget.cpp \
+    $$PWD/widget/riconlabel.cpp \
+    $$PWD/widget/rbutton.cpp

@@ -4,15 +4,76 @@
 #include <QHBoxLayout>
 #include <QSpacerItem>
 #include <QStyle>
+#include <QList>
 #include <QDebug>
 
+#include "head.h"
+#include "datastruct.h"
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
 
+template<class T>
+bool contains(QList<T*> & list,const T * t)
+{
+    /*the compiler can't inspect list<tNode<T>*> (it doesn't have its definition at this point)
+    and so it doesn't know whether list<tNode<T>*>::iterator is either a static field or a type. 需要加上typename*/
+
+    typename  QList<T*>::iterator iter = list.begin();
+    while(iter != list.end())
+    {
+        if((*iter) == t)
+        {
+            return true;
+        }
+        iter++;
+    }
+
+    return false;
+}
+
+class ToolBarPrivate : public GlobalData<ToolBar>
+{
+    Q_DECLARE_PUBLIC(ToolBar)
+
+private:
+    ToolBarPrivate(ToolBar * q):q_ptr(q)
+    {
+        initDialog();
+    }
+
+    void initDialog();
+
+    ToolBar * q_ptr;
+
+    QWidget * toolBar;
+    QHBoxLayout * toolBarLayout;
+
+    QList<RToolButton *> toolButts;
+};
+
+void ToolBarPrivate::initDialog()
+{
+    toolBar = new QWidget(q_ptr);
+
+    toolBarLayout = new QHBoxLayout();
+
+    toolBarLayout->setContentsMargins(0,0,0,0);
+    toolBarLayout->setSpacing(0);
+    toolBar->setLayout(toolBarLayout);
+
+    QVBoxLayout * layout = new QVBoxLayout();
+    layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(0);
+    layout->addWidget(toolBar);
+
+    q_ptr->setLayout(layout);
+}
+
 ToolBar::ToolBar(QWidget *parent) :
+    d_ptr(new ToolBarPrivate(this)),
     QWidget(parent)
 {
-    initDialog();
+
 }
 
 ToolBar::~ToolBar()
@@ -20,88 +81,60 @@ ToolBar::~ToolBar()
 
 }
 
-void ToolBar::initDialog()
+void ToolBar::setIconSize(QSize size)
 {
-    toolBar = new QWidget(this);
-
-    toolBarLayout = new QHBoxLayout();
-
-    toolBarLayout->setContentsMargins(0,0,0,0);
-    toolBarLayout->setSpacing(0);
-    toolBarLayout->addStretch(1);
-    toolBar->setLayout(toolBarLayout);
-
-    content = new QWidget(this);
-
-    QVBoxLayout * layout = new QVBoxLayout();
-    layout->setContentsMargins(0,0,0,0);
-    layout->setSpacing(1);
-    layout->addWidget(toolBar);
-    layout->addWidget(content);
-
-    this->setLayout(layout);
-
-    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SIGNAL(minimumWindow()));
-    minSize->setToolTip(tr("Min"));
-//    minSize->setIcon(style()->standardPixmap(QStyle::SP_TitleBarMinButton));
-
-    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SIGNAL(closeWindow()));
-    closeButt->setToolTip(tr("Close"));
-//    closeButt->setIcon(style()->standardPixmap(QStyle::SP_TitleBarCloseButton));
-
-    appendToolButton(minSize);
-    appendToolButton(closeButt);
+    MQ_D(ToolBar);
 }
 
+void ToolBar::addStretch(int strech)
+{
+    MQ_D(ToolBar);
+    d->toolBarLayout->addStretch(strech);
+}
+
+void ToolBar::setContentsMargins(int left, int top, int right, int bottom)
+{
+    MQ_D(ToolBar);
+    d->toolBarLayout->setContentsMargins(left,top,right,bottom);
+}
 
 bool ToolBar::appendToolButton(RToolButton *toolButton)
 {
-    if(!containButton(toolButton))
+    MQ_D(ToolBar);
+    if(!contains(d->toolButts,toolButton))
     {
         toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
-        toolBarLayout->addWidget(toolButton);
+        d->toolBarLayout->addWidget(toolButton);
     }
     return true;
 }
 
 bool ToolBar::insertToolButton(RToolButton *toolButton, const char *ID)
 {
-    if(!containButton(toolButton))
+    MQ_D(ToolBar);
+    if(!contains(d->toolButts,toolButton))
     {
         if(ID == NULL)
         {
-            toolBarLayout->insertWidget(0,toolButton);
+            d->toolBarLayout->insertWidget(0,toolButton);
             return true;
         }
         else
         {
             int index = 0;
-            foreach(QObject * tmpObj,toolBar->children())
+            foreach(QObject * tmpObj,d->toolBar->children())
             {
                 RToolButton * tmpButt = dynamic_cast<RToolButton *>(tmpObj);
                 if(tmpButt && tmpButt->objectName() == QString(ID))
                 {
                     toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
-                    toolBarLayout->insertWidget(index,toolButton);
+                    d->toolBarLayout->insertWidget(index,toolButton);
                     return true;
                 }
                 index++;
             }
         }
-
         return false;
     }
     return true;
-}
-
-bool ToolBar::containButton(RToolButton *button)
-{
-    foreach(RToolButton * tmpButton,toolButts)
-    {
-        if(button->objectName() == tmpButton->objectName())
-        {
-            return true;
-        }
-    }
-    return false;
 }

@@ -23,10 +23,24 @@ public:
     explicit PanelGroupPage(QWidget *parent = 0);
     ~PanelGroupPage();
 
+private slots:
+    void searchGroup();
+    void newGroup();
+    void addGroups();
+
+    void renameGroup();
+    void deleteGroup();
+
+    void sendMessage();
+    void viewDetail();
+    void modifyGroupInfo();
+    void exitGroup();
+
+private:
+    void createAction();
+
 private:
     PanelGroupPagePrivate * d_ptr;
-
-
 
 };
 

@@ -18,6 +18,8 @@
 #include <QFontMetrics>
 #include <QMenu>
 
+#include "toolbox.h"
+
 #define TOOL_SIMPLE_HEIGHT  24
 
 class ToolPagePrivate : public GlobalData<ToolPage>
@@ -37,6 +39,7 @@ private:
     bool setExpanded(bool flag);
 
     ToolPage * q_ptr;
+    ToolBox * toolBox;
 
     QWidget * contentWidget;
     QWidget * simpleTextWidget;
@@ -133,10 +136,11 @@ bool ToolPagePrivate::setExpanded(bool flag)
 }
 
 
-ToolPage::ToolPage(QWidget *parent):
+ToolPage::ToolPage(ToolBox *parent):
     d_ptr(new ToolPagePrivate(this)),
     QWidget(parent)
 {
+    d_ptr->toolBox = parent;
     d_ptr->detailWidget->installEventFilter(this);
     d_ptr->simpleTextWidget->installEventFilter(this);
 }
@@ -177,6 +181,12 @@ void ToolPage::addItem(ToolItem * item)
     d->toolItems.append(item);
 
     layout->addWidget(item);
+}
+
+QList<ToolItem *>& ToolPage::items()
+{
+    MQ_D(ToolPage);
+    return d->toolItems;
 }
 
 void ToolPage::setMenu(QMenu *menu)

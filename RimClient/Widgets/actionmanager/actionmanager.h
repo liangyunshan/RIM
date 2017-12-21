@@ -13,14 +13,15 @@
 #define ACTIONMANAGER_H
 
 #include <QObject>
+#include <QMenu>
+#include <QAction>
 #include <QMap>
 #include "id.h"
-#include "rtoolbutton.h"
+#include "widgets/widget/rtoolbutton.h"
 
 class QToolButton;
 class LoginDialog;
 class RToolButton;
-class QMenu;
 
 class ActionManager : public QObject
 {

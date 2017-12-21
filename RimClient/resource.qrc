@@ -31,6 +31,7 @@
         <file>resource/icon/Tool_Setting_Button.png</file>
         <file>resource/icon/Group_Close_Tri.png</file>
         <file>resource/icon/Group_Expand_Tri.png</file>
+        <file>resource/icon/Tool_Chat_Call.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

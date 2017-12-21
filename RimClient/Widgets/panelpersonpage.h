@@ -30,7 +30,6 @@ private slots:
     void renameGroup();
     void delGroup();
 
-    void clearItemSelection(ToolItem * item);
     void createChatWindow(ToolItem * item);
 
     void sendInstantMessage();

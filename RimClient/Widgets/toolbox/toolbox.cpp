@@ -41,7 +41,6 @@ private:
     ToolItem * currentItem;
 
     QMenu * menu;
-
 };
 
 void ToolBoxPrivate::initWidget()
@@ -88,7 +87,8 @@ ToolBox::ToolBox(QWidget *parent) :
 ToolPage * ToolBox::addPage(QString text)
 {
     MQ_D(ToolBox);
-    ToolPage * page = new ToolPage;
+    ToolPage * page = new ToolPage(this);
+    connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
     page->setToolName(text);
 
@@ -101,12 +101,6 @@ ToolPage *ToolBox::selectedPage()
 {
     MQ_D(ToolBox);
     return d->currentPage;
-}
-
-void ToolBox::setSelectedItem(ToolItem *item)
-{
-    MQ_D(ToolBox);
-    d->currentItem = item;
 }
 
 /*!
@@ -134,6 +128,26 @@ void ToolBox::setSlectedPage(ToolPage *item)
 {
     MQ_D(ToolBox);
     d->currentPage = item;
+}
+
+void ToolBox::clearItemSelection(ToolItem * item)
+{
+    MQ_D(ToolBox);
+
+    d->currentItem = item;
+
+    foreach(ToolPage * page,d->pages)
+    {
+        QList<ToolItem *>::iterator iter =  page->items().begin();
+        while(iter != page->items().end())
+        {
+            if((*iter) != item && (*iter)->isChecked())
+            {
+                (*iter)->setChecked(false);
+            }
+            iter++;
+        }
+    }
 }
 
 void ToolBox::contextMenuEvent(QContextMenuEvent *event)

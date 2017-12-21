@@ -196,14 +196,20 @@ void LoginDialog::initWidget()
     mainDialog = NULL;
 
     toolBar = new ToolBar(this);
-    connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(minsize()));
-    connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
-
 
     RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING));
     systemSetting->setToolTip(tr("System Setting"));
 
-    toolBar->insertToolButton(systemSetting,Constant::TOOL_MIN);
+    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SLOT(minsize()));
+    minSize->setToolTip(tr("Min"));
+
+    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SLOT(closeWindow()));
+    closeButt->setToolTip(tr("Close"));
+
+    toolBar->addStretch(1);
+    toolBar->appendToolButton(systemSetting);
+    toolBar->appendToolButton(minSize);
+    toolBar->appendToolButton(closeButt);
 
     ui->userList->setEditable(true);
 

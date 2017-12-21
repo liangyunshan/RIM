@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QCryptographicHash>
+#include <QUuid>
 
 QSettings * RUtil::gSettings = NULL;
 
@@ -62,4 +63,9 @@ void RUtil::setGlobalSettings(QSettings *settings)
 QSettings *RUtil::globalSettings()
 {
     return gSettings;
+}
+
+QString RUtil::UUID()
+{
+    return QUuid::createUuid().toString();
 }

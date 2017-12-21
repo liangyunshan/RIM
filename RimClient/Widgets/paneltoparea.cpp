@@ -12,40 +12,46 @@
 #include "Util/imagemanager.h"
 #include "Util/rsingleton.h"
 
+#include "widget/riconlabel.h"
+
+#define PANEL_TOP_USER_ICON_SIZE 66
+#define PANEL_TOP_SEARCH_ICON_SIZE 28
+
 class PanelTopAreaPrivate : public GlobalData<PanelTopArea>
 {
     Q_DECLARE_PUBLIC(PanelTopArea)
 
 private:
+    PanelTopAreaPrivate(PanelTopArea * q):q_ptr(q)
+    {
+        initWidget();
+    }
 
+    void initWidget();
+
+    PanelTopArea * q_ptr;
+
+    QWidget * contentWidget;
+
+    RIconLabel * userIconLabel;
+    QLabel * userNikcNameLabel;
+    QLineEdit * userSignNameEdit;
+    QWidget * extendToolWiget;
+
+    QLineEdit * searchLineEdit;
 
 };
 
-PanelTopArea::PanelTopArea(QWidget *parent) :
-    d_ptr(new PanelTopAreaPrivate()),
-    QWidget(parent)
+void PanelTopAreaPrivate::initWidget()
 {
-    initWidget();
-}
-
-PanelTopArea::~PanelTopArea()
-{
-
-}
-
-#define PANEL_TOP_USER_ICON_SIZE 66
-#define PANEL_TOP_SEARCH_ICON_SIZE 28
-
-void PanelTopArea::initWidget()
-{
-    contentWidget = new QWidget(this);
+    contentWidget = new QWidget(q_ptr);
     contentWidget->setObjectName("Panel_Top_ContentWidget");
 
     QHBoxLayout * mainLayout = new QHBoxLayout();
     mainLayout->setContentsMargins(0,0,0,0);
     mainLayout->setSpacing(1);
     mainLayout->addWidget(contentWidget);
-    this->setLayout(mainLayout);
+    q_ptr->setLayout(mainLayout);
 
     QGridLayout * gridLayout = new QGridLayout(contentWidget);
 
@@ -54,10 +60,11 @@ void PanelTopArea::initWidget()
     QHBoxLayout * iconLayout = new QHBoxLayout;
     iconLayout->setContentsMargins(0,0,0,0);
 
-    userIconLabel = new QLabel(contentWidget);
+    userIconLabel = new RIconLabel(contentWidget);
+    userIconLabel->setTransparency(true);
     userIconLabel->setObjectName("Panel_Top_UserIconLabel");
     userIconLabel->setFixedSize(PANEL_TOP_USER_ICON_SIZE,PANEL_TOP_USER_ICON_SIZE);
-    userIconLabel->setStyleSheet(QString("border-image:url(%1);").arg(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    userIconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     iconLayout->addStretch(1);
     iconLayout->addWidget(userIconLabel);
@@ -85,12 +92,12 @@ void PanelTopArea::initWidget()
     QLabel * iconLabel = new QLabel(searchWidget);
     iconLabel->setPixmap(QPixmap(Constant::ICON_PANEL_SEARCH));
     iconLabel->setFixedSize(PANEL_TOP_SEARCH_ICON_SIZE,PANEL_TOP_SEARCH_ICON_SIZE);
-    iconLabel->setToolTip(tr("Search person/group"));
+    iconLabel->setToolTip(QObject::tr("Search person/group"));
 
     searchLineEdit = new QLineEdit(contentWidget);
     searchLineEdit->setFixedHeight(PANEL_TOP_SEARCH_ICON_SIZE);
     searchLineEdit->setObjectName("Panel_Top_SearchLineEdit");
-    searchLineEdit->setPlaceholderText(tr("Search"));
+    searchLineEdit->setPlaceholderText(QObject::tr("Search"));
 
     searchLayout->addWidget(iconLabel);
     searchLayout->addWidget(searchLineEdit);
@@ -109,5 +116,16 @@ void PanelTopArea::initWidget()
     gridLayout->addWidget(searchWidget,5,0,1,2);
 
     contentWidget->setLayout(gridLayout);
+}
+
+PanelTopArea::PanelTopArea(QWidget *parent) :
+    d_ptr(new PanelTopAreaPrivate(this)),
+    QWidget(parent)
+{
+
+}
+
+PanelTopArea::~PanelTopArea()
+{
 
 }

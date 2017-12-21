@@ -9,6 +9,7 @@
 #include "head.h"
 #include "datastruct.h"
 #include "constants.h"
+#include "maindialog.h"
 #include "actionmanager/actionmanager.h"
 
 #include "toolbox/toolbox.h"
@@ -59,22 +60,26 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
-    ToolPage * page = d_ptr->toolBox->addPage("我的好友");
-    d_ptr->pages.append(page);
-    for(int i = 0; i < 5;i++)
+    for(int j = 0; j < 2;j++)
     {
-        ToolItem * item = new ToolItem(page);
-        connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
-        connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
-        item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_TOOLITEM_PERSON));
-        item->setName("韩天才");
-        item->setNickName("MagnyCopper");
-        item->setDescInfo("PSN确实快了很多啊！！！^_^");
-        page->addItem(item);
-        d_ptr->toolItems.append(item);
-    }
+        ToolPage * page = d_ptr->toolBox->addPage("我的好友");
+        d_ptr->pages.append(page);
+        for(int i = 0; i < 5;i++)
+        {
+            ToolItem * item = new ToolItem(page);
+            connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
+            connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
+            connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
+            item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
+            item->setName(QString("韩天才%1").arg(i));
+            item->setNickName("MagnyCopper");
+            item->setDescInfo("PSN确实快了很多啊！！！^_^");
+            page->addItem(item);
+            d_ptr->toolItems.append(item);
+        }
 
-    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_TOOLGROUP));
+        page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
+    }
 }
 
 PanelPersonPage::~PanelPersonPage()
@@ -123,24 +128,6 @@ void PanelPersonPage::delGroup()
 
 }
 
-void PanelPersonPage::clearItemSelection(ToolItem *item)
-{
-    MQ_D(PanelPersonPage);
-
-    d->toolBox->setSelectedItem(item);
-
-    QList<ToolItem *>::iterator iter =  d->toolItems.begin();
-    while(iter != d->toolItems.end())
-    {
-        if((*iter) != item && (*iter)->isChecked())
-        {
-            (*iter)->setChecked(false);
-        }
-        iter++;
-    }
-
-}
-
 void PanelPersonPage::createChatWindow(ToolItem *item)
 {
     qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"__"<<item;
@@ -172,13 +159,12 @@ void PanelPersonPage::createAction()
     MQ_D(PanelPersonPage);
 
     //创建面板的右键菜单
+    QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLBOX);
 
-    QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_TOOLBOX);
-
-    QAction * freshAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_REFRESH,this,SLOT(refreshList()));
+    QAction * freshAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_PERSON_REFRESH,this,SLOT(refreshList()));
     freshAction->setText(tr("Refresh list"));
 
-    QAction * addGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_ADDGROUP,this,SLOT(addGroup()));
+    QAction * addGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_PERSON_ADDGROUP,this,SLOT(addGroup()));
     addGroupAction->setText(tr("Add group"));
 
     menu->addAction(freshAction);
@@ -188,22 +174,22 @@ void PanelPersonPage::createAction()
     d->toolBox->setContextMenu(menu);
 
     //创建分组的右键菜单
-    QMenu * groupMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_TOOLGROUP);
+    QMenu * groupMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLGROUP);
 
-    QAction * renameAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_RENAME,this,SLOT(renameGroup()));
+    QAction * renameAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_PERSON_RENAME,this,SLOT(renameGroup()));
     renameAction->setText(tr("Rename"));
 
-    QAction * deleteGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_DELGROUP,this,SLOT(delGroup()));
+    QAction * deleteGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_PERSON_DELGROUP,this,SLOT(delGroup()));
     deleteGroupAction->setText(tr("Delete group"));
 
-    groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_REFRESH));
+    groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_REFRESH));
     groupMenu->addSeparator();
-    groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_ADDGROUP));
+    groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_ADDGROUP));
     groupMenu->addAction(renameAction);
     groupMenu->addAction(deleteGroupAction);
 
     //创建联系人的右键菜单
-    QMenu * personMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_TOOLITEM_PERSON);
+    QMenu * personMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM);
 
     QAction * sendMessAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_SENDMESSAGE,this,SLOT(sendInstantMessage()));
     sendMessAction->setText(tr("Send Instant Message"));

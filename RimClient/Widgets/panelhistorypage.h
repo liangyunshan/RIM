@@ -23,8 +23,13 @@ public:
     explicit PanelHistoryPage(QWidget * parent = 0);
     ~PanelHistoryPage();
 
-private:
+private slots:
+    void clearList();
+    void sendInstantMessage();
+    void removeSessionFromList();
 
+private:
+    void createAction();
 
 private:
     PanelHistoryPagePrivate * d_ptr;

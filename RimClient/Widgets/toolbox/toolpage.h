@@ -15,6 +15,7 @@
 
 #include "toolitem.h"
 
+class ToolBox;
 class ToolPagePrivate;
 
 class ToolPage : public QWidget
@@ -22,16 +23,19 @@ class ToolPage : public QWidget
     Q_OBJECT
     Q_DECLARE_PRIVATE(ToolPage)
 public:
-    ToolPage(QWidget * parent = 0);
+    ToolPage(ToolBox * parent = 0);
     ~ToolPage();
 
     void setToolName(QString text);
     void addItem(ToolItem *item);
 
+    QList<ToolItem *> &items();
+
     void setMenu(QMenu * menu);
 
 signals:
     void selectedPage(ToolPage *);
+    void clearItemSelection(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

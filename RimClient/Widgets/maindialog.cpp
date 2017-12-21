@@ -18,6 +18,9 @@
 #include "panelcontentarea.h"
 #include "paneltoparea.h"
 #include "actionmanager/actionmanager.h"
+#include "toolbox/toolitem.h"
+
+#include "abstractchatwidget.h"
 
 #define PANEL_MARGIN 20
 
@@ -25,23 +28,38 @@ class MainDialogPrivate : public GlobalData<MainDialog>
 {
     Q_DECLARE_PUBLIC(MainDialog)
 
-    MainDialogPrivate()
+    MainDialogPrivate(MainDialog *q):q_ptr(q)
     {
-        isMousePressed = false;
+
     }
 
 private:
-    QPoint mousePressPoint;
-    bool isMousePressed;
+    QWidget * MainPanel;
+    QWidget * TopBar;
+    QWidget * Conent;
+    QWidget * ToolBarWidget;
+
+    ToolBar * toolBar;
+    PanelBottomToolBar * bottomToolBar;
+    PanelContentArea * panelContentArea;
+    PanelTopArea * panelTopArea;
+
+    QMap<ToolItem * ,AbstractChatWidget*> chatWidgets;
+
+    MainDialog * q_ptr;
 };
 
+MainDialog * MainDialog::dialog = NULL;
+
 MainDialog::MainDialog(QWidget *parent) :
-    d_ptr(new MainDialogPrivate()),
+    d_ptr(new MainDialogPrivate(this)),
     AbstractWidget(parent)
 {
     setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
     setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
     setMaximumHeight(qApp->desktop()->screen()->height());
+
+    dialog = this;
 
     initWidget();
 }
@@ -51,27 +69,9 @@ MainDialog::~MainDialog()
 
 }
 
-void MainDialog::mousePressEvent(QMouseEvent *event)
+MainDialog *MainDialog::instance()
 {
-    MQ_D(MainDialog);
-    d->isMousePressed = true;
-    d->mousePressPoint = event->pos();
-}
-
-void MainDialog::mouseMoveEvent(QMouseEvent *event)
-{
-    MQ_D(MainDialog);
-    if(d->isMousePressed)
-    {
-        QPoint tempPos = event->pos() - d->mousePressPoint;
-        move(pos() + tempPos);
-    }
-}
-
-void MainDialog::mouseReleaseEvent(QMouseEvent *event)
-{
-    MQ_D(MainDialog);
-    d->isMousePressed = false;
+    return dialog;
 }
 
 void MainDialog::resizeEvent(QResizeEvent *)
@@ -88,6 +88,7 @@ void MainDialog::closeEvent(QCloseEvent *)
 
 void MainDialog::updateWidgetGeometry()
 {
+    MQ_D(MainDialog);
     QLayout * lay = layout();
     int right = 0;
     int left  = 0;
@@ -97,7 +98,7 @@ void MainDialog::updateWidgetGeometry()
         right = margins.right();
         left = margins.left();
     }
-    toolBar->setGeometry(left,0,this->width() - right * 3,Constant::TOOL_HEIGHT);
+    d->toolBar->setGeometry(left,0,this->width() - right * 3,Constant::TOOL_HEIGHT);
 }
 
 void MainDialog::closeWindow()
@@ -125,72 +126,98 @@ void MainDialog::makeWindowFront(bool flag)
     show();
 }
 
+void MainDialog::showChatWindow(ToolItem * item)
+{
+    MQ_D(MainDialog);
+    AbstractChatWidget * widget = NULL;
+    if(d->chatWidgets.contains(item))
+    {
+        widget = d->chatWidgets.value(item);
+    }
+    else
+    {
+       widget = new AbstractChatWidget();
+
+       d->chatWidgets.insert(item,widget);
+    }
+
+    widget->show();
+}
+
 #include <QToolButton>
 
 void MainDialog::initWidget()
 {
-    MainPanel = new QWidget(this);
-    MainPanel->setObjectName("MainPanel");
+    MQ_D(MainDialog);
+    d->MainPanel = new QWidget(this);
+    d->MainPanel->setObjectName("MainPanel");
 
-    setContentWidget(MainPanel);
+    setContentWidget(d->MainPanel);
 
-    TopBar = new QWidget(this);
-    TopBar->setFixedHeight(150);
-    TopBar->setObjectName("TopBar");
+    d->TopBar = new QWidget(this);
+    d->TopBar->setFixedHeight(150);
+    d->TopBar->setObjectName("TopBar");
 
-    Conent = new QWidget(this);
-    Conent->setObjectName("Conent");
+    d->Conent = new QWidget(this);
+    d->Conent->setObjectName("Conent");
 
-    ToolBarWidget = new QWidget(this);
-    ToolBarWidget->setObjectName("ToolBarWidget");
+    d->ToolBarWidget = new QWidget(this);
+    d->ToolBarWidget->setObjectName("ToolBarWidget");
 
     QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout->setContentsMargins(0,0,0,0);
     mainLayout->setSpacing(0);
 
-    mainLayout->addWidget(TopBar);
-    mainLayout->addWidget(Conent);
-    mainLayout->addWidget(ToolBarWidget);
+    mainLayout->addWidget(d->TopBar);
+    mainLayout->addWidget(d->Conent);
+    mainLayout->addWidget(d->ToolBarWidget);
 
-    MainPanel->setLayout(mainLayout);
+    d->MainPanel->setLayout(mainLayout);
 
     connect(SystemTrayIcon::instance(),SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 
     readSettings();
 
-    toolBar = new ToolBar(MainPanel);
+    d->toolBar = new ToolBar(d->MainPanel);
 
     RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
-    toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
+
+    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SLOT(showMinimized()));
+    minSize->setToolTip(tr("Min"));
+
+    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SLOT(closeWindow()));
+    closeButt->setToolTip(tr("Close"));
+
+    d->toolBar->addStretch(1);
+    d->toolBar->appendToolButton(frontButton);
+    d->toolBar->appendToolButton(minSize);
+    d->toolBar->appendToolButton(closeButt);
 
     makeWindowFront(RUtil::globalSettings()->value("Main/topHint").toBool());
 
-    connect(toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
-    connect(toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
-
-    panelTopArea = new PanelTopArea(TopBar);
+    d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
     topAreaLayout->setContentsMargins(0,0,0,0);
     topAreaLayout->setSpacing(0);
-    topAreaLayout->addWidget(panelTopArea);
-    TopBar->setLayout(topAreaLayout);
+    topAreaLayout->addWidget(d->panelTopArea);
+    d->TopBar->setLayout(topAreaLayout);
 
     //中部内容区
-    panelContentArea = new PanelContentArea(Conent);
+    d->panelContentArea = new PanelContentArea(d->Conent);
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
-    contentLayout->addWidget(panelContentArea);
-    Conent->setLayout(contentLayout);
+    contentLayout->addWidget(d->panelContentArea);
+    d->Conent->setLayout(contentLayout);
 
     //底部工具栏
-    bottomToolBar = new PanelBottomToolBar(ToolBarWidget);
+    d->bottomToolBar = new PanelBottomToolBar(d->ToolBarWidget);
     QHBoxLayout * bottomToolLayout = new QHBoxLayout();
     bottomToolLayout->setContentsMargins(0,0,0,0);
     bottomToolLayout->setSpacing(0);
-    bottomToolLayout->addWidget(bottomToolBar);
-    ToolBarWidget->setLayout(bottomToolLayout);
+    bottomToolLayout->addWidget(d->bottomToolBar);
+    d->ToolBarWidget->setLayout(bottomToolLayout);
 
     QTimer::singleShot(0,this,SLOT(updateWidgetGeometry()));
 }

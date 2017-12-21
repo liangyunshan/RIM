@@ -6,6 +6,8 @@
 #include <qmath.h>
 #include <QMessageBox>
 #include <QApplication>
+#include <QMouseEvent>
+#include <QDesktopWidget>
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -13,23 +15,45 @@
 #include <windowsx.h>
 #endif //Q_OS_WIN
 
-#define WINDOW_MARGIN_SIZE 5             //边距宽度
-#define WINDOW_MARGIN_WIDTH 10           //渐变背景宽度
-#define WINDOW_CURSOR_DETECT_SIZE  8     //鼠标移动在边框移动时检测的范围
+#include "head.h"
+#include "constants.h"
+#include "datastruct.h"
+
+class AbstractWidgetPrivate : public GlobalData<AbstractWidget>
+{
+    Q_DECLARE_PUBLIC(AbstractWidget)
+
+protected:
+    AbstractWidgetPrivate(AbstractWidget * q):q_ptr(q)
+    {
+        isMousePressed = false;
+        stickTopHint = false;
+
+        contentWidget = new QWidget(q);
+
+        QHBoxLayout * layout = new QHBoxLayout();
+        layout->setContentsMargins(WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE);
+        layout->setSpacing(0);
+        layout->addWidget(contentWidget);
+        q_ptr->setLayout(layout);
+    }
+
+    AbstractWidget * q_ptr;
+
+    QWidget * contentWidget;
+
+    QPoint mousePressPoint;
+    bool isMousePressed;
+    bool stickTopHint;
+
+};
 
 AbstractWidget::AbstractWidget(QWidget *parent):
+    d_ptr(new AbstractWidgetPrivate(this)),
     QWidget(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint |Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground);
-
-    contentWidget = new QWidget(this);
-
-    QHBoxLayout * layout = new QHBoxLayout();
-    layout->setContentsMargins(WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE);
-    layout->setSpacing(0);
-    layout->addWidget(contentWidget);
-    this->setLayout(layout);
 }
 
 AbstractWidget::~AbstractWidget()
@@ -39,15 +63,16 @@ AbstractWidget::~AbstractWidget()
 
 void AbstractWidget::setContentWidget(QWidget *child)
 {
-    if(!contentWidget->layout())
+    MQ_D(AbstractWidget);
+    if(!d->contentWidget->layout())
     {
         QHBoxLayout * layout = new QHBoxLayout;
         layout->setContentsMargins(0,0,0,0);
         layout->setSpacing(0);
-        contentWidget->setLayout(layout);
+        d->contentWidget->setLayout(layout);
     }
 
-    QHBoxLayout * layout = dynamic_cast<QHBoxLayout *>(contentWidget->layout());
+    QHBoxLayout * layout = dynamic_cast<QHBoxLayout *>(d->contentWidget->layout());
     if(layout)
     {
         layout->addWidget(child);
@@ -156,7 +181,8 @@ bool AbstractWidget::nativeEvent(const QByteArray &eventType, void *message, lon
             return true;
 
         QWidget *action = QApplication::widgetAt(QCursor::pos());
-        if (action == this){
+        if (action == this)
+        {
             *result = HTCAPTION;
             return true;
         }
@@ -167,4 +193,56 @@ bool AbstractWidget::nativeEvent(const QByteArray &eventType, void *message, lon
     QMessageBox::warning(this,tr("Warning"),tr("System don't support resize window!"),QMessageBox::Yes,QMessageBox::Yes);
 #endif
     return false;
+}
+
+void AbstractWidget::mousePressEvent(QMouseEvent *event)
+{
+    MQ_D(AbstractWidget);
+    d->isMousePressed = true;
+    d->mousePressPoint = event->pos();
+}
+
+void AbstractWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    MQ_D(AbstractWidget);
+    if(d->isMousePressed)
+    {
+        QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
+        move(tempPos);
+    }
+}
+
+void AbstractWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    MQ_D(AbstractWidget);
+
+    if(pos().y() <= 0)
+    {
+        move(pos().x(),-WINDOW_MARGIN_SIZE);
+    }
+
+    if(pos().x() < 0)
+    {
+        move(0,pos().y());
+    }
+
+    if(pos().x() > qApp->desktop()->geometry().width()  - width() )
+    {
+        move(qApp->desktop()->geometry().width() - width(),pos().y());
+    }
+
+    d->isMousePressed = false;
+}
+
+void AbstractWidget::enterEvent(QEvent *)
+{
+    if(pos().y() <= 0)
+    {
+        move(pos().x(), -WINDOW_MARGIN_SIZE);
+    }
+}
+
+void AbstractWidget::leaveEvent(QEvent *)
+{
+
 }

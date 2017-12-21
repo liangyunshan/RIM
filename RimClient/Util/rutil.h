@@ -31,6 +31,8 @@ public:
     static void setGlobalSettings(QSettings * settings);
     static QSettings * globalSettings();
 
+    static QString UUID();
+
 private:
     static QSettings * gSettings;
 };

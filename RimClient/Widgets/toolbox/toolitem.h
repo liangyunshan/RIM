@@ -17,38 +17,8 @@
 
 class QMenu;
 class QLabel;
-class ToolItem;
+class ToolItemPrivate;
 class ToolPage;
-
-class ToolItemPrivate : public GlobalData<ToolItem>
-{
-    Q_DECLARE_PUBLIC(ToolItem)
-
-protected:
-    ToolItemPrivate(ToolItem * q):q_ptr(q)
-    {
-        initWidget();
-        checked = false;
-        contenxMenu = NULL;
-    }
-
-    ToolItem * q_ptr;
-
-    ToolPage * pagePtr;
-
-    void initWidget();
-
-    QWidget * contentWidget;
-    QLabel * iconLabel;                 //个人、群组、历史聊天的头像
-    QLabel * nameLabel;                 //个人、群组、历史聊天的用户名
-    QLabel * nickLabel;                 //个人昵称、群组成员数量
-    QLabel * descLabel;                 //个人签名、群组和历史聊天的聊天记录信息
-    QLabel * infoLabel;                 //群组和历史聊天的日期
-
-    QMenu * contenxMenu;
-
-    bool checked;                       //是否被选中
-};
 
 class ToolItem : public QWidget
 {
@@ -70,15 +40,25 @@ public:
     bool isChecked();
     void setChecked(bool flag);
 
+    enum ItemState
+    {
+       Mouse_Enter,
+       Mouse_Leave,
+       Mouse_Checked
+    };
+    Q_FLAG(ItemState)
+
 signals:
     void clearSelectionOthers(ToolItem *);
     void showChatWindow(ToolItem *);
+    void itemDoubleClick(ToolItem *);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
 
-
 private:
+    void setItemState(ItemState state);
+
     ToolItemPrivate * d_ptr;
 
 };

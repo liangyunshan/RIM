@@ -28,19 +28,7 @@ public:
 signals:
 
 private:
-    void initWidget();
-
-private:
     PanelTopAreaPrivate * d_ptr;
-
-    QWidget * contentWidget;
-
-    QLabel * userIconLabel;
-    QLabel * userNikcNameLabel;
-    QLineEdit * userSignNameEdit;
-    QWidget * extendToolWiget;
-
-    QLineEdit * searchLineEdit;
 };
 
 #endif // PANELTOPAREA_H
