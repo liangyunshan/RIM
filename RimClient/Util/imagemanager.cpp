@@ -3,6 +3,9 @@
 #include <QDir>
 #include <QApplication>
 #include <QDebug>
+#include <QPainter>
+#include <QPixmap>
+#include <QPainterPath>
 
 #include "constants.h"
 
@@ -60,4 +63,25 @@ QString ImageManager::getSystemUserIcon(QString imageName)
     }
 
     return QString("");
+}
+
+QIcon ImageManager::getCircularIcons(QString imagePath)
+{
+    QPixmap pixmap(imagePath);
+    if(pixmap.isNull())
+    {
+        return QIcon();
+    }
+
+    QPixmap result(pixmap.size());
+    result.fill(Qt::transparent);
+
+    QPainter painter(&result);
+    painter.setBackgroundMode(Qt::TransparentMode);
+    QPainterPath path;
+    path.addEllipse(0, 0, pixmap.width(), pixmap.height());
+    painter.setClipPath(path);
+    painter.drawPixmap(0,0,pixmap);
+
+    return QIcon(result);
 }

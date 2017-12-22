@@ -5,6 +5,10 @@
 #include <QSplitter>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QMenu>
+#include <QStyle>
+#include <QAction>
+#include <QTimer>
 
 #include "head.h"
 #include "datastruct.h"
@@ -12,14 +16,19 @@
 #include "toolbar.h"
 #include "Util/rutil.h"
 #include "widget/riconlabel.h"
+#include "widget/rbutton.h"
 #include "util/rsingleton.h"
 #include "util/imagemanager.h"
+#include "Widgets/textedit/complextextedit.h"
+#include "Widgets/textedit/simpletextedit.h"
+#include "slidebar.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
+#define CHAT_RIGHT_EXTREA_WIDTH   370       //消息记录等宽度
 
 class AbstractChatWidgetPrivate : public GlobalData<AbstractChatWidget>
 {
@@ -39,22 +48,25 @@ protected:
 
     QWidget * contentWidget;
 
-    QWidget * userInfoWidget;       //用户、群组头像等信息页面
+    QWidget * userInfoWidget;              //用户、群组头像等信息页面
     RIconLabel * userInfo_IconLabel;
     QLabel * userInfo_NameLabel;
 
-    ToolBar * toolBar;              //工具栏
+    ToolBar * toolBar;                     //工具栏
+    SlideBar * slideBar;
 
-    QSplitter * splitter;
     QSplitter * chatSplitter;
-    QWidget * bodyWidget;           //正文区域
+    QWidget * bodyWidget;
     QWidget * leftWidget;
-    QWidget * rightWidget;
+    QWidget * rightWidget;                 //右侧
 
-    QWidget * chatArea;             //聊天区域
-    ToolBar * chatToolBar;          //聊天工具栏
-    QWidget * chatInputArea;        //信息输入框
-    QWidget * buttonWidget;         //关闭、发送等按钮栏
+    QWidget * chatWidget;                  //聊天区域
+    ComplexTextEdit * chatArea;            //对话信息区域
+    ToolBar * chatToolBar;                 //聊天工具栏
+    SimpleTextEdit * chatInputArea;        //信息输入框
+    QWidget * buttonWidget;                //关闭、发送等按钮栏
+
+    RToolButton * recordButt;
 
     ToolBar * windowToolBar;
 
@@ -89,6 +101,9 @@ void AbstractChatWidgetPrivate::initWidget()
     userInfo_NameLabel->setText("韩天才");
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
+    q_ptr->setWindowTitle("韩天才");
+    q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+
     userLayout->addWidget(userInfo_IconLabel);
     userLayout->addWidget(userInfo_NameLabel);
     userLayout->addStretch(1);
@@ -101,8 +116,6 @@ void AbstractChatWidgetPrivate::initWidget()
     userInfoLayout->addLayout(userLayout);
     userInfoLayout->addStretch(1);
     userInfoWidget->setLayout(userInfoLayout);
-
-//    userInfoWidget->setStyleSheet("border-bottom:1px solid red");
 
     /**********工具栏***************/
     toolBar = new ToolBar(contentWidget);
@@ -119,16 +132,35 @@ void AbstractChatWidgetPrivate::initWidget()
     bodyLayout->setSpacing(0);
 
     bodyWidget = new QWidget(contentWidget);
-    splitter = new QSplitter(bodyWidget);
 
     leftWidget = new QWidget(contentWidget);
+    leftWidget->setMinimumWidth(CHAT_MIN_WIDTH);
+    leftWidget->setObjectName("Chat_Left_Widget");
+    leftWidget->setProperty("SideBarVisible",false);
+
     rightWidget = new QWidget(contentWidget);
+    rightWidget->setObjectName("Chat_Right_Widget");
+    rightWidget->setProperty("SideBarVisible",false);
+    rightWidget->setFixedWidth(CHAT_RIGHT_EXTREA_WIDTH);
 
     QVBoxLayout * leftLayout = new QVBoxLayout;
     leftLayout->setContentsMargins(0,0,0,0);
     leftLayout->setSpacing(0);
 
-    chatArea = new QWidget(leftWidget);
+    /**********聊天对话框***************/
+    chatWidget = new QWidget(leftWidget);
+    QHBoxLayout * tmpLayout = new QHBoxLayout();
+    tmpLayout->setContentsMargins(0,0,0,0);
+    tmpLayout->setSpacing(0);
+
+    chatArea = new ComplexTextEdit(leftWidget);
+
+    slideBar = new SlideBar(contentWidget);
+    slideBar->setFixedWidth(10);
+
+    tmpLayout->addWidget(chatArea);
+    tmpLayout->addWidget(slideBar);
+    chatWidget->setLayout(tmpLayout);
 
     QWidget * chatInputContainter = new QWidget(leftWidget);
     chatInputContainter->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -137,39 +169,96 @@ void AbstractChatWidgetPrivate::initWidget()
     chatLayout->setContentsMargins(0,0,0,0);
     chatLayout->setSpacing(0);
 
+    /**********聊天工具栏***************/
     chatToolBar = new ToolBar(chatInputContainter);
+    chatToolBar->setContentsMargins(5,0,5,0);
     chatToolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
+    chatToolBar->setSpacing(5);
+    chatToolBar->setIconSize(QSize(CHAT_TOOL_HEIGHT,CHAT_TOOL_HEIGHT));
 
-    RToolButton * fontAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_Font);
-    fontAction->setToolTip(QObject::tr("Font"));
+    RToolButton * fontButt = new RToolButton();
+    fontButt->setObjectName(Constant::Tool_Chat_Font);
+    fontButt->setToolTip(QObject::tr("Font"));
 
-    RToolButton * faceAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_Face);
-    faceAction->setToolTip(QObject::tr("Emoji"));
+    RToolButton * faceButt = new RToolButton();
+    faceButt->setObjectName(Constant::Tool_Chat_Face);
+    faceButt->setToolTip(QObject::tr("Emoji"));
 
-    RToolButton * shakeAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_Shake);
-    shakeAction->setToolTip(QObject::tr("Shake window"));
+    RToolButton * shakeButt = new RToolButton();
+    shakeButt->setObjectName(Constant::Tool_Chat_Shake);
+    shakeButt->setToolTip(QObject::tr("Shake window"));
 
-    RToolButton * imageAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_Image);
-    imageAction->setToolTip(QObject::tr("Image"));
+    RToolButton * imageButt = new RToolButton();
+    imageButt->setObjectName(Constant::Tool_Chat_Image);
+    imageButt->setToolTip(QObject::tr("Image"));
 
-    RToolButton * screenShotAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_ScreenShot);
-    screenShotAction->setToolTip(QObject::tr("Screen shot"));
+    RToolButton * screenShotButt = new RToolButton();
+    screenShotButt->setObjectName(Constant::Tool_Chat_ScreenShot);
+    screenShotButt->setToolTip(QObject::tr("Screenshot"));
+    screenShotButt->setPopupMode(QToolButton::InstantPopup);
 
-    RToolButton * recordAction = ActionManager::instance()->createToolButton(Constant::Tool_chat_Record);
-    recordAction->setToolTip(QObject::tr("Chat"));
+    QMenu * screenShotMenu = ActionManager::instance()->createMenu(Constant::MENU_CHAT_SCREEN_SHOT);
 
-    chatToolBar->appendToolButton(fontAction);
-    chatToolBar->appendToolButton(faceAction);
-    chatToolBar->appendToolButton(shakeAction);
-    chatToolBar->appendToolButton(imageAction);
-    chatToolBar->appendToolButton(screenShotAction);
+    QAction * screenShotAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_SHOT);
+    screenShotAction->setText(QObject::tr("Screenshot"));
+
+    QAction * hideWindowAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_HIDEWIDOW);
+    hideWindowAction->setText(QObject::tr("Hide current window while screenshot "));
+    hideWindowAction->setCheckable(true);
+
+    screenShotMenu->addAction(screenShotAction);
+    screenShotMenu->addAction(hideWindowAction);
+
+    screenShotButt->setMenu(screenShotMenu);
+
+    recordButt = new RToolButton();
+    recordButt->setObjectName(Constant::Tool_Chat_Record);
+    recordButt->setToolTip(QObject::tr("Record data"));
+    recordButt->removeIcon();
+    recordButt->setText(QObject::tr("Record data"));
+
+    chatToolBar->appendToolButton(fontButt);
+    chatToolBar->appendToolButton(faceButt);
+    chatToolBar->appendToolButton(shakeButt);
+    chatToolBar->appendToolButton(imageButt);
+    chatToolBar->appendToolButton(screenShotButt);
     chatToolBar->addStretch(1);
-    chatToolBar->appendToolButton(recordAction);
+    chatToolBar->appendToolButton(recordButt);
 
-    chatInputArea = new QWidget(chatInputContainter);
+    recordButt->setCheckable(true);
+    recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
+    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
 
+    chatInputArea = new SimpleTextEdit(chatInputContainter);
+
+    /**********底部按钮区***************/
     buttonWidget = new QWidget(chatInputContainter);
     buttonWidget->setFixedHeight(CHAT_TOOL_HEIGHT);
+
+    QHBoxLayout * buttonLayout = new QHBoxLayout;
+    buttonLayout->setContentsMargins(0,0,5,5);
+
+    RButton * closeButton = new RButton(buttonWidget);
+    closeButton->setText(QObject::tr("Close window"));
+
+    RButton * sendMessButton = new RButton(buttonWidget);
+    sendMessButton->setText(QObject::tr("Send message"));
+
+    RToolButton * extralButton = new RToolButton();
+    extralButton->setObjectName(Constant::Tool_Chat_SendMess);
+
+    QHBoxLayout * composeLayout = new QHBoxLayout();
+    composeLayout->setSpacing(0);
+    composeLayout->setContentsMargins(0,0,0,0);
+
+    composeLayout->addWidget(sendMessButton);
+    composeLayout->addWidget(extralButton);
+
+    buttonLayout->addStretch(1);
+    buttonLayout->addWidget(closeButton);
+    buttonLayout->addLayout(composeLayout);
+
+    buttonWidget->setLayout(buttonLayout);
 
     chatLayout->addWidget(chatToolBar);
     chatLayout->addWidget(chatInputArea);
@@ -177,9 +266,9 @@ void AbstractChatWidgetPrivate::initWidget()
     chatInputContainter->setLayout(chatLayout);
 
     chatSplitter = new QSplitter(Qt::Vertical);
-    chatSplitter->addWidget(chatArea);
+    chatSplitter->addWidget(chatWidget);
     chatSplitter->addWidget(chatInputContainter);
-    chatSplitter->setStretchFactor(0,3);
+    chatSplitter->setStretchFactor(0,5);
     chatSplitter->setStretchFactor(1,1);
 
     leftLayout->addWidget(chatSplitter);
@@ -191,13 +280,16 @@ void AbstractChatWidgetPrivate::initWidget()
     rightLayout->setSpacing(0);
     rightWidget->setLayout(rightLayout);
 
-    splitter->addWidget(leftWidget);
-    splitter->addWidget(rightWidget);
+    QHBoxLayout * layout = new QHBoxLayout;
+    layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(0);
 
-    splitter->setStretchFactor(0,3);
-    splitter->setStretchFactor(1,1);
+    QObject::connect(slideBar,SIGNAL(slideStateChanged(bool)),q_ptr,SLOT(setSideVisible(bool)));
 
-    bodyLayout->addWidget(splitter);
+    layout->addWidget(leftWidget);
+    layout->addWidget(rightWidget);
+
+    bodyLayout->addLayout(layout);
     bodyWidget->setLayout(bodyLayout);
 
     contentLayout->addWidget(userInfoWidget);
@@ -231,18 +323,50 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr(new AbstractChatWidgetPrivate(this)),
     AbstractWidget(parent)
 {
-    setMinimumSize(CHAT_MIN_WIDTH,CHAT_MIN_HEIGHT);
-
-    QSize size = QApplication::desktop()->size();
-    resize(size.width() * WINDOW_SIZ_WIDTH_FACTOR,size.height() * WINDOW_SIZ_HEIGHT_FACTOR);
+    setMinimumHeight(CHAT_MIN_HEIGHT);
 
     setWindowFlags(windowFlags() &(~Qt::Tool));
+
+    QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
 
 QString AbstractChatWidget::widgetId()
 {
     MQ_D(AbstractChatWidget);
     return d->windowId;
+}
+
+void AbstractChatWidget::resizeOnce()
+{
+    QSize size = QApplication::desktop()->size();
+    int w = size.width() * WINDOW_SIZ_WIDTH_FACTOR;
+    int h = size.height() * WINDOW_SIZ_HEIGHT_FACTOR;
+    setGeometry((qApp->desktop()->width() - w)/2,(qApp->desktop()->height() - h)/2,w,h);
+    setSideVisible(false);
+}
+
+void AbstractChatWidget::setSideVisible(bool flag)
+{
+    MQ_D(AbstractChatWidget);
+
+    d->slideBar->setState(flag);
+    d->leftWidget->setProperty("SideBarVisible",flag);
+    d->rightWidget->setProperty("SideBarVisible",flag);
+
+    if(flag)
+    {
+        resize(d->chatWidget->width() + CHAT_RIGHT_EXTREA_WIDTH + WINDOW_MARGIN_SIZE * 2,height());
+    }
+    else
+    {
+        int tmpWidth = d->chatWidget->width() + 2 * WINDOW_MARGIN_SIZE;
+        resize(tmpWidth < minimumWidth()?minimumWidth():tmpWidth,height());
+        d->recordButt->setChecked(false);
+    }
+
+    d->rightWidget->setVisible(flag);
+    repolish(d->leftWidget);
+    repolish(d->rightWidget);
 }
 
 void AbstractChatWidget::resizeEvent(QResizeEvent *)

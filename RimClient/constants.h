@@ -59,13 +59,14 @@ const char Tool_Chat_Call[] = "Tool_Chat_Call";
 const char Tool_Chat_Min[] = "Tool_Chat_Min";
 const char Tool_Chat_Close[] = "Tool_Chat_Close";
 
-const char Tool_chat_Font[] = "Tool_chat_Font";
-const char Tool_chat_Face[] = "Tool_chat_Face";
-const char Tool_chat_Shake[] = "Tool_chat_Shake";
-const char Tool_chat_Image[] = "Tool_chat_Image";
-const char Tool_chat_ScreenShot[] = "Tool_chat_ScreenShot";
-const char Tool_chat_Record[] = "Tool_chat_Record";
+const char Tool_Chat_Font[] = "Tool_Chat_Font";                                                 //字体
+const char Tool_Chat_Face[] = "Tool_Chat_Face";                                                 //表情
+const char Tool_Chat_Shake[] = "Tool_Chat_Shake";                                               //窗口抖动
+const char Tool_Chat_Image[] = "Tool_Chat_Image";                                               //图像
+const char Tool_Chat_ScreenShot[] = "Tool_Chat_ScreenShot";                                     //截图
+const char Tool_Chat_Record[] = "Tool_Chat_Record";                                             //聊天记录
 
+const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复
 
 const char MENU_PANEL_PERSON_TOOLBOX[] = "Menu.Panel.Person.ToolBox";
 const char MENU_PANEL_PERSON_TOOLGROUP[] = "Menu.Panel.Person.ToolGroup";
@@ -105,6 +106,10 @@ const char ACTION_PANEL_HISTORY_CLEARLIST[] = "Action_Panel_History_ClearList"; 
 const char ACTION_PANEL_HISTORY_STICKSESSION[] = "Action_Panel_Group_StickSession";             //会话置顶
 const char ACTION_PANEL_HISTORY_REMOVEFORMLIST[] = "Action_Panel_Group_RemoveFromList";         //从列表中移除
 
+const char MENU_CHAT_SCREEN_SHOT[] = "Menu.Chat.Screen.Shot";                                   //截图菜单
+
+const char ACTION_CHAT_SCREEN_SHOT[] = "Action_Chat_Screen_Shot";                               //截图
+const char ACTION_CHAT_SCREEN_HIDEWIDOW[] = "Action_Chat_Screen_HideWindow";                    //截图隐藏当前窗口
 
 }
 

@@ -49,6 +49,8 @@ protected:
     virtual void enterEvent(QEvent *);
     virtual void leaveEvent(QEvent *);
 
+    void repolish(QWidget * widget);
+
 private:
     AbstractWidgetPrivate * d_ptr;
 };

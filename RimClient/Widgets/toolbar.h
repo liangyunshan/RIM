@@ -34,6 +34,8 @@ public:
 
     void addStretch(int strech = 0);
 
+    void setSpacing(int spacing);
+
     void setContentsMargins(int left, int top, int right, int bottom);
 
     /*!

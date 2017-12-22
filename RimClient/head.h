@@ -10,6 +10,8 @@
 #ifndef HEAD_H
 #define HEAD_H
 
+#include <QDebug>
+
 #define RIM_VERSION_MAJOR    0
 #define RIM_VERSION_MINOR    0
 #define RIM_VERSION_PATCH    1
@@ -24,6 +26,5 @@
 
 #define MQ_D(Class) Class##Private * const d = dynamic_cast<Class##Private *>(d_ptr)
 #define MQ_Q(class) Class * const q = q_ptr;
-
 
 #endif // HEAD_H

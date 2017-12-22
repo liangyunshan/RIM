@@ -12,6 +12,7 @@
 #define IMAGEMANAGER_H
 
 #include <QFileInfoList>
+#include <QIcon>
 
 class ImageManager
 {
@@ -38,6 +39,8 @@ public:
      * @return 若存在则返回全路径，若不存在返回空字符串
      */
     QString getSystemUserIcon(QString imageName);
+
+    QIcon getCircularIcons(QString imagePath);
 
 private:
     QFileInfoList localSystemUserIcon;

@@ -23,6 +23,9 @@ public:
     AbstractChatWidget(QWidget * parent = 0);
 
     QString widgetId();
+private slots:
+    void resizeOnce();
+    void setSideVisible(bool flag);
 
 protected:
     void resizeEvent(QResizeEvent * event);

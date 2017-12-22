@@ -39,6 +39,7 @@ private:
     ToolBarPrivate(ToolBar * q):q_ptr(q)
     {
         initDialog();
+        iconSize = QSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
     }
 
     void initDialog();
@@ -47,6 +48,8 @@ private:
 
     QWidget * toolBar;
     QHBoxLayout * toolBarLayout;
+
+    QSize iconSize;
 
     QList<RToolButton *> toolButts;
 };
@@ -84,12 +87,19 @@ ToolBar::~ToolBar()
 void ToolBar::setIconSize(QSize size)
 {
     MQ_D(ToolBar);
+    d->iconSize = size;
 }
 
 void ToolBar::addStretch(int strech)
 {
     MQ_D(ToolBar);
     d->toolBarLayout->addStretch(strech);
+}
+
+void ToolBar::setSpacing(int spacing)
+{
+    MQ_D(ToolBar);
+    d->toolBarLayout->setSpacing(spacing);
 }
 
 void ToolBar::setContentsMargins(int left, int top, int right, int bottom)
@@ -103,7 +113,7 @@ bool ToolBar::appendToolButton(RToolButton *toolButton)
     MQ_D(ToolBar);
     if(!contains(d->toolButts,toolButton))
     {
-        toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
+        toolButton->setFixedSize(d->iconSize);
         d->toolBarLayout->addWidget(toolButton);
     }
     return true;

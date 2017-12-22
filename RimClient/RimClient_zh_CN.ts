@@ -4,12 +4,12 @@
 <context>
     <name>AbstractWidget</name>
     <message>
-        <location filename="Widgets/abstractwidget.cpp" line="197"/>
+        <location filename="Widgets/abstractwidget.cpp" line="193"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractwidget.cpp" line="197"/>
+        <location filename="Widgets/abstractwidget.cpp" line="193"/>
         <source>System don&apos;t support resize window!</source>
         <translation>系统不支持窗口缩放</translation>
     </message>
@@ -22,37 +22,47 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="218"/>
+        <location filename="Widgets/logindialog.cpp" line="224"/>
         <source>Input password</source>
         <translation>输入密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="204"/>
+        <location filename="Widgets/logindialog.cpp" line="201"/>
         <source>System Setting</source>
         <translation>系统设置</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="212"/>
+        <location filename="Widgets/logindialog.cpp" line="204"/>
+        <source>Min</source>
+        <translation>最小化</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="207"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="218"/>
         <source>Input number</source>
         <translation>输入账号</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="222"/>
+        <location filename="Widgets/logindialog.cpp" line="228"/>
         <source>Remember password</source>
         <translation>记住密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="223"/>
+        <location filename="Widgets/logindialog.cpp" line="229"/>
         <source>Auto login</source>
         <translation>自动登录</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="224"/>
+        <location filename="Widgets/logindialog.cpp" line="230"/>
         <source>Login</source>
         <translation>登  录</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="225"/>
+        <location filename="Widgets/logindialog.cpp" line="231"/>
         <source>Forget Password</source>
         <translation>忘记密码</translation>
     </message>
@@ -84,12 +94,22 @@
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="106"/>
+        <location filename="Widgets/maindialog.cpp" line="121"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="101"/>
+        <location filename="Widgets/maindialog.cpp" line="187"/>
+        <source>Min</source>
+        <translation>最小化</translation>
+    </message>
+    <message>
+        <location filename="Widgets/maindialog.cpp" line="190"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="Widgets/maindialog.cpp" line="116"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -150,17 +170,17 @@
 <context>
     <name>PanelContentArea</name>
     <message>
-        <location filename="Widgets/panelcontentarea.cpp" line="214"/>
+        <location filename="Widgets/panelcontentarea.cpp" line="213"/>
         <source>Person</source>
         <translation>联系人</translation>
     </message>
     <message>
-        <location filename="Widgets/panelcontentarea.cpp" line="218"/>
+        <location filename="Widgets/panelcontentarea.cpp" line="217"/>
         <source>Group</source>
         <translation>群组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelcontentarea.cpp" line="222"/>
+        <location filename="Widgets/panelcontentarea.cpp" line="221"/>
         <source>History</source>
         <translation>会话</translation>
     </message>
@@ -234,42 +254,42 @@
 <context>
     <name>PanelPersonPage</name>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="164"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="165"/>
         <source>Refresh list</source>
         <translation>刷新好友列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="167"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="168"/>
         <source>Add group</source>
         <translation>添加分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="179"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="180"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="182"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="183"/>
         <source>Delete group</source>
         <translation>删除分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="194"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="195"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="197"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="198"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="200"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="201"/>
         <source>Modify Comments</source>
         <translation>修改备注</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="203"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="204"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>
@@ -277,12 +297,10 @@
 <context>
     <name>PanelTopArea</name>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="88"/>
         <source>Search person/group</source>
         <translation>搜索联系人、群组</translation>
     </message>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="93"/>
         <source>Search</source>
         <translation>搜索</translation>
     </message>
@@ -330,6 +348,73 @@
         <source>Log module initialization failure!</source>
         <translation>日志记录模块初始化失败!</translation>
     </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="151"/>
+        <source>Font</source>
+        <translation>字体工具栏</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="154"/>
+        <source>Emoji</source>
+        <translation>选择表情</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="157"/>
+        <source>Shake window</source>
+        <translation>发送抖动窗口</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="160"/>
+        <source>Image</source>
+        <translation>发送图像</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="163"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="169"/>
+        <source>Screenshot</source>
+        <translation>屏幕截图</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="172"/>
+        <source>Hide current window while screenshot </source>
+        <translation>截图时隐藏当前窗口</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="181"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="183"/>
+        <source>Record data</source>
+        <translation>聊天记录</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="206"/>
+        <source>Close window</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="209"/>
+        <source>Send message</source>
+        <translation>发送</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="268"/>
+        <source>Min</source>
+        <translation>最小化</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="272"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="Widgets/paneltoparea.cpp" line="95"/>
+        <source>Search person/group</source>
+        <translation>搜索联系人、群组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/paneltoparea.cpp" line="100"/>
+        <source>Search</source>
+        <translation>搜索</translation>
+    </message>
 </context>
 <context>
     <name>SystemTrayIcon</name>
@@ -352,12 +437,10 @@
 <context>
     <name>ToolBar</name>
     <message>
-        <location filename="Widgets/toolbar.cpp" line="45"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/toolbar.cpp" line="49"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>

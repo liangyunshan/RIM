@@ -9,6 +9,7 @@
 #include <QMouseEvent>
 #include <QDesktopWidget>
 #include <QDebug>
+#include <QStyle>
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -245,4 +246,10 @@ void AbstractWidget::enterEvent(QEvent *)
 void AbstractWidget::leaveEvent(QEvent *)
 {
 
+}
+
+void AbstractWidget::repolish(QWidget *widget)
+{
+    style()->unpolish(widget);
+    style()->polish(widget);
 }

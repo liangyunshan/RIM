@@ -1,6 +1,8 @@
 <RCC>
     <qresource prefix="/background">
         <file>resource/background/login.png</file>
+        <file>resource/background/slide_hide.png</file>
+        <file>resource/background/slide_show.png</file>
     </qresource>
     <qresource prefix="/style">
         <file>resource/RimClient.qss</file>
@@ -32,6 +34,11 @@
         <file>resource/icon/Group_Close_Tri.png</file>
         <file>resource/icon/Group_Expand_Tri.png</file>
         <file>resource/icon/Tool_Chat_Call.png</file>
+        <file>resource/icon/Tool_Chat_Font.png</file>
+        <file>resource/icon/Tool_Chat_Face.png</file>
+        <file>resource/icon/Tool_Chat_Image.png</file>
+        <file>resource/icon/Tool_Chat_ScreenShot.png</file>
+        <file>resource/icon/Tool_Chat_Shake.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

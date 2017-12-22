@@ -22,6 +22,8 @@ class RButton : public QPushButton
 public:
     RButton(QWidget * parent = 0);
 
+    void setText(const QString &text);
+
 private:
     RButtonPrivate * d_ptr;
 

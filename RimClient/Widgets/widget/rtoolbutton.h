@@ -15,6 +15,8 @@
 
 #include <QToolButton>
 
+#include "Widgets/toolbox/toolitem.h"
+
 class RToolButtonPrivate;
 
 class RToolButton : public QToolButton
@@ -28,8 +30,16 @@ public:
     void setToolTip(const QString & toolTipInfo);
     void setObjectName(QString objName);
 
+    void removeIcon();
+
 protected:
     bool event(QEvent *e);
+
+private slots:
+    void updateItemStyle(bool flag);
+
+private:
+    void setItemState(ToolItem::ItemState state);
 
 private:
     RToolButtonPrivate * d_ptr;
