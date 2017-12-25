@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     主面板顶部信息区
  *  @details   显示登录用户的头像、名称、签名并支持以后扩展添加工具
  *  @file      paneltoparea.h

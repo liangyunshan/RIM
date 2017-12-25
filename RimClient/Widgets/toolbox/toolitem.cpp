@@ -141,11 +141,6 @@ void ToolItem::setIcon(QString icon)
 
 }
 
-QString ToolItem::icon()
-{
-
-}
-
 void ToolItem::setName(QString name)
 {
     MQ_D(ToolItem);

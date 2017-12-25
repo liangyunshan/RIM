@@ -1,4 +1,4 @@
-#include "onlinestate.h"
+﻿#include "onlinestate.h"
 
 #include <QToolButton>
 #include <QMenu>

@@ -4,6 +4,8 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QCryptographicHash>
+#include <QDesktopWidget>
+#include <QApplication>
 #include <QUuid>
 
 QSettings * RUtil::gSettings = NULL;
@@ -68,4 +70,14 @@ QSettings *RUtil::globalSettings()
 QString RUtil::UUID()
 {
     return QUuid::createUuid().toString();
+}
+
+QSize RUtil::screenSize(int num)
+{
+    if(num >= 0 && num < qApp->desktop()->screenCount())
+    {
+        return qApp->desktop()->screen(num)->size();
+    }
+
+    return qApp->desktop()->screen()->size();
 }

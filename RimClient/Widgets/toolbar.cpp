@@ -1,4 +1,4 @@
-#include "toolbar.h"
+﻿#include "toolbar.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -6,11 +6,14 @@
 #include <QStyle>
 #include <QList>
 #include <QDebug>
+#include <QLabel>
 
 #include "head.h"
 #include "datastruct.h"
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
+
+#define WINDOW_ICON_SIZE 16
 
 template<class T>
 bool contains(QList<T*> & list,const T * t)
@@ -36,31 +39,55 @@ class ToolBarPrivate : public GlobalData<ToolBar>
     Q_DECLARE_PUBLIC(ToolBar)
 
 private:
-    ToolBarPrivate(ToolBar * q):q_ptr(q)
+    ToolBarPrivate(bool iconVisible,ToolBar * q):q_ptr(q)
     {
-        initDialog();
+        iconVisilble = false;
+        titleVisible = false;
+        initDialog(iconVisible);
         iconSize = QSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
     }
 
-    void initDialog();
+    void initDialog(bool iconVisible);
 
     ToolBar * q_ptr;
 
     QWidget * toolBar;
     QHBoxLayout * toolBarLayout;
 
+    bool iconVisilble;
+    bool titleVisible;
+    QLabel * iconLabel;
+    QLabel * windowTitle;
+
     QSize iconSize;
 
     QList<RToolButton *> toolButts;
 };
 
-void ToolBarPrivate::initDialog()
+void ToolBarPrivate::initDialog(bool iconVisible)
 {
     toolBar = new QWidget(q_ptr);
+    toolBar->setMinimumHeight(Constant::TOOL_BAR_HEIGHT);
 
     toolBarLayout = new QHBoxLayout();
 
-    toolBarLayout->setContentsMargins(0,0,0,0);
+    if(iconVisible)
+    {
+        iconLabel = new QLabel(toolBar);
+        iconLabel->setFixedSize(WINDOW_ICON_SIZE,WINDOW_ICON_SIZE);
+        iconLabel->setVisible(iconVisilble);
+
+        windowTitle = new QLabel(toolBar);
+        windowTitle->setFont(QFont("微软雅黑",10));
+        windowTitle->setVisible(titleVisible);
+
+        toolBarLayout->addWidget(iconLabel);
+        toolBarLayout->addSpacing(4);
+        toolBarLayout->addWidget(windowTitle);
+        toolBarLayout->addStretch(1);
+    }
+
+    toolBarLayout->setContentsMargins(5,0,0,0);
     toolBarLayout->setSpacing(0);
     toolBar->setLayout(toolBarLayout);
 
@@ -72,8 +99,8 @@ void ToolBarPrivate::initDialog()
     q_ptr->setLayout(layout);
 }
 
-ToolBar::ToolBar(QWidget *parent) :
-    d_ptr(new ToolBarPrivate(this)),
+ToolBar::ToolBar(bool iconVisible,QWidget *parent) :
+    d_ptr(new ToolBarPrivate(iconVisible,this)),
     QWidget(parent)
 {
 
@@ -100,6 +127,44 @@ void ToolBar::setSpacing(int spacing)
 {
     MQ_D(ToolBar);
     d->toolBarLayout->setSpacing(spacing);
+}
+
+void ToolBar::enableWindowIcon(bool flag)
+{
+    MQ_D(ToolBar);
+    d->iconVisilble = flag;
+    d->iconLabel->setVisible(flag);
+}
+
+void ToolBar::setWindowIcon(const QString image)
+{
+    MQ_D(ToolBar);
+    if(d->iconVisilble)
+    {
+        d->iconLabel->setPixmap(QPixmap(image));
+    }
+}
+
+void ToolBar::enableWindowTitle(bool flag)
+{
+    MQ_D(ToolBar);
+    d->titleVisible = flag;
+    d->windowTitle->setVisible(flag);
+}
+
+void ToolBar::setWindowTitle(const QString &name)
+{
+    MQ_D(ToolBar);
+    if(d->titleVisible)
+    {
+        d->windowTitle->setText(name);
+    }
+}
+
+QString ToolBar::windowTitle() const
+{
+    MQ_D(ToolBar);
+    return d->windowTitle->text();
 }
 
 void ToolBar::setContentsMargins(int left, int top, int right, int bottom)

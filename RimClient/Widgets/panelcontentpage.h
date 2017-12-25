@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     面板子页面
  *  @details   对应主页面中不同功能页面。
  *  @file      panelcontentpage.h

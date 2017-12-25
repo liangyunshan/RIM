@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     历史聊天页面
  *  @details   显示登录用户历史与联系人交流的记录
  *  @file      panelhistorypage.h

@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     群信息界面
  *  @details   显示登录用户群信息
  *  @file      panelgrouppage.h

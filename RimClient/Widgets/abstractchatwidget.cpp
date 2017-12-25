@@ -1,10 +1,11 @@
-#include "abstractchatwidget.h"
+﻿#include "abstractchatwidget.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSplitter>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QEvent>
 #include <QMenu>
 #include <QStyle>
 #include <QAction>
@@ -22,9 +23,13 @@
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"
 #include "slidebar.h"
+#include "Widgets/maindialog.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
+
+#include <windows.h>
+
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -40,6 +45,7 @@ protected:
     {
         initWidget();
         windowId = RUtil::UUID();
+        isMaxSize = false;
     }
 
     void initWidget();
@@ -67,8 +73,10 @@ protected:
     QWidget * buttonWidget;                //关闭、发送等按钮栏
 
     RToolButton * recordButt;
-
     ToolBar * windowToolBar;
+
+    bool isMaxSize;
+    QRect originRect;                      //原始位置及尺寸
 
     QString windowId;
 };
@@ -98,10 +106,10 @@ void AbstractChatWidgetPrivate::initWidget()
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
-    userInfo_NameLabel->setText("韩天才");
+    userInfo_NameLabel->setText(QStringLiteral("韩天才"));
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
-    q_ptr->setWindowTitle("韩天才");
+    q_ptr->setWindowTitle(QStringLiteral("韩天才"));
     q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
@@ -118,10 +126,11 @@ void AbstractChatWidgetPrivate::initWidget()
     userInfoWidget->setLayout(userInfoLayout);
 
     /**********工具栏***************/
-    toolBar = new ToolBar(contentWidget);
+    toolBar = new ToolBar(false,contentWidget);
     toolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
 
-    RToolButton * callButton = ActionManager::instance()->createToolButton(Constant::Tool_Chat_Call);
+    RToolButton * callButton = new RToolButton();
+    callButton->setObjectName(Constant::Tool_Chat_Call);
     callButton->setFixedSize(28,24);
 
     toolBar->appendToolButton(callButton);
@@ -170,7 +179,7 @@ void AbstractChatWidgetPrivate::initWidget()
     chatLayout->setSpacing(0);
 
     /**********聊天工具栏***************/
-    chatToolBar = new ToolBar(chatInputContainter);
+    chatToolBar = new ToolBar(false,chatInputContainter);
     chatToolBar->setContentsMargins(5,0,5,0);
     chatToolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
     chatToolBar->setSpacing(5);
@@ -300,14 +309,16 @@ void AbstractChatWidgetPrivate::initWidget()
     q_ptr->setContentWidget(contentWidget);
 
     /**********窗口控制区***************/
-    windowToolBar = new ToolBar(contentWidget);
+    windowToolBar = new ToolBar(false,contentWidget);
     windowToolBar->setContentsMargins(5,0,0,0);
 
-    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::Tool_Chat_Min),q_ptr,SLOT(showMinimized()));
+    RToolButton * minSize = new RToolButton();
+    minSize->setObjectName(Constant::Tool_Chat_Min);
     minSize->setIcon(QIcon(QString(":/icon/resource/icon/%1.png").arg(Constant::TOOL_MIN)));
     minSize->setToolTip(QObject::tr("Min"));
 
-    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::Tool_Chat_Close),q_ptr,SLOT(closeWindow()));
+    RToolButton * closeButt = new RToolButton();
+    closeButt->setObjectName(Constant::Tool_Chat_Close);
     closeButt->setIcon(QIcon(QString(":/icon/resource/icon/%1.png").arg(Constant::TOOL_CLOSE)));
     closeButt->setToolTip(QObject::tr("Close"));
 
@@ -321,11 +332,13 @@ void AbstractChatWidgetPrivate::initWidget()
 
 AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr(new AbstractChatWidgetPrivate(this)),
-    AbstractWidget(parent)
+    Widget(parent)
 {
     setMinimumHeight(CHAT_MIN_HEIGHT);
-
     setWindowFlags(windowFlags() &(~Qt::Tool));
+
+    d_ptr->userInfoWidget->installEventFilter(this);
+    d_ptr->windowToolBar->installEventFilter(this);
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
@@ -338,10 +351,13 @@ QString AbstractChatWidget::widgetId()
 
 void AbstractChatWidget::resizeOnce()
 {
-    QSize size = QApplication::desktop()->size();
+    QSize size = qApp->desktop()->screen()->size();
+
     int w = size.width() * WINDOW_SIZ_WIDTH_FACTOR;
     int h = size.height() * WINDOW_SIZ_HEIGHT_FACTOR;
-    setGeometry((qApp->desktop()->width() - w)/2,(qApp->desktop()->height() - h)/2,w,h);
+
+    setGeometry((size.width() - w)/2,(size.height() - h)/2,w,h);
+
     setSideVisible(false);
 }
 
@@ -369,10 +385,57 @@ void AbstractChatWidget::setSideVisible(bool flag)
     repolish(d->rightWidget);
 }
 
+bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    MQ_D(AbstractChatWidget);
+    if(watched == d->userInfoWidget)
+    {
+        if(event->type() == QEvent::MouseButtonDblClick)
+        {
+            switchWindowSize();
+            return true;
+        }
+    }
+    else if(watched == d->windowToolBar)
+    {
+        if(event->type() == QEvent::MouseButtonDblClick)
+        {
+            switchWindowSize();
+            return true;
+        }
+    }
+
+    return Widget::eventFilter(watched,event);
+}
+
 void AbstractChatWidget::resizeEvent(QResizeEvent *)
 {
     MQ_D(AbstractChatWidget);
     d->windowToolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - 2 * WINDOW_MARGIN_SIZE,Constant::TOOL_WIDTH);
+}
+
+void AbstractChatWidget::switchWindowSize()
+{
+    MQ_D(AbstractChatWidget);
+
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof( WINDOWPLACEMENT );
+
+    HWND hd = (HWND)Widget::winId();
+    GetWindowPlacement( hd, &wp );
+    if ( wp.showCmd == SW_MAXIMIZE )
+    {
+      ShowWindow( hd, SW_RESTORE );
+    }
+    else
+    {
+        showMaximized();
+//      ShowWindow(hd, SW_MAXIMIZE );
+    }
+
+    d->isMaxSize = !d->isMaxSize;
+
+    setShadowWindow(!isMaximized());
 }
 
 

@@ -1,3 +1,10 @@
+QWidget#AbstractWidget_ContentWidget
+{
+	background-color:rgb(240,245,250);
+	border-radius:3px;
+}
+
+/****************************登录页面********************************/
 QWidget#loginBar
 {
 	border-image:url(":/background/resource/background/login.png");
@@ -235,11 +242,6 @@ QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical
 }
 
 /****************************聊天窗口********************************/
-QWidget#ContentWidget
-{
-	background-color:rgb(240,245,250);
-	border-radius:3px;
-}
 QLabel#Chat_User_NameLabel
 {
 	font-family:"微软雅黑";
@@ -281,4 +283,13 @@ QWidget#Chat_Right_Widget[SideBarVisible="true"]
 QWidget#Chat_Right_Widget[SideBarVisible="true"]
 {
 	border:none;
+}
+
+
+/****************************添加好友框********************************/
+QLabel#Add_Friend_Account_Label
+{
+	font-size:13px;
+	color:red;
+	font-weight:600;
 }

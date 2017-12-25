@@ -13,7 +13,6 @@ HEADERS += \
     $$PWD/panelpersonpage.h \
     $$PWD/panelgrouppage.h \
     $$PWD/panelhistorypage.h \
-    $$PWD/abstractwidget.h \
     $$PWD/actionmanager/id.h \
     $$PWD/actionmanager/actionmanager.h \
     $$PWD/widget/rtoolbutton.h \
@@ -28,7 +27,12 @@ HEADERS += \
     $$PWD/textedit/simpletextedit.h \
     $$PWD/textedit/complextextedit.h \
     $$PWD/textedit/basetextedit.h \
-    $$PWD/slidebar.h
+    $$PWD/slidebar.h \
+    $$PWD/nativewindow/MainWindow.h \
+    $$PWD/nativewindow/QMainPanel.h \
+    $$PWD/nativewindow/QWinWidget.h \
+    $$PWD/widget.h \
+    $$PWD/addfriend.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -42,7 +46,6 @@ SOURCES += \
     $$PWD/panelpersonpage.cpp \
     $$PWD/panelgrouppage.cpp \
     $$PWD/panelhistorypage.cpp \
-    $$PWD/abstractwidget.cpp \
     $$PWD/actionmanager/id.cpp \
     $$PWD/actionmanager/actionmanager.cpp \
     $$PWD/widget/rtoolbutton.cpp \
@@ -57,4 +60,11 @@ SOURCES += \
     $$PWD/textedit/simpletextedit.cpp \
     $$PWD/textedit/complextextedit.cpp \
     $$PWD/textedit/basetextedit.cpp \
-    $$PWD/slidebar.cpp
+    $$PWD/slidebar.cpp \
+    $$PWD/nativewindow/MainWindow.cpp \
+    $$PWD/nativewindow/QMainPanel.cpp \
+    $$PWD/nativewindow/QWinWidget.cpp \
+    $$PWD/widget.cpp \
+    $$PWD/addfriend.cpp
+
+LIBS += -luser32

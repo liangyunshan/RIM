@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QPainterPath>
+#include <QMetaEnum>
 
 #include "constants.h"
 
@@ -84,4 +85,15 @@ QIcon ImageManager::getCircularIcons(QString imagePath)
     painter.drawPixmap(0,0,pixmap);
 
     return QIcon(result);
+}
+
+QString ImageManager::getWindowIcon(WinIcon icon)
+{
+#if QT_VERSION > 0x050500
+    QMetaEnum metaEnum =  QMetaEnum::fromType<WinIcon>();
+    return QString(":/icon/resource/icon/%1.png").arg(QString(metaEnum.key(icon)).toLower());
+#else
+
+#endif
+
 }

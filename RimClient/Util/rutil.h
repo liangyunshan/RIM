@@ -12,8 +12,8 @@
 #define RUTIL_H
 
 #include <QString>
-
 #include <QSettings>
+
 
 class RUtil
 {
@@ -32,6 +32,8 @@ public:
     static QSettings * globalSettings();
 
     static QString UUID();
+
+    static QSize screenSize(int num = -1);
 
 private:
     static QSettings * gSettings;

@@ -1,4 +1,4 @@
-#include "slidebar.h"
+﻿#include "slidebar.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>

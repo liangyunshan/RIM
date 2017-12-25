@@ -1,4 +1,4 @@
-#include "panelcontentpage.h"
+﻿#include "panelcontentpage.h"
 
 #include <QHBoxLayout>
 

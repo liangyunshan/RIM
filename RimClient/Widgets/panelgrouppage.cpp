@@ -1,4 +1,4 @@
-#include "panelgrouppage.h"
+﻿#include "panelgrouppage.h"
 
 #include <QHBoxLayout>
 
@@ -55,20 +55,20 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
 {
     createAction();
 
-    ToolPage * page = d_ptr->toolBox->addPage("我的群");
-    d_ptr->pages.append(page);
-    for(int i = 0; i < 5;i++)
-    {
-        ToolItem * item = new ToolItem(page);
-        connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
-        item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLITEM));
-        item->setName("天地仁谷");
-        item->setNickName("(16人)");
-        page->addItem(item);
-        d_ptr->toolItems.append(item);
-    }
+//    ToolPage * page = d_ptr->toolBox->addPage("我的群");
+//    d_ptr->pages.append(page);
+//    for(int i = 0; i < 5;i++)
+//    {
+//        ToolItem * item = new ToolItem(page);
+//        connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
+//        item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLITEM));
+//        item->setName("天地仁谷");
+//        item->setNickName("(16人)");
+//        page->addItem(item);
+//        d_ptr->toolItems.append(item);
+//    }
 
-    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
+//    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
 }
 
 PanelGroupPage::~PanelGroupPage()

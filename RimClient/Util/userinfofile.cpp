@@ -4,7 +4,6 @@
 #include <QApplication>
 
 #include "constants.h"
-#include "datastruct.h"
 #include "head.h"
 
 UserInfoFile::UserInfoFile():

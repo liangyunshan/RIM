@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     主面板内容区
  *  @details   显示联系人、群组、历史聊天对象等内容
  *  @file      panelcontentarea.h

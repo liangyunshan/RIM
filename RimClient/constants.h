@@ -29,6 +29,7 @@ const char PATH_StylePath[] = "/style";
 const char PATH_SystemIconPath[] = "/systemIcon";
 
 /*控件尺寸*/
+const int TOOL_BAR_HEIGHT = 30;                         //工具栏固定高度
 const int TOOL_WIDTH = 24;                              //工具按钮宽度
 const int TOOL_HEIGHT = 24;                             //工具按钮高度
 

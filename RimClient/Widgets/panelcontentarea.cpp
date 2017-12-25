@@ -1,4 +1,4 @@
-#include "panelcontentarea.h"
+﻿#include "panelcontentarea.h"
 
 #include <QHBoxLayout>
 #include <QStackedWidget>

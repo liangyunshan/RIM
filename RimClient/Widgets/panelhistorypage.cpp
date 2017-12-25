@@ -1,4 +1,4 @@
-#include "panelhistorypage.h"
+﻿#include "panelhistorypage.h"
 
 #include <QHBoxLayout>
 #include <QMenu>
@@ -55,9 +55,9 @@ PanelHistoryPage::PanelHistoryPage(QWidget *parent):
     {
         ToolItem * item = new ToolItem(NULL);
         item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_HISTORY_TOOLITEM));
-        item->setName(QString("徐卫平%1").arg(i+1));
+        item->setName(QString(QStringLiteral("徐卫平%1")).arg(i+1));
         item->setNickName("Weiping Xu");
-        item->setDescInfo(" 崾庅趕緊呿死，崾庅精彩の萿着。。");
+        item->setDescInfo(QStringLiteral("崾庅趕緊呿死，崾庅精彩の萿着"));
         d_ptr->listBox->addItem(item);
     }
     d_ptr->listBox->setContextMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_HISTORY_TOOLBOX));

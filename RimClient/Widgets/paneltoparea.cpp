@@ -1,4 +1,4 @@
-#include "paneltoparea.h"
+﻿#include "paneltoparea.h"
 
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -73,12 +73,12 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel = new QLabel(contentWidget);
     userNikcNameLabel->setObjectName("Panel_Top_UserNikcNameLabel");
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userNikcNameLabel->setText("一路向北");
+    userNikcNameLabel->setText(QStringLiteral("一路向北"));
 
     userSignNameEdit = new QLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userSignNameEdit->setText("Say Something");
+    userSignNameEdit->setText(QStringLiteral("Say Something"));
 
     extendToolWiget = new QWidget(contentWidget);
     extendToolWiget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);

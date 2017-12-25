@@ -1,4 +1,4 @@
-#include "panelbottomtoolbar.h"
+﻿#include "panelbottomtoolbar.h"
 
 #include <QHBoxLayout>
 #include <QToolButton>
@@ -6,6 +6,8 @@
 #include "head.h"
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
+#include "addfriend.h"
+#include "maindialog.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -40,7 +42,7 @@ void PanelBottomToolBar::initWidget()
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     toolButton->setToolTip(tr("Main menu"));
 
-    RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,NULL,NULL);
+    RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,this,SLOT(showAddFriendPanel()));
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     searchPerson->setToolTip(tr("Add Person"));
 
@@ -49,4 +51,10 @@ void PanelBottomToolBar::initWidget()
     contentLayout->addStretch(1);
 
     mainWidget->setLayout(contentLayout);
+}
+
+void PanelBottomToolBar::showAddFriendPanel()
+{
+    AddFriend * adf = new AddFriend();
+    adf->show();
 }

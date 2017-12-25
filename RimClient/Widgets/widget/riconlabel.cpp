@@ -51,6 +51,7 @@ void RIconLabel::setTransparency(bool flag)
 {
     MQ_D(RIconLabel);
     d->transparency = flag;
+    update();
 }
 
 void RIconLabel::setEnterCursorChanged(bool flag)

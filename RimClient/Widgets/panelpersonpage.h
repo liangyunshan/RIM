@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     用户界面
  *  @details   显示用户的联系人信息
  *  @file      panelpersonpage.h

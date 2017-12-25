@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     控制聊天窗口右侧xia显示或隐藏
  *  @details
  *  @file      slidebar.h

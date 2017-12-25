@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     在线状态选择框
  *  @details   可提供在线、离线、隐身、忙碌、请勿打扰等状态显示
  *  @file      onlinestate.h

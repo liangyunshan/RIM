@@ -1,4 +1,4 @@
-#include "logindialog.h"
+﻿#include "logindialog.h"
 #include "ui_logindialog.h"
 
 #include <QList>
@@ -188,14 +188,15 @@ void LoginDialog::initWidget()
 {
     MQ_D(LoginDialog);
 
-    QSize size = qApp->desktop()->size();
+    //在多屏状态下，默认选择第一个屏幕
+    QSize size = qApp->desktop()->screen()->size();
 
     this->setGeometry((size.width() - d->windowWidth)/2,(size.height() - d->windowHeight)/2,d->windowWidth,d->windowHeight);
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
 
     mainDialog = NULL;
 
-    toolBar = new ToolBar(this);
+    toolBar = new ToolBar(false,this);
 
     RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING));
     systemSetting->setToolTip(tr("System Setting"));

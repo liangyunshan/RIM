@@ -28,7 +28,6 @@ public:
     explicit ToolItem(ToolPage *page,QWidget * parent = 0);
 
     void setIcon(QString icon);
-    QString icon();
 
     void setName(QString name);
     void setNickName(QString name);

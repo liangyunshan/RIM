@@ -1,4 +1,4 @@
-#include "maindialog.h"
+﻿#include "maindialog.h"
 
 #include <QDebug>
 #include <QDesktopWidget>
@@ -53,7 +53,7 @@ MainDialog * MainDialog::dialog = NULL;
 
 MainDialog::MainDialog(QWidget *parent) :
     d_ptr(new MainDialogPrivate(this)),
-    AbstractWidget(parent)
+    Widget(parent)
 {
     setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
     setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
@@ -179,7 +179,7 @@ void MainDialog::initWidget()
 
     readSettings();
 
-    d->toolBar = new ToolBar(d->MainPanel);
+    d->toolBar = new ToolBar(false,d->MainPanel);
 
     RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
 

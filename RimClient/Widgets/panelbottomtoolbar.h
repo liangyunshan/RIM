@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     主面板底部菜单栏
  *  @details
  *  @file      panelbottomtoolbar.h
@@ -28,6 +28,9 @@ signals:
 
 private:
     void initWidget();
+
+private slots:
+    void showAddFriendPanel();
 
 private:
     QWidget * mainWidget;

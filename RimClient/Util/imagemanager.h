@@ -11,36 +11,59 @@
 #ifndef IMAGEMANAGER_H
 #define IMAGEMANAGER_H
 
+#include <QObject>
 #include <QFileInfoList>
 #include <QIcon>
 
-class ImageManager
+#include "datastruct.h"
+
+class ImageManager : public QObject
 {
+    Q_OBJECT
 public:
     ImageManager();
+
+    /*!
+     *  @brief 系统图标尺寸 w*h pix
+     */
+    enum WinIcon
+    {
+        ICON_SYSTEM_16,
+        ICON_SYSTEM_24,
+        ICON_SYSTEM_32,
+        ICON_SYSTEM_48,
+        ICON_SYSTEM_64,
+        ICON_SYSTEM_72,
+        ICON_SYSTEM_96,
+        ICON_SYSTEM_128
+    };
+    Q_ENUM(WinIcon)
 
     void loadSystemIcons();
 
     /*!
      * @brief 获取用户图标
-     *
      * @param[in] index 图片索引
      * @param[in] fullPath 是否以全路径返回
-     *
      * @return 若存在则返回，若不存在返回空字符串
      */
     QString getSystemUserIcon(int index = 0,bool fullPath = true);
 
     /*!
      * @brief 获取用户图标
-     *
      * @param[in] imageName 文件名
-     *
      * @return 若存在则返回全路径，若不存在返回空字符串
      */
     QString getSystemUserIcon(QString imageName);
 
     QIcon getCircularIcons(QString imagePath);
+
+    /*!
+     * @brief 根据尺寸获取对应系统图标
+     * @param[in] WinIcon 图标尺寸
+     * @return 图标资源路径
+     */
+    QString getWindowIcon(WinIcon icon = ICON_SYSTEM_24);
 
 private:
     QFileInfoList localSystemUserIcon;

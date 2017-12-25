@@ -1,6 +1,8 @@
-/*!
+﻿/*!
  *  @brief     自定义工具栏
- *  @details   1.提供统一最大化、最小化等工具的设置；2.支持添加、插入工具按钮
+ *  @details   1.支持添加、插入工具按钮
+ *             2.支持控制程序图标和窗口名称显示控制
+ *
  *  @author    wey
  *  @version   1.0
  *  @date      2017.12.11
@@ -27,7 +29,7 @@ class ToolBar : public QWidget
     Q_DECLARE_PRIVATE(ToolBar)
 
 public:
-    explicit ToolBar(QWidget *parent = 0);
+    explicit ToolBar(bool iconVisible = false,QWidget *parent = 0);
     ~ToolBar();
 
     void setIconSize(QSize size);
@@ -35,6 +37,14 @@ public:
     void addStretch(int strech = 0);
 
     void setSpacing(int spacing);
+
+    void enableWindowIcon(bool flag = false);
+    void setWindowIcon(const QString image);
+
+    void enableWindowTitle(bool flag = false);
+
+    void setWindowTitle(const QString& title);
+    QString windowTitle() const;
 
     void setContentsMargins(int left, int top, int right, int bottom);
 

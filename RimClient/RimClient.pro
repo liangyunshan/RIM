@@ -1,6 +1,6 @@
 QT += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
 CONFIG += c++11
 
@@ -28,3 +28,8 @@ TRANSLATIONS += $${TARGET}_zh_CN.ts
 
 RESOURCES += \
     resource.qrc
+
+win32-msvc2013{
+    LIBS += gdi32.lib dwmapi.lib
+}
+

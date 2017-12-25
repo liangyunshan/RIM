@@ -16,6 +16,8 @@
 #include "Util/rsingleton.h"
 #include "Util/rlog.h"
 
+#include "Widgets/nativewindow/MainWindow.h"
+
 /*!
   目录结构
   +RIM
@@ -25,13 +27,24 @@
            +skin
 */
 
+#if _MSC_VER >= 1600
+#pragma execution_character_set("utf-8")
+#endif
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    // Background color
+    // This is only for WinApi window, Qt widgets use BorderlessWindow.css stylesheet
+//    HBRUSH windowBackground = CreateSolidBrush( RGB( 255, 0, 255 ) );
+
+//    BorderlessWindow window(windowBackground, 100, 100, 1024, 768 );
+//    window.setMinimumSize( 800, 600 );
+
     QApplication::setApplicationName(Constant::ApplicationName);
 
-    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec * codec = QTextCodec::codecForName("utf-8");
     QTextCodec::setCodecForLocale(codec);
 
     QString configFullPath = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath);

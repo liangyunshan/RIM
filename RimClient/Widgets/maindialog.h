@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     主面板界面
  *  @details   显示登录用户的详细信息，包括联系人、群、历史聊天对象等
  *  @file      maindialog.h
@@ -12,7 +12,7 @@
 #ifndef MAINDIALOG_H
 #define MAINDIALOG_H
 
-#include "abstractwidget.h"
+#include "widget.h"
 
 class MainDialogPrivate;
 class ToolBar;
@@ -21,7 +21,7 @@ class PanelContentArea;
 class PanelTopArea;
 class ToolItem;
 
-class MainDialog : public AbstractWidget
+class MainDialog : public Widget
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(MainDialog)

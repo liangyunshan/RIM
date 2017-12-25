@@ -1,4 +1,4 @@
-#include "panelpersonpage.h"
+﻿#include "panelpersonpage.h"
 
 #include <QHBoxLayout>
 #include <QContextMenuEvent>
@@ -62,7 +62,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 
     for(int j = 0; j < 2;j++)
     {
-        ToolPage * page = d_ptr->toolBox->addPage("我的好友");
+        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友"));
         d_ptr->pages.append(page);
         for(int i = 0; i < 5;i++)
         {
@@ -71,9 +71,9 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
             connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
             connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
             item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
-            item->setName(QString("韩天才%1").arg(i));
+            item->setName(QString(QStringLiteral("韩天才%1")).arg(i));
             item->setNickName("MagnyCopper");
-            item->setDescInfo("PSN确实快了很多啊！！！^_^");
+            item->setDescInfo(QStringLiteral("PSN确实快了很多啊！！！^_^"));
             page->addItem(item);
             d_ptr->toolItems.append(item);
         }

@@ -36,7 +36,7 @@ private:
 
     void setToolName(QString text);
 
-    bool setExpanded(bool flag);
+    void setExpanded(bool flag);
 
     ToolPage * q_ptr;
     ToolBox * toolBox;
@@ -112,7 +112,7 @@ void ToolPagePrivate::setToolName(QString text)
     textLabel->setFixedWidth(fm.width(textLabel->text()));
 }
 
-bool ToolPagePrivate::setExpanded(bool flag)
+void ToolPagePrivate::setExpanded(bool flag)
 {
     expanded = flag;
     detailWidget->setVisible(expanded);

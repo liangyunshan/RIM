@@ -11,11 +11,11 @@
 #ifndef ABSTRACTCHATWIDGET_H
 #define ABSTRACTCHATWIDGET_H
 
-#include "abstractwidget.h"
+#include "widget.h"
 
 class AbstractChatWidgetPrivate;
 
-class AbstractChatWidget : public AbstractWidget
+class AbstractChatWidget : public Widget
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(AbstractChatWidget)
@@ -28,7 +28,11 @@ private slots:
     void setSideVisible(bool flag);
 
 protected:
+    bool eventFilter(QObject *watched, QEvent *event);
     void resizeEvent(QResizeEvent * event);
+
+private:
+    void switchWindowSize();
 
 private:
     AbstractChatWidgetPrivate * d_ptr;

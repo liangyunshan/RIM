@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     系统托盘
  *  @details   用于在系统的任务栏中显示基本快捷操作信息
  *  @file      systemtrayicon.h
@@ -10,6 +10,8 @@
  */
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H
+
+#pragma execution_character_set("utf-8")
 
 #include <QSystemTrayIcon>
 
