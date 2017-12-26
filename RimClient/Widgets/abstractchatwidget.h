@@ -12,17 +12,22 @@
 #define ABSTRACTCHATWIDGET_H
 
 #include "widget.h"
+#include "observer.h"
 
 class AbstractChatWidgetPrivate;
 
-class AbstractChatWidget : public Widget
+class AbstractChatWidget : public Widget , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(AbstractChatWidget)
 public:
     AbstractChatWidget(QWidget * parent = 0);
+    ~AbstractChatWidget();
 
     QString widgetId();
+
+    void onMessage(MessageType type);
+
 private slots:
     void resizeOnce();
     void setSideVisible(bool flag);

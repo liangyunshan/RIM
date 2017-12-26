@@ -12,18 +12,21 @@
 #define PANELTOPAREA_H
 
 #include <QWidget>
+#include "observer.h"
 
 class QLabel;
 class QLineEdit;
 class PanelTopAreaPrivate;
 
-class PanelTopArea : public QWidget
+class PanelTopArea : public QWidget,public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(PanelTopArea)
 public:
     explicit PanelTopArea(QWidget *parent = 0);
     ~PanelTopArea();
+
+    void onMessage(MessageType type);
 
 signals:
 

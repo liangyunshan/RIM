@@ -3,7 +3,6 @@
 #include <QMenu>
 #include <QAction>
 #include <QApplication>
-#include <QDebug>
 
 #include "head.h"
 #include "constants.h"

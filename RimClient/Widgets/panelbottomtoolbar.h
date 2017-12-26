@@ -14,26 +14,30 @@
 
 #include <QWidget>
 
-class QToolButton;
+#include "observer.h"
 
-class PanelBottomToolBar : public  QWidget
+class QToolButton;
+class PanelBottomToolBarPrivate;
+
+class PanelBottomToolBar : public  QWidget , public Observer
 {
     Q_OBJECT
+    Q_DECLARE_PRIVATE(PanelBottomToolBar)
 public:
     explicit PanelBottomToolBar(QWidget * parent = 0);
     ~PanelBottomToolBar();
 
+    void onMessage(MessageType type);
+
 signals:
     void showSearchPerson();
 
-private:
-    void initWidget();
-
 private slots:
     void showAddFriendPanel();
+    void updateFrinedInstance(QObject *);
 
 private:
-    QWidget * mainWidget;
+    PanelBottomToolBarPrivate * d_ptr;
 };
 
 #endif // PANELBOTTOMTOOLBAR_H

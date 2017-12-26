@@ -4,7 +4,6 @@
 #include <QMenu>
 #include <QAction>
 #include <QMetaEnum>
-#include <QDebug>
 #include <QHBoxLayout>
 #include <QMap>
 

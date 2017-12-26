@@ -5,11 +5,11 @@
 #include <QDate>
 #include <QMetaEnum>
 #include <QThread>
-#include <QDebug>
-
 #include <stdarg.h>
 
 #include "rutil.h"
+
+#include "head.h"
 
 const char PATH_LogPath[] = "/../logs";
 const char Suffix[] = ".log";

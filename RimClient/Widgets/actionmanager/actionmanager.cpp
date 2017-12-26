@@ -3,6 +3,9 @@
 #include <QToolButton>
 #include <QDebug>
 
+#include <Util/rsingleton.h>
+#include "shortcutsettings.h"
+
 template<class T,class P>
 bool contains(QMap<T,P*> & map,const T &id)
 {
@@ -101,6 +104,33 @@ QAction *ActionManager::action(Id id)
     }
 
     return NULL;
+}
+
+void ActionManager::registShortAction(QAction *action, QKeySequence defaultKey)
+{
+    QKeySequence localKey = RSingleton<ShortcutSettings>::instance()->shortCut(action->objectName().toLocal8Bit().data());
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<localKey;
+    if(localKey.isEmpty())
+    {
+        action->setShortcut(defaultKey);
+        RSingleton<ShortcutSettings>::instance()->addShortcut(action->objectName(),defaultKey);
+    }
+    else
+    {
+        action->setShortcut(localKey);
+    }
+}
+
+QKeySequence ActionManager::shortcut(Id id, QKeySequence defaultKey)
+{
+    QKeySequence  key = RSingleton<ShortcutSettings>::instance()->shortCut(id);
+    if(key.isEmpty())
+    {
+        RSingleton<ShortcutSettings>::instance()->addShortcut(id,defaultKey);
+        key = defaultKey;
+    }
+
+    return key;
 }
 
 QMenu *ActionManager::createMenu(Id id)

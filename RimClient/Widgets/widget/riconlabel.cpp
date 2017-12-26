@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QColor>
+#include <QTimer>
 
 #include "head.h"
 #include "datastruct.h"
@@ -14,7 +15,9 @@ private:
     RIconLabelPrivate(RIconLabel * q):
         q_ptr(q)
     {
+        timer = NULL;
         corner = true;
+        hoverDealyView = true;
         transparency = false;
         cursorChange = true;
         backgroundColor = Qt::white;
@@ -25,7 +28,9 @@ private:
     bool corner;
     bool transparency;                      //透明度
     bool cursorChange;
+    bool hoverDealyView;                    //延迟发送进入信号
     QColor backgroundColor;
+    QTimer * timer;
 };
 
 RIconLabel::RIconLabel(QWidget *parent):
@@ -58,6 +63,12 @@ void RIconLabel::setEnterCursorChanged(bool flag)
 {
     MQ_D(RIconLabel);
     d->cursorChange = flag;
+}
+
+void RIconLabel::setHoverDelay(bool flag)
+{
+    MQ_D(RIconLabel);
+    d->hoverDealyView = flag;
 }
 
 void RIconLabel::paintEvent(QPaintEvent *)
@@ -95,11 +106,43 @@ void RIconLabel::enterEvent(QEvent *)
     {
         setCursor(Qt::PointingHandCursor);
     }
-    emit mouseHover(true);
+
+    if(d->hoverDealyView)
+    {
+        if(!d->timer)
+        {
+            d->timer = new QTimer;
+            d->timer->setSingleShot(true);
+            d->timer->setInterval(450);
+            connect(d->timer,SIGNAL(timeout()),this,SLOT(timeOut()));
+        }
+        d->timer->start();
+    }
+    else
+    {
+        timeOut();
+    }
 }
 
 void RIconLabel::leaveEvent(QEvent *)
 {
+    MQ_D(RIconLabel);
     setCursor(Qt::ArrowCursor);
+
+    if(d->hoverDealyView)
+    {
+        if(d->timer)
+        {
+            if(d->timer->isActive())
+            {
+                d->timer->stop();
+            }
+        }
+    }
     emit mouseHover(false);
+}
+
+void RIconLabel::timeOut()
+{
+    emit mouseHover(true);
 }

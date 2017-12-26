@@ -10,6 +10,7 @@
 #include <QStyle>
 #include <QAction>
 #include <QTimer>
+#include <QKeySequence>
 
 #include "head.h"
 #include "datastruct.h"
@@ -28,8 +29,9 @@
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
 
+#ifdef Q_OS_WIN
 #include <windows.h>
-
+#endif
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -209,6 +211,7 @@ void AbstractChatWidgetPrivate::initWidget()
     QMenu * screenShotMenu = ActionManager::instance()->createMenu(Constant::MENU_CHAT_SCREEN_SHOT);
 
     QAction * screenShotAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_SHOT);
+    ActionManager::instance()->registShortAction(screenShotAction,QKeySequence("Ctrl+Alt+A"));
     screenShotAction->setText(QObject::tr("Screenshot"));
 
     QAction * hideWindowAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_HIDEWIDOW);
@@ -248,9 +251,13 @@ void AbstractChatWidgetPrivate::initWidget()
     buttonLayout->setContentsMargins(0,0,5,5);
 
     RButton * closeButton = new RButton(buttonWidget);
+    closeButton->setObjectName(Constant::Button_Chat_Close_Window);
+    closeButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Close_Window,QKeySequence("Alt+C")));
     closeButton->setText(QObject::tr("Close window"));
 
     RButton * sendMessButton = new RButton(buttonWidget);
+    sendMessButton->setObjectName(Constant::Button_Chat_Send);
+    sendMessButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Send,QKeySequence(Qt::Key_Enter)));
     sendMessButton->setText(QObject::tr("Send message"));
 
     RToolButton * extralButton = new RToolButton();
@@ -334,6 +341,7 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr(new AbstractChatWidgetPrivate(this)),
     Widget(parent)
 {
+    RSingleton<Subject>::instance()->attach(this);
     setMinimumHeight(CHAT_MIN_HEIGHT);
     setWindowFlags(windowFlags() &(~Qt::Tool));
 
@@ -343,10 +351,28 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
 
+AbstractChatWidget::~AbstractChatWidget()
+{
+    RSingleton<Subject>::instance()->detach(this);
+    delete d_ptr;
+}
+
 QString AbstractChatWidget::widgetId()
 {
     MQ_D(AbstractChatWidget);
     return d->windowId;
+}
+
+void AbstractChatWidget::onMessage(MessageType type)
+{
+    switch(type)
+    {
+        case MESS_SHORTCUT:
+                           {
+
+                                break;
+                           }
+    }
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -437,5 +463,4 @@ void AbstractChatWidget::switchWindowSize()
 
     setShadowWindow(!isMaximized());
 }
-
 

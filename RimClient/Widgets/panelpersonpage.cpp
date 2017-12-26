@@ -2,7 +2,6 @@
 
 #include <QHBoxLayout>
 #include <QContextMenuEvent>
-#include <QDebug>
 #include <QMenu>
 #include <QAction>
 
@@ -70,6 +69,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
             connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
             connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
             connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
+            connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
             item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
             item->setName(QString(QStringLiteral("韩天才%1")).arg(i));
             item->setNickName("MagnyCopper");

@@ -22,6 +22,7 @@ class AddFriend : public Widget
     Q_DECLARE_PRIVATE(AddFriend)
 public:
     AddFriend(QWidget * parent = 0);
+    ~AddFriend();
 
 private slots:
     void startSearch();

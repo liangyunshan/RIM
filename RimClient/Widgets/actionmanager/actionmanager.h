@@ -16,6 +16,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QMap>
+#include <QKeySequence>
 #include "id.h"
 #include "widgets/widget/rtoolbutton.h"
 
@@ -35,6 +36,9 @@ public:
 
     QAction * createAction(Id id, QObject *reciver = NULL, const char * slot = NULL, bool isToggled = false);
     QAction * action(Id id);
+
+    void registShortAction(QAction *action, QKeySequence defaultKey);
+    QKeySequence shortcut(Id id,QKeySequence defaultKey);
 
     QMenu * createMenu(Id id);
     QMenu * menu(Id id);

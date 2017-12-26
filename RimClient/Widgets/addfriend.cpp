@@ -7,6 +7,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QTimer>
 
 #include "head.h"
 #include "constants.h"
@@ -163,10 +164,12 @@ AddFriend::AddFriend(QWidget * parent):
     d_ptr(new AddFriendPrivate(this)),
     Widget(parent)
 {
-    ToolBar * bar = enableToolBar(true);
     setWindowFlags(windowFlags() & ~Qt::Tool);
+    setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Lookup"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon()));
+
+    ToolBar * bar = enableToolBar(true);
     if(bar)
     {
         bar->enableWindowIcon(true);
@@ -178,6 +181,11 @@ AddFriend::AddFriend(QWidget * parent):
     setFixedSize(ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
     setGeometry((screenSize.width() - ADD_FRIEND_WIDTH)/2,screenSize.height()/2 - ADD_FRIEND_HEIGHT,ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
+}
+
+AddFriend::~AddFriend()
+{
+    delete d_ptr;
 }
 
 void AddFriend::startSearch()

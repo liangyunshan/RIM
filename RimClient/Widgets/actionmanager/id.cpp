@@ -5,6 +5,11 @@
 
 #include <QDebug>
 
+Id::Id():str(NULL)
+{
+
+}
+
 Id::Id(const char * name):str(NULL)
 {
     if(name && *name)
@@ -126,6 +131,11 @@ bool Id::operator<(const char * name)const
     }
 
     return false;
+}
+
+QString Id::toString()
+{
+    return QString(str);
 }
 
 

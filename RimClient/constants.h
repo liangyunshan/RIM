@@ -69,6 +69,9 @@ const char Tool_Chat_Record[] = "Tool_Chat_Record";                             
 
 const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复
 
+const char Button_Chat_Close_Window[] = "Button_Chat_Close_Window";                             //聊天窗口关闭按钮
+const char Button_Chat_Send[] = "Button_Chat_Send";                                             //聊天发送按钮
+
 const char MENU_PANEL_PERSON_TOOLBOX[] = "Menu.Panel.Person.ToolBox";
 const char MENU_PANEL_PERSON_TOOLGROUP[] = "Menu.Panel.Person.ToolGroup";
 const char MENU_PANEL_PERSON_TOOLITEM[] = "Menu.Panel.Person.ToolItem";

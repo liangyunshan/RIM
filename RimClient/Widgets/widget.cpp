@@ -8,7 +8,6 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QDesktopWidget>
-#include <QDebug>
 #include <QStyle>
 #include <QTimer>
 

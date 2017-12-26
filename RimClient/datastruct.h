@@ -24,6 +24,15 @@ protected:
 };
 
 /*!
+ *  @brief  消息种类
+ */
+enum MessageType
+{
+    MESS_STYLE,                 //样式更新
+    MESS_SHORTCUT               //快捷键更新
+};
+
+/*!
   @brief 用户描述信息
 */
 struct UserInfoDesc

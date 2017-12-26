@@ -13,6 +13,7 @@
 #define MAINDIALOG_H
 
 #include "widget.h"
+#include "observer.h"
 
 class MainDialogPrivate;
 class ToolBar;
@@ -21,7 +22,7 @@ class PanelContentArea;
 class PanelTopArea;
 class ToolItem;
 
-class MainDialog : public Widget
+class MainDialog : public Widget,public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(MainDialog)
@@ -30,6 +31,8 @@ public:
     ~MainDialog();
 
     static MainDialog * instance();
+
+    void onMessage(MessageType type);
 
 protected:
     void resizeEvent(QResizeEvent * );
@@ -41,6 +44,7 @@ private slots:
     void makeWindowFront(bool flag);
 
     void showChatWindow(ToolItem*item);
+    void showHoverItem(bool,ToolItem*);
 
 private:
     void initWidget();

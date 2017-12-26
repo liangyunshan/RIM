@@ -23,7 +23,7 @@ PanelContentPage::PanelContentPage(QWidget *parent) : QWidget(parent),
 
 PanelContentPage::~PanelContentPage()
 {
-
+    delete d_ptr;
 }
 
 void PanelContentPage::setContentWidget(QWidget *wid)

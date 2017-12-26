@@ -13,6 +13,7 @@
 
 #include <QWidget>
 #include <QTabBar>
+#include "observer.h"
 
 class PanelContentAreaPrivate;
 class QStackedWidget;
@@ -78,13 +79,15 @@ class PanelPersonPage;
 class PanelHistoryPage;
 class PanelGroupPage;
 
-class PanelContentArea : public QWidget
+class PanelContentArea : public QWidget , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(PanelContentArea)
 public:
     explicit PanelContentArea(QWidget * parent = 0);
     ~PanelContentArea();
+
+    void onMessage(MessageType type);
 
 private:
     void initWidget();

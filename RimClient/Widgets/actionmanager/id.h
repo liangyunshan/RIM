@@ -12,9 +12,13 @@
 #ifndef ID_H
 #define ID_H
 
+#include <QString>
+
 class Id
 {
 public:
+    Id();
+
     Id(const char * name);
     Id(const Id & source);
     ~Id();
@@ -32,6 +36,8 @@ public:
 
     bool operator< (Id id)const;
     bool operator< (const char * name)const;
+
+    QString toString();
 
 private:
     char * str;

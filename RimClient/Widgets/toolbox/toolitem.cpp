@@ -6,7 +6,6 @@
 #include <QEnterEvent>
 #include <QStyle>
 #include <QMenu>
-#include <QDebug>
 #include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QMetaEnum>
@@ -71,6 +70,7 @@ void ToolItemPrivate::initWidget()
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
     iconLabel->setFixedSize(Constant::ICON_USER_SIZE,Constant::ICON_USER_SIZE);
+    QObject::connect(iconLabel,SIGNAL(mouseHover(bool)),q_ptr,SLOT(cursorHoverIcon(bool)));
 
     iconLayout->addStretch(1);
     iconLayout->addWidget(iconLabel);
@@ -257,5 +257,10 @@ void ToolItem::setChecked(bool flag)
     {
         setItemState(Mouse_Leave);
     }
+}
+
+void ToolItem::cursorHoverIcon(bool flag)
+{
+    emit itemMouseHover(flag,this);
 }
 

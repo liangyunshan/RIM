@@ -12,7 +12,6 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QLabel>
-#include <QDebug>
 #include <QStyle>
 #include <QContextMenuEvent>
 #include <QFontMetrics>

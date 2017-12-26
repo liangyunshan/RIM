@@ -32,7 +32,12 @@ HEADERS += \
     $$PWD/nativewindow/QMainPanel.h \
     $$PWD/nativewindow/QWinWidget.h \
     $$PWD/widget.h \
-    $$PWD/addfriend.h
+    $$PWD/addfriend.h \
+    $$PWD/itemhoverinfo.h \
+    $$PWD/actionmanager/shortcutsettings.h \
+    $$PWD/actionmanager/commandfile.h \
+    $$PWD/subject.h \
+    $$PWD/observer.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -65,6 +70,11 @@ SOURCES += \
     $$PWD/nativewindow/QMainPanel.cpp \
     $$PWD/nativewindow/QWinWidget.cpp \
     $$PWD/widget.cpp \
-    $$PWD/addfriend.cpp
+    $$PWD/addfriend.cpp \
+    $$PWD/itemhoverinfo.cpp \
+    $$PWD/actionmanager/shortcutsettings.cpp \
+    $$PWD/actionmanager/commandfile.cpp \
+    $$PWD/subject.cpp \
+    $$PWD/observer.cpp
 
 LIBS += -luser32

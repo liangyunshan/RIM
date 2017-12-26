@@ -1,6 +1,5 @@
 ﻿#include "maindialog.h"
 
-#include <QDebug>
 #include <QDesktopWidget>
 #include <QMouseEvent>
 #include <QTimer>
@@ -10,7 +9,6 @@
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
-#include "datastruct.h"
 #include "constants.h"
 #include "head.h"
 #include "toolbar.h"
@@ -19,8 +17,11 @@
 #include "paneltoparea.h"
 #include "actionmanager/actionmanager.h"
 #include "toolbox/toolitem.h"
+#include "Util/rsingleton.h"
+#include "actionmanager/shortcutsettings.h"
 
 #include "abstractchatwidget.h"
+#include "itemhoverinfo.h"
 
 #define PANEL_MARGIN 20
 
@@ -45,6 +46,7 @@ private:
     PanelTopArea * panelTopArea;
 
     QMap<ToolItem * ,AbstractChatWidget*> chatWidgets;
+    QMap<ToolItem * ,ItemHoverInfo *> hoverInfos;
 
     MainDialog * q_ptr;
 };
@@ -60,18 +62,24 @@ MainDialog::MainDialog(QWidget *parent) :
     setMaximumHeight(qApp->desktop()->screen()->height());
 
     dialog = this;
+    RSingleton<Subject>::instance()->attach(this);
 
     initWidget();
 }
 
 MainDialog::~MainDialog()
 {
-
+    RSingleton<ShortcutSettings>::instance()->save();
 }
 
 MainDialog *MainDialog::instance()
 {
     return dialog;
+}
+
+void MainDialog::onMessage(MessageType type)
+{
+
 }
 
 void MainDialog::resizeEvent(QResizeEvent *)
@@ -142,6 +150,26 @@ void MainDialog::showChatWindow(ToolItem * item)
     }
 
     widget->show();
+}
+
+void MainDialog::showHoverItem(bool flag, ToolItem * item)
+{
+    MQ_D(MainDialog);
+    if(flag)
+    {
+        ItemHoverInfo * info = new ItemHoverInfo;
+        info->fadein(item->mapToGlobal(QPoint(0,0)));
+        d->hoverInfos.insert(item,info);
+    }
+    else
+    {
+        ItemHoverInfo  *info = d->hoverInfos.value(item);
+        if(info)
+        {
+            d->hoverInfos.remove(item);
+            info->fadeout();
+        }
+    }
 }
 
 #include <QToolButton>

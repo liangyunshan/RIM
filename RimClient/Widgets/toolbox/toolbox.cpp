@@ -5,7 +5,6 @@
 #include <QScrollArea>
 #include <QMenu>
 #include <QPointer>
-#include <QDebug>
 #include <QContextMenuEvent>
 #include <QAction>
 #include <QCursor>

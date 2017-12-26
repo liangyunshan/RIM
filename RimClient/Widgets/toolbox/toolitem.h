@@ -51,6 +51,10 @@ signals:
     void clearSelectionOthers(ToolItem *);
     void showChatWindow(ToolItem *);
     void itemDoubleClick(ToolItem *);
+    void itemMouseHover(bool,ToolItem*);
+
+private slots:
+    void cursorHoverIcon(bool flag);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

@@ -8,31 +8,49 @@
 #include "actionmanager/actionmanager.h"
 #include "addfriend.h"
 #include "maindialog.h"
+#include "Util/rsingleton.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
 
-PanelBottomToolBar::PanelBottomToolBar(QWidget *parent):
-    QWidget(parent)
+class PanelBottomToolBarPrivate : public GlobalData<PanelBottomToolBar>
 {
-   initWidget();
-}
+    Q_DECLARE_PUBLIC(PanelBottomToolBar)
 
-PanelBottomToolBar::~PanelBottomToolBar()
+private:
+    PanelBottomToolBarPrivate(PanelBottomToolBar * q):q_ptr(q)
+    {
+        addFriendInstance = NULL;
+        initWidget();
+    }
+
+    ~PanelBottomToolBarPrivate()
+    {
+        if(addFriendInstance)
+        {
+            addFriendInstance->close();
+        }
+    }
+
+    void initWidget();
+
+    PanelBottomToolBar * q_ptr;
+
+    AddFriend * addFriendInstance;
+
+    QWidget * mainWidget;
+};
+
+void PanelBottomToolBarPrivate::initWidget()
 {
-
-}
-
-void PanelBottomToolBar::initWidget()
-{
-    mainWidget = new QWidget(this);
+    mainWidget = new QWidget(q_ptr);
     mainWidget->setObjectName("Panel_Bottom_ContentWidget");
 
     QHBoxLayout * mainLayout = new QHBoxLayout();
     mainLayout->setContentsMargins(0,0,0,0);
     mainLayout->setSpacing(1);
     mainLayout->addWidget(mainWidget);
-    this->setLayout(mainLayout);
+    q_ptr->setLayout(mainLayout);
 
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(6,1,1,1);
@@ -40,11 +58,11 @@ void PanelBottomToolBar::initWidget()
 
     RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,NULL,NULL);
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
-    toolButton->setToolTip(tr("Main menu"));
+    toolButton->setToolTip(QObject::tr("Main menu"));
 
-    RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,this,SLOT(showAddFriendPanel()));
+    RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,q_ptr,SLOT(showAddFriendPanel()));
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
-    searchPerson->setToolTip(tr("Add Person"));
+    searchPerson->setToolTip(QObject::tr("Add Person"));
 
     contentLayout->addWidget(toolButton);
     contentLayout->addWidget(searchPerson);
@@ -53,8 +71,41 @@ void PanelBottomToolBar::initWidget()
     mainWidget->setLayout(contentLayout);
 }
 
+PanelBottomToolBar::PanelBottomToolBar(QWidget *parent):
+    d_ptr(new PanelBottomToolBarPrivate(this)),
+    QWidget(parent)
+{
+    RSingleton<Subject>::instance()->attach(this);
+}
+
+PanelBottomToolBar::~PanelBottomToolBar()
+{
+    RSingleton<Subject>::instance()->detach(this);
+    delete d_ptr;
+}
+
+void PanelBottomToolBar::onMessage(MessageType type)
+{
+
+}
+
 void PanelBottomToolBar::showAddFriendPanel()
 {
-    AddFriend * adf = new AddFriend();
-    adf->show();
+    MQ_D(PanelBottomToolBar);
+    if(!d->addFriendInstance)
+    {
+        d->addFriendInstance = new AddFriend();
+        connect(d->addFriendInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateFrinedInstance(QObject*)));
+    }
+
+    d->addFriendInstance->showNormal();
+}
+
+void PanelBottomToolBar::updateFrinedInstance(QObject *)
+{
+    MQ_D(PanelBottomToolBar);
+    if(d->addFriendInstance)
+    {
+        d->addFriendInstance = NULL;
+    }
 }

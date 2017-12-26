@@ -5,7 +5,6 @@
 #include <QSpacerItem>
 #include <QStyle>
 #include <QList>
-#include <QDebug>
 #include <QLabel>
 
 #include "head.h"

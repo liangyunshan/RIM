@@ -2,7 +2,6 @@
 
 #include <QDir>
 #include <QApplication>
-#include <QDebug>
 #include <QPainter>
 #include <QPixmap>
 #include <QPainterPath>

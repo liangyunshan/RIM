@@ -4,7 +4,6 @@
 #include <QStackedWidget>
 #include <QButtonGroup>
 #include <QResizeEvent>
-#include <QDebug>
 #include <QAction>
 #include <QPushButton>
 #include <QToolButton>
@@ -17,6 +16,7 @@
 #include "panelpersonpage.h"
 #include "panelgrouppage.h"
 #include "panelhistorypage.h"
+#include "Util/rsingleton.h"
 
 #define PANEL_ITEM_WIDTH 24
 
@@ -181,10 +181,17 @@ PanelContentArea::PanelContentArea(QWidget *parent):
     d_ptr(new PanelContentAreaPrivate(this)),
     QWidget(parent)
 {
+    RSingleton<Subject>::instance()->attach(this);
     initWidget();
 }
 
 PanelContentArea::~PanelContentArea()
+{
+    RSingleton<Subject>::instance()->detach(this);
+    delete d_ptr;
+}
+
+void PanelContentArea::onMessage(MessageType type)
 {
 
 }

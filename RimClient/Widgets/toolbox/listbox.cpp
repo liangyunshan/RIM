@@ -5,7 +5,6 @@
 #include <QScrollArea>
 #include <QEvent>
 #include <QMenu>
-#include <QDebug>
 #include <QList>
 
 #include "head.h"

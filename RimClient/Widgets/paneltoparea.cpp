@@ -4,7 +4,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QDebug>
 
 #include "datastruct.h"
 #include "constants.h"
@@ -122,10 +121,16 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
     d_ptr(new PanelTopAreaPrivate(this)),
     QWidget(parent)
 {
-
+    RSingleton<Subject>::instance()->attach(this);
 }
 
 PanelTopArea::~PanelTopArea()
+{
+    RSingleton<Subject>::instance()->detach(this);
+    delete d_ptr;
+}
+
+void PanelTopArea::onMessage(MessageType type)
 {
 
 }
