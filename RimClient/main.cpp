@@ -1,4 +1,4 @@
-#include <QApplication>
+﻿#include <QApplication>
 
 #include <QTextCodec>
 #include <QTranslator>
@@ -36,13 +36,13 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     // Background color
-    // This is only for WinApi window, Qt widgets use BorderlessWindow.css stylesheet
 //    HBRUSH windowBackground = CreateSolidBrush( RGB( 255, 0, 255 ) );
 
 //    BorderlessWindow window(windowBackground, 100, 100, 1024, 768 );
 //    window.setMinimumSize( 800, 600 );
 
     QApplication::setApplicationName(Constant::ApplicationName);
+    QApplication::setFont(QFont("微软雅黑",9));
 
     QTextCodec * codec = QTextCodec::codecForName("utf-8");
     QTextCodec::setCodecForLocale(codec);

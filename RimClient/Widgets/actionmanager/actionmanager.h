@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     工具按钮管理
  *  @details   管理所创建的工具按钮，根据ID返回对应的工具按钮
  *  @file      toolactionmanager.h

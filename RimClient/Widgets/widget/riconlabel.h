@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     自定义圆角label
  *  @details   实现绘制圆角图形
  *  @file      riconlabel.h
@@ -41,12 +41,16 @@ protected:
     void paintEvent(QPaintEvent * event);
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
+    void mousePressEvent(QMouseEvent *ev);
+    void mouseReleaseEvent(QMouseEvent *ev);
 
 private slots:
     void timeOut();
 
 signals:
     void mouseHover(bool flag);
+    void mousePressed();
+    void mouseReleased();
 
 private:
     RIconLabelPrivate * d_ptr;

@@ -19,6 +19,7 @@
 #include "toolbox/toolitem.h"
 #include "Util/rsingleton.h"
 #include "actionmanager/shortcutsettings.h"
+#include "editpersoninfowindow.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
@@ -31,7 +32,7 @@ class MainDialogPrivate : public GlobalData<MainDialog>
 
     MainDialogPrivate(MainDialog *q):q_ptr(q)
     {
-
+        editWindow = NULL;
     }
 
 private:
@@ -47,6 +48,7 @@ private:
 
     QMap<ToolItem * ,AbstractChatWidget*> chatWidgets;
     QMap<ToolItem * ,ItemHoverInfo *> hoverInfos;
+    EditPersonInfoWindow * editWindow;
 
     MainDialog * q_ptr;
 };
@@ -69,6 +71,22 @@ MainDialog::MainDialog(QWidget *parent) :
 
 MainDialog::~MainDialog()
 {
+    MQ_D(MainDialog);
+    if(d->editWindow)
+    {
+        delete d->editWindow;
+    }
+
+    if(d->chatWidgets.size() > 0)
+    {
+       QMap<ToolItem *,AbstractChatWidget*>::const_iterator iter =  d->chatWidgets.begin();
+       while(iter != d->chatWidgets.end())
+       {
+           delete iter.value();
+           iter++;
+       }
+    }
+
     RSingleton<ShortcutSettings>::instance()->save();
 }
 
@@ -172,6 +190,30 @@ void MainDialog::showHoverItem(bool flag, ToolItem * item)
     }
 }
 
+void MainDialog::showPersonalEditWindow()
+{
+    MQ_D(MainDialog);
+    if(!d->editWindow)
+    {
+        d->editWindow = new EditPersonInfoWindow();
+        connect(d->editWindow,SIGNAL(destroyed(QObject*)),this,SLOT(updateEditInstance()));
+    }
+    if(d->editWindow->isMinimized())
+    {
+        d->editWindow->showNormal();
+    }
+    else
+    {
+        d->editWindow->show();
+    }
+}
+
+void MainDialog::updateEditInstance()
+{
+   MQ_D(MainDialog);
+   d->editWindow = NULL;
+}
+
 #include <QToolButton>
 
 void MainDialog::initWidget()
@@ -207,7 +249,7 @@ void MainDialog::initWidget()
 
     readSettings();
 
-    d->toolBar = new ToolBar(false,d->MainPanel);
+    d->toolBar = new ToolBar(d->MainPanel);
 
     RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
 

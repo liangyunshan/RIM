@@ -37,7 +37,8 @@ HEADERS += \
     $$PWD/actionmanager/shortcutsettings.h \
     $$PWD/actionmanager/commandfile.h \
     $$PWD/subject.h \
-    $$PWD/observer.h
+    $$PWD/observer.h \
+    $$PWD/editpersoninfowindow.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -75,6 +76,7 @@ SOURCES += \
     $$PWD/actionmanager/shortcutsettings.cpp \
     $$PWD/actionmanager/commandfile.cpp \
     $$PWD/subject.cpp \
-    $$PWD/observer.cpp
+    $$PWD/observer.cpp \
+    $$PWD/editpersoninfowindow.cpp
 
 LIBS += -luser32

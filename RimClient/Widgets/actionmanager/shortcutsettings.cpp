@@ -1,4 +1,4 @@
-#include "shortcutsettings.h"
+﻿#include "shortcutsettings.h"
 
 #include <QMap>
 

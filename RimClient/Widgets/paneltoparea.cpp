@@ -10,6 +10,7 @@
 #include "head.h"
 #include "Util/imagemanager.h"
 #include "Util/rsingleton.h"
+#include "maindialog.h"
 
 #include "widget/riconlabel.h"
 
@@ -62,8 +63,11 @@ void PanelTopAreaPrivate::initWidget()
     userIconLabel = new RIconLabel(contentWidget);
     userIconLabel->setTransparency(true);
     userIconLabel->setObjectName("Panel_Top_UserIconLabel");
+    userIconLabel->setToolTip(QObject::tr("Edit personal information"));
     userIconLabel->setFixedSize(PANEL_TOP_USER_ICON_SIZE,PANEL_TOP_USER_ICON_SIZE);
     userIconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    QObject::connect(userIconLabel,SIGNAL(mousePressed()),MainDialog::instance(),SLOT(showPersonalEditWindow()));
+//    connect(userIconLabel,SIGNAL(mouseHover(bool)),MainDialog::instance(),SLOT(showUserInfo(bool)));
 
     iconLayout->addStretch(1);
     iconLayout->addWidget(userIconLabel);

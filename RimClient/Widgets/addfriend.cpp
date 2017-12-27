@@ -1,4 +1,4 @@
-#include "addfriend.h"
+﻿#include "addfriend.h"
 
 #include <QRadioButton>
 #include <QLabel>
@@ -167,15 +167,14 @@ AddFriend::AddFriend(QWidget * parent):
     setWindowFlags(windowFlags() & ~Qt::Tool);
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Lookup"));
-    setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon()));
+    setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
     if(bar)
     {
-        bar->enableWindowIcon(true);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::ICON_SYSTEM_16));
+        bar->setToolFlags(ToolBar::TOOL_DIALOG);
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
 
-        bar->enableWindowTitle(true);
         bar->setWindowTitle(tr("Lookup"));
     }
     setFixedSize(ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
@@ -186,6 +185,11 @@ AddFriend::AddFriend(QWidget * parent):
 AddFriend::~AddFriend()
 {
     delete d_ptr;
+}
+
+void AddFriend::onMessage(MessageType type)
+{
+
 }
 
 void AddFriend::startSearch()

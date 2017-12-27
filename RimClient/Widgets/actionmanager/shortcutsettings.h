@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     快捷键管理
  *  @details   支持对保存、加载本地的快捷键设置
  *  @file      shortcutsettings.h

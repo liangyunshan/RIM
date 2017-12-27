@@ -7,6 +7,8 @@
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
+#include "Util/rsingleton.h"
+#include "Util/imagemanager.h"
 
 SystemTrayIcon * SystemTrayIcon::systemIcon = NULL;
 
@@ -121,5 +123,5 @@ void SystemTrayIcon::initWidget()
 
     setContextMenu(trayLoginMenu);
     setToolTip(qApp->applicationName());
-    setIcon(QIcon(Constant::ICON_SYSTEM24));
+    setIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon()));
 }

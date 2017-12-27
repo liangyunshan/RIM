@@ -102,12 +102,20 @@ void Widget::setContentWidget(QWidget *child)
     }
 }
 
+#define ABSTRACT_TOOL_BAR_HEGIHT 30
 ToolBar * Widget::enableToolBar(bool flag)
 {
     MQ_D(Widget);
     if(flag && !d->toolBar)
     {
-        d->toolBar = new ToolBar(true,d->contentWidget);
+        d->toolBar = new ToolBar(d->contentWidget);
+        d->toolBar->setObjectName("Widget_ToolBarWidget");
+        d->toolBar->setFixedHeight(ABSTRACT_TOOL_BAR_HEGIHT);
+
+        connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
+        connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SLOT(showMaximizedWindow(bool)));
+        connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(close()));
+
         if(!d->contentWidget->layout())
         {
             QVBoxLayout * layout = new QVBoxLayout;
@@ -121,6 +129,7 @@ ToolBar * Widget::enableToolBar(bool flag)
         {
             layout->insertWidget(0,d->toolBar);
         }
+
         return d->toolBar;
     }
     else if(d->toolBar)
@@ -317,4 +326,9 @@ void Widget::setLayoutMargin()
 {
     dynamic_cast<QHBoxLayout *>(layout())->setContentsMargins(WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE);
     update();
+}
+
+void Widget::showMaximizedWindow(bool flag)
+{
+
 }

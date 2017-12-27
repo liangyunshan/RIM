@@ -196,7 +196,7 @@ void LoginDialog::initWidget()
 
     mainDialog = NULL;
 
-    toolBar = new ToolBar(false,this);
+    toolBar = new ToolBar(this);
 
     RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING));
     systemSetting->setToolTip(tr("System Setting"));

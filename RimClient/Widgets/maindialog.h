@@ -46,6 +46,9 @@ private slots:
     void showChatWindow(ToolItem*item);
     void showHoverItem(bool,ToolItem*);
 
+    void showPersonalEditWindow();
+    void updateEditInstance();
+
 private:
     void initWidget();
     void readSettings();

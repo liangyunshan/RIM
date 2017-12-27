@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     常量汇总
  *  @details   定义了软件运行时所需的常量信息，包括(图片、控件ID等)
  *  @author    wey
@@ -13,7 +13,6 @@
 namespace Constant {
 
 /*图片*/
-const char ICON_SYSTEM24[] = ":/icon/resource/icon/icon_system_24.png";
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
 const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
 const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
@@ -30,8 +29,8 @@ const char PATH_SystemIconPath[] = "/systemIcon";
 
 /*控件尺寸*/
 const int TOOL_BAR_HEIGHT = 30;                         //工具栏固定高度
-const int TOOL_WIDTH = 24;                              //工具按钮宽度
-const int TOOL_HEIGHT = 24;                             //工具按钮高度
+const int TOOL_WIDTH = 30;                              //工具按钮宽度
+const int TOOL_HEIGHT = 30;                             //工具按钮高度
 
 const int MAIN_PANEL_MIN_WIDTH = 300;                   //主面板最小宽度
 const int MAIN_PANEL_MIN_HEIGHT = 450;                  //主面板最小高度
@@ -49,6 +48,7 @@ const int ICON_USER_SIZE =  40;                         //用户头像固定尺�
 */
 
 const char TOOL_MIN[] = "Tool_Min_Button";
+const char TOOL_MAX[] = "Tool_Max_Button_True";
 const char TOOL_CLOSE[] = "Tool_Close_Button";
 const char TOOL_SETTING[] = "Tool_Setting_Button";
 

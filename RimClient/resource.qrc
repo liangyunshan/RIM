@@ -8,14 +8,6 @@
         <file>resource/RimClient.qss</file>
     </qresource>
     <qresource prefix="/icon">
-        <file>resource/icon/icon_system_16.png</file>
-        <file>resource/icon/icon_system_24.png</file>
-        <file>resource/icon/icon_system_32.png</file>
-        <file>resource/icon/icon_system_48.png</file>
-        <file>resource/icon/icon_system_64.png</file>
-        <file>resource/icon/icon_system_72.png</file>
-        <file>resource/icon/icon_system_96.png</file>
-        <file>resource/icon/icon_system_128.png</file>
         <file>resource/icon/group_0.png</file>
         <file>resource/icon/group_1.png</file>
         <file>resource/icon/person_0.png</file>
@@ -25,7 +17,6 @@
         <file>resource/icon/panel_search.png</file>
         <file>resource/icon/icon_lock.png</file>
         <file>resource/icon/icon_sign.png</file>
-        <file>resource/icon/Tool_Close_Button.png</file>
         <file>resource/icon/Tool_Min_Button.png</file>
         <file>resource/icon/Tool_Panel_AddPerson.png</file>
         <file>resource/icon/Tool_Panel_Front.png</file>
@@ -39,6 +30,25 @@
         <file>resource/icon/Tool_Chat_Image.png</file>
         <file>resource/icon/Tool_Chat_ScreenShot.png</file>
         <file>resource/icon/Tool_Chat_Shake.png</file>
+        <file>resource/icon/icon_system_24_white.png</file>
+        <file>resource/icon/icon_system_16_normal.png</file>
+        <file>resource/icon/icon_system_24_normal.png</file>
+        <file>resource/icon/icon_system_32_normal.png</file>
+        <file>resource/icon/icon_system_48_normal.png</file>
+        <file>resource/icon/icon_system_64_normal.png</file>
+        <file>resource/icon/icon_system_72_normal.png</file>
+        <file>resource/icon/icon_system_96_normal.png</file>
+        <file>resource/icon/icon_system_128_normal.png</file>
+        <file>resource/icon/icon_system_32_white.png</file>
+        <file>resource/icon/icon_system_48_white.png</file>
+        <file>resource/icon/icon_system_64_white.png</file>
+        <file>resource/icon/icon_system_72_white.png</file>
+        <file>resource/icon/icon_system_96_white.png</file>
+        <file>resource/icon/icon_system_128_white.png</file>
+        <file>resource/icon/icon_system_16_white.png</file>
+        <file>resource/icon/Tool_Close_Button.png</file>
+        <file>resource/icon/Tool_Max_Button_False.png</file>
+        <file>resource/icon/Tool_Max_Button_True.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

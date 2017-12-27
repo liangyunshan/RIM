@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     图像管理
  *  @details   用于加载系统存在的图片资源，提供对外访问接口
  *  @file      imagemanager.h
@@ -28,8 +28,8 @@ public:
      */
     enum WinIcon
     {
-        ICON_SYSTEM_16,
-        ICON_SYSTEM_24,
+        ICON_SYSTEM_16,                 //用于窗口工具栏左上角
+        ICON_SYSTEM_24,                 //用于windows中的任务栏、系统托盘
         ICON_SYSTEM_32,
         ICON_SYSTEM_48,
         ICON_SYSTEM_64,
@@ -38,6 +38,14 @@ public:
         ICON_SYSTEM_128
     };
     Q_ENUM(WinIcon)
+
+    enum WinIconColor
+    {
+        NORMAL,                         //浅色背景使用
+        WHITE                           //深色背景使用
+    };
+
+    Q_ENUM(WinIconColor)
 
     void loadSystemIcons();
 
@@ -63,7 +71,7 @@ public:
      * @param[in] WinIcon 图标尺寸
      * @return 图标资源路径
      */
-    QString getWindowIcon(WinIcon icon = ICON_SYSTEM_24);
+    QString getWindowIcon(WinIconColor color = NORMAL, WinIcon icon = ICON_SYSTEM_24);
 
 private:
     QFileInfoList localSystemUserIcon;

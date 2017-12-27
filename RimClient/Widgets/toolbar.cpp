@@ -11,6 +11,7 @@
 #include "datastruct.h"
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
+#include "widget/rtoolbutton.h"
 
 #define WINDOW_ICON_SIZE 16
 
@@ -38,53 +39,81 @@ class ToolBarPrivate : public GlobalData<ToolBar>
     Q_DECLARE_PUBLIC(ToolBar)
 
 private:
-    ToolBarPrivate(bool iconVisible,ToolBar * q):q_ptr(q)
+    ToolBarPrivate(ToolBar * q):q_ptr(q)
     {
-        iconVisilble = false;
-        titleVisible = false;
-        initDialog(iconVisible);
+        flags = ToolBar::TOOL_NONE;
         iconSize = QSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
+        initDialog();
     }
 
-    void initDialog(bool iconVisible);
+    void initDialog();
+
+    ToolBar::ToolType flags;
 
     ToolBar * q_ptr;
 
     QWidget * toolBar;
     QHBoxLayout * toolBarLayout;
 
-    bool iconVisilble;
-    bool titleVisible;
     QLabel * iconLabel;
     QLabel * windowTitle;
+
+    RToolButton * minButton;
+    RToolButton * maxButton;
+    RToolButton * closeButton;
+
+    QLabel * spaceLabel;
 
     QSize iconSize;
 
     QList<RToolButton *> toolButts;
 };
 
-void ToolBarPrivate::initDialog(bool iconVisible)
+void ToolBarPrivate::initDialog()
 {
     toolBar = new QWidget(q_ptr);
     toolBar->setMinimumHeight(Constant::TOOL_BAR_HEIGHT);
-
     toolBarLayout = new QHBoxLayout();
 
-    if(iconVisible)
-    {
-        iconLabel = new QLabel(toolBar);
-        iconLabel->setFixedSize(WINDOW_ICON_SIZE,WINDOW_ICON_SIZE);
-        iconLabel->setVisible(iconVisilble);
+    iconLabel = new QLabel(toolBar);
+    iconLabel->setFixedSize(WINDOW_ICON_SIZE,WINDOW_ICON_SIZE);
+    iconLabel->setVisible(flags & ToolBar::TOOL_ICON);
 
-        windowTitle = new QLabel(toolBar);
-        windowTitle->setFont(QFont("微软雅黑",10));
-        windowTitle->setVisible(titleVisible);
+    windowTitle = new QLabel(toolBar);
+    windowTitle->setObjectName("ToolBar_Window_Title");
+    windowTitle->setVisible(flags & ToolBar::TOOL_TITLE);
 
-        toolBarLayout->addWidget(iconLabel);
-        toolBarLayout->addSpacing(4);
-        toolBarLayout->addWidget(windowTitle);
-        toolBarLayout->addStretch(1);
-    }
+    minButton = new RToolButton(toolBar);
+    minButton->setObjectName(Constant::TOOL_MIN);
+    minButton->setFixedSize(iconSize);
+    minButton->setVisible(flags & ToolBar::TOOL_MIN);
+    QObject::connect(minButton,SIGNAL(pressed()),q_ptr,SIGNAL(minimumWindow()));
+
+    maxButton = new RToolButton(toolBar);
+    maxButton->setObjectName(Constant::TOOL_MAX);
+    maxButton->setFixedSize(iconSize);
+    maxButton->setVisible(flags & ToolBar::TOOL_MAX);
+    QObject::connect(maxButton,SIGNAL(pressed()),q_ptr,SIGNAL(maxWindow(bool)));
+
+    closeButton = new RToolButton(toolBar);
+    closeButton->setObjectName(Constant::TOOL_CLOSE);
+    closeButton->setFixedSize(iconSize);
+    closeButton->setVisible(flags & ToolBar::TOOL_CLOSE);
+    QObject::connect(closeButton,SIGNAL(pressed()),q_ptr,SIGNAL(closeWindow()));
+
+    spaceLabel = new QLabel(toolBar);
+    spaceLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    spaceLabel->setVisible(flags & ToolBar::TOOL_SPACER);
+
+    toolBarLayout->addWidget(iconLabel);
+    toolBarLayout->addSpacing(4);
+    toolBarLayout->addWidget(windowTitle);
+
+    toolBarLayout->addWidget(spaceLabel);
+
+    toolBarLayout->addWidget(minButton);
+    toolBarLayout->addWidget(maxButton);
+    toolBarLayout->addWidget(closeButton);
 
     toolBarLayout->setContentsMargins(5,0,0,0);
     toolBarLayout->setSpacing(0);
@@ -98,8 +127,8 @@ void ToolBarPrivate::initDialog(bool iconVisible)
     q_ptr->setLayout(layout);
 }
 
-ToolBar::ToolBar(bool iconVisible,QWidget *parent) :
-    d_ptr(new ToolBarPrivate(iconVisible,this)),
+ToolBar::ToolBar(QWidget *parent) :
+    d_ptr(new ToolBarPrivate(this)),
     QWidget(parent)
 {
 
@@ -110,10 +139,28 @@ ToolBar::~ToolBar()
 
 }
 
+void ToolBar::setObjectName(const QString &name)
+{
+    MQ_D(ToolBar);
+    d->toolBar->setObjectName(name);
+}
+
+QString ToolBar::objectName() const
+{
+    MQ_D(ToolBar);
+    return d->toolBar->objectName();
+}
+
 void ToolBar::setIconSize(QSize size)
 {
     MQ_D(ToolBar);
     d->iconSize = size;
+}
+
+QSize ToolBar::iconSize() const
+{
+    MQ_D(ToolBar);
+    return d->iconSize;
 }
 
 void ToolBar::addStretch(int strech)
@@ -128,33 +175,19 @@ void ToolBar::setSpacing(int spacing)
     d->toolBarLayout->setSpacing(spacing);
 }
 
-void ToolBar::enableWindowIcon(bool flag)
-{
-    MQ_D(ToolBar);
-    d->iconVisilble = flag;
-    d->iconLabel->setVisible(flag);
-}
-
 void ToolBar::setWindowIcon(const QString image)
 {
     MQ_D(ToolBar);
-    if(d->iconVisilble)
+    if(d->flags & ToolBar::TOOL_ICON)
     {
         d->iconLabel->setPixmap(QPixmap(image));
     }
 }
 
-void ToolBar::enableWindowTitle(bool flag)
-{
-    MQ_D(ToolBar);
-    d->titleVisible = flag;
-    d->windowTitle->setVisible(flag);
-}
-
 void ToolBar::setWindowTitle(const QString &name)
 {
     MQ_D(ToolBar);
-    if(d->titleVisible)
+    if(d->flags & ToolBar::TOOL_TITLE)
     {
         d->windowTitle->setText(name);
     }
@@ -170,6 +203,24 @@ void ToolBar::setContentsMargins(int left, int top, int right, int bottom)
 {
     MQ_D(ToolBar);
     d->toolBarLayout->setContentsMargins(left,top,right,bottom);
+}
+
+void ToolBar::setToolFlags(ToolBar::ToolType types)
+{
+    MQ_D(ToolBar);
+    d->flags = types;
+    d->minButton->setVisible(types & ToolBar::TOOL_MIN);
+    d->maxButton->setVisible(types & ToolBar::TOOL_MAX);
+    d->closeButton->setVisible(types & ToolBar::TOOL_CLOSE);
+    d->iconLabel->setVisible(types & ToolBar::TOOL_ICON);
+    d->windowTitle->setVisible(types & ToolBar::TOOL_TITLE);
+    d->spaceLabel->setVisible(types & ToolBar::TOOL_SPACER);
+}
+
+ToolBar::ToolType ToolBar::flags()
+{
+    MQ_D(ToolBar);
+    return QFlag(d->flags);
 }
 
 bool ToolBar::appendToolButton(RToolButton *toolButton)

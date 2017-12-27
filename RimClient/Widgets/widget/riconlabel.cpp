@@ -1,4 +1,4 @@
-#include "riconlabel.h"
+﻿#include "riconlabel.h"
 
 #include <QPainter>
 #include <QColor>
@@ -140,6 +140,16 @@ void RIconLabel::leaveEvent(QEvent *)
         }
     }
     emit mouseHover(false);
+}
+
+void RIconLabel::mousePressEvent(QMouseEvent *ev)
+{
+    emit mousePressed();
+}
+
+void RIconLabel::mouseReleaseEvent(QMouseEvent *ev)
+{
+    emit mouseReleased();
 }
 
 void RIconLabel::timeOut()

@@ -1,4 +1,4 @@
-#include "actionmanager.h"
+﻿#include "actionmanager.h"
 
 #include <QToolButton>
 #include <QDebug>

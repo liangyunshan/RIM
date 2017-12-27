@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     添加好友面板
  *  @details   可按联系人、群进行查找好友
  *  @file      addfriend.h
@@ -13,16 +13,19 @@
 #define ADDFRIEND_H
 
 #include "widget.h"
+#include "observer.h"
 
 class AddFriendPrivate;
 
-class AddFriend : public Widget
+class AddFriend : public Widget,public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(AddFriend)
 public:
     AddFriend(QWidget * parent = 0);
     ~AddFriend();
+
+    void onMessage(MessageType type);
 
 private slots:
     void startSearch();

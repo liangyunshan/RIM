@@ -1,4 +1,4 @@
-#include "itemhoverinfo.h"
+﻿#include "itemhoverinfo.h"
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -91,7 +91,7 @@ void ItemHoverInfoPrivate::initWidget()
     userNameLabel = new QLabel(contentWidget);
     userNameLabel->setMinimumHeight(30);
     userNameLabel->setFont(QFont("微软雅黑",13));
-    userNameLabel->setText("一路bei");
+    userNameLabel->setText(QStringLiteral("一路向北"));
 
     signNameLabel = new QLabel(contentWidget);
     signNameLabel->setMinimumHeight(25);

@@ -1,4 +1,4 @@
-#include "imagemanager.h"
+﻿#include "imagemanager.h"
 
 #include <QDir>
 #include <QApplication>
@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QPainterPath>
 #include <QMetaEnum>
+#include <QDebug>
 
 #include "constants.h"
 
@@ -86,11 +87,14 @@ QIcon ImageManager::getCircularIcons(QString imagePath)
     return QIcon(result);
 }
 
-QString ImageManager::getWindowIcon(WinIcon icon)
+QString ImageManager::getWindowIcon(WinIconColor color,WinIcon icon)
 {
 #if QT_VERSION > 0x050500
-    QMetaEnum metaEnum =  QMetaEnum::fromType<WinIcon>();
-    return QString(":/icon/resource/icon/%1.png").arg(QString(metaEnum.key(icon)).toLower());
+    QMetaEnum iconMetaEnum =  QMetaEnum::fromType<WinIcon>();
+    QMetaEnum colorMetaEnum =  QMetaEnum::fromType<WinIconColor>();
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<QString(":/icon/resource/icon/%1_%2.png").arg(QString(iconMetaEnum.key(icon)).toLower(),QString(colorMetaEnum.key(color)).toLower());
+    return QString(":/icon/resource/icon/%1_%2.png").arg(QString(iconMetaEnum.key(icon)).toLower(),QString(colorMetaEnum.key(color)).toLower());
 #else
 
 #endif
