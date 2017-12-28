@@ -103,7 +103,7 @@ void AbstractChatWidgetPrivate::initWidget()
     userLayout->setSpacing(5);
     userInfo_IconLabel = new RIconLabel(userInfoWidget);
     userInfo_IconLabel->setTransparency(true);
-    userInfo_IconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    userInfo_IconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     userInfo_IconLabel->setFixedSize(CHAT_USER_ICON_SIZE,CHAT_USER_ICON_SIZE);
 
     userInfo_NameLabel = new QLabel();
@@ -362,6 +362,8 @@ void AbstractChatWidget::onMessage(MessageType type)
 
                                 break;
                            }
+        default:
+            break;
     }
 }
 

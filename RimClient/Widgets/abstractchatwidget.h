@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     聊天窗口
  *  @details   抽象了个人、群聊窗口的特点
  *  @file      abstractchatwidget.h

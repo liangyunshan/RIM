@@ -1,4 +1,4 @@
-#include "simpletextedit.h"
+﻿#include "simpletextedit.h"
 
 SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     BaseTextEdit(parent)

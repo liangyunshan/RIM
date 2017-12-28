@@ -38,7 +38,8 @@ HEADERS += \
     $$PWD/actionmanager/commandfile.h \
     $$PWD/subject.h \
     $$PWD/observer.h \
-    $$PWD/editpersoninfowindow.h
+    $$PWD/editpersoninfowindow.h \
+    $$PWD/systemuserimagewindow.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -77,6 +78,7 @@ SOURCES += \
     $$PWD/actionmanager/commandfile.cpp \
     $$PWD/subject.cpp \
     $$PWD/observer.cpp \
-    $$PWD/editpersoninfowindow.cpp
+    $$PWD/editpersoninfowindow.cpp \
+    $$PWD/systemuserimagewindow.cpp
 
 LIBS += -luser32

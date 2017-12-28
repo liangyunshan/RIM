@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     工具箱控件
  *  @details   自定义工具箱控件，实现抽屉效果，支持拖拽、多层展开等操作
  *  @file      toolbox.h
@@ -40,7 +40,7 @@ private slots:
     void clearItemSelection(ToolItem*item);
 
 protected:
-    void contextMenuEvent(QContextMenuEvent * event);
+    void contextMenuEvent(QContextMenuEvent *);
 
 private:
     ToolBoxPrivate * d_ptr;

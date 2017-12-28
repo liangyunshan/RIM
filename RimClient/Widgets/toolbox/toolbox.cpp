@@ -1,4 +1,4 @@
-#include "toolbox.h"
+﻿#include "toolbox.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -149,7 +149,7 @@ void ToolBox::clearItemSelection(ToolItem * item)
     }
 }
 
-void ToolBox::contextMenuEvent(QContextMenuEvent *event)
+void ToolBox::contextMenuEvent(QContextMenuEvent *)
 {
     MQ_D(ToolBox);
     if(d->menu)

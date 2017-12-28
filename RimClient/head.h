@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     宏定义
  *  @details   定义了软件运行时所需的宏等信息
  *  @author    wey

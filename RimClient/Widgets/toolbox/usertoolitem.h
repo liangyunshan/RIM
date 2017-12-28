@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     个人信息item
  *  @details   在ToolItem基础上增强了右键操作
  *  @file

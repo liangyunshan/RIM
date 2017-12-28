@@ -48,29 +48,16 @@ public:
     Q_ENUM(WinIconColor)
 
     void loadSystemIcons();
+    const QFileInfoList systemIcons();
 
-    /*!
-     * @brief 获取用户图标
-     * @param[in] index 图片索引
-     * @param[in] fullPath 是否以全路径返回
-     * @return 若存在则返回，若不存在返回空字符串
-     */
     QString getSystemUserIcon(int index = 0,bool fullPath = true);
 
-    /*!
-     * @brief 获取用户图标
-     * @param[in] imageName 文件名
-     * @return 若存在则返回全路径，若不存在返回空字符串
-     */
     QString getSystemUserIcon(QString imageName);
+
+    QString getSystemImageDir();
 
     QIcon getCircularIcons(QString imagePath);
 
-    /*!
-     * @brief 根据尺寸获取对应系统图标
-     * @param[in] WinIcon 图标尺寸
-     * @return 图标资源路径
-     */
     QString getWindowIcon(WinIconColor color = NORMAL, WinIcon icon = ICON_SYSTEM_24);
 
 private:

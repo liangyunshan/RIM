@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     聊天对话窗口
  *  @details   显示双方的聊天内容，支持显示头像、图片、文字样式、历史记录等
  *  @file      complextextedit.h

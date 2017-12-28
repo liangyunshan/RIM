@@ -14,8 +14,10 @@
 #ifdef Q_OS_WIN
 #include <Windows.h>
 #include <windowsx.h>
+#ifdef Q_CC_MSVC
 #pragma comment  (lib,"User32.lib")
 #pragma comment  (lib,"Gdi32.lib")
+#endif
 #endif //Q_OS_WIN
 
 #include "head.h"
@@ -165,7 +167,7 @@ void Widget::paintEvent(QPaintEvent *)
     }
 }
 
-bool Widget::nativeEvent(const QByteArray &eventType, void *message, long *result)
+bool Widget::nativeEvent(const QByteArray &/*eventType*/, void *message, long *result)
 {
     MQ_D(Widget);
 #ifdef Q_OS_WIN
@@ -281,7 +283,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void Widget::mouseReleaseEvent(QMouseEvent *event)
+void Widget::mouseReleaseEvent(QMouseEvent *)
 {
     MQ_D(Widget);
 
@@ -328,7 +330,7 @@ void Widget::setLayoutMargin()
     update();
 }
 
-void Widget::showMaximizedWindow(bool flag)
+void Widget::showMaximizedWindow(bool )
 {
 
 }

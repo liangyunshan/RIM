@@ -102,6 +102,7 @@ void ToolBarPrivate::initDialog()
     QObject::connect(closeButton,SIGNAL(pressed()),q_ptr,SIGNAL(closeWindow()));
 
     spaceLabel = new QLabel(toolBar);
+    spaceLabel->setObjectName("Tool_Spacer");
     spaceLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
     spaceLabel->setVisible(flags & ToolBar::TOOL_SPACER);
 
@@ -223,6 +224,11 @@ ToolBar::ToolType ToolBar::flags()
     return QFlag(d->flags);
 }
 
+/*!
+ * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 bool ToolBar::appendToolButton(RToolButton *toolButton)
 {
     MQ_D(ToolBar);
@@ -234,6 +240,14 @@ bool ToolBar::appendToolButton(RToolButton *toolButton)
     return true;
 }
 
+/*!
+ * @brief 插入工具按钮
+ *
+ * @param[in] toolButton 待插入的工具按钮
+ * @param[in] ID 若为NULL，则从工具栏的最前面插入；不为NULL，则从指定的控件前面插入
+ *
+ * @return 是否插入成功
+ */
 bool ToolBar::insertToolButton(RToolButton *toolButton, const char *ID)
 {
     MQ_D(ToolBar);
@@ -246,20 +260,18 @@ bool ToolBar::insertToolButton(RToolButton *toolButton, const char *ID)
         }
         else
         {
-            int index = 0;
-            foreach(QObject * tmpObj,d->toolBar->children())
+            toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
+            for(int i = 0;i<d->toolBarLayout->count();i++)
             {
-                RToolButton * tmpButt = dynamic_cast<RToolButton *>(tmpObj);
-                if(tmpButt && tmpButt->objectName() == QString(ID))
+                QWidget * tmpWidget = d->toolBarLayout->itemAt(i)->widget();
+                if(tmpWidget && tmpWidget->objectName() == QString(ID))
                 {
-                    toolButton->setFixedSize(Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
-                    d->toolBarLayout->insertWidget(index,toolButton);
+                    d->toolBarLayout->insertWidget(i,toolButton);
                     return true;
                 }
-                index++;
             }
+            d->toolBarLayout->addWidget(toolButton);
         }
-        return false;
     }
-    return true;
+    return false;
 }

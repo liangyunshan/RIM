@@ -84,7 +84,7 @@ PanelBottomToolBar::~PanelBottomToolBar()
     delete d_ptr;
 }
 
-void PanelBottomToolBar::onMessage(MessageType type)
+void PanelBottomToolBar::onMessage(MessageType)
 {
 
 }

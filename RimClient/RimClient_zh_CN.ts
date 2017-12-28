@@ -16,7 +16,7 @@
     <name>AddFriend</name>
     <message>
         <location filename="Widgets/addfriend.cpp" line="169"/>
-        <location filename="Widgets/addfriend.cpp" line="179"/>
+        <location filename="Widgets/addfriend.cpp" line="178"/>
         <source>Lookup</source>
         <translation>查找</translation>
     </message>
@@ -24,10 +24,20 @@
 <context>
     <name>EditPersonInfoWindow</name>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="216"/>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="226"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="253"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="262"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
+    </message>
+    <message>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="289"/>
+        <source>Local image</source>
+        <translation>本地图片</translation>
+    </message>
+    <message>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="289"/>
+        <source>Image Files (*.png)</source>
+        <translation>图片文件 (*.png)</translation>
     </message>
 </context>
 <context>
@@ -136,12 +146,12 @@
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="243"/>
+        <location filename="Widgets/maindialog.cpp" line="257"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="246"/>
+        <location filename="Widgets/maindialog.cpp" line="260"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -271,17 +281,17 @@
 <context>
     <name>PanelHistoryPage</name>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="94"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="92"/>
         <source>Clear list</source>
         <translation>清空会话列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="102"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="100"/>
         <source>Top session</source>
         <translation>会话置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="105"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="103"/>
         <source>Remove session</source>
         <translation>从会话列表移除</translation>
     </message>
@@ -343,7 +353,7 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="Util/imagemanager.cpp" line="25"/>
+        <location filename="Util/imagemanager.cpp" line="30"/>
         <source>*.png</source>
         <translation></translation>
     </message>
@@ -431,23 +441,21 @@
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="325"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="330"/>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="188"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="228"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="66"/>
+        <location filename="Widgets/paneltoparea.cpp" line="68"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
     </message>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="98"/>
+        <location filename="Widgets/paneltoparea.cpp" line="100"/>
         <source>Search person/group</source>
         <translation>搜索联系人、群组</translation>
     </message>
@@ -468,7 +476,7 @@
     </message>
     <message>
         <location filename="Widgets/addfriend.cpp" line="87"/>
-        <location filename="Widgets/paneltoparea.cpp" line="103"/>
+        <location filename="Widgets/paneltoparea.cpp" line="105"/>
         <source>Search</source>
         <translation>搜索</translation>
     </message>
@@ -498,62 +506,72 @@
         <translation>加好友</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="81"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="90"/>
         <source>Account</source>
         <translation>账  号</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="89"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="98"/>
         <source>Nick Name</source>
         <translation>昵  称</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="96"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="103"/>
+        <source>Open system image</source>
+        <translation>选择系统图片</translation>
+    </message>
+    <message>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="109"/>
+        <source>Local Image</source>
+        <translation>本地图片</translation>
+    </message>
+    <message>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="134"/>
         <source>Sex</source>
         <translation>性  别</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="99"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="137"/>
         <source>Man</source>
         <translation>男</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="100"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="138"/>
         <source>Woman</source>
         <translation>女</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="106"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="144"/>
         <source>Birthday</source>
         <translation>生  日</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="113"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="151"/>
         <source>Sign Name</source>
         <translation>签  名</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="120"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="158"/>
         <source>Address</source>
         <translation>地  址</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="127"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="165"/>
         <source>Phone Number</source>
         <translation>电  话</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="134"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="172"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="141"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="179"/>
         <source>Desc</source>
         <translation>个人说明</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="185"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="225"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -579,14 +597,23 @@
         <translation>锁定RIM</translation>
     </message>
     <message>
-        <location filename="Widgets/systemtrayicon.cpp" line="112"/>
+        <location filename="Widgets/systemtrayicon.cpp" line="114"/>
         <source>Open Panel</source>
         <translation>打开主面板</translation>
     </message>
     <message>
-        <location filename="Widgets/systemtrayicon.cpp" line="113"/>
+        <location filename="Widgets/systemtrayicon.cpp" line="115"/>
         <source>Exit</source>
         <translation>退出</translation>
+    </message>
+</context>
+<context>
+    <name>SystemUserImageWindow</name>
+    <message>
+        <location filename="Widgets/systemuserimagewindow.cpp" line="75"/>
+        <location filename="Widgets/systemuserimagewindow.cpp" line="87"/>
+        <source>Local Image</source>
+        <translation>本地图片</translation>
     </message>
 </context>
 <context>
@@ -603,12 +630,12 @@
 <context>
     <name>Widget</name>
     <message>
-        <location filename="Widgets/widget.cpp" line="258"/>
+        <location filename="Widgets/widget.cpp" line="264"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/widget.cpp" line="258"/>
+        <location filename="Widgets/widget.cpp" line="264"/>
         <source>System don&apos;t support resize window!</source>
         <translation>系统不支持窗口缩放</translation>
     </message>

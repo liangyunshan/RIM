@@ -73,24 +73,8 @@ public:
 
     ToolBar::ToolType flags();
 
-    /*!
-     * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
-     *
-     * @param[in] toolButton 待插入的工具按钮
-     *
-     * @return 是否插入成功
-     *
-     */
     bool appendToolButton(RToolButton * toolButton);
 
-    /*!
-     * @brief 插入工具按钮
-     *
-     * @param[in] toolButton 待插入的工具按钮
-     * @param[in] ID 若为NULL，则从工具栏的最前面插入；不为NULL，则从指定的控件前面插入
-     *
-     * @return 是否插入成功
-     */
     bool insertToolButton(RToolButton * toolButton,const char * ID = NULL);
 
 signals:

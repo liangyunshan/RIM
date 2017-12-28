@@ -1,4 +1,4 @@
-#include "complextextedit.h"
+﻿#include "complextextedit.h"
 
 ComplexTextEdit::ComplexTextEdit(QWidget *parent):
     BaseTextEdit(parent)

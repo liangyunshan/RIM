@@ -187,7 +187,7 @@ AddFriend::~AddFriend()
     delete d_ptr;
 }
 
-void AddFriend::onMessage(MessageType type)
+void AddFriend::onMessage(MessageType)
 {
 
 }
@@ -211,7 +211,7 @@ void AddFriend::reSearch()
 
     d->userNickNameLabel->clear();
     d->accountLabel->clear();
-    d->userIconLabel->setPixmap(QPixmap(""));
+    d->userIconLabel->setPixmap("");
     d->stackedWidget->setCurrentIndex(0);
     d->statusLabel->setVisible(false);
 }

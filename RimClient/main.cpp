@@ -15,6 +15,7 @@
 #include "Util/rlog.h"
 #include "Util/rsingleton.h"
 #include "Util/rlog.h"
+#include "Util/imagemanager.h"
 
 #include "Widgets/nativewindow/MainWindow.h"
 
@@ -41,11 +42,21 @@ int main(int argc, char *argv[])
 //    BorderlessWindow window(windowBackground, 100, 100, 1024, 768 );
 //    window.setMinimumSize( 800, 600 );
 
-    QApplication::setApplicationName(Constant::ApplicationName);
-    QApplication::setFont(QFont("微软雅黑",9));
-
+#if QT_VERSION_MAJOR > 4
     QTextCodec * codec = QTextCodec::codecForName("utf-8");
     QTextCodec::setCodecForLocale(codec);
+#else
+    QTextCodec * codec = QTextCodec::codecForName("utf-8");
+    QTextCodec::setCodecForCStrings(codec);
+    QTextCodec::setCodecForTr(codec);
+    QTextCodec::setCodecForLocale(codec);
+#endif
+
+    QApplication::setApplicationName(Constant::ApplicationName);
+    QApplication::setOrganizationDomain(QObject::tr("rengu.com"));
+    QApplication::setOrganizationName(QObject::tr("NanJing RenGu"));
+    QApplication::setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon()));
+    QApplication::setFont(QFont("微软雅黑",9));
 
     QString configFullPath = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath);
 
@@ -83,9 +94,6 @@ int main(int argc, char *argv[])
             {
                 app.installTranslator(&translator);
                 app.setProperty("rimLocale", locale);
-
-                LOG_INFO("Load translate file");
-                LOG_WARNING("Load translate file");
                 break;
             }
         }

@@ -1,4 +1,4 @@
-#include "listbox.h"
+﻿#include "listbox.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -113,7 +113,7 @@ bool ListBox::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched,event);
 }
 
-void ListBox::contextMenuEvent(QContextMenuEvent *event)
+void ListBox::contextMenuEvent(QContextMenuEvent *)
 {
     MQ_D(ListBox);
     if(d->contextMenu)

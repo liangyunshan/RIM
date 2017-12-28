@@ -8,6 +8,8 @@ TARGET = RimClient
 
 TEMPLATE = app
 
+RC_ICONS +=RimClient.ico
+
 SOURCES += main.cpp \
     global.cpp \
     datastruct.cpp
@@ -23,13 +25,17 @@ HEADERS += \
     datastruct.h \
     constants.h
 
-
 TRANSLATIONS += $${TARGET}_zh_CN.ts
 
 RESOURCES += \
     resource.qrc
 
+win32:RC_FILE = RimClient_resource.rc
+
 win32-msvc2013{
     LIBS += gdi32.lib dwmapi.lib
 }
 
+win32-g++{
+QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+}

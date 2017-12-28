@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     工具按钮
  *  @details   继承QToolButton，添加了样式操作
  *  @file

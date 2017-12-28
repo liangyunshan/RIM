@@ -26,7 +26,7 @@ public:
     explicit PanelTopArea(QWidget *parent = 0);
     ~PanelTopArea();
 
-    void onMessage(MessageType type);
+    void onMessage(MessageType);
 
 signals:
 

@@ -12,6 +12,7 @@
 #define RICONLABEL_H
 
 #include <QLabel>
+#include <QFileInfo>
 
 class RIconLabelPrivate;
 
@@ -23,26 +24,30 @@ public:
     RIconLabel(QWidget * parent = 0);
 
     void setCorner(bool isCorner = true);
+
     void setBackroundColor(QColor color);
+
     void setTransparency(bool flag = false);
 
-    /*!
-         * @brief 设置鼠标进入控件，是否改变鼠标的样式
-         * @details 设置为true时，鼠标进入控件区域，样式修改为Qt::PointingHandCursor,离开时恢复为Qt::ArrowCursor
-         * @param[in] flag 状态标识
-         * @return 无
-         *
-         */
     void setEnterCursorChanged(bool flag = true);
 
     void setHoverDelay(bool flag = true);
+
+    void setEnterHighlight(bool flag = false);
+
+    void setEnterHighlightColor(QColor color);
+
+    void setPixmap(const QString &fileName);
+    QFileInfo getPixmapFileInfo();
+
+    void resizeByPixmap(bool flag = true);
 
 protected:
     void paintEvent(QPaintEvent * event);
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
-    void mousePressEvent(QMouseEvent *ev);
-    void mouseReleaseEvent(QMouseEvent *ev);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
 
 private slots:
     void timeOut();

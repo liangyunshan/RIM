@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QPlainTextEdit>
 #include <QGridLayout>
+#include <QFileDialog>
 
 #include "head.h"
 #include "constants.h"
@@ -16,6 +17,10 @@
 #include "toolbar.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
+#include "widget/riconlabel.h"
+
+#define EDIT_PERSON_WIDTH 380
+#define EDIT_PERSON_HEIGHT 600
 
 class EditPersonInfoWindowPrivate : public GlobalData<EditPersonInfoWindow>
 {
@@ -32,6 +37,8 @@ private:
     EditPersonInfoWindow * q_ptr;
 
     QWidget * contentWidget;
+
+    RIconLabel * iconLabel;
 
     QLabel * m_account_label;
     QLineEdit * m_account_edit;
@@ -62,6 +69,8 @@ private:
 
     RButton * saveButton;
     RButton * closeButton;
+
+    RButton * iconButton;
 };
 
 void EditPersonInfoWindowPrivate::initWidget()
@@ -87,6 +96,35 @@ void EditPersonInfoWindowPrivate::initWidget()
     m_nickName_label = new QLabel(bodyWidget);
     m_nickName_label->setAlignment(Qt::AlignCenter);
     m_nickName_label->setText(QObject::tr("Nick Name"));
+
+    QWidget * iconWidget = new QWidget(bodyWidget);
+
+    iconLabel = new RIconLabel(iconWidget);
+    iconLabel->setToolTip(QObject::tr("Open system image"));
+    iconLabel->setTransparency(true);
+    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
+    QObject::connect(iconLabel,SIGNAL(mousePressed()),q_ptr,SLOT(openSystemImage()));
+
+    iconButton = new RButton(iconWidget);
+    iconButton->setText(QObject::tr("Local Image"));
+    QObject::connect(iconButton,SIGNAL(pressed()),q_ptr,SLOT(openLocalImage()));
+
+    QVBoxLayout * iconVLayout = new QVBoxLayout;
+    iconVLayout->setContentsMargins(0,0,0,0);
+    iconVLayout->setSpacing(0);
+
+    iconVLayout->addWidget(iconLabel);
+    iconVLayout->addWidget(iconButton);
+
+    QHBoxLayout * iconHLayout = new QHBoxLayout;
+    iconHLayout->setContentsMargins(0,0,0,0);
+    iconHLayout->setSpacing(0);
+
+    iconHLayout->addStretch(1);
+    iconHLayout->addLayout(iconVLayout);
+    iconHLayout->addStretch(1);
+
+    iconWidget->setLayout(iconHLayout);
 
     m_nickName_edit = new QLineEdit(bodyWidget);
     m_nickName_edit->setFixedSize(Edit_Width,Label_Height);
@@ -151,6 +189,8 @@ void EditPersonInfoWindowPrivate::initWidget()
     gridLayout->addWidget(m_nickName_label,1,0,1,1);            //昵称
     gridLayout->addWidget(m_nickName_edit,1,1,1,1);
 
+    gridLayout->addWidget(iconWidget,0,2,4,2);                  //头像
+
     gridLayout->addWidget(m_sexual_label,2,0,1,1);              //性别
     gridLayout->addWidget(m_sexual_box,2,1,1,1);
 
@@ -204,9 +244,6 @@ void EditPersonInfoWindowPrivate::initWidget()
     q_ptr->setContentWidget(contentWidget);
 }
 
-#define EDIT_PERSON_WIDTH 380
-#define EDIT_PERSON_HEIGHT 600
-
 EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
     d_ptr(new EditPersonInfoWindowPrivate(this)),
     Widget(parent)
@@ -235,8 +272,30 @@ EditPersonInfoWindow::~EditPersonInfoWindow()
 
 }
 
-void EditPersonInfoWindow::onMessage(MessageType type)
+void EditPersonInfoWindow::onMessage(MessageType)
 {
 
+}
+
+void EditPersonInfoWindow::openSystemImage()
+{
+    SystemUserImageWindow * systemImage = new SystemUserImageWindow();
+    connect(systemImage,SIGNAL(selectedFileBaseName(QString)),this,SLOT(updateSystemIconInfo(QString)));
+    systemImage->show();
+}
+
+void EditPersonInfoWindow::openLocalImage()
+{
+    QString imageFile = QFileDialog::getOpenFileName(this,tr("Local image"),"/home", tr("Image Files (*.png)"));
+    if(!imageFile.isNull())
+    {
+
+    }
+}
+
+void EditPersonInfoWindow::updateSystemIconInfo(QString filename)
+{
+    MQ_D(EditPersonInfoWindow);
+    d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemImageDir()+"/"+filename);
 }
 

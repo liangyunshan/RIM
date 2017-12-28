@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     工具栏条目
  *  @details   显示联系人信息、群信息、历史聊天信息
  *  @file      toolitem.h

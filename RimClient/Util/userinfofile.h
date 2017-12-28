@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     用户信息文件
  *  @details   记录、解析用户登录信息
  *  @file      userinfofile.h

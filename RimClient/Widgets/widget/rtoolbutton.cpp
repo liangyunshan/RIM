@@ -1,4 +1,4 @@
-#include "rtoolbutton.h"
+﻿#include "rtoolbutton.h"
 
 #include <QEvent>
 #include <QToolTip>
@@ -85,7 +85,6 @@ void RToolButton::updateItemStyle(bool flag)
 
 void RToolButton::setItemState(ToolItem::ItemState state)
 {
-    MQ_D(RToolButton);
 #if QT_VERSION >= 0x050500
     QMetaEnum metaEnum = QMetaEnum::fromType<ToolItem::ItemState>();
     setProperty(metaEnum.name(),metaEnum.key(state));
@@ -101,6 +100,8 @@ void RToolButton::setItemState(ToolItem::ItemState state)
         case Mouse_Checked:
                             setProperty("ItemState","Mouse_Checked");
                             break;
+        default:
+            break;
     }
 #endif
     style()->unpolish(this);

@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     命令解析文件
  *  @details   解析或保存快捷方式
  *  @file      commandfile.h

@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     基础文本编辑
  *  @details
  *  @file      basetextedit.h

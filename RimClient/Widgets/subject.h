@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     主题
  *  @details   保存订阅端的集合，统一更新操作
  *  @file      subject.h

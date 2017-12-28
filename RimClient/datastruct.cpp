@@ -1,4 +1,4 @@
-#include "datastruct.h"
+﻿#include "datastruct.h"
 
 QDataStream& operator<<(QDataStream & stream,const UserInfoDesc & desc)
 {

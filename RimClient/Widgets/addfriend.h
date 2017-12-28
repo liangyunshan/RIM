@@ -25,7 +25,7 @@ public:
     AddFriend(QWidget * parent = 0);
     ~AddFriend();
 
-    void onMessage(MessageType type);
+    void onMessage(MessageType);
 
 private slots:
     void startSearch();

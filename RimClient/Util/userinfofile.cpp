@@ -1,4 +1,4 @@
-#include "userinfofile.h"
+﻿#include "userinfofile.h"
 
 #include <QDataStream>
 #include <QApplication>

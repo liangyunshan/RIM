@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     单例模板类
  *  @details   快速提供单例子模板
  *  @file      rsingleton.h

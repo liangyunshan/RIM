@@ -62,10 +62,12 @@ void PanelTopAreaPrivate::initWidget()
 
     userIconLabel = new RIconLabel(contentWidget);
     userIconLabel->setTransparency(true);
+    userIconLabel->setEnterHighlight(true);
+    userIconLabel->setEnterHighlightColor(QColor(255,255,255,150));
     userIconLabel->setObjectName("Panel_Top_UserIconLabel");
     userIconLabel->setToolTip(QObject::tr("Edit personal information"));
     userIconLabel->setFixedSize(PANEL_TOP_USER_ICON_SIZE,PANEL_TOP_USER_ICON_SIZE);
-    userIconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     QObject::connect(userIconLabel,SIGNAL(mousePressed()),MainDialog::instance(),SLOT(showPersonalEditWindow()));
 //    connect(userIconLabel,SIGNAL(mouseHover(bool)),MainDialog::instance(),SLOT(showUserInfo(bool)));
 
@@ -134,7 +136,7 @@ PanelTopArea::~PanelTopArea()
     delete d_ptr;
 }
 
-void PanelTopArea::onMessage(MessageType type)
+void PanelTopArea::onMessage(MessageType)
 {
 
 }

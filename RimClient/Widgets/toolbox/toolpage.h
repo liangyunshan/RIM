@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     工具页面
  *  @details   工具箱中的每一项，支持详细和缩略显示
  *  @file      toolpage.h

@@ -36,7 +36,7 @@ signals:
     void selectedMe();
 
 protected:
-    void mousePressEvent(QMouseEvent * event);
+    void mousePressEvent(QMouseEvent *);
 
 private:
     QWidget * contentWidget;
@@ -72,7 +72,7 @@ private:
 
     QHBoxLayout * contentLayout;
 
-    bool itemSelectedIndex;
+    int itemSelectedIndex;
 };
 
 class PanelPersonPage;

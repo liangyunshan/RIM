@@ -1,4 +1,4 @@
-#include "fileutils.h"
+﻿#include "fileutils.h"
 
 #include <QDir>
 

@@ -1,4 +1,4 @@
-#include "subject.h"
+﻿#include "subject.h"
 
 #include <QMutex>
 #include <QReadWriteLock>

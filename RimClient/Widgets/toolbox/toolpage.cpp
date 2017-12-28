@@ -1,4 +1,4 @@
-#include "toolpage.h"
+﻿#include "toolpage.h"
 
 #include "head.h"
 #include "datastruct.h"

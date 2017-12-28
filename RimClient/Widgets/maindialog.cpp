@@ -16,6 +16,7 @@
 #include "panelcontentarea.h"
 #include "paneltoparea.h"
 #include "actionmanager/actionmanager.h"
+#include "Util/imagemanager.h"
 #include "toolbox/toolitem.h"
 #include "Util/rsingleton.h"
 #include "actionmanager/shortcutsettings.h"
@@ -95,7 +96,7 @@ MainDialog *MainDialog::instance()
     return dialog;
 }
 
-void MainDialog::onMessage(MessageType type)
+void MainDialog::onMessage(MessageType)
 {
 
 }
@@ -250,19 +251,15 @@ void MainDialog::initWidget()
     readSettings();
 
     d->toolBar = new ToolBar(d->MainPanel);
+    d->toolBar->setToolFlags(ToolBar::TOOL_ICON|ToolBar::TOOL_MIN|ToolBar::TOOL_CLOSE|ToolBar::TOOL_SPACER);
+    connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
+    connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
+
+    d->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
 
     RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
 
-    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SLOT(showMinimized()));
-    minSize->setToolTip(tr("Min"));
-
-    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SLOT(closeWindow()));
-    closeButt->setToolTip(tr("Close"));
-
-    d->toolBar->addStretch(1);
-    d->toolBar->appendToolButton(frontButton);
-    d->toolBar->appendToolButton(minSize);
-    d->toolBar->appendToolButton(closeButt);
+    d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
     makeWindowFront(RUtil::globalSettings()->value("Main/topHint").toBool());
 

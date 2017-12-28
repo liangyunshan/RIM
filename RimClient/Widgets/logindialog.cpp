@@ -365,7 +365,7 @@ void LoginDialog::mouseMoveEvent(QMouseEvent *event)
     this->setGeometry(this->x() + tmpPoint.x(),this->y() + tmpPoint.y(),d->windowWidth,d->windowHeight);
 }
 
-void LoginDialog::closeEvent(QCloseEvent */*event*/)
+void LoginDialog::closeEvent(QCloseEvent *)
 {
     qApp->exit();
 }

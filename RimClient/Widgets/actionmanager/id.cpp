@@ -1,4 +1,4 @@
-#include "id.h"
+﻿#include "id.h"
 
 #include "iostream"
 #include "string.h"
@@ -14,7 +14,7 @@ Id::Id(const char * name):str(NULL)
 {
     if(name && *name)
     {
-        int len = strlen(name)+1;
+        size_t len = strlen(name)+1;
         str = new char[len];
         memset(str,0,len);
         strncpy(str,name,strlen(name));
@@ -25,7 +25,7 @@ Id::Id(const Id &source)
 {
     if(source.str)
     {
-        int len = strlen(source.str)+1;
+        size_t len = strlen(source.str)+1;
         str = new char[len];
         memset(str,0,len);
         strncpy(str,source.str,strlen(source.str));
@@ -55,7 +55,7 @@ Id& Id::operator= (const char * name)
             delete[]  this->str;
         }
 
-        int len = strlen(name) + 1;
+        size_t len = strlen(name) + 1;
 
         this->str = new char [len];
         memset(this->str,0,len);
@@ -72,7 +72,7 @@ Id& Id::operator= (const Id& id)
     {
         delete[] this->str;
 
-        int len = strlen(id.str) + 1;
+        size_t len = strlen(id.str) + 1;
 
         this->str = new char [len];
         memset(this->str,0,len);

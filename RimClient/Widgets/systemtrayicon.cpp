@@ -101,6 +101,8 @@ void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
                                                emit showMainPanel();
                                           }
                                            break;
+        default:
+            break;
     }
 }
 

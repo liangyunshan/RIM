@@ -1,4 +1,4 @@
-#include "toolitem.h"
+﻿#include "toolitem.h"
 
 #include <QLabel>
 #include <QGridLayout>
@@ -68,7 +68,7 @@ void ToolItemPrivate::initWidget()
     iconLabel->setTransparency(true);
     iconLabel->setEnterCursorChanged(false);
     iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
+    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     iconLabel->setFixedSize(Constant::ICON_USER_SIZE,Constant::ICON_USER_SIZE);
     QObject::connect(iconLabel,SIGNAL(mouseHover(bool)),q_ptr,SLOT(cursorHoverIcon(bool)));
 
@@ -136,7 +136,7 @@ ToolItem::ToolItem(ToolPage *page, QWidget *parent) :
     setFixedHeight(TOOL_ITEM_MAX_HEIGHT);
 }
 
-void ToolItem::setIcon(QString icon)
+void ToolItem::setIcon(QString)
 {
 
 }
@@ -227,6 +227,8 @@ void ToolItem::setItemState(ToolItem::ItemState state)
         case Mouse_Checked:
                             d->contentWidget->setProperty("ItemState","Mouse_Checked");
                             break;
+        default:
+            break;
     }
 #endif
     style()->unpolish(d->contentWidget);

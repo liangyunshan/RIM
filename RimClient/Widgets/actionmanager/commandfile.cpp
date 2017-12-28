@@ -1,4 +1,4 @@
-#include "commandfile.h"
+﻿#include "commandfile.h"
 
 #include <QFile>
 #include <QFileInfo>

@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     简单文本编辑区
  *  @details   可设置输入的
  *  @file      simpletextedit.h

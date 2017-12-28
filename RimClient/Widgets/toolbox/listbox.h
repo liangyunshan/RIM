@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     list容器
  *  @details
  *  @file
@@ -34,7 +34,7 @@ private slots:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
-    void contextMenuEvent(QContextMenuEvent *event);
+    void contextMenuEvent(QContextMenuEvent *);
 
 private:
     ListBoxPrivate * d_ptr;

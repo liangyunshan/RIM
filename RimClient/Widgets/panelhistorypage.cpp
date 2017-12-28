@@ -85,8 +85,6 @@ void PanelHistoryPage::removeSessionFromList()
 
 void PanelHistoryPage::createAction()
 {
-    MQ_D(PanelHistoryPage);
-
     //创建面板的右键菜单
     QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_HISTORY_TOOLBOX);
 

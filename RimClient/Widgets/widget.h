@@ -54,7 +54,7 @@ protected:
 
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent * event);
+    virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void enterEvent(QEvent *);
     virtual void leaveEvent(QEvent *);
 
@@ -63,7 +63,7 @@ protected:
 private slots:
     void setLayoutMargin();
 
-    void showMaximizedWindow(bool flag);
+    void showMaximizedWindow(bool);
 
 private:
     WidgetPrivate * d_ptr;

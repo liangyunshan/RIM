@@ -1,4 +1,4 @@
-#include "rlog.h"
+﻿#include "rlog.h"
 
 #include <QApplication>
 #include <QDir>

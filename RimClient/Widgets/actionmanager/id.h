@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     控件ID
  *  @details   封装了控件的身份信息，用于比较操作
  *  @file      id.h

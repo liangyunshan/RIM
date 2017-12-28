@@ -83,7 +83,7 @@ void PanelTabItem::setSelected(bool flag)
     contentWidget->style()->polish(contentWidget);
 }
 
-void PanelTabItem::mousePressEvent(QMouseEvent *event)
+void PanelTabItem::mousePressEvent(QMouseEvent *)
 {
     emit selectedMe();
 }
@@ -191,7 +191,7 @@ PanelContentArea::~PanelContentArea()
     delete d_ptr;
 }
 
-void PanelContentArea::onMessage(MessageType type)
+void PanelContentArea::onMessage(MessageType)
 {
 
 }

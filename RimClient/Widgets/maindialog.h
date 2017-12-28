@@ -32,7 +32,7 @@ public:
 
     static MainDialog * instance();
 
-    void onMessage(MessageType type);
+    void onMessage(MessageType);
 
 protected:
     void resizeEvent(QResizeEvent * );
