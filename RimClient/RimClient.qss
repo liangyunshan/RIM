@@ -4,6 +4,18 @@ QWidget#AbstractWidget_ContentWidget
 	border-radius:3px;
 }
 
+QWidget#Widget_ToolBarWidget
+{
+	background-color:rgb(0,155,219);
+}
+
+QLabel#ToolBar_Window_Title
+{
+	color:rgb(255,255,255);
+	font-family:"微软雅黑";
+	font-size:13px;
+}
+
 /****************************登录页面********************************/
 QWidget#loginBar
 {
@@ -38,7 +50,7 @@ QToolButton::menu-indicator
      image: none;
 }
 
-QToolButton#Close_TOOL_Button:hover
+QToolButton#Tool_Close_Button:hover
 {
 	background-color:red;
 }
@@ -258,7 +270,7 @@ QSplitter::handle:horizontal
 	border:none;
 }
 
-QPlainTextEdit
+QWidget#AbstractChatWidget QPlainTextEdit
 {
 	border:none;
 	background-color:rgba(0,0,0,0);
@@ -285,7 +297,6 @@ QWidget#Chat_Right_Widget[SideBarVisible="true"]
 	border:none;
 }
 
-
 /****************************添加好友框********************************/
 QLabel#Add_Friend_Account_Label
 {
@@ -293,3 +304,10 @@ QLabel#Add_Friend_Account_Label
 	color:red;
 	font-weight:600;
 }
+
+/****************************编辑个人信息********************************/
+QWidget#Edit_Person_ContentWidget
+{
+	background-color:rgb(255,255,255);
+}
+
