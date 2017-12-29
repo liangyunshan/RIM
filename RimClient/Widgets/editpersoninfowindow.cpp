@@ -76,7 +76,7 @@ private:
 void EditPersonInfoWindowPrivate::initWidget()
 {
     contentWidget = new QWidget;
-    contentWidget->setObjectName("Edit_Person_ContentWidget");
+    contentWidget->setObjectName("Widget_ContentWidget");
 
     const int Label_Width = 60;
     const int Label_Height = 20;

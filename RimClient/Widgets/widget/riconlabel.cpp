@@ -25,7 +25,7 @@ private:
         hightLight = false;
         backgroundColor = Qt::white;
         enterHightPen.setColor(Qt::red);
-        enterHightPen.setWidth(4);
+        enterHightPen.setWidth(2);
     }
 
     RIconLabel * q_ptr;

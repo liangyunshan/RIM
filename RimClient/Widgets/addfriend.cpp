@@ -64,6 +64,7 @@ private:
 void AddFriendPrivate::initWidget()
 {
     stackedWidget = new QStackedWidget(q_ptr);
+    stackedWidget->setObjectName("Widget_ContentWidget");
 
     /**************查询页面***************/
     lookupWidget = new QWidget();

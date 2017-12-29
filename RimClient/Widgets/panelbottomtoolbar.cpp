@@ -9,6 +9,7 @@
 #include "addfriend.h"
 #include "maindialog.h"
 #include "Util/rsingleton.h"
+#include "systemsettings.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -56,7 +57,7 @@ void PanelBottomToolBarPrivate::initWidget()
     contentLayout->setContentsMargins(6,1,1,1);
     contentLayout->setSpacing(2);
 
-    RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,NULL,NULL);
+    RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,q_ptr,SLOT(showSystemSetting()));
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     toolButton->setToolTip(QObject::tr("Main menu"));
 
@@ -99,6 +100,12 @@ void PanelBottomToolBar::showAddFriendPanel()
     }
 
     d->addFriendInstance->showNormal();
+}
+
+void PanelBottomToolBar::showSystemSetting()
+{
+    SystemSettings * settings = new SystemSettings();
+    settings->show();
 }
 
 void PanelBottomToolBar::updateFrinedInstance(QObject *)

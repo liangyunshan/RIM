@@ -34,6 +34,7 @@ private:
 void SystemUserImageWindowPrivate::initWidget()
 {
     contentWidget = new QWidget(q_ptr);
+    contentWidget->setObjectName("Widget_ContentWidget");
 
     QGridLayout * layout = new QGridLayout;
 
@@ -44,7 +45,7 @@ void SystemUserImageWindowPrivate::initWidget()
     for(int i = 0; i < icons.size(); i++)
     {
         RIconLabel * label = new RIconLabel(contentWidget);
-        label->setCorner(true);
+        label->setCorner(false);
         label->resizeByPixmap(true);
         label->setEnterHighlight(true);
         label->setTransparency(true);

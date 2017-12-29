@@ -141,22 +141,20 @@
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="147"/>
+        <location filename="Widgets/maindialog.cpp" line="148"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="257"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="260"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="142"/>
+        <location filename="Widgets/maindialog.cpp" line="143"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -384,12 +382,22 @@
         <translation>请勿打扰</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="61"/>
+        <location filename="main.cpp" line="56"/>
+        <source>rengu.com</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="main.cpp" line="57"/>
+        <source>NanJing RenGu</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="main.cpp" line="72"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="61"/>
+        <location filename="main.cpp" line="72"/>
         <source>Log module initialization failure!</source>
         <translation>日志记录模块初始化失败!</translation>
     </message>
@@ -496,12 +504,12 @@
         <translation>添加为好友</translation>
     </message>
     <message>
-        <location filename="Widgets/panelbottomtoolbar.cpp" line="61"/>
+        <location filename="Widgets/panelbottomtoolbar.cpp" line="62"/>
         <source>Main menu</source>
         <translation>主菜单</translation>
     </message>
     <message>
-        <location filename="Widgets/panelbottomtoolbar.cpp" line="65"/>
+        <location filename="Widgets/panelbottomtoolbar.cpp" line="66"/>
         <source>Add Person</source>
         <translation>加好友</translation>
     </message>
@@ -575,6 +583,96 @@
         <source>Save</source>
         <translation>保存</translation>
     </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="76"/>
+        <source>Login</source>
+        <translation>登录</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="79"/>
+        <source>Boot automatically</source>
+        <translation>开机自动运行程序</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="82"/>
+        <source>Automatic login</source>
+        <translation>开启程序自动登录</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="89"/>
+        <source>Main Page</source>
+        <translation>主面板</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="92"/>
+        <source>Stick to the top</source>
+        <translation>面板置顶</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="95"/>
+        <source>Quit directly</source>
+        <translation>程序退出时直接退出</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="98"/>
+        <source>Display taskbar icon</source>
+        <translation>任务栏显示程序图标</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="106"/>
+        <source>State</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="109"/>
+        <source>Automatic response</source>
+        <translation>自动回复</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="115"/>
+        <source>Session</source>
+        <translation>会话</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="118"/>
+        <source>Allow window jitter</source>
+        <translation>允许窗口抖动</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="124"/>
+        <source>Shortcut</source>
+        <translation>快捷键</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="127"/>
+        <source>Shortcut Setting</source>
+        <translation>快捷键设置</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="133"/>
+        <source>Sound</source>
+        <translation>声音</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="136"/>
+        <source>Sound Available</source>
+        <translation>开启声音</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="139"/>
+        <source>Sound Setting</source>
+        <translation>声音设置</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="146"/>
+        <source>File</source>
+        <translation>文件</translation>
+    </message>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="149"/>
+        <source>Change Recv Path</source>
+        <translation>修改文件接收路径</translation>
+    </message>
 </context>
 <context>
     <name>SlideBar</name>
@@ -587,6 +685,15 @@
         <location filename="Widgets/slidebar.cpp" line="79"/>
         <source>Show side widget</source>
         <translation>显示侧边栏</translation>
+    </message>
+</context>
+<context>
+    <name>SystemSettings</name>
+    <message>
+        <location filename="Widgets/systemsettings.cpp" line="179"/>
+        <location filename="Widgets/systemsettings.cpp" line="186"/>
+        <source>Settings</source>
+        <translation>设置</translation>
     </message>
 </context>
 <context>

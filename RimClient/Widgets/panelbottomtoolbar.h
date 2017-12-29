@@ -34,6 +34,7 @@ signals:
 
 private slots:
     void showAddFriendPanel();
+    void showSystemSetting();
     void updateFrinedInstance(QObject *);
 
 private:

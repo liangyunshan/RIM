@@ -28,6 +28,8 @@ RButton::RButton(QWidget *parent):
     QPushButton(parent)
 {
     setMinimumWidth(70);
+
+    setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 }
 
 void RButton::setText(const QString &text)
