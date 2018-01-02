@@ -40,7 +40,8 @@ HEADERS += \
     $$PWD/observer.h \
     $$PWD/editpersoninfowindow.h \
     $$PWD/systemuserimagewindow.h \
-    $$PWD/systemsettings.h
+    $$PWD/systemsettings.h \
+    $$PWD/widget/rmessagebox.h
 
 SOURCES += \
     $$PWD/logindialog.cpp \
@@ -81,6 +82,7 @@ SOURCES += \
     $$PWD/observer.cpp \
     $$PWD/editpersoninfowindow.cpp \
     $$PWD/systemuserimagewindow.cpp \
-    $$PWD/systemsettings.cpp
+    $$PWD/systemsettings.cpp \
+    $$PWD/widget/rmessagebox.cpp
 
 LIBS += -luser32

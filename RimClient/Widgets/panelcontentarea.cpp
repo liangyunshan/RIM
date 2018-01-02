@@ -58,11 +58,17 @@ PanelTabItem::PanelTabItem(QWidget *parent):QWidget(parent)
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
-    label = new QLabel(contentWidget);
-    label->setFixedSize(PANEL_ITEM_WIDTH,PANEL_ITEM_WIDTH);
+    iconLabel = new QLabel(contentWidget);
+    iconLabel->setFixedSize(PANEL_ITEM_WIDTH,PANEL_ITEM_WIDTH);
+
+    textLabel = new QLabel(contentWidget);
+    textLabel->setMinimumHeight(PANEL_ITEM_WIDTH);
+    textLabel->setVisible(false);
 
     contentLayout->addStretch(1);
-    contentLayout->addWidget(label);
+    contentLayout->addWidget(iconLabel);
+    contentLayout->addSpacing(3);
+    contentLayout->addWidget(textLabel);
     contentLayout->addStretch(1);
     contentWidget->setLayout(contentLayout);
 }
@@ -76,11 +82,26 @@ void PanelTabItem::setSelected(bool flag)
 {
     selected = flag;
 
-    label->setStyleSheet(QString("border-image:url(%1)").arg(QString(":/icon/resource/icon/%1_%2.png").arg(objectName()).arg(flag)));
+    iconLabel->setStyleSheet(QString("border-image:url(%1)").arg(QString(":/icon/resource/icon/%1_%2.png").arg(objectName()).arg(flag)));
 
     contentWidget->setProperty("selected",flag);
     contentWidget->style()->unpolish(contentWidget);
     contentWidget->style()->polish(contentWidget);
+}
+
+void PanelTabItem::setTextVisible(bool flag)
+{
+    textLabel->setVisible(flag);
+}
+
+void PanelTabItem::setText(const QString &text)
+{
+    textLabel->setText(text);
+}
+
+QString PanelTabItem::text() const
+{
+    return textLabel->text();
 }
 
 void PanelTabItem::mousePressEvent(QMouseEvent *)

@@ -36,6 +36,7 @@ private slots:
     void showAddFriendPanel();
     void showSystemSetting();
     void updateFrinedInstance(QObject *);
+    void updateSettingInstnce(QObject *);
 
 private:
     PanelBottomToolBarPrivate * d_ptr;

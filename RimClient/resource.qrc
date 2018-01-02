@@ -49,6 +49,13 @@
         <file>resource/icon/Tool_Close_Button.png</file>
         <file>resource/icon/Tool_Max_Button_False.png</file>
         <file>resource/icon/Tool_Max_Button_True.png</file>
+        <file>resource/icon/settings_security_1.png</file>
+        <file>resource/icon/settings_setting_0.png</file>
+        <file>resource/icon/settings_setting_1.png</file>
+        <file>resource/icon/settings_security_0.png</file>
+        <file>resource/icon/aler_error.png</file>
+        <file>resource/icon/alert_info.png</file>
+        <file>resource/icon/alert_warning.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

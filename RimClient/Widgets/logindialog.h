@@ -14,6 +14,8 @@
 
 #include <QDialog>
 
+#include "observer.h"
+
 namespace Ui {
 class LoginDialog;
 }
@@ -30,7 +32,7 @@ class SystemTrayIcon;
 class MainDialog;
 class ActionManager;
 
-class LoginDialog : public QDialog
+class LoginDialog : public QDialog , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(LoginDialog)
@@ -38,6 +40,8 @@ class LoginDialog : public QDialog
 public:
     explicit LoginDialog(QWidget *parent = 0);
     ~LoginDialog();
+
+    void onMessage(MessageType type);
 
 protected:
     void resizeEvent(QResizeEvent * event);

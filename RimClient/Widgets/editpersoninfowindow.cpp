@@ -262,6 +262,8 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
         bar->setWindowTitle(tr("Edit personal information"));
     }
 
+    RSingleton<Subject>::instance()->attach(this);
+
     setFixedSize(EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
     setGeometry((screenSize.width() - EDIT_PERSON_WIDTH)/2,(screenSize.height() - EDIT_PERSON_HEIGHT)/2,EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);

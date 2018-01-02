@@ -12,16 +12,19 @@
 #define SYSTEMUSERIMAGEWINDOW_H
 
 #include "widget.h"
+#include "observer.h"
 
 class SystemUserImageWindowPrivate;
 
-class SystemUserImageWindow : public Widget
+class SystemUserImageWindow : public Widget , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(SystemUserImageWindow)
 public:
     SystemUserImageWindow(QWidget * parent = 0);
     ~SystemUserImageWindow();
+
+    void onMessage(MessageType type);
 
 signals:
     void selectedFileBaseName(QString filename);

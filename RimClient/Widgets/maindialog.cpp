@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QApplication>
+#include <QMessageBox>
 #include <QToolButton>
 
 #include "systemtrayicon.h"
@@ -96,9 +97,17 @@ MainDialog *MainDialog::instance()
     return dialog;
 }
 
-void MainDialog::onMessage(MessageType)
+void MainDialog::onMessage(MessageType type)
 {
-
+    switch(type)
+    {
+        case MESS_SETTINGS:
+                           {
+                                 makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
+                           }
+                            break;
+        default:break;
+    }
 }
 
 void MainDialog::resizeEvent(QResizeEvent *)
@@ -130,7 +139,14 @@ void MainDialog::updateWidgetGeometry()
 
 void MainDialog::closeWindow()
 {
-    this->close();
+    if(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM).toBool())
+    {
+        this->close();
+    }
+    else
+    {
+        this->hide();
+    }
 }
 
 void MainDialog::makeWindowFront(bool flag)
@@ -148,7 +164,7 @@ void MainDialog::makeWindowFront(bool flag)
         ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Stick"));
     }
 
-    RUtil::globalSettings()->setValue("Main/topHint",flag);
+    RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
 
     show();
 }
@@ -261,7 +277,7 @@ void MainDialog::initWidget()
 
     d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
-    makeWindowFront(RUtil::globalSettings()->value("Main/topHint").toBool());
+    makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -296,8 +312,8 @@ void MainDialog::readSettings()
 {
     QSettings * settings = RUtil::globalSettings();
 
-    if(!settings->value("Main/x").isValid() || !settings->value("Main/y").isValid()
-            ||!settings->value("Main/width").isValid() ||!settings->value("Main/height").isValid())
+    if(!settings->value(Constant::SETTING_X).isValid() || !settings->value(Constant::SETTING_Y).isValid()
+            ||!settings->value(Constant::SETTING_WIDTH).isValid() ||!settings->value(Constant::SETTING_HEIGHT).isValid())
     {
         QRect rect = qApp->desktop()->screen()->geometry();
 
@@ -305,16 +321,16 @@ void MainDialog::readSettings()
         int tmpHeight = rect.height() * SCALE_ZOOMOUT_FACTOR;
 
 
-        RUtil::globalSettings()->setValue("Main/x",rect.width() - tmpWidth - PANEL_MARGIN);
-        RUtil::globalSettings()->setValue("Main/y",PANEL_MARGIN);
-        RUtil::globalSettings()->setValue("Main/width",tmpWidth);
-        RUtil::globalSettings()->setValue("Main/height",tmpHeight);
+        RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.width() - tmpWidth - PANEL_MARGIN);
+        RUtil::globalSettings()->setValue(Constant::SETTING_Y,PANEL_MARGIN);
+        RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,tmpWidth);
+        RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,tmpHeight);
     }
 
-    int x = RUtil::globalSettings()->value("Main/x").toInt();
-    int y = RUtil::globalSettings()->value("Main/y").toInt();
-    int w = RUtil::globalSettings()->value("Main/width").toInt();
-    int h = RUtil::globalSettings()->value("Main/height").toInt();
+    int x = RUtil::globalSettings()->value(Constant::SETTING_X).toInt();
+    int y = RUtil::globalSettings()->value(Constant::SETTING_Y).toInt();
+    int w = RUtil::globalSettings()->value(Constant::SETTING_WIDTH).toInt();
+    int h = RUtil::globalSettings()->value(Constant::SETTING_HEIGHT).toInt();
 
     this->setGeometry(x,y,w,h);
 }
@@ -322,8 +338,8 @@ void MainDialog::readSettings()
 void MainDialog::writeSettings()
 {
     QRect rect = this->geometry();
-    RUtil::globalSettings()->setValue("Main/x",rect.x());
-    RUtil::globalSettings()->setValue("Main/y",rect.y());
-    RUtil::globalSettings()->setValue("Main/width",rect.width());
-    RUtil::globalSettings()->setValue("Main/height",rect.height());
+    RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.x());
+    RUtil::globalSettings()->setValue(Constant::SETTING_Y,rect.y());
+    RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,rect.width());
+    RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,rect.height());
 }

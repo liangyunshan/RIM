@@ -91,9 +91,16 @@ SystemUserImageWindow::SystemUserImageWindow(QWidget *parent):
     setFixedSize(width,height);
     QSize  screenSize = RUtil::screenSize();
     setGeometry((screenSize.width() - width)/2,(screenSize.height() - height)/2,width,height);
+
+    RSingleton<Subject>::instance()->attach(this);
 }
 
 SystemUserImageWindow::~SystemUserImageWindow()
+{
+
+}
+
+void SystemUserImageWindow::onMessage(MessageType)
 {
 
 }

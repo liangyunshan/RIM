@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName(QObject::tr("NanJing RenGu"));
     QApplication::setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon()));
     QApplication::setFont(QFont("微软雅黑",9));
+    QApplication::setQuitOnLastWindowClosed(false);
 
     QString configFullPath = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath);
 

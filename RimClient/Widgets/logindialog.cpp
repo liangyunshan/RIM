@@ -79,6 +79,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    RSingleton<Subject>::instance()->attach(this);
+
     initWidget();
     createTrayMenu();
 }
@@ -246,7 +248,7 @@ void LoginDialog::createTrayMenu()
 {
     trayIcon = new SystemTrayIcon();
     trayIcon->setModel(SystemTrayIcon::System_Login);
-    trayIcon->setVisible(true);
+    trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
 
     connect(trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
@@ -343,6 +345,20 @@ LoginDialog::~LoginDialog()
     }
 
     delete ui;
+}
+
+void LoginDialog::onMessage(MessageType type)
+{
+    switch(type)
+    {
+        case MESS_SETTINGS:
+                            {
+                                trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+                                break;
+                            }
+        default:
+                break;
+    }
 }
 
 void LoginDialog::resizeEvent(QResizeEvent *event)

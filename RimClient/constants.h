@@ -12,13 +12,8 @@
 
 namespace Constant {
 
-/*图片*/
-const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
-const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
-const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
-
-
 /*文件路径*/
+const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
 const char PATH_UserPath[] = "/../users";
 const char PATH_ImagePath[] = "/../image";
@@ -26,6 +21,31 @@ const char PATH_ConfigPath[] = "/../config";
 const char PATH_LocalePath[] = "/translations";
 const char PATH_StylePath[] = "/style";
 const char PATH_SystemIconPath[] = "/systemIcon";
+
+/*系统设置*/
+const char SETTING_X[] = "Main/X";
+const char SETTING_Y[] = "Main/Y";
+const char SETTING_WIDTH[] = "Main/Width";
+const char SETTING_HEIGHT[] = "Main/Height";
+
+const char SETTING_AUTO_STARTUP[] = "Main/MainAutoStartUp";
+const char SETTING_AUTO_LOGIN[] = "Main/AutoLogin";
+
+const char SETTING_TOPHINT[] = "Main/TopHint";
+const char SETTING_EXIT_SYSTEM[] = "Main/ExitSystem";
+const char SETTING_TRAYICON[] = "Main/TrayIcon";
+
+const char SETTING_WINDOW_SHAKE[] = "Main/WindowShake";
+const char SETTING_SOUND_AVAILABLE[] = "Main/Sounds";
+
+const char SETTING_SYSTEM_LOCK[] = "Main/SystemLock";
+const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
+
+/*图片*/
+const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
+const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
+const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
+
 
 /*控件尺寸*/
 const int TOOL_BAR_HEIGHT = 30;                         //工具栏固定高度

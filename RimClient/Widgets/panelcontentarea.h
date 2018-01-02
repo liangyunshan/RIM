@@ -32,6 +32,11 @@ public:
     bool isSelected();
     void setSelected(bool flag);
 
+    void setTextVisible(bool flag = false);
+
+    void setText(const QString & text);
+    QString text()const;
+
 signals:
     void selectedMe();
 
@@ -40,7 +45,8 @@ protected:
 
 private:
     QWidget * contentWidget;
-    QLabel * label;
+    QLabel * iconLabel;
+    QLabel * textLabel;
 
     bool selected;
 };

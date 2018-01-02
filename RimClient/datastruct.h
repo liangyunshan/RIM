@@ -28,8 +28,9 @@ protected:
  */
 enum MessageType
 {
-    MESS_STYLE,                 //样式更新
-    MESS_SHORTCUT               //快捷键更新
+    MESS_STYLE,                  //样式更新
+    MESS_SHORTCUT,               //快捷键更新
+    MESS_SETTINGS                //系统设置修改
 };
 
 /*!

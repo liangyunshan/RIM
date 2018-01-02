@@ -22,6 +22,7 @@ private:
     PanelBottomToolBarPrivate(PanelBottomToolBar * q):q_ptr(q)
     {
         addFriendInstance = NULL;
+        settingsInstance = NULL;
         initWidget();
     }
 
@@ -31,6 +32,11 @@ private:
         {
             addFriendInstance->close();
         }
+
+        if(settingsInstance)
+        {
+            settingsInstance->close();
+        }
     }
 
     void initWidget();
@@ -38,6 +44,7 @@ private:
     PanelBottomToolBar * q_ptr;
 
     AddFriend * addFriendInstance;
+    SystemSettings * settingsInstance;
 
     QWidget * mainWidget;
 };
@@ -104,8 +111,14 @@ void PanelBottomToolBar::showAddFriendPanel()
 
 void PanelBottomToolBar::showSystemSetting()
 {
-    SystemSettings * settings = new SystemSettings();
-    settings->show();
+    MQ_D(PanelBottomToolBar);
+    if(!d->settingsInstance)
+    {
+        d->settingsInstance = new SystemSettings();
+        connect(d->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstnce(QObject*)));
+    }
+
+    d->settingsInstance->showNormal();
 }
 
 void PanelBottomToolBar::updateFrinedInstance(QObject *)
@@ -114,5 +127,14 @@ void PanelBottomToolBar::updateFrinedInstance(QObject *)
     if(d->addFriendInstance)
     {
         d->addFriendInstance = NULL;
+    }
+}
+
+void PanelBottomToolBar::updateSettingInstnce(QObject *)
+{
+    MQ_D(PanelBottomToolBar);
+    if(d->settingsInstance)
+    {
+        d->settingsInstance = NULL;
     }
 }
