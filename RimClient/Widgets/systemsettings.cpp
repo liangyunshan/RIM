@@ -458,11 +458,9 @@ void SystemSettings::respWindowShake(bool flag)
 
 void SystemSettings::respSoundAvailable(bool flag)
 {
-    RMessageBox * box = new RMessageBox;
-    box->setWindowTitle("Hello");
-    box->setIcon(QMessageBox::Critical);
-    box->setText("afasdfasdfasdadfad");
-    box->exec();
+    int result = RMessageBox::information(this,tr("Hello"),tr("afasdfasdfasdadfad"),QMessageBox::Yes|QMessageBox::No);
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<result;
 
     RUtil::globalSettings()->setValue(Constant::SETTING_SOUND_AVAILABLE,flag);
 }
