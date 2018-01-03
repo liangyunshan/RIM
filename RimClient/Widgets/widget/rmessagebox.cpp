@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QCoreApplication>
 #include "qmath.h"
 
 #include "head.h"
@@ -15,6 +16,7 @@
 #include "Util/rutil.h"
 #include "Widgets/toolbar.h"
 #include "riconlabel.h"
+#include "Widgets/widget/rbutton.h"
 
 #include "Widgets/widget.h"
 
@@ -25,21 +27,28 @@ private:
     RMessageBoxPrivate(RMessageBox * q):q_ptr(q)
     {
         initWidget();
+        clickButton = QMessageBox::Cancel;
     }
 
     RMessageBox * q_ptr;
 
     void initWidget();
     void setIcon(QMessageBox::Icon type);
+    void updateButtLayout();
 
     RIconLabel * iconLabel;
     QLabel * contentLabel;
 
     ToolBar * toolBar;
+    QWidget * bottomWidget;
 
     QPoint  mousePressPoint;
 
     QMessageBox::Icon mesType;
+
+    QList<RButton *> buttList;
+    QHash<RButton *,QMessageBox::StandardButton> buttHash;
+    QMessageBox::StandardButton clickButton;
 };
 
 void RMessageBoxPrivate::initWidget()
@@ -51,7 +60,7 @@ void RMessageBoxPrivate::initWidget()
     toolBar = new ToolBar();
     toolBar->setObjectName("Widget_ToolBarWidget");
     toolBar->setFixedHeight(ABSTRACT_TOOL_BAR_HEGIHT);
-    toolBar->setToolFlags(ToolBar::TOOL_DIALOG);
+    toolBar->setToolFlags(ToolBar::TOOL_MESSAGEBOX);
     toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
     toolBar->setWindowTitle(QObject::tr("Information"));
 
@@ -76,7 +85,7 @@ void RMessageBoxPrivate::initWidget()
 
     contentWidget->setLayout(contentLayout);
 
-    QWidget * bottomWidget = new QWidget;
+    bottomWidget = new QWidget;
     bottomWidget->setFixedHeight(35);
     bottomWidget->setObjectName("Panel_Bottom_ContentWidget");
 
@@ -114,6 +123,41 @@ void RMessageBoxPrivate::setIcon(QMessageBox::Icon type)
                                         break;
         default:
             break;
+    }
+}
+
+void RMessageBoxPrivate::updateButtLayout()
+{
+    if(!bottomWidget->layout())
+    {
+        QHBoxLayout * layout = new QHBoxLayout;
+        layout->setContentsMargins(6,1,1,1);
+        bottomWidget->setLayout(layout);
+    }
+
+    QHBoxLayout * layout = dynamic_cast<QHBoxLayout *>(bottomWidget->layout());
+
+    int i = layout->count() - 1;
+
+    while(i >= 0)
+    {
+        QLayoutItem * item = layout->takeAt(i);
+        if(QWidget *widget = item->widget())
+        {
+            widget->hide();
+        }
+        delete item;
+        i--;
+    }
+
+    for(int j = 0; j < buttList.size(); j++)
+    {
+        if(j == 0)
+        {
+            layout->addStretch(1);
+        }
+        buttList.at(j)->show();
+        layout->addWidget(buttList.at(j));
     }
 }
 
@@ -167,17 +211,35 @@ void RMessageBox::setIcon(QMessageBox::Icon icon)
     d->setIcon(icon);
 }
 
-int RMessageBox::information(QWidget *parent, const QString &title, const QString &text, int button0, int button1, int button2)
+int RMessageBox::information(QWidget *parent, const QString &title, const QString &text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton)
 {
-    RMessageBox * msg = new RMessageBox(parent);
+    RMessageBox * msgBox = new RMessageBox(parent);
 
-    msg->setWindowTitle(title);
-    msg->setText(text);
-    msg->setIcon(QMessageBox::Information);
+    msgBox->setWindowTitle(title);
+    msgBox->setText(text);
+    msgBox->setIcon(QMessageBox::Information);
 
-    msg->exec();
+    uint mask = QMessageBox::FirstButton;
+    while (mask <= QMessageBox::LastButton) {
+        uint sb = buttons & mask;
+        mask <<= 1;
+        if (!sb)
+            continue;
+        msgBox->addButton((QMessageBox::StandardButton)sb);
+    }
 
-    return 0;
+    if(msgBox->exec() == -1)
+    {
+        return QMessageBox::Cancel;
+    }
+
+    return  msgBox->clickedButton();
+}
+
+QMessageBox::StandardButton RMessageBox::clickedButton() const
+{
+    MQ_D(RMessageBox);
+    return d->clickButton;
 }
 
 void RMessageBox::mousePressEvent(QMouseEvent * event)
@@ -216,4 +278,78 @@ void RMessageBox::paintEvent(QPaintEvent *)
 void RMessageBox::closeEvent(QCloseEvent *event)
 {
     event->accept();
+}
+
+void RMessageBox::respButtonClicked()
+{
+    MQ_D(RMessageBox);
+    RButton * button = dynamic_cast<RButton *>(QObject::sender());
+    if(button)
+    {
+        d->clickButton =  d->buttHash.value(button);
+//        this->close();
+    }
+}
+
+RButton *RMessageBox::addButton(QMessageBox::StandardButton butt)
+{
+    MQ_D(RMessageBox);
+    RButton * button = new RButton;
+    button->setText(standardButtText(butt));
+    connect(button,SIGNAL(pressed()),this,SLOT(respButtonClicked()));
+
+    d->buttHash.insert(button,butt);
+    d->buttList.append(button);
+    d->updateButtLayout();
+
+    return button;
+}
+
+QString RMessageBox::standardButtText(QMessageBox::StandardButton butt)
+{
+    if(butt)
+    {
+        switch(butt)
+        {
+            case QMessageBox::Ok:
+                return QCoreApplication::translate("QPlatformTheme", "OK");
+            case QMessageBox::Save:
+                return QCoreApplication::translate("QPlatformTheme", "Save");
+            case QMessageBox::SaveAll:
+                return QCoreApplication::translate("QPlatformTheme", "SaveAll");
+            case QMessageBox::Open:
+                return QCoreApplication::translate("QPlatformTheme", "Open");
+            case QMessageBox::Yes:
+                return QCoreApplication::translate("QPlatformTheme", "Yes");
+            case QMessageBox::YesToAll:
+                return QCoreApplication::translate("QPlatformTheme", "YesToAll");
+            case QMessageBox::No:
+                return QCoreApplication::translate("QPlatformTheme", "No");
+            case QMessageBox::NoToAll:
+                return QCoreApplication::translate("QPlatformTheme", "NoToAll");
+            case QMessageBox::Abort:
+                return QCoreApplication::translate("QPlatformTheme", "Abort");
+            case QMessageBox::Retry:
+                return QCoreApplication::translate("QPlatformTheme", "Retry");
+            case QMessageBox::Ignore:
+                return QCoreApplication::translate("QPlatformTheme", "Ignore");
+            case QMessageBox::Close:
+                return QCoreApplication::translate("QPlatformTheme", "Close");
+            case QMessageBox::Cancel:
+                return QCoreApplication::translate("QPlatformTheme", "Cancel");
+            case QMessageBox::Discard:
+                return QCoreApplication::translate("QPlatformTheme", "Discard");
+            case QMessageBox::Help:
+                return QCoreApplication::translate("QPlatformTheme", "Help");
+            case QMessageBox::Apply:
+                return QCoreApplication::translate("QPlatformTheme", "Apply");
+            case QMessageBox::Reset:
+                return QCoreApplication::translate("QPlatformTheme", "Reset");
+            case QMessageBox::RestoreDefaults:
+                return QCoreApplication::translate("QPlatformTheme", "RestoreDefaults");
+            default:
+                break;
+        }
+    }
+    return QString();
 }

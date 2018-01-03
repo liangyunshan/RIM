@@ -15,6 +15,7 @@
 #include <QMessageBox>
 
 class RMessageBoxPrivate;
+class RButton;
 
 class RMessageBox : public QDialog
 {
@@ -32,7 +33,9 @@ public:
 
     void setIcon(QMessageBox::Icon icon);
 
-    static int information(QWidget * parent,const QString &title,const QString& text,int button0, int button1,int button2 = 0);
+    static int information(QWidget * parent, const QString &title, const QString& text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
+
+    QMessageBox::StandardButton clickedButton()const;
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -40,6 +43,13 @@ protected:
     void paintEvent(QPaintEvent *);
 
     void closeEvent(QCloseEvent * event);
+
+private slots:
+    void respButtonClicked();
+
+private:
+    RButton * addButton(QMessageBox::StandardButton butt);
+    QString standardButtText(QMessageBox::StandardButton butt);
 
 private:
     RMessageBoxPrivate * d_ptr;

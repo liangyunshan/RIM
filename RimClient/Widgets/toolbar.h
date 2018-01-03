@@ -62,6 +62,7 @@ public:
         TOOL_ICON = 0x0008,             //系统图标
         TOOL_TITLE = 0x0010,            //系统文字
         TOOL_SPACER = 0x1000,           //弹簧
+        TOOL_MESSAGEBOX = TOOL_ICON | TOOL_TITLE | TOOL_SPACER | TOOL_CLOSE,            //弹出窗口
         TOOL_DIALOG = TOOL_ICON | TOOL_TITLE | TOOL_MIN | TOOL_CLOSE |TOOL_SPACER,      //dialog窗口工具栏
         TOOL_ACTION = TOOL_MIN | TOOL_CLOSE | TOOL_MAX |TOOL_SPACER,                    //按钮区
         TOOL_WIDGET = TOOL_DIALOG | TOOL_MAX                                            //widget窗口工具栏
