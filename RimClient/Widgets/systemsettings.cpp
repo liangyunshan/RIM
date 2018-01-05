@@ -458,10 +458,6 @@ void SystemSettings::respWindowShake(bool flag)
 
 void SystemSettings::respSoundAvailable(bool flag)
 {
-    int result = RMessageBox::information(this,tr("Hello"),tr("afasdfasdfasdadfad"),QMessageBox::Yes|QMessageBox::No);
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<result;
-
     RUtil::globalSettings()->setValue(Constant::SETTING_SOUND_AVAILABLE,flag);
 }
 
@@ -470,7 +466,7 @@ void SystemSettings::respSystemLock(bool flag)
     RUtil::globalSettings()->setValue(Constant::SETTING_SYSTEM_LOCK,flag);
     if(flag)
     {
-        QMessageBox::information(this,tr("Information"),tr("Use account password to unlock!"),QMessageBox::Yes);
+        RMessageBox::information(this,tr("Information"),tr("Use account password to unlock!"),RMessageBox::Yes);
     }
 }
 
@@ -480,11 +476,15 @@ void SystemSettings::respDelRecord(bool flag)
 
     if(flag)
     {
-       int result = QMessageBox::warning(this,tr("Warning"),tr("After setting the chat history will not be retained, whether to continue setting?"),QMessageBox::Yes|QMessageBox::No,QMessageBox::No);
-       if(result == QMessageBox::No)
+       int result = RMessageBox::warning(this,tr("Warning"),tr("After setting the chat history will not be retained, whether to continue setting?"),RMessageBox::Yes|RMessageBox::No,RMessageBox::No);
+
+       if(result != RMessageBox::Yes)
        {
            d->recordCheckBox->setChecked(false);
-           return;
+       }
+       else
+       {
+           d->recordCheckBox->setChecked(true);
        }
     }
     RUtil::globalSettings()->setValue(Constant::SETTING_EXIT_DELRECORD,flag);

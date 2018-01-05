@@ -5,7 +5,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef HEAD_H
 #define HEAD_H

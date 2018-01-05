@@ -96,7 +96,7 @@ void ToolBarPrivate::initDialog()
     maxButton->setObjectName(Constant::TOOL_MAX);
     maxButton->setFixedSize(iconSize);
     maxButton->setVisible(flags & ToolBar::TOOL_MAX);
-    QObject::connect(maxButton,SIGNAL(pressed()),q_ptr,SIGNAL(maxWindow(bool)));
+    QObject::connect(maxButton,SIGNAL(toggled(bool)),q_ptr,SIGNAL(maxWindow(bool)));
 
     closeButton = new RToolButton(toolBar);
     closeButton->setObjectName(Constant::TOOL_CLOSE);

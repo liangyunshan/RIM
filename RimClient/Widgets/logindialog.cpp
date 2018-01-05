@@ -23,6 +23,7 @@
 #include "maindialog.h"
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
+#include "thread/taskmanager.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -148,6 +149,7 @@ void LoginDialog::minsize()
 void LoginDialog::closeWindow()
 {
     qDebug()<<__LINE__<<__FUNCTION__;
+    RSingleton<TaskManager>::instance()->removeAll();
     this->close();
 }
 

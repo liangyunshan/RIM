@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.19
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef TOOLITEM_H
 #define TOOLITEM_H

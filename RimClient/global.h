@@ -5,7 +5,7 @@
  *  @version   1.0
  *  @date      2017.12.XX
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef GLOBAL_H
 #define GLOBAL_H

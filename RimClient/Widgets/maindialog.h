@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.14
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note
  */
 #ifndef MAINDIALOG_H

@@ -81,3 +81,8 @@ QSize RUtil::screenSize(int num)
 
     return qApp->desktop()->screen()->size();
 }
+
+qint64 RUtil::currentMSecsSinceEpoch()
+{
+    return QDateTime::currentDateTime().currentMSecsSinceEpoch();
+}

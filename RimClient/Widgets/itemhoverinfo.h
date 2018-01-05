@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.XX
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20171226:wey:添加动画渐隐/渐现
  */
 
