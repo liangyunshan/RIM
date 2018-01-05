@@ -105,6 +105,7 @@ void Widget::setContentWidget(QWidget *child)
 }
 
 #define ABSTRACT_TOOL_BAR_HEGIHT 30
+
 ToolBar * Widget::enableToolBar(bool flag)
 {
     MQ_D(Widget);

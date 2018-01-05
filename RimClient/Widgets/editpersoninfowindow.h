@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.27
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20171228:wey:添加本地图片选择框，可选择系统自带的图像
  */
 #ifndef EDITPERSONINFOWINDOW_H

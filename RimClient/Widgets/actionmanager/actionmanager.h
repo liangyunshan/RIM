@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.16
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20171219:wey:添加创建和获取action;
  */
 #ifndef ACTIONMANAGER_H

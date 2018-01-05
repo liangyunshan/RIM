@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.12
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef USERINFOFILE_H
 #define USERINFOFILE_H

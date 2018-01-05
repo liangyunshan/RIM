@@ -7,7 +7,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      工具栏的组成:[ICON][TEXT][A]XXXXX[A][A][A]  [ICON]表示图标 [TEXT]表示窗口名称  [A]表示工具按钮；XXX表示弹簧
  *  @note      20171227:wey:增加窗口工具类型ToolTypeFlag,简化窗口设置
  */

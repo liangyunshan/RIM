@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef RUTIL_H
 #define RUTIL_H
@@ -34,6 +34,8 @@ public:
     static QString UUID();
 
     static QSize screenSize(int num = -1);
+
+    static qint64 currentMSecsSinceEpoch();
 
 private:
     static QSettings * gSettings;

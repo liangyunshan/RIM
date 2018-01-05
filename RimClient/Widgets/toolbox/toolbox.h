@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.18
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H

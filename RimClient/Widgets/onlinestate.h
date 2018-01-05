@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.13
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef ONLINESTATE_H
 #define ONLINESTATE_H

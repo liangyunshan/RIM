@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.XX
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20171216:wey:默认在设置objName时，自动根据objName设置Icon
  *             20171218:wey:重载对toolTip事件处理
  */

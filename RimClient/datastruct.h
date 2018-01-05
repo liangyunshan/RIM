@@ -5,7 +5,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef DATASTRUCT_H
 #define DATASTRUCT_H

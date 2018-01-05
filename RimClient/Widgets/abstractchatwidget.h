@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.20
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef ABSTRACTCHATWIDGET_H
 #define ABSTRACTCHATWIDGET_H

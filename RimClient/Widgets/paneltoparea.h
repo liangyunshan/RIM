@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.15
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef PANELTOPAREA_H
 #define PANELTOPAREA_H

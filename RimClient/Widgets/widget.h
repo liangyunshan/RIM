@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.15
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      此窗口设置了一定的边距，用于绘制渐变的背景。
  */
 
