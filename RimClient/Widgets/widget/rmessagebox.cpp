@@ -27,13 +27,22 @@ private:
     RMessageBoxPrivate(RMessageBox * q):q_ptr(q)
     {
         initWidget();
-        clickButton = QMessageBox::Cancel;
+        clickButton = RMessageBox::Cancel;
+    }
+
+    ~RMessageBoxPrivate()
+    {
+        foreach(RButton * tmp,buttList)
+        {
+            delete tmp;
+        }
+        buttList.clear();
     }
 
     RMessageBox * q_ptr;
 
     void initWidget();
-    void setIcon(QMessageBox::Icon type);
+    void setIcon(RMessageBox::Icon type);
     void updateButtLayout();
 
     RIconLabel * iconLabel;
@@ -44,11 +53,11 @@ private:
 
     QPoint  mousePressPoint;
 
-    QMessageBox::Icon mesType;
+    RMessageBox::Icon mesType;
 
     QList<RButton *> buttList;
-    QHash<RButton *,QMessageBox::StandardButton> buttHash;
-    QMessageBox::StandardButton clickButton;
+    QHash<RButton *,RMessageBox::StandardButton> buttHash;
+    RMessageBox::StandardButton clickButton;
 };
 
 void RMessageBoxPrivate::initWidget()
@@ -68,6 +77,7 @@ void RMessageBoxPrivate::initWidget()
 
     iconLabel = new RIconLabel();
     iconLabel->setCorner(false);
+    iconLabel->setEnterCursorChanged(false);
     iconLabel->setTransparency(true);
     iconLabel->setFixedSize(40,40);
 
@@ -88,6 +98,7 @@ void RMessageBoxPrivate::initWidget()
     bottomWidget = new QWidget;
     bottomWidget->setFixedHeight(35);
     bottomWidget->setObjectName("Panel_Bottom_ContentWidget");
+    bottomWidget->setMinimumSize(100,30);
 
     mainLayout->addWidget(toolBar);
     mainLayout->addWidget(contentWidget);
@@ -105,20 +116,20 @@ void RMessageBoxPrivate::initWidget()
     q_ptr->setLayout(layout);
 }
 
-void RMessageBoxPrivate::setIcon(QMessageBox::Icon type)
+void RMessageBoxPrivate::setIcon(RMessageBox::Icon type)
 {
     mesType = type;
 
     switch(type)
     {
-        case QMessageBox::Information :
+        case RMessageBox::Information :
                                         iconLabel->setPixmap(":/icon/resource/icon/alert_info.png");
                                         break;
-        case QMessageBox::Warning :
+        case RMessageBox::Warning :
                                         iconLabel->setPixmap(":/icon/resource/icon/alert_warning.png");
                                         break;
 
-        case QMessageBox::Critical :
+        case RMessageBox::Critical :
                                         iconLabel->setPixmap(":/icon/resource/icon/aler_error.png");
                                         break;
         default:
@@ -169,7 +180,8 @@ RMessageBox::RMessageBox(QWidget *parent):
     QDialog(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
-    setAttribute(Qt::WA_DeleteOnClose,true);
+    setAttribute(Qt::WA_TranslucentBackground);
+//    setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     QSize size = RUtil::screenSize();
@@ -178,7 +190,7 @@ RMessageBox::RMessageBox(QWidget *parent):
 
 RMessageBox::~RMessageBox()
 {
-
+    delete d_ptr;
 }
 
 void RMessageBox::setWindowTitle(const QString &text)
@@ -205,38 +217,23 @@ QString RMessageBox::text() const
     return d->contentLabel->text();
 }
 
-void RMessageBox::setIcon(QMessageBox::Icon icon)
+void RMessageBox::setIcon(RMessageBox::Icon icon)
 {
     MQ_D(RMessageBox);
     d->setIcon(icon);
 }
 
-int RMessageBox::information(QWidget *parent, const QString &title, const QString &text, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton)
+int RMessageBox::information(QWidget *parent, const QString &title, const QString &text, int butts, RMessageBox::StandardButton)
 {
-    RMessageBox * msgBox = new RMessageBox(parent);
-
-    msgBox->setWindowTitle(title);
-    msgBox->setText(text);
-    msgBox->setIcon(QMessageBox::Information);
-
-    uint mask = QMessageBox::FirstButton;
-    while (mask <= QMessageBox::LastButton) {
-        uint sb = buttons & mask;
-        mask <<= 1;
-        if (!sb)
-            continue;
-        msgBox->addButton((QMessageBox::StandardButton)sb);
-    }
-
-    if(msgBox->exec() == -1)
-    {
-        return QMessageBox::Cancel;
-    }
-
-    return  msgBox->clickedButton();
+    return messagebox(parent,Information,title,text,butts);
 }
 
-QMessageBox::StandardButton RMessageBox::clickedButton() const
+int RMessageBox::warning(QWidget *parent, const QString &title, const QString &text, int butts, RMessageBox::StandardButton)
+{
+    return messagebox(parent,Warning,title,text,butts);
+}
+
+RMessageBox::StandardButton RMessageBox::clickedButton() const
 {
     MQ_D(RMessageBox);
     return d->clickButton;
@@ -287,14 +284,14 @@ void RMessageBox::respButtonClicked()
     if(button)
     {
         d->clickButton =  d->buttHash.value(button);
-//        this->close();
+        close();
     }
 }
 
-RButton *RMessageBox::addButton(QMessageBox::StandardButton butt)
+RButton *RMessageBox::addButton(RMessageBox::StandardButton butt)
 {
     MQ_D(RMessageBox);
-    RButton * button = new RButton;
+    RButton * button = new RButton(d->bottomWidget);
     button->setText(standardButtText(butt));
     connect(button,SIGNAL(pressed()),this,SLOT(respButtonClicked()));
 
@@ -305,51 +302,79 @@ RButton *RMessageBox::addButton(QMessageBox::StandardButton butt)
     return button;
 }
 
-QString RMessageBox::standardButtText(QMessageBox::StandardButton butt)
+QString RMessageBox::standardButtText(RMessageBox::StandardButton butt)
 {
     if(butt)
     {
         switch(butt)
         {
-            case QMessageBox::Ok:
+            case RMessageBox::Ok:
                 return QCoreApplication::translate("QPlatformTheme", "OK");
-            case QMessageBox::Save:
+            case RMessageBox::Save:
                 return QCoreApplication::translate("QPlatformTheme", "Save");
-            case QMessageBox::SaveAll:
+            case RMessageBox::SaveAll:
                 return QCoreApplication::translate("QPlatformTheme", "SaveAll");
-            case QMessageBox::Open:
+            case RMessageBox::Open:
                 return QCoreApplication::translate("QPlatformTheme", "Open");
-            case QMessageBox::Yes:
+            case RMessageBox::Yes:
                 return QCoreApplication::translate("QPlatformTheme", "Yes");
-            case QMessageBox::YesToAll:
+            case RMessageBox::YesToAll:
                 return QCoreApplication::translate("QPlatformTheme", "YesToAll");
-            case QMessageBox::No:
+            case RMessageBox::No:
                 return QCoreApplication::translate("QPlatformTheme", "No");
-            case QMessageBox::NoToAll:
+            case RMessageBox::NoToAll:
                 return QCoreApplication::translate("QPlatformTheme", "NoToAll");
-            case QMessageBox::Abort:
+            case RMessageBox::Abort:
                 return QCoreApplication::translate("QPlatformTheme", "Abort");
-            case QMessageBox::Retry:
+            case RMessageBox::Retry:
                 return QCoreApplication::translate("QPlatformTheme", "Retry");
-            case QMessageBox::Ignore:
+            case RMessageBox::Ignore:
                 return QCoreApplication::translate("QPlatformTheme", "Ignore");
-            case QMessageBox::Close:
+            case RMessageBox::Close:
                 return QCoreApplication::translate("QPlatformTheme", "Close");
-            case QMessageBox::Cancel:
+            case RMessageBox::Cancel:
                 return QCoreApplication::translate("QPlatformTheme", "Cancel");
-            case QMessageBox::Discard:
+            case RMessageBox::Discard:
                 return QCoreApplication::translate("QPlatformTheme", "Discard");
-            case QMessageBox::Help:
+            case RMessageBox::Help:
                 return QCoreApplication::translate("QPlatformTheme", "Help");
-            case QMessageBox::Apply:
+            case RMessageBox::Apply:
                 return QCoreApplication::translate("QPlatformTheme", "Apply");
-            case QMessageBox::Reset:
+            case RMessageBox::Reset:
                 return QCoreApplication::translate("QPlatformTheme", "Reset");
-            case QMessageBox::RestoreDefaults:
+            case RMessageBox::RestoreDefaults:
                 return QCoreApplication::translate("QPlatformTheme", "RestoreDefaults");
             default:
                 break;
         }
     }
     return QString();
+}
+
+int RMessageBox::messagebox(QWidget *parent, RMessageBox::Icon type, const QString &title, const QString &text, int butts,StandardButton)
+{
+    RMessageBox msgBox(parent);
+
+    StandardButtons buttons(butts);
+
+    msgBox.setWindowTitle(title);
+    msgBox.setText(text);
+    msgBox.setIcon(type);
+
+    uint mask = RMessageBox::FirstButton;
+    while (mask <= RMessageBox::LastButton)
+    {
+        uint sb = buttons & mask;
+        mask <<= 1;
+        if (!sb)
+            continue;
+        msgBox.addButton((RMessageBox::StandardButton)sb);
+    }
+
+    if(msgBox.exec() == -1)
+    {
+        return RMessageBox::Cancel;
+    }
+
+    return  msgBox.clickedButton();
 }

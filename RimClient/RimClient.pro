@@ -18,6 +18,7 @@ DESTDIR = bin
 
 include(Util/Util.pri)
 include(Widgets/Widgets.pri)
+include(network/network.pri)
 
 HEADERS += \
     head.h \
