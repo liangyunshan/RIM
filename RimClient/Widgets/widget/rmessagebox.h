@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2018.01.02
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20180102:wey:修复窗口退出程序奔溃(取消Qt::WA_DeleteOnClose设置)
  */
 #ifndef RMESSAGEBOX_H

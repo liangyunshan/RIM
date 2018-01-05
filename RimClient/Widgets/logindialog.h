@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  *  @note      20171212:wey:完善登录页面，增加页面移动、读取保存用户信息；
  */
 #ifndef LOGINDIALOG_H

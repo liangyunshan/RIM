@@ -1,4 +1,5 @@
 QT += core gui
+QT += network
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
@@ -19,6 +20,7 @@ DESTDIR = bin
 include(Util/Util.pri)
 include(Widgets/Widgets.pri)
 include(network/network.pri)
+include(thread/thread.pri)
 
 HEADERS += \
     head.h \

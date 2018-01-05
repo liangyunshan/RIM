@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.XX
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef LISTBOX_H
 #define LISTBOX_H

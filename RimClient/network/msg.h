@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2018.01.04
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef MSG_H
 #define MSG_H
@@ -32,7 +32,7 @@ enum Msg_Command
     MSG_USER_LOGIN,                                    //用户登录
     MSG_USER_LOGOUT,                                   //用户退出
     MSG_USER_VIEW_INFO,                                //用户基本信息
-    MSG_USER_UPDATE_INFO,                              //用户更新基本西悉尼
+    MSG_USER_UPDATE_INFO,                              //用户更新信息
     MSG_USER_STATE,                                    //用户状态
 
     MSG_RELATION_SEARCH = 0x11,                        //查找好友
@@ -54,13 +54,8 @@ enum Msg_Command
     MSG_OTHER_HEAT = 0x41                              //心跳报
 };
 
-struct MSG_Head
-{
-    int magicNum;                       //信息控制头，如0xABCDDCBA
-    Msg_Type messType;                  //消息类型
-    Msg_Command commandType;            //命令类型
-    int timestamp;                      //时间戳
-    int messLength;                     //消息长度
-};
+/*!   消息主体
+ *  {"mgic":12,"mess":1,"cmd":2,"time":3,"len":4,"content":{}}
+ */
 
 #endif // MSG_H

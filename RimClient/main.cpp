@@ -19,6 +19,9 @@
 
 #include "Widgets/nativewindow/MainWindow.h"
 
+#include "thread/msgreceiveproctask.h"
+#include "thread/taskmanager.h"
+
 /*!
   目录结构
   +RIM
@@ -105,6 +108,9 @@ int main(int argc, char *argv[])
     {
         app.setStyleSheet(styleFile.readAll());
     }
+
+    RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
+
 
     LoginDialog dialog;
     dialog.show();
