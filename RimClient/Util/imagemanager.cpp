@@ -8,7 +8,7 @@
 #include <QMetaEnum>
 #include <QDebug>
 
-#include "constants.h"
+#include "Core/constants.h"
 
 ImageManager::ImageManager()
 {

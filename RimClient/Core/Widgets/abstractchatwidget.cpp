@@ -24,7 +24,7 @@
 #include "Util/rutil.h"
 #include "widget/riconlabel.h"
 #include "widget/rbutton.h"
-#include "util/rsingleton.h"
+#include "rsingleton.h"
 #include "util/imagemanager.h"
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"

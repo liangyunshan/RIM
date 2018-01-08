@@ -12,10 +12,11 @@
 #define MSGRECEIVE_H
 
 #include <QObject>
+#include "network_global.h"
 
 class QUdpSocket;
 
-class MsgReceive : public QObject
+class NETWORKSHARED_EXPORT MsgReceive : public QObject
 {
     Q_OBJECT
 public:

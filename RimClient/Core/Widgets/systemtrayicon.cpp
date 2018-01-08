@@ -7,7 +7,7 @@
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/imagemanager.h"
 
 SystemTrayIcon * SystemTrayIcon::systemIcon = NULL;

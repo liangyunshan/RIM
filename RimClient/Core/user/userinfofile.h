@@ -14,7 +14,7 @@
 #include <QObject>
 #include <QFile>
 
-#include "datastruct.h"
+#include "Core/datastruct.h"
 
 class UserInfoFile : public QObject
 {

@@ -3,7 +3,7 @@
 #include <QToolButton>
 #include <QDebug>
 
-#include <Util/rsingleton.h>
+#include "rsingleton.h"
 #include "shortcutsettings.h"
 
 template<class T,class P>
