@@ -10,5 +10,3 @@ SimpleTextEdit::~SimpleTextEdit()
 {
 
 }
-
-

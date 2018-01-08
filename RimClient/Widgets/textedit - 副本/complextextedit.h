@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.22
  *  @warning
- *  @copyright NanJing RenGu.
+ *  @copyright GNU Public License.
  */
 #ifndef COMPLEXTEXTEDIT_H
 #define COMPLEXTEXTEDIT_H
@@ -28,11 +28,6 @@ public:
 
 protected:
     void updateChatShow();
-    void showTextFrame();
-    void addAnimation(const QUrl& url, const QString& fileName);
-
-private slots:
-    void animate(int anim);
 
 private:
     TextUnit::ShowType m_ShowType;

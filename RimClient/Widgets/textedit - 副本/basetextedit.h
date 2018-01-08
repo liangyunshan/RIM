@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.22
  *  @warning
- *  @copyright NanJing RenGu.
+ *  @copyright GNU Public License.
  */
 #ifndef BASETEXTEDIT_H
 #define BASETEXTEDIT_H
@@ -58,8 +58,6 @@ public:
     QByteArray WriteJSONFile(TextUnit::InfoUnit unit);
 
     void imgPathToHtml(QString &path);
-    QString toChatText();
-    void insertChatHtml(const QString &text);
 
 protected:
     bool eventFilter(QObject *, QEvent *);

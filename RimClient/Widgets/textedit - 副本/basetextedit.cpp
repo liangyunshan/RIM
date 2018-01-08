@@ -15,18 +15,6 @@ BaseTextEdit::BaseTextEdit(QWidget *parent):
     this->installEventFilter(this);
 }
 
-bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
-{
-    if (event->type() == QEvent::KeyPress) {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-        if (keyEvent->matches(QKeySequence::Paste))
-        {
-            qDebug() << "Ctrl + V 2";
-        }
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
 //解析接收的json数据
 TextUnit::InfoUnit BaseTextEdit::ReadJSONFile(QByteArray byteArray)
 {
@@ -79,23 +67,20 @@ QByteArray BaseTextEdit::WriteJSONFile(TextUnit::InfoUnit unit)
     return byteArray;
 }
 
-//将内容转化成聊天通讯格式所需要的内容
-QString BaseTextEdit::toChatText()
-{
-    QString html = this->toHtml();
-
-    QString contents = html;
-    return contents;
-}
-
-//将通讯的的聊天内容显示到界面中
-void BaseTextEdit::insertChatHtml(const QString &text)
-{
-    this->insertHtml(text);
-}
-
 //将图片的路径转化为HTML格式路径
 void BaseTextEdit::imgPathToHtml(QString &path)
 {
     path = QString("<img src=\"%1\"/>").arg(path);
+}
+
+bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->matches(QKeySequence::Paste))
+        {
+            qDebug() << "Ctrl + V 2";
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

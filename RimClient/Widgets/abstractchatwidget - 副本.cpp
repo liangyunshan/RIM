@@ -113,10 +113,10 @@ void AbstractChatWidgetPrivate::initWidget()
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
-    userInfo_NameLabel->setText(QStringLiteral("我是尚超"));
+    userInfo_NameLabel->setText(QStringLiteral("韩天才"));
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
-    q_ptr->setWindowTitle(QStringLiteral("尚超"));
+    q_ptr->setWindowTitle(QStringLiteral("韩天才"));
     q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
@@ -251,7 +251,6 @@ void AbstractChatWidgetPrivate::initWidget()
     QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
     //
 
-    /**********聊天内容输入框***************/
     chatInputArea = new SimpleTextEdit(chatInputContainter);
     chatInputArea->setFocus();
 
@@ -426,9 +425,6 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
     QFont font = QFontDialog::getFont(
                   &ok, QFont("Helvetica [Cronyx]", 10), this);
     if (ok) {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"font:"<<font
-              <<"\n";
         d_ptr->chatInputArea->setFont(font);
     } else {
 
