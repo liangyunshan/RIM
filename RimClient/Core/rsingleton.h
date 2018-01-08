@@ -14,7 +14,7 @@
 #include <QObject>
 
 template<class T>
-class RSingleton
+class  RSingleton
 {
 public:
     static T * instance()

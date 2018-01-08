@@ -17,7 +17,7 @@
 #include "widget/riconlabel.h"
 
 #include "Util/imagemanager.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 
 #define ADD_FRIEND_WIDTH 500
 #define ADD_FRIEND_HEIGHT 240

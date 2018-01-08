@@ -8,7 +8,7 @@
 #include "actionmanager/actionmanager.h"
 #include "addfriend.h"
 #include "maindialog.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "systemsettings.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20

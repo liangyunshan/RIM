@@ -12,10 +12,11 @@
 #define SOCKET_H
 
 #include <QObject>
+#include "network_global.h"
 
 class QUdpSocket;
 
-class Socket : public QObject
+class NETWORKSHARED_EXPORT Socket : public QObject
 {
     Q_OBJECT
 public:

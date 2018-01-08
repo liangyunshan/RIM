@@ -18,7 +18,9 @@
 #include <QFile>
 #include <QMutex>
 
-class RLog : public QObject
+#include "util_global.h"
+
+class UTILSHARED_EXPORT RLog : public QObject
 {
     Q_OBJECT
 public:

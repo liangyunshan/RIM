@@ -9,7 +9,7 @@
 
 #include "rutil.h"
 
-#include "head.h"
+#include "Core/head.h"
 
 const char PATH_LogPath[] = "/../logs";
 const char Suffix[] = ".log";
@@ -91,7 +91,7 @@ void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc
         }
         else
         {
-            qDebug()<<recordInfo;
+//            qDebug()<<recordInfo;
         }
     }
 }

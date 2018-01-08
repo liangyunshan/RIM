@@ -17,7 +17,7 @@
 #include "constants.h"
 #include "toolbar.h"
 #include "Util/rutil.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "widget/rbutton.h"
 #include "panelcontentarea.h"
@@ -50,7 +50,7 @@ SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
     setLayout(layout);
 }
 
-void SystemSettingsPage::setDescInfo(QString &text)
+void SystemSettingsPage::setDescInfo(QString text)
 {
     descLabel->setText(text);
 }

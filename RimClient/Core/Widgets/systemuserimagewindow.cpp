@@ -7,7 +7,7 @@
 #include "head.h"
 #include "datastruct.h"
 #include "constants.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/riconlabel.h"

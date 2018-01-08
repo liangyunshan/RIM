@@ -24,7 +24,7 @@ class SystemSettingsPage : public QWidget
 
 public:
     SystemSettingsPage(QWidget * parent = 0);
-    void setDescInfo(QString & text);
+    void setDescInfo(QString text);
     void addItem(QWidget * item);
     void addItem(QWidget * item,int row,int column,int rowSpan,int columnSpan);
 
