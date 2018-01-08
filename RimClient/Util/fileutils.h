@@ -16,12 +16,14 @@
 #include <QIODevice>
 #include <QCoreApplication>
 
+#include "util_global.h"
+
 class QFile;
 
 namespace FileUtils
 {
 
-class FileSaverBase
+class UTILSHARED_EXPORT FileSaverBase
 {
     Q_DECLARE_TR_FUNCTIONS(FileSaverBase)
 public:
@@ -46,7 +48,7 @@ protected:
 
 };
 
-class FileSaver : public FileSaverBase
+class UTILSHARED_EXPORT FileSaver : public FileSaverBase
 {
     Q_DECLARE_TR_FUNCTIONS(FileSaver)
 public:

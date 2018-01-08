@@ -9,7 +9,7 @@
 #include "constants.h"
 #include "head.h"
 #include "Util/imagemanager.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "maindialog.h"
 
 #include "widget/riconlabel.h"

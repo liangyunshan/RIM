@@ -3,8 +3,8 @@
 #include <QDataStream>
 #include <QApplication>
 
-#include "constants.h"
-#include "head.h"
+#include "Core/constants.h"
+#include "Core/head.h"
 
 UserInfoFile::UserInfoFile():
     QObject()

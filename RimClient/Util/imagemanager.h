@@ -15,9 +15,10 @@
 #include <QFileInfoList>
 #include <QIcon>
 
-#include "datastruct.h"
+#include "util_global.h"
+#include "Core/datastruct.h"
 
-class ImageManager : public QObject
+class UTILSHARED_EXPORT ImageManager : public QObject
 {
     Q_OBJECT
 public:

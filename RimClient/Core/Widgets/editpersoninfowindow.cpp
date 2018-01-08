@@ -12,7 +12,7 @@
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
-#include "util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "toolbar.h"
 #include "Util/rutil.h"

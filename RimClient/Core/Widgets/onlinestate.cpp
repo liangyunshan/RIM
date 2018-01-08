@@ -9,7 +9,7 @@
 
 #include "datastruct.h"
 #include "head.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "constants.h"
 

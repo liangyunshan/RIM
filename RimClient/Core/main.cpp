@@ -13,7 +13,7 @@
 #include "Widgets/logindialog.h"
 #include "constants.h"
 #include "Util/rlog.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
 
@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
     }
 
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
-
 
     LoginDialog dialog;
     dialog.show();

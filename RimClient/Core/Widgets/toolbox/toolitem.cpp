@@ -12,7 +12,7 @@
 
 #include "head.h"
 #include "constants.h"
-#include "util/rsingleton.h"
+#include "rsingleton.h"
 #include "util/imagemanager.h"
 #include "Widgets/widget/riconlabel.h"
 

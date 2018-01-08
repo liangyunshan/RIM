@@ -19,7 +19,7 @@
 #include "actionmanager/actionmanager.h"
 #include "Util/imagemanager.h"
 #include "toolbox/toolitem.h"
-#include "Util/rsingleton.h"
+#include "rsingleton.h"
 #include "actionmanager/shortcutsettings.h"
 #include "editpersoninfowindow.h"
 
