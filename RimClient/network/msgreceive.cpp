@@ -28,10 +28,10 @@ bool MsgReceive::init(QString address, quint16 port)
 
     if(!socket->bind(QHostAddress(address),port))
     {
-        LOG_ERROR("receive socket bind error, address %s,port %d",address.toLocal8Bit().data(),port);
+        RLOG_ERROR("receive socket bind error, address %s,port %d",address.toLocal8Bit().data(),port);
         return false;
     }
-    LOG_INFO("receive bind success");
+    RLOG_INFO("receive bind success");
 
     return true;
 }
@@ -63,7 +63,7 @@ void MsgReceive::processData()
         }
         else
         {
-            LOG_ERROR("receive a pack not completely %d",RUtil::currentMSecsSinceEpoch());
+            RLOG_ERROR("receive a pack not completely %d",RUtil::currentMSecsSinceEpoch());
         }
     }
 }

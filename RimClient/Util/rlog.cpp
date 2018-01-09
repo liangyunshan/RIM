@@ -18,7 +18,7 @@ const char Suffix[] = ".log";
 
 bool RLog::isFileReady = false;
 bool RLog::isRecord2File = true;
-RLog::RLOG_LEVEL RLog::logLevel = RLog::INFO;           //默认是info级
+RLog::RLOG_LEVEL RLog::logLevel = RLog::RINFO;           //默认是info级
 
 QFile localFile;
 
@@ -91,7 +91,7 @@ void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc
         }
         else
         {
-//            qDebug()<<recordInfo;
+            qDebug()<<recordInfo;
         }
     }
 }
