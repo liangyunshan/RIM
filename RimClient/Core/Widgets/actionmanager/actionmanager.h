@@ -18,7 +18,7 @@
 #include <QMap>
 #include <QKeySequence>
 #include "id.h"
-#include "widgets/widget/rtoolbutton.h"
+#include "Widgets/widget/rtoolbutton.h"
 
 class QToolButton;
 class LoginDialog;

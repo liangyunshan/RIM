@@ -20,7 +20,7 @@
 #include "widget/riconlabel.h"
 #include "widget/rbutton.h"
 #include "rsingleton.h"
-#include "util/imagemanager.h"
+#include "Util/imagemanager.h"
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"
 #include "slidebar.h"
@@ -436,6 +436,7 @@ void AbstractChatWidget::switchWindowSize()
 {
     MQ_D(AbstractChatWidget);
 
+#ifdef Q_OS_WIN
     WINDOWPLACEMENT wp;
     wp.length = sizeof( WINDOWPLACEMENT );
 
@@ -443,14 +444,14 @@ void AbstractChatWidget::switchWindowSize()
     GetWindowPlacement( hd, &wp );
     if ( wp.showCmd == SW_MAXIMIZE )
     {
-      ShowWindow( hd, SW_RESTORE );
+        ShowWindow( hd, SW_RESTORE );
     }
     else
     {
         showMaximized();
 //      ShowWindow(hd, SW_MAXIMIZE );
     }
-
+#endif
     d->isMaxSize = !d->isMaxSize;
 
     setShadowWindow(!isMaximized());

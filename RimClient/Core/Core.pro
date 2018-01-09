@@ -32,6 +32,12 @@ win32-g++{
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
 }
 
+unix{
+    LIBS+= -L../Bin -lUtil
+    LIBS+= -L../Bin -lnetwork
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+}
+
 SOURCES += \
     Widgets/abstractchatwidget.cpp \
     Widgets/addfriend.cpp \

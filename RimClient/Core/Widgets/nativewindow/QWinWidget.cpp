@@ -2,7 +2,7 @@
 #undef UNICODE
 #endif
 
-#include "qwinwidget.h"
+#include "QWinWidget.h"
 
 #ifdef Q_CC_MSVC
 

@@ -4,7 +4,7 @@ CONFIG += ordered
 
 SUBDIRS += \
     Util \
-    Network\
+    network \
     Core
 
 win32-g++{
