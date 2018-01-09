@@ -18,11 +18,6 @@ DESTDIR = ../Bin
 
 DEFINES += UTIL_LIBRARY
 
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
-
 win32-g++{
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
 }
