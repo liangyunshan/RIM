@@ -20,14 +20,20 @@ public:
     TcpSocket();
 
     bool createSocket();
+    void closeSocket();
     bool bind(const char * ip,unsigned short port);
     bool listen();
-    void closeSocket();
     TcpSocket accept();
+
     unsigned short port(){return socketPort;}
 
     int recv(char * buff,int length);
     int send(const char * buff,const int length);
+
+    bool connect(const char * remoteIp,const unsigned short remotePort,int timeouts = 1000);
+
+    bool setBlock(bool flag);
+    bool isBock(){return blockAble;}
 
     bool isValid(){return socketValid;}
 
@@ -36,6 +42,7 @@ private:
     unsigned short socketPort;
 
     bool socketValid;
+    bool blockAble;
 
     int tcpSocket;
 };

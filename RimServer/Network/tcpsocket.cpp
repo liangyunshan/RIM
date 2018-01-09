@@ -8,7 +8,12 @@
 #include <Windows.h>
 #pragma  comment(lib,"ws2_32.lib")
 #elif defined(Q_OS_UNIX)
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#define closesocket close
 #endif
 
 TcpSocket::TcpSocket()
@@ -16,6 +21,7 @@ TcpSocket::TcpSocket()
     tcpSocket = 0;
     socketPort = 0;
     socketValid = false;
+    blockAble = false;
     memset(socketIp,0,sizeof(socketIp));
 }
 
@@ -36,7 +42,7 @@ bool TcpSocket::createSocket()
 #endif
 
     tcpSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-    if(tcpSocket == INVALID_SOCKET)
+    if(tcpSocket < 0)
     {
         RLOG_ERROR("Create socket failed!");
         return false;
@@ -116,10 +122,10 @@ TcpSocket TcpSocket::accept()
 
     while(true)
     {
-        SOCKET clientSocket = ::accept(tcpSocket,(sockaddr*)&clientAddr,&len);
-        if(clientSocket == INVALID_SOCKET)
+        int clientSocket = ::accept(tcpSocket,(sockaddr*)&clientAddr,(socklen_t*)&len);
+        if(clientSocket < 0)
         {
-            RLOG_ERROR("Accept failed %s",GetLastError());
+            RLOG_ERROR("Accept failed %s",strerror(errno));
             break;
         }
 
@@ -165,4 +171,74 @@ int TcpSocket::send(const char *buff, const int length)
         sendLen += ret;
     }
     return sendLen;
+}
+
+bool TcpSocket::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
+{
+    if(!isValid())
+    {
+        return -1;
+    }
+
+    sockaddr_in remoteAddr;
+    remoteAddr.sin_family = AF_INET;
+    remoteAddr.sin_port = htons(remotePort);
+    remoteAddr.sin_addr.s_addr = inet_addr(remoteIp);
+
+    setBlock(false);
+
+    if(::connect(tcpSocket,(sockaddr*)&remoteAddr,sizeof(remoteAddr)) != 0)
+    {
+        fd_set set;
+        FD_ZERO(&set);
+        FD_SET(tcpSocket,&set);
+        timeval tm;
+        tm.tv_sec = 0;
+        tm.tv_usec = timeouts*1000;
+        if(select(tcpSocket+1,0,&set,0,&tm) <= 0)
+        {
+            RLOG_ERROR("Connect timeout or error [%s:%d] %s ",remoteIp,remotePort,strerror(errno));
+            return false;
+        }
+    }
+
+    setBlock(true);
+    RLOG_INFO("connect %s:%d success!\n",remoteIp,remotePort);
+    return true;
+}
+
+bool TcpSocket::setBlock(bool flag)
+{
+    if(!isValid())
+    {
+        return false;
+    }
+#if defined(Q_OS_WIN)
+    unsigned long ul = 0;
+    if(!flag)
+    {
+        ul = 1;
+    }
+    ioctlsocket(sock,FIONBIO,&ul);
+#else defined()
+    int flags = fcntl(tcpSocket,F_GETFL,0);
+    if(flags<0)
+    {
+        return false;
+    }
+
+    if(flag)
+    {
+        flags = flags&~O_NONBLOCK;
+    }
+    else
+    {
+        flags = flags|O_NONBLOCK;
+    }
+    if(fcntl(tcpSocket,F_SETFL,flags)!=0)
+    {
+        return false;
+    }
+#endif
+    return true;
 }

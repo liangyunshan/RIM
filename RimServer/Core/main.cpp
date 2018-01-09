@@ -17,6 +17,8 @@ int main(int argc, char *argv[])
 
     QString configFullPath = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath);
 
+    qDebug()<<configFullPath;
+
     QSettings * settings = new QSettings(configFullPath+"/config.ini",QSettings::IniFormat);
     RUtil::setGlobalSettings(settings);
 
@@ -28,7 +30,7 @@ int main(int argc, char *argv[])
     TcpSocket socket;
     if(socket.createSocket())
     {
-        socket.bind("127.0.0.1",8023);
+        socket.bind("192.168.0.147",8023);
         socket.listen();
         socket.accept();
     }

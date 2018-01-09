@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Core
 TEMPLATE = app
 
-DESTDIR = ..\Bin
+DESTDIR = ../Bin
 
 SOURCES += main.cpp\
         widget.cpp \
@@ -31,6 +31,10 @@ win32-msvc2013{
 win32-g++{
     LIBS+= -LE:/Git/build-RimClient-Qt570vs64-Debug/Bin/ -lUtil
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+}
+
+unix{
+    LIBS+= -L../Bin/ -lNetwork -lUtil
 }
 
 INCLUDEPATH += $$PWD/../
