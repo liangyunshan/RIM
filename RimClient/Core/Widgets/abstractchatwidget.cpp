@@ -11,6 +11,13 @@
 #include <QAction>
 #include <QTimer>
 #include <QKeySequence>
+#include <QDateTime>
+
+//shangchao
+#include <QFontDialog>
+#include <QColorDialog>
+#include <QRgb>
+//
 
 #include "head.h"
 #include "datastruct.h"
@@ -108,10 +115,10 @@ void AbstractChatWidgetPrivate::initWidget()
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
-    userInfo_NameLabel->setText(QStringLiteral("韩天才"));
+    userInfo_NameLabel->setText(QStringLiteral("我是尚超"));
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
-    q_ptr->setWindowTitle(QStringLiteral("韩天才"));
+    q_ptr->setWindowTitle(QStringLiteral("尚超"));
     q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
@@ -165,6 +172,7 @@ void AbstractChatWidgetPrivate::initWidget()
     tmpLayout->setSpacing(0);
 
     chatArea = new ComplexTextEdit(leftWidget);
+    chatArea->setReadOnly(true);
 
     slideBar = new SlideBar(contentWidget);
     slideBar->setFixedWidth(10);
@@ -190,6 +198,12 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * fontButt = new RToolButton();
     fontButt->setObjectName(Constant::Tool_Chat_Font);
     fontButt->setToolTip(QObject::tr("Font"));
+
+    //shangchao
+    RToolButton * fontColorButt = new RToolButton();
+    fontColorButt->setObjectName(Constant::Tool_Chat_FontColor);
+    fontColorButt->setToolTip(QObject::tr("FontColor"));
+    //
 
     RToolButton * faceButt = new RToolButton();
     faceButt->setObjectName(Constant::Tool_Chat_Face);
@@ -230,6 +244,7 @@ void AbstractChatWidgetPrivate::initWidget()
     recordButt->setText(QObject::tr("Record data"));
 
     chatToolBar->appendToolButton(fontButt);
+    chatToolBar->appendToolButton(fontColorButt);
     chatToolBar->appendToolButton(faceButt);
     chatToolBar->appendToolButton(shakeButt);
     chatToolBar->appendToolButton(imageButt);
@@ -241,7 +256,14 @@ void AbstractChatWidgetPrivate::initWidget()
     recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
     QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
 
+    //ShangChao
+    QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
+    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
+    //
+
+    /**********聊天内容输入框***************/
     chatInputArea = new SimpleTextEdit(chatInputContainter);
+    chatInputArea->setFocus();
 
     /**********底部按钮区***************/
     buttonWidget = new QWidget(chatInputContainter);
@@ -254,11 +276,13 @@ void AbstractChatWidgetPrivate::initWidget()
     closeButton->setObjectName(Constant::Button_Chat_Close_Window);
     closeButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Close_Window,QKeySequence("Alt+C")));
     closeButton->setText(QObject::tr("Close window"));
+    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SLOT(close()));
 
     RButton * sendMessButton = new RButton(buttonWidget);
     sendMessButton->setObjectName(Constant::Button_Chat_Send);
     sendMessButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Send,QKeySequence(Qt::Key_Enter)));
     sendMessButton->setText(QObject::tr("Send message"));
+    QObject::connect(sendMessButton,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ButtClick_SendMsg(bool)));
 
     RToolButton * extralButton = new RToolButton();
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -337,6 +361,7 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
+    d_ptr->chatInputArea->setFocus();
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
@@ -403,9 +428,54 @@ void AbstractChatWidget::setSideVisible(bool flag)
     repolish(d->rightWidget);
 }
 
+//出现字体设置界面
+void AbstractChatWidget::slot_SetChatEditFont(bool flag)
+{
+    Q_UNUSED(flag)
+    bool ok;
+    QFont font = QFontDialog::getFont(
+                  &ok, QFont("Helvetica [Cronyx]", 10), this);
+    if (ok) {
+        qDebug()<<__FILE__<<__LINE__<<"\n"
+               <<"font:"<<font
+              <<"\n";
+        d_ptr->chatInputArea->setFont(font);
+    } else {
+
+    }
+}
+
+//出现字体颜色设置界面
+void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
+{
+    Q_UNUSED(flag)
+
+    QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
+    d_ptr->chatInputArea->setTextColor(color);
+}
+
+//点击发送按钮，发送聊天编辑区域的信息
+void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
+{
+    Q_UNUSED(flag)
+
+    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+    {
+        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
+        return ;
+    }
+    TextUnit::ChatInfoUnit unit;
+    d_ptr->chatInputArea->transTextToUnit(unit);
+    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(d_ptr->chatInputArea->WriteJSONFile(unit));
+
+    d_ptr->chatArea->insertMeChatText(readJson);
+    d_ptr->chatInputArea->clear();
+}
+
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(AbstractChatWidget);
+
     if(watched == d->userInfoWidget)
     {
         if(event->type() == QEvent::MouseButtonDblClick)
@@ -422,6 +492,7 @@ bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
             return true;
         }
     }
+
 
     return Widget::eventFilter(watched,event);
 }

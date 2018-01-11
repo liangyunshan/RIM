@@ -31,6 +31,11 @@ public:
 private slots:
     void resizeOnce();
     void setSideVisible(bool flag);
+    //shangchao
+    void slot_SetChatEditFont(bool flag);
+    void slot_SetChatEditFontColor(bool flag);
+    void slot_ButtClick_SendMsg(bool flag);
+    //
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
