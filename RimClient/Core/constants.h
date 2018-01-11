@@ -81,6 +81,7 @@ const char Tool_Chat_Min[] = "Tool_Chat_Min";
 const char Tool_Chat_Close[] = "Tool_Chat_Close";
 
 const char Tool_Chat_Font[] = "Tool_Chat_Font";                                                 //字体
+const char Tool_Chat_FontColor[] = "Tool_Chat_FontColor";                                       //字体颜色
 const char Tool_Chat_Face[] = "Tool_Chat_Face";                                                 //表情
 const char Tool_Chat_Shake[] = "Tool_Chat_Shake";                                               //窗口抖动
 const char Tool_Chat_Image[] = "Tool_Chat_Image";                                               //图像

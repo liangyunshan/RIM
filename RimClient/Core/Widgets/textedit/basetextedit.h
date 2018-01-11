@@ -32,37 +32,76 @@ namespace TextUnit {
         QString head;
     };//用户描述
 
-    struct InfoUnit{
+    const char ChatFormatType_Text[] = "Text";
+    const char ChatFormatType_Emoj[] = "Emoj";
+    const char ChatFormatType_Image[] = "Image";
+
+    struct UserChatFont{
+        QString fontName;
+        qint32  fontSize;
+        bool    fontIsBold;
+        bool    fontIsItalic;
+        bool    fontIsUnderline;
+        qint64  fontColorRGBA;
+
+        UserChatFont (){
+            fontName = "Unknown";
+            fontSize = 0;
+            fontIsBold = false;
+            fontIsItalic = false;
+            fontIsUnderline = false;
+            fontColorRGBA = 0x00000000;
+        }
+    };//聊天内容字体描述
+
+    struct ChatInfoUnit{
         UserInfo user;
         QString time;
+        UserChatFont font;
         QString contents;
 
-        InfoUnit (){
+        ChatInfoUnit (){
             user.name = "Unknown";
             user.head = "Unknown";
             time = "";
             contents = "";
         }
-
     };//一条聊天记录描述
+
+    enum ParseType{
+        Parase_Send,    //解析本地的控件的html
+        Parase_Recv     //解析网络端发送来的html
+    };//聊天数据包解析类型,替换图形为字符串数据
 
 }
 
-
+class QTextStream;
+class QXmlStreamReader;
 class BaseTextEdit : public QTextEdit
 {
 public:
     BaseTextEdit(QWidget * parent = 0 );
 
-    TextUnit::InfoUnit ReadJSONFile(QByteArray byteArray);
-    QByteArray WriteJSONFile(TextUnit::InfoUnit unit);
+    TextUnit::ChatInfoUnit ReadJSONFile(QByteArray byteArray);
+    QByteArray WriteJSONFile(TextUnit::ChatInfoUnit unit);
+    int transTextToUnit(TextUnit::ChatInfoUnit &unit);
+    int transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJsonDocument &doc);
 
-    void imgPathToHtml(QString &path);
-    QString toChatText();
-    void insertChatHtml(const QString &text);
+    QString imgStringTofilePath(QString &img);
+    QString filePathToImgString(QString &path);
+    QString toChatFormaText();
+    void insertChatFormatText(const QString &text);
+
+    int parseHtml(QString &out, const QString &html, TextUnit::ParseType type);
 
 protected:
     bool eventFilter(QObject *, QEvent *);
+
+private:
+    void readHtmlindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
+    void readBodyindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
+    void readPindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
+    void skipUnknownElement(QXmlStreamReader *reader);
 
 };
 

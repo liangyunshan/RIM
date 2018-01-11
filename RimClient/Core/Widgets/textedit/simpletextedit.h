@@ -19,6 +19,14 @@ class SimpleTextEdit : public BaseTextEdit
 public:
     SimpleTextEdit(QWidget * parent = 0 );
     ~SimpleTextEdit();
+
+    void clear();
+
+private slots:
+    void slot_TextChanged();
+
+private:
+    QColor m_Fontcolor;
 };
 
 #endif // SIMPLETEXTEDIT_H

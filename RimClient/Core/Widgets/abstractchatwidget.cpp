@@ -13,8 +13,10 @@
 #include <QKeySequence>
 #include <QDateTime>
 
-//
+//shangchao
 #include <QFontDialog>
+#include <QColorDialog>
+#include <QRgb>
 //
 
 #include "head.h"
@@ -197,6 +199,12 @@ void AbstractChatWidgetPrivate::initWidget()
     fontButt->setObjectName(Constant::Tool_Chat_Font);
     fontButt->setToolTip(QObject::tr("Font"));
 
+    //shangchao
+    RToolButton * fontColorButt = new RToolButton();
+    fontColorButt->setObjectName(Constant::Tool_Chat_FontColor);
+    fontColorButt->setToolTip(QObject::tr("FontColor"));
+    //
+
     RToolButton * faceButt = new RToolButton();
     faceButt->setObjectName(Constant::Tool_Chat_Face);
     faceButt->setToolTip(QObject::tr("Emoji"));
@@ -236,6 +244,7 @@ void AbstractChatWidgetPrivate::initWidget()
     recordButt->setText(QObject::tr("Record data"));
 
     chatToolBar->appendToolButton(fontButt);
+    chatToolBar->appendToolButton(fontColorButt);
     chatToolBar->appendToolButton(faceButt);
     chatToolBar->appendToolButton(shakeButt);
     chatToolBar->appendToolButton(imageButt);
@@ -249,6 +258,7 @@ void AbstractChatWidgetPrivate::initWidget()
 
     //ShangChao
     QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
+    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
     //
 
     /**********聊天内容输入框***************/
@@ -435,26 +445,28 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
     }
 }
 
+//出现字体颜色设置界面
+void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
+{
+    Q_UNUSED(flag)
+
+    QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
+    d_ptr->chatInputArea->setTextColor(color);
+}
+
 //点击发送按钮，发送聊天编辑区域的信息
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
-
-    QString html = d_ptr->chatInputArea->toHtml();
-
 
     if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
     {
         d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
         return ;
     }
-    TextUnit::InfoUnit unit;
-    unit.user.name = "Me";  //可以根据当前用户
-    unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
-    unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
-    unit.contents = html;
-
-    TextUnit::InfoUnit  readJson = d_ptr->chatArea->ReadJSONFile(d_ptr->chatArea->WriteJSONFile(unit));
+    TextUnit::ChatInfoUnit unit;
+    d_ptr->chatInputArea->transTextToUnit(unit);
+    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(d_ptr->chatInputArea->WriteJSONFile(unit));
 
     d_ptr->chatArea->insertMeChatText(readJson);
     d_ptr->chatInputArea->clear();

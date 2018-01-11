@@ -22,8 +22,8 @@ public:
     void setChatFormat(const QTextCharFormat &format, TextUnit::BaseTextEditType type);
     void setChatFont(const QFont &font, TextUnit::BaseTextEditType type);
 
-    void insertFriendChatText(const TextUnit::InfoUnit record);
-    void insertMeChatText(const TextUnit::InfoUnit record);
+    void insertFriendChatText(const TextUnit::ChatInfoUnit record);
+    void insertMeChatText(const TextUnit::ChatInfoUnit record);
     void insertTipChatText(const QString tip);
 
 protected:

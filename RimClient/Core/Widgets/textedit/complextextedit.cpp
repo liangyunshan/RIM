@@ -116,34 +116,37 @@ void ComplexTextEdit::setChatFont(const QFont &font, TextUnit::BaseTextEditType 
 }
 
 //添加对方的聊天内容
-void ComplexTextEdit::insertFriendChatText(const TextUnit::InfoUnit record)
+void ComplexTextEdit::insertFriendChatText(const TextUnit::ChatInfoUnit record)
 {
-    this->moveCursor(QTextCursor::End);
-
+    //描述聊天信息的用户标识和时间标识等，目前采用固定的格式
+    //头像+用户名+聊天信息时间戳
     QFontMetrics fontMetrics(m_Type_UserHead_Friend_Format.font());
     int fontheight = fontMetrics.height();
     QImage image(record.user.head);
     image = image.scaled(fontheight,fontheight);
-    this->textCursor().insertImage(image);
 
-    QString me = QObject::tr(" %1 %2").arg(record.user.name).arg(record.time);
+    QString me = QObject::tr("%1 %2").arg(record.user.name).arg(record.time);
     this->textCursor().insertText(me ,m_Type_UserHead_Friend_Format);
+    //
 
-    QTextFrameFormat frameFormat;                   //创建框架格式
-    frameFormat.setBackground(Qt::white);          //设置背景色
-    frameFormat.setMargin(9);                       //设置边距
-    frameFormat.setPadding(9);                      //设置填充
-    frameFormat.setBorder(1);                       //设置边界宽度
-    this->textCursor().insertFrame(frameFormat);    //在光标处插入框架
-
-    this->insertHtml(record.contents);
+    //显示聊天信息
+    this->moveCursor(QTextCursor::End);
+    QTextFrameFormat frameFormat_chatinfo;                  //创建框架格式
+    frameFormat_chatinfo.setBackground(Qt::white);          //设置背景色
+    frameFormat_chatinfo.setMargin(3);                      //设置边距
+    frameFormat_chatinfo.setLeftMargin(15);                 //设置左边距
+    frameFormat_chatinfo.setBottomMargin(9);                //设置边距
+    frameFormat_chatinfo.setPadding(3);                     //设置填充
+    frameFormat_chatinfo.setBorder(0);                      //设置边界宽度
+    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
+    this->insertChatFormatText(record.contents);
+    //
 
     this->moveCursor(QTextCursor::End);
-    this->insertPlainText("\n");
 }
 
 //添加自己发送的聊天信息
-void ComplexTextEdit::insertMeChatText(const TextUnit::InfoUnit record)
+void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
 {
     this->moveCursor(QTextCursor::End);
 
@@ -153,7 +156,6 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::InfoUnit record)
     int fontheight = fontMetrics.height();
     QImage image(record.user.head);
     image = image.scaled(fontheight,fontheight);
-//    this->textCursor().insertImage(image);
 
     QString me = QObject::tr("%1 %2").arg(record.user.name).arg(record.time);
     this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
@@ -161,33 +163,18 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::InfoUnit record)
 
     //显示聊天信息
     this->moveCursor(QTextCursor::End);
-    QTextFrameFormat frameFormat_chatinfo;                   //创建框架格式
+    QTextFrameFormat frameFormat_chatinfo;                  //创建框架格式
     frameFormat_chatinfo.setBackground(Qt::white);          //设置背景色
-    frameFormat_chatinfo.setMargin(3);                       //设置边距
-    frameFormat_chatinfo.setLeftMargin(15);                      //设置左边距
-    frameFormat_chatinfo.setBottomMargin(9);                       //设置边距
-    frameFormat_chatinfo.setPadding(3);                      //设置填充
-    frameFormat_chatinfo.setBorder(0);                       //设置边界宽度
-    this->textCursor().insertFrame(frameFormat_chatinfo);    //在光标处插入框架
-    this->insertChatHtml(record.contents);
+    frameFormat_chatinfo.setMargin(3);                      //设置边距
+    frameFormat_chatinfo.setLeftMargin(15);                 //设置左边距
+    frameFormat_chatinfo.setBottomMargin(9);                //设置边距
+    frameFormat_chatinfo.setPadding(3);                     //设置填充
+    frameFormat_chatinfo.setBorder(0);                      //设置边界宽度
+    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
+    this->insertChatFormatText(record.contents);
     //
 
-    //添加测试，显示HTML源码
     this->moveCursor(QTextCursor::End);
-    this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
-    this->moveCursor(QTextCursor::End);
-    this->textCursor().insertFrame(frameFormat_chatinfo);    //在光标处插入框架
-    this->insertPlainText(record.contents);
-    //
-
-
-    //使信息显示使用QTextBlock
-
-    //
-    this->moveCursor(QTextCursor::End);
-
-    showTextFrame();
-
 }
 
 //添加标注提示信息
@@ -221,9 +208,9 @@ void ComplexTextEdit::showTextFrame()
         QTextFrame * childFrame = it.currentFrame();    //获取当前框架的指针
         QTextBlock childBlock = it.currentBlock();      //获取当前文本块
         if (childFrame)
-            qDebug() << "frame";
+        {}
         else if (childBlock.isValid())
-            qDebug() << "block:" << childBlock.text();
+        {}
     }
 }
 
