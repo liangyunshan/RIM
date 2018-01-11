@@ -246,7 +246,7 @@ QString BaseTextEdit::filePathToImgString(QString &path)
 //out:解析后的组装html,html:源html数据,type:解析类型
 int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseType type)
 {
-    if(type!=TextUnit::Parase_Send || type!=TextUnit::Parase_Recv)
+    if(type!=TextUnit::Parase_Send && type!=TextUnit::Parase_Recv)
     {
         return -1;
     }
