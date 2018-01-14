@@ -11,30 +11,32 @@
 #ifndef MSGRECEIVE_H
 #define MSGRECEIVE_H
 
-#include <QObject>
+#include <QThread>
 #include "network_global.h"
 
-class QUdpSocket;
+#include "tcpsocket.h"
 
-class NETWORKSHARED_EXPORT MsgReceive : public QObject
+class NETWORKSHARED_EXPORT MsgReceive : public QThread
 {
     Q_OBJECT
 public:
-    explicit MsgReceive(QObject *parent = 0);
+    explicit MsgReceive(TcpSocket tcpSocket,QObject *parent = 0);
     ~MsgReceive();
 
-    bool init(QString address,quint16 port);
+    void startMe();
+    void setRunning(bool flag);
 
     void stop();
 
-private slots:
-    void processData();
+protected:
+    void run();
 
 private:
-    QUdpSocket * socket;
-
     QString errorString;
 
+    bool runningFlag;
+
+    TcpSocket tcpSocket;
 };
 
 #endif // MSGRECEIVE_H

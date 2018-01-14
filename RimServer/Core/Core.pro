@@ -5,36 +5,65 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Core
+TARGET = RimServer
 TEMPLATE = app
 
-DESTDIR = ../Bin
+RC_ICONS += $${TARGET}.ico
+
+CONFIG(debug, debug|release) {
+#  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
+
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+} else {
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+}
 
 SOURCES += main.cpp\
         widget.cpp \
-    rsingleton.cpp
+    rsingleton.cpp \
+    sql/sqlprocess.cpp \
+    sql/databasemanager.cpp \
+    sql/database.cpp \
+    sql/datatable.cpp \
+    thread/recvtextprocessthread.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
-    constants.h
+    constants.h \
+    sql/sqlprocess.h \
+    sql/databasemanager.h \
+    sql/database.h \
+    sql/datatable.h \
+    thread/recvtextprocessthread.h
 
 FORMS    += widget.ui
 
 win32-msvc2013{
-    LIBS += E:/Git/build-RimClient-Qt570vs64-Debug/Bin/Util.lib
-    LIBS+= ../Bin/network.lib
+    LIBS += ../Lib/Util.lib
+    LIBS+= ../Lib/network.lib
 }
 
 win32-g++{
-    LIBS+= -LE:/Git/build-RimClient-Qt570vs64-Debug/Bin/ -lUtil
+    LIBS+= -L../Lib/ -lUtil
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
 }
 
 unix{
-    LIBS+= -L../Bin/ -lNetwork -lUtil
+    LIBS+= -L../Lib/ -lNetwork -lUtil
 }
 
 INCLUDEPATH += $$PWD/../

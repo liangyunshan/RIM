@@ -13,15 +13,32 @@ TEMPLATE = lib
 
 DEFINES += NETWORK_LIBRARY
 
-DESTDIR += ../Bin
+CONFIG(debug, debug|release) {
+#  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
+
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+} else {
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+}
+
 INCLUDEPATH += $$PWD/../
 
 win32-msvc2013{
-    LIBS+= ../Bin/Util.lib
+    LIBS+= ../Lib/Util.lib
 }
 
 win32-g++{
-    LIBS+= -L../Bin -lUtil
+    LIBS+= -L../Lib -lUtil
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
 }
 
@@ -33,12 +50,14 @@ unix {
 SOURCES += \
     msgreceive.cpp \
     netglobal.cpp \
-    socket.cpp
+    tcpsocket.cpp \
+    msgsender.cpp
 
 HEADERS +=\
         network_global.h \
     msg.h \
     msgreceive.h \
     netglobal.h \
-    socket.h
+    tcpsocket.h \
+    msgsender.h
 

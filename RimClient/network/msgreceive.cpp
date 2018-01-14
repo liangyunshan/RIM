@@ -1,16 +1,21 @@
 ﻿#include "msgreceive.h"
 
 #include <QUdpSocket>
+#include <QDebug>
 
 #include "Util/rlog.h"
 #include "Util/rutil.h"
 
 #include "netglobal.h"
 
-MsgReceive::MsgReceive(QObject *parent) : QObject(parent),
-    socket(NULL)
-{
+#define MSG_RECV_BUFF 1024
 
+#include <WinSock2.h>
+
+MsgReceive::MsgReceive(TcpSocket tcpSocket,QObject *parent) :
+    tcpSocket(tcpSocket),QThread(parent)
+{
+    runningFlag = false;
 }
 
 MsgReceive::~MsgReceive()
@@ -18,52 +23,49 @@ MsgReceive::~MsgReceive()
     stop();
 }
 
-bool MsgReceive::init(QString address, quint16 port)
+void MsgReceive::startMe()
 {
-    if(!socket)
+    if(!isRunning())
     {
-        socket = new QUdpSocket();
-        connect(socket,SIGNAL(readyRead()),this,SLOT(processData()));
+        start();
     }
-
-    if(!socket->bind(QHostAddress(address),port))
-    {
-        RLOG_ERROR("receive socket bind error, address %s,port %d",address.toLocal8Bit().data(),port);
-        return false;
-    }
-    RLOG_INFO("receive bind success");
-
-    return true;
 }
 
 void MsgReceive::stop()
 {
-    if(socket)
-    {
-        socket->close();
-    }
+    runningFlag = false;
 }
 
-void MsgReceive::processData()
+void MsgReceive::run()
 {
-    while(socket->hasPendingDatagrams())
+    runningFlag = true;
+    RLOG_INFO("Start Receive++++++++++++++++++++++");
+    while(runningFlag)
     {
-        QByteArray datagram;
-        datagram.resize(socket->pendingDatagramSize());
-        QHostAddress sender;
-        quint16 senderPort;
-        qint64 recvlen = socket->readDatagram(datagram.data(),datagram.size(),&sender,&senderPort);
-        if(recvlen == datagram.size())
+        char buff[MSG_RECV_BUFF] = {0};
+        int ret = tcpSocket.recv(buff,MSG_RECV_BUFF);
+        if(ret > 0)
         {
+            QByteArray data;
+            data.setRawData(buff,ret);
+
             G_RecvMutex.lock();
-            G_RecvButts.enqueue(datagram);
+            G_RecvButts.enqueue(data);
             G_RecvMutex.unlock();
+
+            static int index = 0;
+
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<buff<<ret<<index++;
 
             G_RecvCondition.wakeOne();
         }
         else
         {
-            RLOG_ERROR("receive a pack not completely %d",RUtil::currentMSecsSinceEpoch());
+            RLOG_ERROR("receive a pack not completely %d",GetLastError());
+            tcpSocket.closeSocket();
+            break;
         }
     }
+
+    RLOG_INFO("Stop Receive++++++++++++++++++++++");
 }

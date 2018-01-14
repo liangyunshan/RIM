@@ -39,7 +39,6 @@ signals:
 
 protected:
     TaskState taskState;
-
 };
 
 #endif // RTASK_H
