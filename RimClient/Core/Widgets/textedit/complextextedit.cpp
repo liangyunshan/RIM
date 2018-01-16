@@ -174,6 +174,13 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
     this->insertChatFormatText(record.contents);
     //
 
+    //
+//    this->moveCursor(QTextCursor::End);
+//    this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
+//    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
+//    this->insertPlainText(record.contents);
+    //
+
     this->moveCursor(QTextCursor::End);
 }
 
