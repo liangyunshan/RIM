@@ -22,6 +22,7 @@ class User
 {
 public:
     User();
+    const QString table;
     const QString id;                       //UUID
     const QString account;                  //账号
     const QString name;                     //用户名
@@ -82,5 +83,99 @@ public:
 };
 
 }
+
+/*!
+
+Navicat MySQL Data Transfer
+
+Source Server         : localhost_3306
+Source Server Version : 50721
+Source Host           : localhost:3306
+Source Database       : rimserver
+
+Target Server Type    : MYSQL
+Target Server Version : 50721
+File Encoding         : 65001
+
+Date: 2018-01-16 15:34:57
+SET FOREIGN_KEY_CHECKS=0;
+
+-- ----------------------------
+-- Table structure for `chatroom`
+-- ----------------------------
+DROP TABLE IF EXISTS `chatroom`;
+CREATE TABLE `chatroom` (
+  `ID` varchar(50) NOT NULL,
+  `NAME` varchar(255) DEFAULT NULL,
+  `DESC` varchar(255) DEFAULT NULL,
+  `LABEL` varchar(255) DEFAULT NULL,
+  `UID` varchar(50) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `UID` (`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of chatroom
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `user`
+-- ----------------------------
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `ID` varchar(50) NOT NULL,
+  `ACCOUNT` int(11) NOT NULL,
+  `NAME` varchar(50) NOT NULL,
+  `PASSWORD` varchar(255) NOT NULL,
+  `NICKNAME` varchar(255) DEFAULT NULL,
+  `SIGNNAME` varchar(255) DEFAULT NULL,
+  `GENDER` tinyint(4) DEFAULT NULL,
+  `BIRTHDAY` date DEFAULT NULL,
+  `PHONE` varchar(29) DEFAULT NULL,
+  `ADDRESS` varchar(255) DEFAULT NULL,
+  `EMAIL` varchar(50) DEFAULT NULL,
+  `DESC` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `user_chatroom`
+-- ----------------------------
+DROP TABLE IF EXISTS `user_chatroom`;
+CREATE TABLE `user_chatroom` (
+  `ID` varchar(50) NOT NULL,
+  `CID` varchar(50) NOT NULL,
+  `UID` varchar(50) NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user_chatroom
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `user_group`
+-- ----------------------------
+DROP TABLE IF EXISTS `user_group`;
+CREATE TABLE `user_group` (
+  `ID` varchar(50) NOT NULL,
+  `GID` varchar(50) NOT NULL,
+  `UID` varchar(50) NOT NULL,
+  `REMARKS` varchar(255) DEFAULT NULL,
+  `VISIBLE` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `GID` (`GID`),
+  KEY `UID` (`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user_group
+-- ----------------------------
+
+*/
 
 #endif // TABLE_H

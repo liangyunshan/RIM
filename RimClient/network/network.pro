@@ -50,14 +50,13 @@ unix {
 SOURCES += \
     msgreceive.cpp \
     netglobal.cpp \
-    tcpsocket.cpp \
-    msgsender.cpp
+    msgsender.cpp \
+    rsocket.cpp
 
 HEADERS +=\
         network_global.h \
-    msg.h \
     msgreceive.h \
     netglobal.h \
-    tcpsocket.h \
-    msgsender.h
+    msgsender.h \
+    rsocket.h
 

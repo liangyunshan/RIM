@@ -13,15 +13,21 @@
 
 #include <QThread>
 
+#include "sql/database.h"
+
 class RecvTextProcessThread : public QThread
 {
     Q_OBJECT
 public:
     explicit RecvTextProcessThread();
 
+    void setDatabase(Database * db);
+
 protected:
     void run();
 
+private:
+    Database * database;
 };
 
 #endif // RECVTEXTPROCESSTHREAD_H

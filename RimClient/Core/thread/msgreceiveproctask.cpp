@@ -1,9 +1,9 @@
 ﻿#include "msgreceiveproctask.h"
 
+#include <QJsonDocument>
+
 #include "network/netglobal.h"
 #include "head.h"
-
-#include <QJsonDocument>
 
 JContext::JContext() :
     magicNum(QLatin1String("magicNum")),
@@ -86,7 +86,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
             switch(root.value(jtext.messType).toInt())
             {
                 case MSG_CONTROL:
-                                    handleCommandMsg((Msg_Command)root.value(jtext.commandType).toInt(),root.value(jtext.content).toObject());
+                                    handleCommandMsg((MsgCommand)root.value(jtext.commandType).toInt(),root.value(jtext.content).toObject());
                                     break;
                 case MSG_TEXT:
                                 break;
@@ -107,7 +107,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
      * @param[in] obj 数据主体
      * @return 无
      */
-void MsgReceiveProcTask::handleCommandMsg(Msg_Command commandType, QJsonObject obj)
+void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject obj)
 {
     switch(commandType)
     {

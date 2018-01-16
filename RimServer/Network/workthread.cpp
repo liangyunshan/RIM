@@ -80,15 +80,15 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
 {
     ioData->getPakcet()[recvLen] = 0;
 
-    TestSocket = tcpClient->socket();
-
     G_RecvMutex.lock();
 
-    QByteArray array;
-    array.resize(recvLen);
-    memcpy(array.data(),ioData->getPakcet(),recvLen - 1);
+    SocketInData socketData;
+    socketData.sockId = ioData->getClient()->socket();
 
-    G_RecvButts.enqueue(array);
+    socketData.data.resize(recvLen);
+    memcpy(socketData.data.data(),ioData->getPakcet(),recvLen);
+
+    G_RecvButts.enqueue(socketData);
 
     G_RecvMutex.unlock();
 
@@ -96,29 +96,6 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
 
     DWORD dwRecv = 0;
     DWORD dwFlags = 0;
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<ioData->getClient()->socket();
-
-    IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,ioData->getClient());
-    memcpy(context->getPakcet(),ioData->getPakcet(),recvLen);
-
-    context->getWSABUF().len = recvLen;
-
-    DWORD sendFlags = 0;
-
-    if(WSASend(context->getClient()->socket(), &context->getWSABUF(), 1, NULL, sendFlags, &context->getOverLapped(), NULL) == SOCKET_ERROR)
-    {
-        int error = WSAGetLastError();
-
-        if(error != ERROR_IO_PENDING)
-        {
-
-        }
-    }
-    else
-    {
-
-    }
 
     int ret = WSARecv(tcpClient->socket(),&(ioData->getWSABUF()), 1, &dwRecv, &dwFlags,&(ioData->getOverLapped()), NULL);
 }
@@ -165,4 +142,4 @@ void WorkThread::handleClose(IocpContext *ioData)
     }
 }
 
-}   //namespace ServerNetwork
+}  //namespace ServerNetwork

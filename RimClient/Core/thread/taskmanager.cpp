@@ -1,4 +1,4 @@
-#include "taskmanager.h"
+﻿#include "taskmanager.h"
 
 #include <QWriteLocker>
 

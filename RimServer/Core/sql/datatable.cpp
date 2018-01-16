@@ -3,7 +3,7 @@
 namespace DataTable {
 
 User::User():
-    id("ID"),account("ACCOUNT"),name("NAME"),
+    table("user"),id("ID"),account("ACCOUNT"),name("NAME"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
     gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ID"),
     email("ADDRESS"),desc("EMAIL")

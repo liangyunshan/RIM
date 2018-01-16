@@ -6,7 +6,9 @@
 #include "netglobal.h"
 #include "Util/rlog.h"
 
-MsgSender::MsgSender(TcpSocket socket, QThread *parent):
+namespace ClientNetwork{
+
+MsgSender::MsgSender(RSocket socket, QThread *parent):
     socket(socket),QThread(parent)
 {
     runningFlag = false;
@@ -33,25 +35,24 @@ void MsgSender::run()
 {
     runningFlag = true;
 
-    char * test = new char[200];
+//    char * test = new char[200];
 
-    for(int i = 0; i<1000;i++)
-    {
-        for(int i=0;i<200;i++)
-        {
-            test[i] = 'a'+qrand()%10;
-        }
-        QByteArray array;
-        array.setRawData((char *)test,200);
-        G_SendBuff.enqueue(array);
-    }
+//    for(int i = 0; i<1000;i++)
+//    {
+//        for(int i=0;i<200;i++)
+//        {
+//            test[i] = 'a'+qrand()%10;
+//        }
+//        QByteArray array;
+//        array.setRawData((char *)test,200);
+//        G_SendBuff.enqueue(array);
+//    }
 
     RLOG_INFO("Start send++++++++++++++++++++++");
     while(runningFlag)
     {
         if(G_SendBuff.size() <= 0)
         {
-//            socket.closeSocket();
             G_SendMutex.lock();
             G_SendWaitCondition.wait(&G_SendMutex);
             G_SendMutex.unlock();
@@ -71,6 +72,7 @@ void MsgSender::handleDataSend(QByteArray &data)
     if(socket.isValid())
     {
        int len = socket.send(data.data(),data.length());
+       qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"**"<<data.data()<<"**";
        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"=============="<<len;
        if(len <= 0)
        {
@@ -79,3 +81,5 @@ void MsgSender::handleDataSend(QByteArray &data)
        }
     }
 }
+
+} //ClientNetwork

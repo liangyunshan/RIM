@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     任务管理
  *  @details   支持添加/插入任务、暂停任务等
  *  @file      taskmanager.h

@@ -11,7 +11,6 @@
 
 #include <windows.h>
 
-
 #include <windowsx.h>
 
 QMainPanel::QMainPanel( HWND hWnd ) : QWinWidget( hWnd )

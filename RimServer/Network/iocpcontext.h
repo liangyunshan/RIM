@@ -13,6 +13,7 @@
 
 #include "head.h"
 #include "iopacket.h"
+#include "network_global.h"
 
 #include "tcpclient.h"
 
@@ -25,7 +26,7 @@ enum IocpType{
     IOCP_SEND,
 };
 
-class IocpContext
+class NETWORKSHARED_EXPORT IocpContext
 {
 public:
     IocpContext();

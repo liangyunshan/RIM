@@ -101,7 +101,10 @@ SOURCES += \
     thread/rtask.cpp \
     thread/taskmanager.cpp \
     rsingleton.cpp \
-    user/userinfofile.cpp
+    user/userinfofile.cpp \
+    protocoldata.cpp \
+    Network/msgwrap.cpp \
+    Network/netconnector.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -153,7 +156,10 @@ HEADERS  += \
     thread/rtask.h \
     thread/taskmanager.h \
     rsingleton.h \
-    user/userinfofile.h
+    user/userinfofile.h \
+    protocoldata.h \
+    Network/msgwrap.h \
+    Network/netconnector.h
 
 DISTFILES += \
     Widgets/Widgets.pri

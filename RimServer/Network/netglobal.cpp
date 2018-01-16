@@ -1,8 +1,10 @@
 ﻿#include "netglobal.h"
 
-QQueue<QByteArray> G_RecvButts;
-
+QQueue<SocketInData> G_RecvButts;
 QMutex G_RecvMutex;
 QWaitCondition  G_RecvCondition;
 
-int TestSocket;
+QQueue<SocketOutData> G_SendButts;
+QMutex G_SendMutex;
+QWaitCondition  G_SendCondition;
+

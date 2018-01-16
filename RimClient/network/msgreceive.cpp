@@ -3,16 +3,17 @@
 #include <QUdpSocket>
 #include <QDebug>
 
+#include <WinSock2.h>
+
 #include "Util/rlog.h"
 #include "Util/rutil.h"
-
 #include "netglobal.h"
 
 #define MSG_RECV_BUFF 1024
 
-#include <WinSock2.h>
+namespace ClientNetwork{
 
-MsgReceive::MsgReceive(TcpSocket tcpSocket,QObject *parent) :
+MsgReceive::MsgReceive(RSocket tcpSocket, QObject *parent) :
     tcpSocket(tcpSocket),QThread(parent)
 {
     runningFlag = false;
@@ -69,3 +70,5 @@ void MsgReceive::run()
 
     RLOG_INFO("Stop Receive++++++++++++++++++++++");
 }
+
+} //namespace ClientNetwork;

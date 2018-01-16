@@ -12,6 +12,9 @@
 #include "rsingleton.h"
 #include "constants.h"
 #include "thread/recvtextprocessthread.h"
+#include "thread/sendtextprocessthread.h"
+
+#pragma  comment(lib,"ws2_32.lib")
 
 #include "Network/tcpserver.h"
 using namespace ServerNetwork;
@@ -45,14 +48,20 @@ int main(int argc, char *argv[])
         QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Log module initialization failure!"),QMessageBox::Yes,QMessageBox::Yes);
     }
 
-    DatabaseManager database;
-    database.setConnectInfo("localhost","rimserver","root","580231");
-    database.setDatabaseType("QMYSQL");
-    database.newDatabase();
+    DatabaseManager dbManager;
+    dbManager.setConnectInfo("localhost","rimserver","root","rengu123456");
+    dbManager.setDatabaseType("QMYSQL");
 
     for(int i = 0; i< 5;i++)
     {
         RecvTextProcessThread * thread = new RecvTextProcessThread;
+        thread->setDatabase(dbManager.newDatabase());
+        thread->start();
+    }
+
+    for(int i = 0; i< 5;i++)
+    {
+        SendTextProcessThread * thread = new SendTextProcessThread;
         thread->start();
     }
 

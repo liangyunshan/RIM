@@ -29,7 +29,6 @@ CONFIG(debug, debug|release) {
 }
 
 HEADERS += \
-    msg.h \
     netglobal.h \
     network_global.h \
     tcpserver.h \

@@ -4,17 +4,22 @@
 #include "Network/netutils.h"
 #include "Network/tcpclient.h"
 #include "Util/rlog.h"
+#include "dataparse.h"
+#include "rsingleton.h"
 
 #include <QDebug>
 
-#include <WinSock2.h>
-#pragma  comment(lib,"ws2_32.lib")
 
 using namespace ServerNetwork;
 
 RecvTextProcessThread::RecvTextProcessThread()
 {
 
+}
+
+void RecvTextProcessThread::setDatabase(Database *db)
+{
+    database = db;
 }
 
 void RecvTextProcessThread::run()
@@ -28,14 +33,14 @@ void RecvTextProcessThread::run()
             G_RecvMutex.unlock();
         }
 
-        QByteArray data;
+        SocketInData sockData;
         int count = 0;
 
         G_RecvMutex.lock();
 
         if(G_RecvButts.size() > 0)
         {
-           data =  G_RecvButts.dequeue();
+           sockData =  G_RecvButts.dequeue();
            count = G_RecvButts.size();
         }
 
@@ -43,9 +48,6 @@ void RecvTextProcessThread::run()
 
         msleep(qrand()%20);
 
-        if(data.size() > 0)
-        {
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<data<<data.size()<<count;
-        }
+        RSingleton<DataParse>::instance()->processData(database,sockData);
     }
 }

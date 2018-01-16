@@ -25,6 +25,8 @@ public:
     void setHostName(const QString& host);
     void setPort(int port);
 
+    QSqlDatabase& sqlDatabase(){return database;}
+
     QString connectionName() const;
 
     bool open();

@@ -12,7 +12,8 @@
 #define MSGRECEIVEPROCTASK_H
 
 #include "rtask.h"
-#include "network/msg.h"
+#include "protocoldata.h"
+using namespace ProtocolType;
 
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -45,7 +46,7 @@ protected:
 
 private:
     void validateRecvData(const QByteArray & data);
-    void handleCommandMsg(Msg_Command commandType,QJsonObject obj);
+    void handleCommandMsg(MsgCommand commandType,QJsonObject obj);
 
 private:
     bool runningFlag;

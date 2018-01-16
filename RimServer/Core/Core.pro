@@ -39,7 +39,13 @@ SOURCES += main.cpp\
     sql/databasemanager.cpp \
     sql/database.cpp \
     sql/datatable.cpp \
-    thread/recvtextprocessthread.cpp
+    thread/recvtextprocessthread.cpp \
+    protocoldata.cpp \
+    thread/dataparse.cpp \
+    thread/dataprocess.cpp \
+    Network/msgwrap.cpp \
+    Network/msgcontext.cpp \
+    thread/sendtextprocessthread.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -48,7 +54,13 @@ HEADERS  += widget.h \
     sql/databasemanager.h \
     sql/database.h \
     sql/datatable.h \
-    thread/recvtextprocessthread.h
+    thread/recvtextprocessthread.h \
+    protocoldata.h \
+    thread/dataparse.h \
+    thread/dataprocess.h \
+    Network/msgwrap.h \
+    Network/msgcontext.h \
+    thread/sendtextprocessthread.h
 
 FORMS    += widget.ui
 

@@ -44,13 +44,11 @@ public:
         return workThreads.at(0);
     }
 
-#if defined(Q_OS_WIN)
     bool createListenSocket(const char * ip,unsigned short port);
     bool createIocpPort();
     bool createWorkThread();
     bool startAccept();
     friend UINT  __stdcall  workerThreadProc(LPVOID v);
-#endif
 
 private:
     void handleRecv(IocpContext *ioData,unsigned long recvLen,TcpClient* tcpClient);

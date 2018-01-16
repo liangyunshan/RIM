@@ -14,13 +14,15 @@
 #include <QThread>
 #include "network_global.h"
 
-#include "tcpsocket.h"
+#include "rsocket.h"
+
+namespace ClientNetwork{
 
 class NETWORKSHARED_EXPORT MsgReceive : public QThread
 {
     Q_OBJECT
 public:
-    explicit MsgReceive(TcpSocket tcpSocket,QObject *parent = 0);
+    explicit MsgReceive(RSocket tcpSocket,QObject *parent = 0);
     ~MsgReceive();
 
     void startMe();
@@ -36,7 +38,9 @@ private:
 
     bool runningFlag;
 
-    TcpSocket tcpSocket;
+    RSocket tcpSocket;
 };
+
+} //ClientNetwork
 
 #endif // MSGRECEIVE_H

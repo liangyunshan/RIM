@@ -19,11 +19,15 @@
 #include "rsingleton.h"
 #include "user/userinfofile.h"
 #include "Util/rutil.h"
+#include "Util/rlog.h"
 #include "Util/imagemanager.h"
 #include "maindialog.h"
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
+#include "Network/msgwrap.h"
+#include "Network/netconnector.h"
+#include "widget/rmessagebox.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -90,7 +94,26 @@ void LoginDialog::login()
 {
     MQ_D(LoginDialog);
 
+    QString ip = "127.0.0.1";
+    unsigned short port = 8023;
+
+    RSingleton<NetConnector>::instance()->setConnectInfo(ip,port);
+
+    if(!RSingleton<NetConnector>::instance()->connect())
+    {
+        RLOG_ERROR("Connect to server %s:%d error!",ip.toLocal8Bit().data(),port);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+        return;
+    }
+
     int index = -1;
+
+    LoginRequest * request = new LoginRequest();
+    request->accountName = ui->userList->currentText();
+    request->password =  ui->password->text();
+    request->status = STATUS_ONLINE;
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+
 
     //Yang 20171214待将此处加入网络
     if( (index = isContainUser()) >= 0)

@@ -15,13 +15,15 @@
 #include <QMutex>
 #include <QWaitCondition>
 
-#include "tcpsocket.h"
+#include "rsocket.h"
+
+namespace ClientNetwork{
 
 class NETWORKSHARED_EXPORT MsgSender : public QThread
 {
     Q_OBJECT
 public:
-    explicit MsgSender(TcpSocket socket,QThread * parent = 0);
+    explicit MsgSender(RSocket socket,QThread * parent = 0);
 
     void startMe();
     void setRunning(bool flag);
@@ -33,9 +35,11 @@ private:
     void handleDataSend(QByteArray & data);
 
 private:
-    TcpSocket socket;
+    RSocket socket;
 
     bool runningFlag;
 };
+
+}
 
 #endif // MSGSENDER_H

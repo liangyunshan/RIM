@@ -28,7 +28,7 @@ public:
 
     IocpContext * m_iocpContext;                //服务器端I/O重叠结构
 
-    Socket m_listenSock;                     //服务端接听端口
+    Socket m_listenSock;                        //服务端接听端口
     HANDLE m_ioCompletionPort;                  //iocp端口
     TcpClientManager * m_clientManager;         //客户端管理
 };

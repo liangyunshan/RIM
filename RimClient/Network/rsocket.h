@@ -1,7 +1,7 @@
 ﻿/*!
  *  @brief     windows底层socket
  *  @details   封装了操作系统底层的socket，支持windows和linux平台的运行
- *  @file      tcpsocket.h
+ *  @file      socket.h
  *  @author    wey
  *  @version   1.0
  *  @date      2018.01.09
@@ -9,33 +9,37 @@
  *  @copyright NanJing RenGu.
  */
 
-#ifndef TCPSOCKET_H
-#define TCPSOCKET_H
+#ifndef RSOCKET_H
+#define RSOCKET_H
 
 #include "network_global.h"
 
-class NETWORKSHARED_EXPORT  TcpSocket
+namespace ClientNetwork {
+
+class NETWORKSHARED_EXPORT  RSocket
 {
 public:
-    TcpSocket();
+    RSocket();
 
     bool createSocket();
-    void closeSocket();
+    bool closeSocket();
     bool bind(const char * ip,unsigned short port);
     bool listen();
-    TcpSocket accept();
+    RSocket accept();
 
     unsigned short port(){return socketPort;}
 
     int recv(char * buff,int length);
     int send(const char * buff,const int length);
 
-    bool connect(const char * remoteIp,const unsigned short remotePort,int timeouts = 1000);
+    bool connect(const char * remoteIp,const unsigned short remotePort,int timeouts = 3);
 
     bool setBlock(bool flag);
     bool isBock(){return blockAble;}
 
     bool isValid(){return socketValid;}
+
+    int getSocket()const {return tcpSocket;}
 
 private:
     char socketIp[20];
@@ -46,5 +50,7 @@ private:
 
     int tcpSocket;
 };
+
+}   //namespace ServerNetwork
 
 #endif // TCPSOCKET_H

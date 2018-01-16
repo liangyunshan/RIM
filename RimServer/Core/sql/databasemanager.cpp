@@ -28,7 +28,7 @@ void DatabaseManager::setConnectInfo(const QString host, const QString dbName, c
 
 Database *DatabaseManager::newDatabase(QString connectionName)
 {
-    Database * db = new Database(m_dbType);
+    Database * db = new Database(m_dbType,connectionName);
 
     db->setHostName(m_hostName);
     db->setDatabaseName(m_dbName);

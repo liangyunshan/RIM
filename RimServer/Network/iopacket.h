@@ -12,10 +12,11 @@
 #define IOPACKET_H
 
 #include "head.h"
+#include "network_global.h"
 
 namespace ServerNetwork {
 
-class IOPacket
+class NETWORKSHARED_EXPORT IOPacket
 {
 public:
     static IOPacket * create(SOCKET sock,const char * src,const int length);
