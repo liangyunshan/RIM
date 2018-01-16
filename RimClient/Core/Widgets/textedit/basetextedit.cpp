@@ -28,37 +28,60 @@ BaseTextEdit::BaseTextEdit(QWidget *parent):
 
 bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
 {
-//    if (event->type() == QEvent::KeyPress) {
-//        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-//        if (keyEvent->matches(QKeySequence::Paste))
-//        {
-//            if(!this->isReadOnly())
-//            {
-//                QClipboard *clipboard = QApplication::clipboard();
-//                const QMimeData *mimeData = clipboard->mimeData();
-//                if(mimeData->hasText())
-//                {
-//                    qDebug() << "Ctrl + V mimeData->hasText()";
-//                    this->setTextColor(this->textColor());
-//                }
-//                if(mimeData->hasImage())
-//                {
-//                    qDebug() << "Ctrl + V mimeData->hasImage()";
-//                    QImage image = qvariant_cast<QImage>(mimeData->imageData());
-//                    this->textCursor().insertImage(image);
-//                }
-//                qDebug() << "Ctrl + V 2";
-//            }
-//        }
-//    }
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->matches(QKeySequence::Paste))
+        {
+            if(!this->isReadOnly())
+            {
+                QClipboard *clipboard = QApplication::clipboard();
+                const QMimeData *mimeData = clipboard->mimeData();
+                if(mimeData->hasText())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasText()";
 
-//    else if(event->type() == Qt::ImQueryInput)
-//    {
-//        this->setTextColor(this->textColor());
-//        qDebug()<<__FILE__<<__LINE__<<"\n"
-//               <<event->type()<<(int)event->type()<<"this->text:"<<this->toPlainText()
-//              <<"\n";
-//    }
+                    this->setTextColor(this->textColor());
+                }
+                if(mimeData->hasHtml())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasHtml()";
+                    this->textCursor().insertHtml(mimeData->html());
+                }
+                if(mimeData->hasImage())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasImage()";
+                    QImage image = qvariant_cast<QImage>(mimeData->imageData());
+
+                    QByteArray bb = QCryptographicHash::hash ( QByteArray((char*)image.bits()), QCryptographicHash::Md5 );
+                    QString temp_img_filepath ;
+                    temp_img_filepath.append(bb.toHex());
+                    QString currPath = qApp->applicationDirPath() ;
+                    QString imgfilepath = currPath + "/" + temp_img_filepath + ".png";
+                    QFileInfo fileinfo(imgfilepath);
+                    if(!fileinfo.exists())
+                    {
+                        image.save(imgfilepath);
+                    }
+
+                    int width = this->viewport()->width() - 7;
+                    if (image.size().width() > width || image.size().height() > width)
+                    {
+                        image = image.scaled(width, width, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    }
+
+                    QTextImageFormat imageFormat;;
+                    imageFormat.setName(imgfilepath);
+                    this->textCursor().insertImage(imageFormat);
+                }
+
+                if(mimeData->hasColor())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasColor()";
+                }
+                return true;
+            }
+        }
+    }
     return QWidget::eventFilter(obj, event);
 }
 
@@ -188,6 +211,9 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
 QString BaseTextEdit::toChatFormaText()
 {
     QString ui_html = toHtml();
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<"ui_html:"<<ui_html
+          <<"\n";
     QString contents ;
     parseHtml(contents,ui_html,TextUnit::Parase_Send);
     return contents;
@@ -231,7 +257,18 @@ QString BaseTextEdit::imgStringTofilePath(QString &img)
 //将html中文件路径对应的图片资源转化为字符串
 QString BaseTextEdit::filePathToImgString(QString &path)
 {
-    QImage image(path.right(path.length()-8));
+
+    QString imageFile = path;
+    QFileInfo fileinfo(path);
+    if(!fileinfo.exists())
+    {
+        imageFile = path.right(path.length()-8);
+    }
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<""<<imageFile
+          <<"\n";
+
+    QImage image(imageFile);
     QByteArray ba;
     QBuffer buf(&ba);
     image.save(&buf, "png");
@@ -244,6 +281,22 @@ QString BaseTextEdit::filePathToImgString(QString &path)
 
 //解析html数据
 //out:解析后的组装html,html:源html数据,type:解析类型
+//一个显示正常的html格式如下：
+//<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+//<html>
+//<head>
+//<meta name="qrichtext" content="1" />
+//<style type="text/css"> p, li { white-space: pre-wrap; }</style>
+//</head>
+//<body style=" font-family:'幼圆'; font-size:18pt; font-weight:400; font-style:italic;">
+//    <p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
+//    文字
+//    <img src="file:///C:\Users\Shang\AppData\Local\Temp\(XO7V5IJS@{{%{TOKRVG(TA.gif" />
+//    <img src="file:///C:\Users\Shang\AppData\Local\Temp\(XO7V5IJS@{{%{TOKRVG(TA.gif" />
+//    <img src="file:///C:\Users\Shang\AppData\Roaming\Tencent\Users\893085067\TIM\WinTemp\RichOle\TA]I~IX)912AWJKH6{]7}6L.png" />
+//    </p>
+//</body>
+//</html>
 int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseType type)
 {
     if(type!=TextUnit::Parase_Send && type!=TextUnit::Parase_Recv)
@@ -251,27 +304,9 @@ int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
         return -1;
     }
 
-    //一个显示正常的html格式如下
-    /*
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-<html>
-<head>
-<meta name="qrichtext" content="1" />
-<style type="text/css"> p, li { white-space: pre-wrap; }</style>
-</head>
-<body style=" font-family:'幼圆'; font-size:18pt; font-weight:400; font-style:italic;">
-    <p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
-    文字
-    <img src="file:///C:\Users\Shang\AppData\Local\Temp\(XO7V5IJS@{{%{TOKRVG(TA.gif" />
-    <img src="file:///C:\Users\Shang\AppData\Local\Temp\(XO7V5IJS@{{%{TOKRVG(TA.gif" />
-    <img src="file:///C:\Users\Shang\AppData\Roaming\Tencent\Users\893085067\TIM\WinTemp\RichOle\TA]I~IX)912AWJKH6{]7}6L.png" />
-    </p>
-</body>
-</html>
-*/
     //
 //! [0]
-    QXmlStreamReader reader(html);
+    QXmlStreamReader xml(html);
     QString newhtml = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n";
     newhtml += "<html>";
     newhtml += "<head>";
@@ -280,173 +315,203 @@ int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
     newhtml += "</head>\n";
 //! [0]
 
-    reader.readNext();
-    while (!reader.atEnd())
-    {
-        if (reader.isStartElement())
+    if (xml.readNextStartElement()) {
+        if (xml.name() == "html")
         {
-            if(reader.name() == "html")
-            {
-                readHtmlindexElement(&reader,newhtml,type);
-            }
-            else
-            {
-                reader.raiseError(QObject::tr("Not a html index file"));
-            }
+            readHtmlindexElement(&xml,newhtml,type);
         }
         else
-        {
-            reader.readNext();
-        }
+            xml.raiseError(QObject::tr("The file is not an XBEL version 1.0 file."));
     }
 
-    newhtml += "</p>";
-    newhtml += "</body>";
     newhtml += "</html>";
     out = newhtml;
 
-    if (reader.hasError()) {
-        return -2;
+    if (xml.hasError()) {
+        return !xml.error();;
     }
 
     return 0;
 }
 
-void BaseTextEdit::readHtmlindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType type)
+void BaseTextEdit::readHtmlindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
 {
-    reader->readNext();
-    while (!reader->atEnd())
-    {
-        if(reader->isEndElement())
+    Q_ASSERT(xml->isStartElement() && xml->name() == "html");
+
+    while (xml->readNextStartElement()) {
+        if (xml->name() == "body")
         {
-            reader->readNext();
+            QString style = xml->attributes().value("style").toString();
+            html += QString("<body style=\"%1\">").arg(style);
+            readBodyindexElement(xml,html,type);
+        }
+        else if(xml->name() == "p")
+        {
+            readPindexElement(xml,html,type);
+        }
+        else
+        {
+            xml->skipCurrentElement();
+        }
+    }
+
+    html += "</body>";
+}
+
+void BaseTextEdit::readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+{
+    //
+    Q_ASSERT(xml->isStartElement() && xml->name() == "body");
+
+    while (xml->readNextStartElement()) {
+        if (xml->name() == "p")
+        {
+            readPindexElement(xml,html,type);
+        }
+        else if(xml->name() == "span")
+        {
+
+        }
+        else
+        {
+            xml->skipCurrentElement();
+        }
+    }
+    //
+}
+
+void BaseTextEdit::readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+{
+    //
+    Q_ASSERT(xml->isStartElement() && xml->name() == "p");
+
+    QString style = xml->attributes().value("style").toString();
+    html += QString("\n<p style=\"%1\">").arg(style);
+
+    while (xml->readNextStartElement()) {
+        qDebug()<<__FILE__<<__LINE__<<"\n"
+               <<"xml->readNextStartElement():"<<xml->name()
+              <<"\n";
+        if (xml->name() == "img")
+        {
+            readImgindexElement(xml,html,type);
+        }
+        else if(xml->name() == "span")
+        {
+            readSpanindexElement(xml,html,type);
+        }
+        else
+        {
+            xml->skipCurrentElement();
+        }
+    }
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<""<<xml->name()<<xml->text()
+          <<"\n";
+    html += "</p>";
+    //
+}
+
+void BaseTextEdit::readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+{
+
+    Q_ASSERT(xml->isStartElement() && xml->name() == "img");
+
+    QString filepath = xml->attributes().value("","src").toString();
+    QString image ;
+    if(type == TextUnit::Parase_Send)
+    {
+        image = filePathToImgString(filepath);
+    }
+    else
+    {
+        image = "file:///";
+        QString imgab = imgStringTofilePath(filepath);
+        imgab = QDir::toNativeSeparators(imgab);
+        image += imgab;
+    }
+    //src=\"%1\  ,不要有空格
+    QString newhtml = QString("<img src=\"%1\" />").arg(image);
+    html += newhtml;
+
+    xml->skipCurrentElement();
+}
+
+void BaseTextEdit::readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+{
+    //
+    Q_ASSERT(xml->isStartElement() && xml->name() == "span");
+
+    QString style = xml->attributes().value("style").toString();
+    QString span = xml->readElementText();
+
+    span = span.toHtmlEscaped();
+
+    QString span_format = QString("<span style=\"%1\">%2</span>").arg(style).arg(span);
+    html += span_format;
+    //
+}
+
+void BaseTextEdit::skipUnknownElement(QXmlStreamReader *xml)
+{
+    xml->readNext();
+    while (!xml->atEnd())
+    {
+        if(xml->isEndElement())
+        {
+            xml->readNext();
             break;
         }
 
-        if(reader->isStartElement())
+        if(xml->isStartElement())
         {
-            if(reader->name() == "body")
-            {
-                QString style = reader->attributes().value("style").toString();
-                html += QString("<body style=\"%1\">").arg(style);
-
-                readBodyindexElement(reader,html,type);
-            } else
-            {
-                skipUnknownElement(reader);
-            }
+            skipUnknownElement(xml);
         } else
         {
-            reader->readNext();
+            xml->readNext();
         }
     }
 }
 
-void BaseTextEdit::readBodyindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType type)
+void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 {
-    reader->readNext();
-    while (!reader->atEnd())
+    if(e->mimeData()->hasFormat("text/uri-list")) //只能打开文本文件
     {
-        if(reader->isEndElement())
-        {
-            reader->readNext();
-            break;
-        }
-
-        if(reader->isStartElement())
-        {
-            if(reader->name() == "p")
-            {
-                QString style = reader->attributes().value("style").toString();
-                html += QString("\n<p style=\"%1\">").arg(style);
-                readPindexElement(reader,html,type);
-            }  else
-            {
-                skipUnknownElement(reader);
-            }
-        } else
-        {
-            reader->readNext();
-        }
+        qDebug()<<__FILE__<<__LINE__<<"\n"
+               <<"e->mimeData()->hasFormat(\"text/uri-listb\")"
+              <<"\n";
+        e->acceptProposedAction(); //可以在这个窗口部件上拖放对象
     }
 }
 
-void BaseTextEdit::readPindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType type)
+void BaseTextEdit::dropEvent(QDropEvent *e) //释放对方时，执行的操作
 {
-    reader->readNext();
-    while (!reader->atEnd())
-    {
-        if(reader->isEndElement())
-        {
-            reader->readNext();
-            break;
-        }
+    QList<QUrl> urls = e->mimeData()->urls();
+    if(urls.isEmpty())
+        return ;
 
-        if(reader->isStartElement())
-        {
-            if(reader->name() == "img")
-            {
-                QString filepath = reader->attributes().value("src").toString();
-                QString image ;
-                if(type == TextUnit::Parase_Send)
-                {
-                    image = filePathToImgString(filepath);
-                }
-                else
-                {
-                    image = "file:///";
-                    QString imgab = imgStringTofilePath(filepath);
-                    imgab = QDir::toNativeSeparators(imgab);
-                    image += imgab;
-                }
+    QString fileName = urls.first().toLocalFile();
 
-                QString newhtml = QString("<img src=\"%1\" />").arg(image);
-                html += newhtml;
-
-                reader->readElementText();
-                if(reader->isEndElement())
-                {
-                    reader->readNext();
-                }
-
-            } else if(reader->name() == "span")
-            {
-                QString style = reader->attributes().value("style").toString();
-                QString span = reader->readElementText();
-                QString span_format = QString("<span style=\" %1 \">%2</span>").arg(style).arg(span);
-                html += span_format;
-                if(reader->isEndElement())
-                {
-                    reader->readNext();
-                }
-            } else
-            {
-                skipUnknownElement(reader);
-            }
-        } else
-        {
-            reader->readNext();
-        }
+    foreach (QUrl u, urls) {
+        qDebug()<<__FUNCTION__<<u.toString();
     }
+    qDebug()<< urls.size();
+
+    if(fileName.isEmpty())
+        return;
+
+    if(readFile(fileName))
+        setWindowTitle(tr("%1 - %2").arg(fileName).arg("Drag File"));
 }
 
-void BaseTextEdit::skipUnknownElement(QXmlStreamReader *reader)
+bool BaseTextEdit::readFile(const QString &fileName) //读文件
 {
-    reader->readNext();
-    while (!reader->atEnd())
-    {
-        if(reader->isEndElement())
-        {
-            reader->readNext();
-            break;
-        }
+//    QFile file(fileName);
+//    if(!file.open(QFile::ReadOnly | QFile::Text))
+//          return false;
 
-        if(reader->isStartElement())
-        {
-            skipUnknownElement(reader);
-        } else
-        {
-            reader->readNext();
-        }
-    }
+//    QByteArray data;
+//    data = file.readAll();
+//    this->setText(QString::fromLocal8Bit(data));
+    return true;
 }

@@ -466,6 +466,9 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     }
     TextUnit::ChatInfoUnit unit;
     d_ptr->chatInputArea->transTextToUnit(unit);
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<"*****************"
+          <<"\n";
     TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(d_ptr->chatInputArea->WriteJSONFile(unit));
 
     d_ptr->chatArea->insertMeChatText(readJson);

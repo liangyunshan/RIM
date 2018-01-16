@@ -98,10 +98,19 @@ protected:
     bool eventFilter(QObject *, QEvent *);
 
 private:
-    void readHtmlindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
-    void readBodyindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
-    void readPindexElement(QXmlStreamReader *reader, QString &html, TextUnit::ParseType);
-    void skipUnknownElement(QXmlStreamReader *reader);
+    void readHtmlindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
+    void readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
+    void readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
+    void readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
+    void readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
+    void skipUnknownElement(QXmlStreamReader *xml);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dropEvent(QDropEvent *e);
+
+private:
+    bool readFile(const QString &fileName);
 
 };
 

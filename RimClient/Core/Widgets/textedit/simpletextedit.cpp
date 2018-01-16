@@ -6,6 +6,7 @@ SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     QColor color(Qt::blue);
     m_Fontcolor = color;
     this->setTextColor(m_Fontcolor);
+    this->setStyleSheet("");
     connect(this,SIGNAL(textChanged()),this,SLOT(slot_TextChanged()));
 }
 
