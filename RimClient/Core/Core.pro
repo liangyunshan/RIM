@@ -11,7 +11,22 @@ contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 TARGET = RimClient
 TEMPLATE = app
 
-DESTDIR = ../Bin
+CONFIG(debug, debug|release) {
+#  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+} else {
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+}
 
 win32:RC_FILE = $${TARGET}_resource.rc
 RC_ICONS += $${TARGET}.ico
@@ -21,14 +36,20 @@ INCLUDEPATH += $$PWD/../
 TRANSLATIONS += $${TARGET}_zh_CN.ts
 
 win32-msvc2013{
-    LIBS+= ../Bin/Util.lib
-    LIBS+= ../Bin/network.lib
+    LIBS+= ../Lib/Util.lib
+    LIBS+= ../Lib/network.lib
     LIBS += gdi32.lib dwmapi.lib
 }
 
 win32-g++{
-    LIBS+= -L../Bin -lUtil
-    LIBS+= -L../Bin -lnetwork
+    LIBS+= -L../Lib -lUtil
+    LIBS+= -L../Lib -lnetwork
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+}
+
+unix{
+    LIBS+= -L../Lib -lUtil
+    LIBS+= -L../Lib -lnetwork
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
 }
 

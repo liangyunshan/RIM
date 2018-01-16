@@ -9,7 +9,7 @@
 #include <QDateTime>
 
 #include "shortcutsettings.h"
-#include "util/fileutils.h"
+#include "Util/fileutils.h"
 #include "head.h"
 
 //XML文件中各个字含义

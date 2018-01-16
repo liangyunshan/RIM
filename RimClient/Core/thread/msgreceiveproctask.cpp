@@ -59,7 +59,7 @@ void MsgReceiveProcTask::run()
             G_RecvMutex.unlock();
         }
 
-        if(runningFlag)
+        if(runningFlag && G_RecvButts.size() > 0)
         {
             G_RecvMutex.lock();
             QByteArray array = G_RecvButts.dequeue();
@@ -67,7 +67,7 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-                validateRecvData(array);
+               // validateRecvData(array);
             }
         }
     }

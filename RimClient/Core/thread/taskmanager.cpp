@@ -19,7 +19,7 @@ void TaskManager::addTask(RTask *task)
 {
     if(task == Q_NULLPTR)
     {
-        LOG_ERROR("Task is null~");
+        RLOG_ERROR("Task is null~");
         return;
     }
 
@@ -35,7 +35,7 @@ void TaskManager::removeTask(RTask *task)
 {
     if(task == Q_NULLPTR)
     {
-        LOG_ERROR("Task is null~");
+        RLOG_ERROR("Task is null~");
         return;
     }
 

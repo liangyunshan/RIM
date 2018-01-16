@@ -12,7 +12,7 @@ ShortcutSettings::ShortcutSettings(QObject *parent):
     commandFile = new CommandFile("shortcuts.kms");
     if(!loadShortcuts())
     {
-        LOG_ERROR("can't read shortcuts file %s",commandFile->fileName().toLocal8Bit().data());
+        RLOG_ERROR("can't read shortcuts file %s",commandFile->fileName().toLocal8Bit().data());
     }
 
 //    QList<ShortcutItem*>::iterator iter = items.begin();
@@ -67,7 +67,7 @@ void ShortcutSettings::save()
 {
     if(!commandFile->exportCommands(items))
     {
-        LOG_ERROR("Export shortcuts failed!");
+        RLOG_ERROR("Export shortcuts failed!");
     }
 }
 

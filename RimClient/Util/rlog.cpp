@@ -18,7 +18,7 @@ const char Suffix[] = ".log";
 
 bool RLog::isFileReady = false;
 bool RLog::isRecord2File = true;
-RLog::RLOG_LEVEL RLog::logLevel = RLog::INFO;           //默认是info级
+RLog::RLOG_LEVEL RLog::logLevel = RLog::RINFO;           //默认是info级
 
 QFile localFile;
 
@@ -71,6 +71,7 @@ void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc
         va_list vlist;
         va_start(vlist,data);
 
+#if defined(Q_OS_WIN)
         int recordLen = _vscprintf(data,vlist);
 
         QByteArray byteArray;
@@ -79,7 +80,7 @@ void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc
         vsprintf(byteArray.data(),data,vlist);
 
         recordInfo.append(byteArray);
-
+#endif
         va_end(vlist);
 
         recordInfo.append("\n");
@@ -91,7 +92,7 @@ void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc
         }
         else
         {
-//            qDebug()<<recordInfo;
+            qDebug()<<recordInfo;
         }
     }
 }

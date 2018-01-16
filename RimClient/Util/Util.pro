@@ -14,14 +14,25 @@ contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 TARGET = Util
 TEMPLATE = lib
 
-DESTDIR = ../Bin
+CONFIG(debug, debug|release) {
+#  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
+
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+} else {
+  contains(TEMPLATE, "lib") {
+    DESTDIR = ../Lib
+    DLLDESTDIR = ../Bin
+  } else {
+    DESTDIR = ../Bin
+  }
+}
 
 DEFINES += UTIL_LIBRARY
-
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
 
 win32-g++{
     QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
