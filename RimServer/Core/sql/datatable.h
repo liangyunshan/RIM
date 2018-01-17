@@ -17,6 +17,18 @@
 namespace DataTable
 {
 
+//系统配置表，以key-value形式存储键值
+class RimConfig
+{
+public:
+    RimConfig();
+    const QString table;
+    const QString name;
+    const QString value;
+
+    const QString accuoutId;                //系统账号基数，每次申请的账号均在此数字上加1。
+};
+
 //用户信息表
 class User
 {
@@ -24,8 +36,7 @@ public:
     User();
     const QString table;
     const QString id;                       //UUID
-    const QString account;                  //账号
-    const QString name;                     //用户名
+    const QString account;                  //账号(登陆时使用)
     const QString password;                 //密码(加密存储)
     const QString nickName;                 //昵称
     const QString signName;                 //签名

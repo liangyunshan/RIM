@@ -15,6 +15,7 @@
 
 #include "msgcontext.h"
 #include "protocoldata.h"
+
 using namespace ProtocolType;
 
 class MsgWrap
@@ -26,11 +27,13 @@ public:
     QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
 
 private:
+    QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
+
     QByteArray wrappedPack(MsgPacket * packet, QJsonObject &data);
 
 private:
-    MsgContext context;
+    MsgResponseContext context;
 };
 
 #endif // MSGWRAP_H

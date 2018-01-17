@@ -14,6 +14,33 @@ DataProcess::DataProcess()
 
 }
 
+void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *request)
+{
+    SocketOutData data;
+    data.sockId = socketId;
+
+    QString registId;
+
+    if(RSingleton<SQLProcess>::instance()->processUserRegist(db,request,registId))
+    {
+        RegistResponse * response = new RegistResponse;
+
+        response->accountId = registId;
+
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+    }
+    else
+    {
+        data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,REGISTER_FAILED);
+    }
+
+    G_SendMutex.lock();
+    G_SendButts.enqueue(data);
+    G_SendMutex.unlock();
+
+    G_SendCondition.wakeOne();
+}
+
 void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *request)
 {
     SocketOutData data;
@@ -22,7 +49,7 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
     if(RSingleton<SQLProcess>::instance()->processUserLogin(db,request))
     {
         LoginResponse * response = new LoginResponse;
-        response->accountName = "123";
+        response->accountId = "12345";
         response->nickName = "yiluxiangbei";
         response->signName = "say something";
         response->sexual = MAN;

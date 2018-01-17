@@ -22,7 +22,14 @@ LoginResponse::LoginResponse()
 
 RegistRequest::RegistRequest()
 {
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_REGISTER;
+}
 
+RegistResponse::RegistResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_REGISTER;
 }
 
 

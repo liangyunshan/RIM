@@ -38,6 +38,8 @@ public:
 
     static qint64 currentMSecsSinceEpoch();
 
+    static bool validateIpFormat(QString dest);
+
 private:
     static QSettings * gSettings;
 };

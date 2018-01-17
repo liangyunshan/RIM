@@ -3,7 +3,7 @@
 namespace DataTable {
 
 User::User():
-    table("user"),id("ID"),account("ACCOUNT"),name("NAME"),
+    table("user"),id("ID"),account("ACCOUNT"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
     gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ID"),
     email("ADDRESS"),desc("EMAIL")
@@ -32,6 +32,11 @@ User_Group::User_Group():
 
 User_Chatroom::User_Chatroom():
     id("ID"),chatId("CID"),userId("UID")
+{
+
+}
+
+RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
 {
 
 }

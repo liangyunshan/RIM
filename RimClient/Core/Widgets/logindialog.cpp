@@ -28,6 +28,10 @@
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
+#include "registdialog.h"
+#include "netsettings.h"
+#include "global.h"
+#include "msgcontext.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -35,9 +39,6 @@ class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 public:
     LoginDialogPrivate()
     {
-        windowWidth = 500;
-        windowHeight = 400;
-
         numberExp.setPattern("[1-9]\\d{6}");
         passExp.setPattern("\\w{6,16}");
 
@@ -51,8 +52,6 @@ public:
     QList<UserInfoDesc *> localUserInfo;
 
     QPoint mousePreseePoint;
-    int windowWidth;
-    int windowHeight;
 
     bool isSystemUserIcon;
     QString defaultUserIconPath;
@@ -88,32 +87,27 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
     initWidget();
     createTrayMenu();
+    loadLocalSettings();
 }
 
 void LoginDialog::login()
 {
     MQ_D(LoginDialog);
 
-    QString ip = "127.0.0.1";
-    unsigned short port = 8023;
-
-    RSingleton<NetConnector>::instance()->setConnectInfo(ip,port);
+    int index = -1;
 
     if(!RSingleton<NetConnector>::instance()->connect())
     {
-        RLOG_ERROR("Connect to server %s:%d error!",ip.toLocal8Bit().data(),port);
+        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
         return;
     }
 
-    int index = -1;
-
     LoginRequest * request = new LoginRequest();
-    request->accountName = ui->userList->currentText();
+    request->accountId = ui->userList->currentText();
     request->password =  ui->password->text();
     request->status = STATUS_ONLINE;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
-
 
     //Yang 20171214待将此处加入网络
     if( (index = isContainUser()) >= 0)
@@ -218,14 +212,14 @@ void LoginDialog::initWidget()
     //在多屏状态下，默认选择第一个屏幕
     QSize size = qApp->desktop()->screen()->size();
 
-    this->setGeometry((size.width() - d->windowWidth)/2,(size.height() - d->windowHeight)/2,d->windowWidth,d->windowHeight);
+    this->setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
 
     mainDialog = NULL;
 
     toolBar = new ToolBar(this);
 
-    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING));
+    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING),this,SLOT(showNetSettings()));
     systemSetting->setToolTip(tr("System Setting"));
 
     RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SLOT(minsize()));
@@ -255,8 +249,11 @@ void LoginDialog::initWidget()
 
     ui->rememberPassord->setText(tr("Remember password"));
     ui->autoLogin->setText(tr("Auto login"));
-    ui->login->setText(tr("Login"));
+    ui->login->setText(tr("Sin in"));
     ui->forgetPassword->setText(tr("Forget Password"));
+    ui->regist->setText(tr("Sin up"));
+
+    ui->regist->installEventFilter(this);
 
     connect(ui->userList,SIGNAL(currentIndexChanged(int)),this,SLOT(switchUser(int)));
     connect(ui->login,SIGNAL(pressed()),this,SLOT(login()));
@@ -277,6 +274,12 @@ void LoginDialog::createTrayMenu()
 
     connect(trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
+}
+
+void LoginDialog::loadLocalSettings()
+{
+    G_ServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_IP,Constant::DEFAULT_NETWORK_IP).toString();
+    G_ServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_PORT,Constant::DEFAULT_NETWORK_PORT).toUInt();
 }
 
 int LoginDialog::isContainUser()
@@ -349,6 +352,13 @@ void LoginDialog::validateInput(QString /*text*/)
     ui->login->style()->polish(ui->login);
 }
 
+void LoginDialog::showNetSettings()
+{
+    NetSettings * settings = new NetSettings(this);
+    settings->initLocalSettings();
+    settings->show();
+}
+
 LoginDialog::~LoginDialog()
 {
     if(toolBar)
@@ -403,7 +413,7 @@ void LoginDialog::mouseMoveEvent(QMouseEvent *event)
 
     QPoint tmpPoint = event->pos() - d->mousePreseePoint;
 
-    this->setGeometry(this->x() + tmpPoint.x(),this->y() + tmpPoint.y(),d->windowWidth,d->windowHeight);
+    this->setGeometry(this->x() + tmpPoint.x(),this->y() + tmpPoint.y(),Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
 }
 
 void LoginDialog::closeEvent(QCloseEvent *)
@@ -428,6 +438,14 @@ bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
         else if(obj == ui->userList->lineEdit())
         {
 
+        }
+    }
+    else if(event->type() == QEvent::MouseButtonPress)
+    {
+        if(obj == ui->regist)
+        {
+            RegistDialog * dialog = new RegistDialog(this);
+            dialog->show();
         }
     }
     return QDialog::eventFilter(obj,event);

@@ -13,22 +13,11 @@
 
 #include "rtask.h"
 #include "protocoldata.h"
+#include "msgcontext.h"
 using namespace ProtocolType;
 
 #include <QJsonObject>
 #include <QJsonParseError>
-
-//JSON字段文件中各个字含义
-struct JContext
-{
-    JContext();
-    const QString magicNum;
-    const QString messType;
-    const QString commandType;
-    const QString timestamp;
-    const QString messLength;
-    const QString content;
-};
 
 class MsgReceiveProcTask : public RTask
 {
@@ -51,7 +40,7 @@ private:
 private:
     bool runningFlag;
     QJsonParseError jsonParseError;
-    JContext jtext;
+    MsgResponseContext context;
 };
 
 #endif // MSGRECEIVEPROCTASK_H

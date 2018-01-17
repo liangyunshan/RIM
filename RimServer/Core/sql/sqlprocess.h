@@ -22,8 +22,8 @@ class SQLProcess
 public:
     SQLProcess();
 
+    bool processUserRegist(Database *db, RegistRequest * request,QString & id);
     bool processUserLogin(Database *db, LoginRequest * request);
-
 
 private:
 

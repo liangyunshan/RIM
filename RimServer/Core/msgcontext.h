@@ -13,15 +13,25 @@
 
 #include <QObject>
 
-class MsgContext
+//网络请求时JSON字符中key值
+class MsgRequestContext
 {
 public:
-    MsgContext();
-
+    MsgRequestContext();
     const QString msgType;
     const QString msgCommand;
     const QString msgData;
+};
+
+class MsgResponseContext
+{
+public:
+    MsgResponseContext();
+
+    const QString msgType;
+    const QString msgCommand;
     const QString msgStatus;
+    const QString msgData;
 };
 
 #endif // MSGCONTEXT_H

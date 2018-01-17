@@ -43,6 +43,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
     switch(obj.value(context.msgCommand).toInt())
     {
+         case MSG_USER_REGISTER:
+                                          onProcessUserRegist(db,socketId,obj.value(context.msgData).toObject());
+                                          break;
          case MSG_USER_LOGIN:
                                           onProcessUserLogin(db,socketId,obj.value(context.msgData).toObject());
                                           break;
@@ -51,10 +54,20 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
     }
 }
 
+void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
+{
+    RegistRequest * request = new RegistRequest;
+    request->nickName = obj.value("nickname").toString();
+    request->password = obj.value("pass").toString();
+
+    RSingleton<DataProcess>::instance()->processUserRegist(db,socketId,request);
+}
+
+
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
     LoginRequest * request = new LoginRequest;
-    request->accountName = obj.value("name").toString();
+    request->accountId = obj.value("name").toString();
     request->password = obj.value("pass").toString();
     request->status = (OnlineStatus)obj.value("status").toInt();
 

@@ -17,6 +17,8 @@
 #include "rsingleton.h"
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
+#include "protocoldata.h"
+using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
 
@@ -113,6 +115,11 @@ int main(int argc, char *argv[])
     {
         app.setStyleSheet(styleFile.readAll());
     }
+
+
+    qRegisterMetaType<RegistResponse>("RegistResponse");
+    qRegisterMetaType<ResponseRegister>("ResponseRegister");
+
 
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
 

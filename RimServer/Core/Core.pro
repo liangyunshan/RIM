@@ -44,7 +44,7 @@ SOURCES += main.cpp\
     thread/dataparse.cpp \
     thread/dataprocess.cpp \
     Network/msgwrap.cpp \
-    Network/msgcontext.cpp \
+    msgcontext.cpp \
     thread/sendtextprocessthread.cpp
 
 HEADERS  += widget.h \
@@ -59,7 +59,7 @@ HEADERS  += widget.h \
     thread/dataparse.h \
     thread/dataprocess.h \
     Network/msgwrap.h \
-    Network/msgcontext.h \
+    msgcontext.h \
     thread/sendtextprocessthread.h
 
 FORMS    += widget.ui

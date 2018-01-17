@@ -26,6 +26,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
 
     switch(packet->msgCommand)
     {
+        case MsgCommand::MSG_USER_REGISTER:
+                                            return handleRegistResponse((RegistResponse *)packet);
         case MsgCommand::MSG_USER_LOGIN:
                                             return handleLoginResponse((LoginResponse *)packet);
         default:
@@ -54,11 +56,19 @@ QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int er
     return document.toJson(QJsonDocument::Compact);
 }
 
+QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
+{
+    QJsonObject data;
+    data.insert("accountId",packet->accountId);
+
+    return wrappedPack(packet,data);
+}
+
 //处理用户登陆
 QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 {
     QJsonObject data;
-    data.insert("accountName",packet->accountName);
+    data.insert("accountId",packet->accountId);
     data.insert("nickName",packet->nickName);
     data.insert("signName",packet->signName);
     data.insert("sexual",packet->sexual);
@@ -82,6 +92,7 @@ QByteArray MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     QJsonObject obj;
     obj.insert(context.msgType,packet->msgType);
     obj.insert(context.msgCommand,packet->msgCommand);
+    obj.insert(context.msgStatus,0);
 
     obj.insert("data",data);
 

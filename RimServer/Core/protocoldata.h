@@ -35,7 +35,7 @@ namespace ProtocolType {
  *                  {
  *                      'status' : value,           //若是操作性质返回操作成功与否标志
  *                      -----------------
- *                      'key'   :  value
+ *                      'key'   :  value            //
  *                  }
  *
  * }
@@ -58,7 +58,7 @@ enum ClientType
  */
 enum MsgType
 {
-    MSG_TYPE_INVALID = 0,               //无意义
+    MSG_TYPE_INVALID,                   //无意义
     MSG_CONTROL,                        //控制命令
     MSG_TEXT,                           //文本信息
     MSG_IMAGE,                          //图片信息
@@ -192,25 +192,23 @@ public:
     MsgCommand msgCommand;          //命令类型(MSG_COMMAND)
 };
 
-//登陆请求信息
+/************************登  陆**********************/
 class LoginRequest : public MsgPacket
 {
 public:
     LoginRequest();
 
-    QString accountName;
+    QString accountId;
     QString password;
     OnlineStatus  status;
 };
 
-//登陆结果信息
 class LoginResponse : public MsgPacket
 {
 public:
     LoginResponse();
 
-    unsigned int accountId;                 //账号
-    QString accountName;
+    QString accountId;                      //账号
     QString nickName;                       //昵称
     QString signName;                       //签名
     Sexual  sexual;                         //性别
@@ -223,24 +221,22 @@ public:
     QString customImgId;                    //头像信息(face为0时有效)
 };
 
-//注册请求信息
+/************************注  册**********************/
 class RegistRequest : public MsgPacket
 {
 public:
     RegistRequest();
 
-    QString accountName;
     QString nickName;
     QString password;
 };
 
-//注册结果信息
 class RegistResponse : public MsgPacket
 {
 public:
     RegistResponse();
 
-    ResponseRegister resultCode;             //登陆结果
+    QString accountId;                       //注册的ID，在登陆时使用此ID作为用户名
 };
 
 }

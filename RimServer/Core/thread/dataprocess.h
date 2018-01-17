@@ -21,6 +21,7 @@ class DataProcess
 public:
     DataProcess();
 
+    void processUserRegist(Database *db, int socketId, RegistRequest *request);
     void processUserLogin(Database *db, int socketId, LoginRequest * request);
 };
 

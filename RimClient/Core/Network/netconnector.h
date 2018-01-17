@@ -23,7 +23,6 @@ public:
 
     bool connect(int delayMillSecond = 3);
     bool reconnect(int delayMillSecond = 3);
-    void setConnectInfo(const QString ip,const unsigned short port);
 
     bool setBlock(bool flag);
     bool isBock(){return socket.isBock();}
@@ -33,9 +32,7 @@ public:
 private:
     RSocket socket;
 
-    QString remoteIp;
-    unsigned short remotePort;
-
+    bool connected;
 };
 
 #endif // NETCONNECTOR_H

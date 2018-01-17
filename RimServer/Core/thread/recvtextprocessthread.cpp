@@ -45,9 +45,6 @@ void RecvTextProcessThread::run()
         }
 
         G_RecvMutex.unlock();
-
-        msleep(qrand()%20);
-
         RSingleton<DataParse>::instance()->processData(database,sockData);
     }
 }

@@ -57,10 +57,12 @@ private slots:
     void switchUser(int index);
     void readLocalUser();
     void validateInput(QString text);
+    void showNetSettings();
 
 private:
     void initWidget();
     void createTrayMenu();
+    void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
 

@@ -3,17 +3,9 @@
 #include <QJsonDocument>
 
 #include "network/netglobal.h"
+#include "dataprocess.h"
+#include "rsingleton.h"
 #include "head.h"
-
-JContext::JContext() :
-    magicNum(QLatin1String("magicNum")),
-    messType(QLatin1String("messType")),
-    commandType(QLatin1String("commandType")),
-    timestamp(QLatin1String("timestamp")),
-    messLength(QLatin1String("messLength")),
-    content(QLatin1String("content"))
-{
-}
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     runningFlag(false),
@@ -67,7 +59,7 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-               // validateRecvData(array);
+                validateRecvData(array);
             }
         }
     }
@@ -80,13 +72,13 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
     {
         QJsonObject root = document.object();
 
-        int magicNum =  root.value(jtext.magicNum).toInt();
-        if(magicNum == 0xABCDDCBA)
+//        int magicNum =  root.value(context.magicNum).toInt();
+//        if(magicNum == 0xABCDDCBA)
         {
-            switch(root.value(jtext.messType).toInt())
+            switch(root.value(context.msgType).toInt())
             {
                 case MSG_CONTROL:
-                                    handleCommandMsg((MsgCommand)root.value(jtext.commandType).toInt(),root.value(jtext.content).toObject());
+                                    handleCommandMsg((MsgCommand)root.value(context.msgCommand).toInt(),root.value(context.msgData).toObject());
                                     break;
                 case MSG_TEXT:
                                 break;
@@ -111,7 +103,11 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject ob
 {
     switch(commandType)
     {
+        case MSG_USER_REGISTER:
+                            RSingleton<DataProcess>::instance()->proRegistResponse(obj);
+                            break;
         case MSG_USER_LOGIN:
+                            RSingleton<DataProcess>::instance()->proLoginResponse(obj);
                             break;
     };
 }

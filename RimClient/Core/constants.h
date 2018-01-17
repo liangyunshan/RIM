@@ -41,6 +41,12 @@ const char SETTING_SOUND_AVAILABLE[] = "Main/Sounds";
 const char SETTING_SYSTEM_LOCK[] = "Main/SystemLock";
 const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
 
+const char SETTING_NETWORK_IP[] = "Network/LoginIp";
+const char SETTING_NETWORK_PORT[] = "Network/LoginPort";
+
+const QString DEFAULT_NETWORK_IP = "127.0.0.1";
+const QString DEFAULT_NETWORK_PORT = "8023";
+
 /*图片*/
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
 const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
@@ -57,6 +63,10 @@ const int MAIN_PANEL_MIN_HEIGHT = 450;                  //主面板最小高度
 
 const int MAIN_PANEL_MAX_WIDTH = 600;                   //主面板最大宽度
 
+const int LOGIN_FIX_WIDTH = 500;                        //登陆页面固定宽度
+const int LOGIN_FIX_HEIGHT =  400;                      //登陆页面固定高度
+
+const int ITEM_FIX_HEIGHT = 24;                         //QLineEdit、QLabel等的固定高度
 
 const int ICON_USER_SIZE =  40;                         //用户头像固定尺寸
 

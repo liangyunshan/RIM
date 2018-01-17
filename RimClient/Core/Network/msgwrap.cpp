@@ -21,6 +21,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
 
     switch(packet->msgCommand)
     {
+        case MsgCommand::MSG_USER_REGISTER:
+                                            handleRegistRequest((RegistRequest *)packet);
+                                            break;
         case MsgCommand::MSG_USER_LOGIN:
                                             handleLoginRequest((LoginRequest *)packet);
                                             break;
@@ -34,9 +37,19 @@ void MsgWrap::handleMsg(MsgPacket *packet)
 void MsgWrap::handleLoginRequest(LoginRequest *packet)
 {
     QJsonObject data;
-    data.insert("name",packet->accountName);
+    data.insert("name",packet->accountId);
     data.insert("pass",packet->password);
     data.insert("status",packet->status);
+
+    wrappedPack(packet,data);
+}
+
+//处理用户注册
+void MsgWrap::handleRegistRequest(RegistRequest *packet)
+{
+    QJsonObject data;
+    data.insert("nickname",packet->nickName);
+    data.insert("pass",packet->password);
 
     wrappedPack(packet,data);
 }

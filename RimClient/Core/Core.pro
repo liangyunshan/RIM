@@ -104,7 +104,12 @@ SOURCES += \
     user/userinfofile.cpp \
     protocoldata.cpp \
     Network/msgwrap.cpp \
-    Network/netconnector.cpp
+    Network/netconnector.cpp \
+    Widgets/registdialog.cpp \
+    Widgets/netsettings.cpp \
+    msgcontext.cpp \
+    thread/dataprocess.cpp \
+    messdiapatch.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -159,7 +164,12 @@ HEADERS  += \
     user/userinfofile.h \
     protocoldata.h \
     Network/msgwrap.h \
-    Network/netconnector.h
+    Network/netconnector.h \
+    Widgets/registdialog.h \
+    Widgets/netsettings.h \
+    msgcontext.h \
+    thread/dataprocess.h \
+    messdiapatch.h
 
 DISTFILES += \
     Widgets/Widgets.pri

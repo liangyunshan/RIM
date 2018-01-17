@@ -33,20 +33,11 @@ public:
     ~Widget();
 
     void setShadowWindow(bool flag = true);
+    void setWindowsMoveable(bool flag = true);
 
 protected:
-    /*!
-     * @brief 将窗口加入至主窗口区域
-     * @param[in] child 待加入的窗口
-     * @return 无
-     */
     void setContentWidget(QWidget * child);
 
-    /*!
-     * @brief 是否需要开启工具栏
-     * @param[in] falg 控制标识
-     * @return ToolBar * 创建的工具栏，可进行进一步操作
-     */
     ToolBar *enableToolBar(bool flag = false);
 
     virtual void paintEvent(QPaintEvent * event);

@@ -99,7 +99,7 @@ void AddFriendPrivate::initWidget()
     inputEdit->setPlaceholderText(QObject::tr("Input number"));
 
     statusLabel = new QLabel(lookupWidget);
-    statusLabel->setMinimumHeight(24);
+    statusLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setVisible(false);
 

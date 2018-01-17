@@ -34,6 +34,7 @@ protected:
         isMousePressed = false;
         stickTopHint = false;
         isShadowVisible = true;
+        windowMoveable = true;
         toolBar = NULL;
 
         contentWidget = new QWidget(q);
@@ -56,6 +57,7 @@ protected:
     bool isMousePressed;
     bool stickTopHint;
     bool isShadowVisible;
+    bool windowMoveable;
 };
 
 Widget::Widget(QWidget *parent):
@@ -86,6 +88,17 @@ void Widget::setShadowWindow(bool flag)
     update();
 }
 
+void Widget::setWindowsMoveable(bool flag)
+{
+    MQ_D(Widget);
+    d->windowMoveable = flag;
+}
+
+/*!
+ * @brief 将窗口加入至主窗口区域
+ * @param[in] child 待加入的窗口
+ * @return 无
+ */
 void Widget::setContentWidget(QWidget *child)
 {
     MQ_D(Widget);
@@ -106,6 +119,11 @@ void Widget::setContentWidget(QWidget *child)
 
 #define ABSTRACT_TOOL_BAR_HEGIHT 30
 
+/*!
+ * @brief 是否需要开启工具栏,开启工具栏后可对工具栏进行动态的配置
+ * @param[in] falg 控制标识
+ * @return ToolBar * 创建的工具栏，可进行进一步操作
+ */
 ToolBar * Widget::enableToolBar(bool flag)
 {
     MQ_D(Widget);
@@ -277,7 +295,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(Widget);
-    if(d->isMousePressed)
+    if(d->windowMoveable && d->isMousePressed)
     {
         QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
         move(tempPos);
@@ -288,20 +306,24 @@ void Widget::mouseReleaseEvent(QMouseEvent *)
 {
     MQ_D(Widget);
 
-    if(pos().y() <= 0)
+    if(d->windowMoveable)
     {
-        move(pos().x(),-WINDOW_MARGIN_SIZE);
+        if(pos().y() <= 0)
+        {
+            move(pos().x(),-WINDOW_MARGIN_SIZE);
+        }
+
+        if(pos().x() < 0)
+        {
+            move(0,pos().y());
+        }
+
+        if(pos().x() > qApp->desktop()->geometry().width()  - width() )
+        {
+            move(qApp->desktop()->geometry().width() - width(),pos().y());
+        }
     }
 
-    if(pos().x() < 0)
-    {
-        move(0,pos().y());
-    }
-
-    if(pos().x() > qApp->desktop()->geometry().width()  - width() )
-    {
-        move(qApp->desktop()->geometry().width() - width(),pos().y());
-    }
 
     d->isMousePressed = false;
 }

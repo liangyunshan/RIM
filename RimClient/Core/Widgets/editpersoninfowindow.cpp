@@ -158,21 +158,21 @@ void EditPersonInfoWindowPrivate::initWidget()
     m_address_label->setText(QObject::tr("Address"));
 
     m_address_edit = new QLineEdit(bodyWidget);
-    m_address_edit->setFixedHeight(Label_Height);
+    m_address_edit->setFixedHeight(Constant::ITEM_FIX_HEIGHT);
 
     m_phone_label = new QLabel(bodyWidget);
     m_phone_label->setAlignment(Qt::AlignCenter);
     m_phone_label->setText(QObject::tr("Phone Number"));
 
     m_phone_edit = new QLineEdit(bodyWidget);
-    m_phone_edit->setFixedHeight(Label_Height);
+    m_phone_edit->setFixedHeight(Constant::ITEM_FIX_HEIGHT);
 
     m_mail_label = new QLabel(bodyWidget);
     m_mail_label->setAlignment(Qt::AlignCenter);
     m_mail_label->setText(QObject::tr("Email"));
 
     m_mail_edit = new QLineEdit(bodyWidget);
-    m_mail_edit->setFixedHeight(Label_Height);
+    m_mail_edit->setFixedHeight(Constant::ITEM_FIX_HEIGHT);
 
     m_desc_label = new QLabel(bodyWidget);
     m_desc_label->setAlignment(Qt::AlignHCenter | Qt::AlignTop);

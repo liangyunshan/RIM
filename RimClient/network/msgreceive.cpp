@@ -47,8 +47,7 @@ void MsgReceive::run()
         int ret = tcpSocket.recv(buff,MSG_RECV_BUFF);
         if(ret > 0)
         {
-            QByteArray data;
-            data.setRawData(buff,ret);
+            QByteArray data(buff,ret);
 
             G_RecvMutex.lock();
             G_RecvButts.enqueue(data);

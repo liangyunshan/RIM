@@ -13,22 +13,9 @@
 
 #include <QJsonObject>
 
+#include "msgcontext.h"
 #include "protocoldata.h"
 using namespace ProtocolType;
-
-class MsgContext
-{
-public:
-    MsgContext():msgType("type"),msgCommand("cmd"),msgData("data"),
-        msgStatus("status")
-    {
-
-    }
-    const QString msgType;
-    const QString msgCommand;
-    const QString msgData;
-    const QString msgStatus;
-};
 
 class MsgWrap
 {
@@ -38,12 +25,13 @@ public:
     void handleMsg(MsgPacket * packet);
 
 private:
+    void handleRegistRequest(RegistRequest *packet);
     void handleLoginRequest(LoginRequest *packet);
 
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 
 private:
-    MsgContext context;
+    MsgRequestContext context;
 };
 
 #endif // MSGWRAP_H

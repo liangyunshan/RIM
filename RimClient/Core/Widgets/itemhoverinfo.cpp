@@ -94,11 +94,11 @@ void ItemHoverInfoPrivate::initWidget()
     userNameLabel->setText(QStringLiteral("一路向北"));
 
     signNameLabel = new QLabel(contentWidget);
-    signNameLabel->setMinimumHeight(25);
+    signNameLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
     signNameLabel->setText("Say Something");
 
     accountLabel = new QLabel(contentWidget);
-    accountLabel->setMinimumHeight(25);
+    accountLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
     accountLabel->setText("407859345");
 
     vlayout->addWidget(userNameLabel);
