@@ -36,16 +36,16 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
             {
                 QClipboard *clipboard = QApplication::clipboard();
                 const QMimeData *mimeData = clipboard->mimeData();
-                if(mimeData->hasText())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasText()";
 
-                    this->setTextColor(this->textColor());
-                }
                 if(mimeData->hasHtml())
                 {
                     qDebug() << "Ctrl + V mimeData->hasHtml()";
                     this->textCursor().insertHtml(mimeData->html());
+                }
+                else if(mimeData->hasText())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasText()";
+                    this->textCursor().insertText(mimeData->text());
                 }
                 if(mimeData->hasImage())
                 {
@@ -211,9 +211,6 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
 QString BaseTextEdit::toChatFormaText()
 {
     QString ui_html = toHtml();
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<"ui_html:"<<ui_html
-          <<"\n";
     QString contents ;
     parseHtml(contents,ui_html,TextUnit::Parase_Send);
     return contents;
@@ -264,9 +261,6 @@ QString BaseTextEdit::filePathToImgString(QString &path)
     {
         imageFile = path.right(path.length()-8);
     }
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<""<<imageFile
-          <<"\n";
 
     QImage image(imageFile);
     QByteArray ba;
@@ -389,9 +383,6 @@ void BaseTextEdit::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
     html += QString("\n<p style=\"%1\">").arg(style);
 
     while (xml->readNextStartElement()) {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"xml->readNextStartElement():"<<xml->name()
-              <<"\n";
         if (xml->name() == "img")
         {
             readImgindexElement(xml,html,type);
@@ -405,9 +396,6 @@ void BaseTextEdit::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
             xml->skipCurrentElement();
         }
     }
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<""<<xml->name()<<xml->text()
-          <<"\n";
     html += "</p>";
     //
 }
