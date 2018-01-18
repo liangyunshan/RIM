@@ -31,7 +31,6 @@
 #include "registdialog.h"
 #include "netsettings.h"
 #include "global.h"
-#include "msgcontext.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -39,8 +38,8 @@ class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 public:
     LoginDialogPrivate()
     {
-        numberExp.setPattern("[1-9]\\d{6}");
-        passExp.setPattern("\\w{6,16}");
+        numberExp.setPattern("[1-9]\\d{4}");
+        passExp.setPattern("\\w{3,16}");
 
         isSystemUserIcon = true;
         isNewUser = true;
@@ -105,11 +104,10 @@ void LoginDialog::login()
 
     LoginRequest * request = new LoginRequest();
     request->accountId = ui->userList->currentText();
-    request->password =  ui->password->text();
+    request->password = RUtil::MD5( ui->password->text());
     request->status = STATUS_ONLINE;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 
-    //Yang 20171214待将此处加入网络
     if( (index = isContainUser()) >= 0)
     {
         if(index < d->localUserInfo.size())

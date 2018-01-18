@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     数据处理中转
  *  @details   处理接收数据，并将结果分发至对应的页面
  *  @file      dataprocess.h
@@ -13,8 +13,6 @@
 
 #include <QJsonObject>
 
-#include "msgcontext.h"
-
 class DataProcess
 {
 public:
@@ -24,7 +22,6 @@ public:
     void proLoginResponse(QJsonObject data);
 
 private:
-    MsgResponseContext context;
 
 };
 

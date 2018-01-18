@@ -6,6 +6,7 @@
 
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
+#include "jsonkey.h"
 
 MsgWrap::MsgWrap()
 {
@@ -37,9 +38,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
 void MsgWrap::handleLoginRequest(LoginRequest *packet)
 {
     QJsonObject data;
-    data.insert("name",packet->accountId);
-    data.insert("pass",packet->password);
-    data.insert("status",packet->status);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::Pass),packet->password);
+    data.insert(JsonKey::key(JsonKey::Status),packet->status);
 
     wrappedPack(packet,data);
 }
@@ -48,8 +49,8 @@ void MsgWrap::handleLoginRequest(LoginRequest *packet)
 void MsgWrap::handleRegistRequest(RegistRequest *packet)
 {
     QJsonObject data;
-    data.insert("nickname",packet->nickName);
-    data.insert("pass",packet->password);
+    data.insert(JsonKey::key(JsonKey::NickName),packet->nickName);
+    data.insert(JsonKey::key(JsonKey::Pass),packet->password);
 
     wrappedPack(packet,data);
 }
@@ -57,10 +58,10 @@ void MsgWrap::handleRegistRequest(RegistRequest *packet)
 void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
 {
     QJsonObject obj;
-    obj.insert(context.msgType,packet->msgType);
-    obj.insert(context.msgCommand,packet->msgCommand);
+    obj.insert(JsonKey::key(JsonKey::Type),packet->msgType);
+    obj.insert(JsonKey::key(JsonKey::Command),packet->msgCommand);
 
-    obj.insert("data",data);
+    obj.insert(JsonKey::key(JsonKey::Data),data);
 
     QJsonDocument document;
     document.setObject(obj);

@@ -6,6 +6,7 @@
 #include "dataprocess.h"
 #include "rsingleton.h"
 #include "head.h"
+#include "jsonkey.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     runningFlag(false),
@@ -75,10 +76,10 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 //        int magicNum =  root.value(context.magicNum).toInt();
 //        if(magicNum == 0xABCDDCBA)
         {
-            switch(root.value(context.msgType).toInt())
+            switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
             {
                 case MSG_CONTROL:
-                                    handleCommandMsg((MsgCommand)root.value(context.msgCommand).toInt(),root.value(context.msgData).toObject());
+                                    handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root.value(JsonKey::key(JsonKey::Data)).toObject());
                                     break;
                 case MSG_TEXT:
                                 break;

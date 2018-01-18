@@ -107,9 +107,9 @@ SOURCES += \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
-    msgcontext.cpp \
     thread/dataprocess.cpp \
-    messdiapatch.cpp
+    messdiapatch.cpp \
+    jsonkey.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -167,9 +167,9 @@ HEADERS  += \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
-    msgcontext.h \
     thread/dataprocess.h \
-    messdiapatch.h
+    messdiapatch.h \
+    jsonkey.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -13,7 +13,7 @@
 
 #include "rtask.h"
 #include "protocoldata.h"
-#include "msgcontext.h"
+
 using namespace ProtocolType;
 
 #include <QJsonObject>
@@ -40,7 +40,6 @@ private:
 private:
     bool runningFlag;
     QJsonParseError jsonParseError;
-    MsgResponseContext context;
 };
 
 #endif // MSGRECEIVEPROCTASK_H
