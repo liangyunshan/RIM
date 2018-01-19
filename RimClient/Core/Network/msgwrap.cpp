@@ -67,6 +67,8 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     document.setObject(obj);
     QByteArray array = document.toJson(QJsonDocument::Compact);
 
+    delete packet;
+
     G_SendMutex.lock();
     G_SendBuff.enqueue(array);
     G_SendMutex.unlock();

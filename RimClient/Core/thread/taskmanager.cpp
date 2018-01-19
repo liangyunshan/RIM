@@ -3,7 +3,7 @@
 #include <QWriteLocker>
 
 #include "Util/rlog.h"
-#include "rtask.h"
+#include "Network/rtask.h"
 
 TaskManager::TaskManager(QObject *parent) : QObject(parent)
 {
@@ -15,7 +15,7 @@ TaskManager::TaskManager(QObject *parent) : QObject(parent)
      * @param[in] toolButton 待插入的工具按钮
      * @return 是否插入成功
      */
-void TaskManager::addTask(RTask *task)
+void TaskManager::addTask(ClientNetwork::RTask *task)
 {
     if(task == Q_NULLPTR)
     {
@@ -24,14 +24,14 @@ void TaskManager::addTask(RTask *task)
     }
 
     QWriteLocker locker(&lock);
-    if(task->running())
+    if(!task->running())
     {
         task->startMe();
     }
     tasks.append(task);
 }
 
-void TaskManager::removeTask(RTask *task)
+void TaskManager::removeTask(ClientNetwork::RTask *task)
 {
     if(task == Q_NULLPTR)
     {

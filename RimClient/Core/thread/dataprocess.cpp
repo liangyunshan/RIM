@@ -1,6 +1,7 @@
 ﻿#include "dataprocess.h"
 
 #include <QDebug>
+#include <QJsonDocument>
 
 #include "Util/rlog.h"
 #include "rsingleton.h"
@@ -15,8 +16,11 @@ DataProcess::DataProcess()
 
 }
 
-void DataProcess::proRegistResponse(QJsonObject data)
+void DataProcess::proRegistResponse(QJsonObject & data)
 {
+    QJsonDocument document;
+    document.setObject(data);
+
     RegistResponse response;
     if(data.value(JsonKey::key(JsonKey::Status)).toInt() == REGISTER_SUCCESS)
     {
@@ -25,11 +29,12 @@ void DataProcess::proRegistResponse(QJsonObject data)
     }
     else
     {
-        MessDiapatch::instance()->onRecvRegistResponse(REGISTER_SUCCESS,response);
+        ResponseRegister rr = (ResponseRegister)data.value(JsonKey::key(JsonKey::Status)).toInt();
+        MessDiapatch::instance()->onRecvRegistResponse(rr,response);
     }
 }
 
-void DataProcess::proLoginResponse(QJsonObject data)
+void DataProcess::proLoginResponse(QJsonObject &data)
 {
     LoginResponse response;
 

@@ -15,7 +15,7 @@
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "Widgets/toolbar.h"
-#include "riconlabel.h"
+#include "rlabel.h"
 #include "Widgets/widget/rbutton.h"
 
 #include "Widgets/widget.h"

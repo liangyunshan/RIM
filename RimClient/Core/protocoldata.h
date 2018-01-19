@@ -131,7 +131,7 @@ enum ResponseLogin
 //注册结果信息
 enum ResponseRegister
 {
-    REGISTER_SUCCESS,               //注册成功
+    REGISTER_SUCCESS = 0,           //注册成功
     REGISTER_EXIST,                 //账号已存在
     REGISTER_FAILED,                //注册失败
     REGISTER_SERVER_REFUSED         //服务器未响应

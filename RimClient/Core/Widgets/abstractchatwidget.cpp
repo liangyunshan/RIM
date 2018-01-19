@@ -24,7 +24,7 @@
 #include "constants.h"
 #include "toolbar.h"
 #include "Util/rutil.h"
-#include "widget/riconlabel.h"
+#include "widget/rlabel.h"
 #include "widget/rbutton.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"

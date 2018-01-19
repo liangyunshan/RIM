@@ -91,14 +91,12 @@ SOURCES += \
     Widgets/toolbox/toolitem.cpp \
     Widgets/toolbox/toolpage.cpp \
     Widgets/widget/rbutton.cpp \
-    Widgets/widget/riconlabel.cpp \
     Widgets/widget/rmessagebox.cpp \
     Widgets/widget/rtoolbutton.cpp \
     datastruct.cpp \
     global.cpp \
     main.cpp \
     thread/msgreceiveproctask.cpp \
-    thread/rtask.cpp \
     thread/taskmanager.cpp \
     rsingleton.cpp \
     user/userinfofile.cpp \
@@ -109,7 +107,8 @@ SOURCES += \
     Widgets/netsettings.cpp \
     thread/dataprocess.cpp \
     messdiapatch.cpp \
-    jsonkey.cpp
+    jsonkey.cpp \
+    Widgets/widget/rlabel.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -150,7 +149,6 @@ HEADERS  += \
     Widgets/toolbox/toolpage.h \
     Widgets/toolbox/usertoolitem.h \
     Widgets/widget/rbutton.h \
-    Widgets/widget/riconlabel.h \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
     constants.h \
@@ -158,7 +156,6 @@ HEADERS  += \
     global.h \
     head.h \
     thread/msgreceiveproctask.h \
-    thread/rtask.h \
     thread/taskmanager.h \
     rsingleton.h \
     user/userinfofile.h \
@@ -169,13 +166,12 @@ HEADERS  += \
     Widgets/netsettings.h \
     thread/dataprocess.h \
     messdiapatch.h \
-    jsonkey.h
+    jsonkey.h \
+    Widgets/widget/rlabel.h
 
 DISTFILES += \
     Widgets/Widgets.pri
 
-FORMS += \
-    Widgets/logindialog.ui
 
 RESOURCES += \
     resource.qrc

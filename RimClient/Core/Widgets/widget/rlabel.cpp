@@ -1,4 +1,4 @@
-﻿#include "riconlabel.h"
+﻿#include "rlabel.h"
 
 #include <QPainter>
 #include <QColor>
@@ -6,6 +6,29 @@
 
 #include "head.h"
 #include "datastruct.h"
+
+RTextLabel::RTextLabel(QWidget * parent):QLabel(parent)
+{
+
+}
+
+void RTextLabel::enterEvent(QEvent *)
+{
+    setCursor(Qt::PointingHandCursor);
+    setStyleSheet("color:red");
+}
+
+void RTextLabel::leaveEvent(QEvent *)
+{
+    setCursor(Qt::ArrowCursor);
+    setStyleSheet("color:black");
+}
+
+void RTextLabel::mouseReleaseEvent(QMouseEvent *)
+{
+    emit mousePress();
+}
+
 
 class RIconLabelPrivate : public GlobalData<RIconLabel>
 {

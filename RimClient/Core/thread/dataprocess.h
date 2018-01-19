@@ -18,8 +18,8 @@ class DataProcess
 public:
     DataProcess();
 
-    void proRegistResponse(QJsonObject data);
-    void proLoginResponse(QJsonObject data);
+    void proRegistResponse(QJsonObject &data);
+    void proLoginResponse(QJsonObject &data);
 
 private:
 

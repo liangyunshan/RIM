@@ -9,8 +9,7 @@
 #include "jsonkey.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
-    runningFlag(false),
-    RTask(parent)
+    ClientNetwork::RTask(parent)
 {
 
 }
@@ -32,11 +31,6 @@ void MsgReceiveProcTask::startMe()
     {
         G_RecvCondition.wakeOne();
     }
-}
-
-void MsgReceiveProcTask::runMe()
-{
-    RTask::runMe();
 }
 
 void MsgReceiveProcTask::run()
@@ -100,7 +94,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
      * @param[in] obj 数据主体
      * @return 无
      */
-void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject obj)
+void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &obj)
 {
     switch(commandType)
     {

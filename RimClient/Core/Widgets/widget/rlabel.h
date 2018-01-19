@@ -16,12 +16,28 @@
 
 class RIconLabelPrivate;
 
+class RTextLabel : public QLabel
+{
+    Q_OBJECT
+public:
+    explicit RTextLabel(QWidget * parent  = 0);
+
+signals:
+    void mousePress();
+
+protected:
+    void enterEvent(QEvent * event);
+    void leaveEvent(QEvent * event);
+    void mouseReleaseEvent(QMouseEvent *);
+
+};
+
 class RIconLabel : public QLabel
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(RIconLabel)
 public:
-    RIconLabel(QWidget * parent = 0);
+    explicit RIconLabel(QWidget * parent = 0);
 
     void setCorner(bool isCorner = true);
 

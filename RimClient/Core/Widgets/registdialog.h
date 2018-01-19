@@ -27,8 +27,13 @@ public:
     ~RegistDialog();
 
 private slots:
-    void respValidInfo();
+    void respValidInfo(QString info);
+    void connectToServer();
     void recvResponse(ResponseRegister status,RegistResponse resp);
+    void respConnect(bool flag);
+
+protected:
+    void closeEvent(QCloseEvent *event);
 
 private:
     RegistDialogPrivate * d_ptr;

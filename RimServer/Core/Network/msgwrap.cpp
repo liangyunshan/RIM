@@ -52,7 +52,7 @@ QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int er
     obj.insert(JsonKey::key(JsonKey::Type),type);
     obj.insert(JsonKey::key(JsonKey::Command),command);
 
-    obj.insert(JsonKey::key(JsonKey::Status),QJsonValue(errorCode));
+    obj.insert(JsonKey::key(JsonKey::Status),errorCode);
 
     QJsonDocument document;
     document.setObject(obj);

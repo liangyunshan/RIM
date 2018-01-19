@@ -22,7 +22,7 @@ HEADERS += \
     $$PWD/toolbox/toolitem.h \
     $$PWD/toolbox/listbox.h \
     $$PWD/abstractchatwidget.h \
-    $$PWD/widget/riconlabel.h \
+    $$PWD/widget/rlabel.h \
     $$PWD/widget/rbutton.h \
     $$PWD/textedit/simpletextedit.h \
     $$PWD/textedit/complextextedit.h \
@@ -64,7 +64,7 @@ SOURCES += \
     $$PWD/toolbox/toolitem.cpp \
     $$PWD/toolbox/listbox.cpp \
     $$PWD/abstractchatwidget.cpp \
-    $$PWD/widget/riconlabel.cpp \
+    $$PWD/widget/rlabel.cpp \
     $$PWD/widget/rbutton.cpp \
     $$PWD/textedit/simpletextedit.cpp \
     $$PWD/textedit/complextextedit.cpp \
