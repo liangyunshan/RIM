@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui
+QT       += xml
+QT       += sql
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
@@ -110,7 +112,9 @@ SOURCES += \
     msgcontext.cpp \
     thread/dataprocess.cpp \
     messdiapatch.cpp \
-    sql/rimsqlbase.cpp
+    sql/database.cpp \
+    sql/databasemanager.cpp \
+    thread/databasethread.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -171,7 +175,9 @@ HEADERS  += \
     msgcontext.h \
     thread/dataprocess.h \
     messdiapatch.h \
-    sql/rimsqlbase.h
+    sql/database.h \
+    sql/databasemanager.h \
+    thread/databasethread.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -98,6 +98,10 @@ TextUnit::ChatInfoUnit BaseTextEdit::ReadJSONFile(QByteArray byteArray)
         if(doucment.isObject())
         {
             QJsonObject obj = doucment.object();
+            if(obj.contains("UserID"))
+            {
+                unit.user.id = obj.value("UserID").toInt();
+            }
             if(obj.contains("UserName"))
             {
                 unit.user.name = obj.value("UserName").toString();
@@ -175,6 +179,7 @@ int BaseTextEdit::transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJ
 
     // 构建 Json 对象
     QJsonObject Unit;
+    Unit.insert("UserID", unit.user.id);
     Unit.insert("UserName", unit.user.name);
     Unit.insert("UserHead", unit.user.head);
     Unit.insert("RecordTime", unit.time);
@@ -193,6 +198,7 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
     QColor color = this->textColor();
     QString contents = this->toChatFormaText();
 
+    unit.user.id = TestUserId;
     unit.user.name = "Me";  //可以根据当前用户
     unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
     unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");

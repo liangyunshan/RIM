@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<RegistResponse>("RegistResponse");
     qRegisterMetaType<ResponseRegister>("ResponseRegister");
+    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
 
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
