@@ -3,9 +3,11 @@
 #include <QJsonDocument>
 #include <QMutexLocker>
 #include <QDebug>
+#include <QMetaEnum>
 
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
+#include "jsonkey.h"
 
 MsgWrap::MsgWrap()
 {
@@ -33,6 +35,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
         default:
                 break;
     }
+
+    return QByteArray();
 }
 
 /*!
@@ -45,10 +49,10 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
 QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int errorCode)
 {
     QJsonObject obj;
-    obj.insert(context.msgType,type);
-    obj.insert(context.msgCommand,command);
+    obj.insert(JsonKey::key(JsonKey::Type),type);
+    obj.insert(JsonKey::key(JsonKey::Command),command);
 
-    obj.insert(context.msgStatus,QJsonValue(errorCode));
+    obj.insert(JsonKey::key(JsonKey::Status),errorCode);
 
     QJsonDocument document;
     document.setObject(obj);
@@ -59,7 +63,7 @@ QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int er
 QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
 {
     QJsonObject data;
-    data.insert("accountId",packet->accountId);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
 
     return wrappedPack(packet,data);
 }
@@ -68,16 +72,17 @@ QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
 QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 {
     QJsonObject data;
-    data.insert("accountId",packet->accountId);
-    data.insert("nickName",packet->nickName);
-    data.insert("signName",packet->signName);
-    data.insert("sexual",packet->sexual);
-    data.insert("birthday",packet->birthday);
-    data.insert("address",packet->address);
-    data.insert("email",packet->email);
-    data.insert("phoneNumber",packet->phoneNumber);
-    data.insert("desc",packet->desc);
-    data.insert("face",packet->face);
+
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::NickName),packet->nickName);
+    data.insert(JsonKey::key(JsonKey::SignName),packet->signName);
+    data.insert(JsonKey::key(JsonKey::Sexual),packet->sexual);
+    data.insert(JsonKey::key(JsonKey::Birth),packet->birthday);
+    data.insert(JsonKey::key(JsonKey::Address),packet->address);
+    data.insert(JsonKey::key(JsonKey::Email),packet->email);
+    data.insert(JsonKey::key(JsonKey::Phone),packet->phoneNumber);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->desc);
+    data.insert(JsonKey::key(JsonKey::Face),packet->face);
 
     return wrappedPack(packet,data);
 }
@@ -90,11 +95,11 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 QByteArray MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
 {
     QJsonObject obj;
-    obj.insert(context.msgType,packet->msgType);
-    obj.insert(context.msgCommand,packet->msgCommand);
-    obj.insert(context.msgStatus,0);
+    obj.insert(JsonKey::key(JsonKey::Type),packet->msgType);
+    obj.insert(JsonKey::key(JsonKey::Command),packet->msgCommand);
+    obj.insert(JsonKey::key(JsonKey::Status),0);
 
-    obj.insert("data",data);
+    obj.insert(JsonKey::key(JsonKey::Data),data);
 
     QJsonDocument document;
     document.setObject(obj);

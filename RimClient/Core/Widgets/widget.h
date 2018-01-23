@@ -19,7 +19,7 @@
 
 #define WINDOW_MARGIN_SIZE 5             //边距宽度
 #define WINDOW_MARGIN_WIDTH 10           //渐变背景宽度
-#define WINDOW_CURSOR_DETECT_SIZE  8     //鼠标移动在边框移动时检测的范围,最好WINDOW_MARGIN_SIZE与此值一致
+#define WINDOW_CURSOR_DETECT_SIZE  5     //鼠标移动在边框移动时检测的范围,最好WINDOW_MARGIN_SIZE与此值一致
 #define ABSTRACT_TOOL_BAR_HEGIHT 30      //工具栏固定高度
 
 class WidgetPrivate;

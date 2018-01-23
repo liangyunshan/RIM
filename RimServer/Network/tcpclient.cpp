@@ -22,15 +22,32 @@ TcpClient *TcpClient::create()
     return client;
 }
 
+int TcpClient::getPackId()
+{
+    QMutexLocker locker(&packIdMutex);
+    sendPackId++;
+
+    return sendPackId;
+}
+
 TcpClient::TcpClient()
 {
     memset(cIp,0,32);
+
+    sendPackId = qrand()%1024 + 1000;
+
     cSocket = 0;
     cPort = 0;
 }
 
 TcpClient::~TcpClient()
 {
+    QHashIterator<int,PacketBuff*> iter(packetBuffs);
+    while (iter.hasNext())
+    {
+         iter.next();
+         delete iter.value();
+    }
     qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"Delete TcpClient";
 }
 

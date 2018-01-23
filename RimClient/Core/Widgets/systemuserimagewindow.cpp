@@ -10,7 +10,7 @@
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
-#include "widget/riconlabel.h"
+#include "widget/rlabel.h"
 
 class SystemUserImageWindowPrivate : public GlobalData<SystemUserImageWindow>
 {

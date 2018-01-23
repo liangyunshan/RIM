@@ -7,6 +7,8 @@
  *  @date      2017.12.15
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change
+ *      date:20180122 content:添加群分组重命名 name:LYS
  */
 #ifndef PANELGROUPPAGE_H
 #define PANELGROUPPAGE_H
@@ -35,6 +37,9 @@ private slots:
     void viewDetail();
     void modifyGroupInfo();
     void exitGroup();
+
+public slots:
+    void renameEditFinished();
 
 private:
     void createAction();

@@ -27,6 +27,7 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
 
     if(G_BaseAccountId == 0)
     {
+        //Yang 待优化对数据库操作的方式
         QString sql = QString("select %1 from %2 where %3 = '%4'").arg(config.value)
                 .arg(config.table).arg(config.name).arg(config.accuoutId);
         QSqlQuery query(db->sqlDatabase());
@@ -39,6 +40,10 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
             }
         }
     }
+    else
+    {
+        sqlError = false;
+    }
 
     G_BaseAccountId++;
 
@@ -49,7 +54,6 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
         return false;
     }
 
-    //Yang 待优化对数据库操作的方式
     DataTable::User user;
     QString sql = QString("insert into %1 (%2,%3,%4,%5) values ('%6','%7','%8','%9')").arg(user.table)
             .arg(user.id).arg(user.account).arg(user.password).arg(user.nickName)
@@ -59,6 +63,15 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
     if(query.exec(sql))
     {
         id  = QString::number(G_BaseAccountId);
+
+        QString sql = QString("update %1 set %2 = %3 where %4 = '%5'")
+                .arg(config.table).arg(config.value).arg(G_BaseAccountId)
+                .arg(config.name).arg(config.accuoutId);
+        if(query.exec(sql))
+        {
+
+        }
+
         return true;
     }
 

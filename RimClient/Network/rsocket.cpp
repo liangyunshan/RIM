@@ -27,6 +27,7 @@ RSocket::RSocket()
 {
     tcpSocket = 0;
     socketPort = 0;
+    errorCode = 0;
     socketValid = false;
     blockAble = false;
     memset(socketIp,0,sizeof(socketIp));
@@ -51,7 +52,8 @@ bool RSocket::createSocket()
     tcpSocket = socket(AF_INET,SOCK_STREAM,0);
     if(tcpSocket == INVALID_SOCKET)
     {
-        RLOG_ERROR("Create socket failed! [ErrorCode:%d]",WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Create socket failed! [ErrorCode:%d]",errorCode);
         return false;
     }
 
@@ -77,7 +79,8 @@ bool RSocket::bind(const char *ip, unsigned short port)
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        RLOG_ERROR("Bind socket error [%s:%d] [ErrorCode:%d]",ip,port,WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Bind socket error [%s:%d] [ErrorCode:%d]",ip,port,errorCode);
         return false;
     }
 
@@ -100,7 +103,8 @@ bool RSocket::listen()
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        RLOG_ERROR("Listen socket error! [ErrorCode:%d]",WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Listen socket error! [ErrorCode:%d]",errorCode);
         return false;
     }
 
@@ -198,6 +202,7 @@ int RSocket::send(const char *buff, const int length)
         int ret = ::send(tcpSocket,buff+sendLen,length-sendLen,0);
         if (ret <= 0)
         {
+            sendLen = -1;
             break;
         }
         sendLen += ret;
@@ -226,10 +231,8 @@ bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int
 
     setBlock(false);
 
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"1111111111111111";
     if(::connect(tcpSocket,(sockaddr*)&remoteAddr,sizeof(remoteAddr)) != 0)
     {
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"2222222222";
         fd_set set;
         FD_ZERO(&set);
         FD_SET(tcpSocket,&set);
@@ -287,6 +290,11 @@ bool RSocket::setBlock(bool flag)
     }
 #endif
     return true;
+}
+
+int RSocket::getLastError()
+{
+    return errorCode;
 }
 
 }//namespace ServerNetwork

@@ -13,7 +13,6 @@
 #define DATAPARSE_H
 
 #include "Network/head.h"
-#include "msgcontext.h"
 
 #include <QObject>
 #include <QJsonObject>
@@ -35,8 +34,6 @@ private:
     void onProcessUserRegist(Database * db,int socketId,QJsonObject &obj);
     void onProcessUserLogin(Database * db,int socketId, QJsonObject & obj);
 
-private:
-    MsgRequestContext context;
 
 };
 

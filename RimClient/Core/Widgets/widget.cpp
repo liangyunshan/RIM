@@ -88,6 +88,12 @@ void Widget::setShadowWindow(bool flag)
     update();
 }
 
+/*!
+     * @brief 设置窗口是否可移动
+     * @details 默认为true可移动，整个窗口都可以响应移动事件。
+     * @param[in] toolButton 待插入的工具按钮
+     * @return 无
+     */
 void Widget::setWindowsMoveable(bool flag)
 {
     MQ_D(Widget);
@@ -343,6 +349,10 @@ void Widget::leaveEvent(QEvent *)
 
 void Widget::repolish(QWidget *widget)
 {
+    if(!widget)
+    {
+        return;
+    }
     style()->unpolish(widget);
     style()->polish(widget);
 }

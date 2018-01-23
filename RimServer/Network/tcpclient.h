@@ -15,9 +15,46 @@
 #include <QList>
 #include <QString>
 #include <QMutex>
+#include <QLinkedList>
+#include <QHash>
 #include "network_global.h"
 
 namespace ServerNetwork {
+
+//数据包接收缓冲
+struct PacketBuff
+{
+    PacketBuff()
+    {
+        totalPackIndex = 0;
+        recvPackIndex = 0;
+        recvSize = 0;
+        isCompleted = false;
+    }
+
+    ~PacketBuff()
+    {
+    }
+
+    QByteArray getFullData()
+    {
+        QByteArray data;
+        if(isCompleted && recvSize > 0)
+        {
+            while(!buff.isEmpty())
+            {
+                data.append(buff.takeFirst());
+            }
+        }
+        return data;
+    }
+
+    bool isCompleted;                           //该缓冲数据是否完整
+    unsigned int recvSize;                      //接收数据的长度
+    unsigned short totalPackIndex;              //总数据包分包大小
+    unsigned short recvPackIndex;               //已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包
+    QLinkedList<QByteArray> buff;               //存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1
+};
 
 class NETWORKSHARED_EXPORT TcpClient
 {
@@ -27,12 +64,30 @@ public:
     QString ip() const {return QString(cIp);}
     unsigned short port() const {return cPort;}
 
+    QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}
+    QByteArray & getHalfPacketBuff(){return halfPackBufff;}
+
+    void lock(){packBuffMutex.lock();}
+    void unLock(){packBuffMutex.unlock();}
+
+    int getPackId();
+
 private:
     explicit TcpClient();
     ~TcpClient();
     char cIp[32];
     unsigned short cPort;
     int cSocket;
+
+    /*!
+       @details 因为IOCP接收数据后，将数据从缓冲区拷贝至对应的缓冲区之后，才进行下一次的接收投递请求。
+                这样即时断包，断的数据也是从头部截断，下一次读取数据后，发现头部不完整，则只需要从断包缓冲区将信息拿出拼接至此次数据头部即可。
+    */
+    QByteArray halfPackBufff;                       //非完整包缓冲区
+    QHash<int,PacketBuff*> packetBuffs;             //多包缓冲区
+    QMutex packBuffMutex;
+    QMutex packIdMutex;
+    int sendPackId;                                 //每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。
 
     friend class TcpClientManager;
 };
