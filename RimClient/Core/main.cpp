@@ -16,6 +16,7 @@
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
 #include "protocoldata.h"
+#include "global.h"
 using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
@@ -128,6 +129,28 @@ int main(int argc, char *argv[])
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
+
+//    QDateTime dt = QDateTime::currentDateTime();
+//    qsrand(dt.time().msec() + dt.time().second()*1000);
+//    TcpSocket socket;
+//    if(socket.createSocket())
+//    {
+//        if(socket.connect("127.0.0.1",8023))
+//        {
+//           MsgSender * sender = new MsgSender(socket);
+//           sender->startMe();
+
+//           MsgReceive * receive = new MsgReceive(socket);
+//           receive->startMe();
+//        }
+//    }
+
+    G_Temp_Picture_Path = QString("%1/%2").arg(qApp->applicationDirPath()).arg("temp");
+    QDir dir(G_Temp_Picture_Path);
+    if(!dir.exists())
+    {
+        dir.mkdir(G_Temp_Picture_Path);
+    }
 
     LoginDialog dialog;
     dialog.show();

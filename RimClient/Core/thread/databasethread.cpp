@@ -41,9 +41,6 @@ void DatabaseThread::run()
         while (!m_TaskQueue.isEmpty())
         {
             TaskQueue task = m_TaskQueue.head();
-            qDebug()<<__FILE__<<__LINE__<<"\n"
-                   <<""<<task.id<<task.cmd<<database
-                  <<"\n";
             if(database)
             {
                 TextUnit::ChatInfoUnitList list;
