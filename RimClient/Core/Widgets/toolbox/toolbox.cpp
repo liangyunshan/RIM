@@ -117,6 +117,14 @@ int ToolBox::pageCount()
     return d->pages.size();
 }
 
+void ToolBox::testMe()
+{
+    for(int i = 0; i < pageCount(); i++)
+    {
+
+    }
+}
+
 void ToolBox::setContextMenu(QMenu *menu)
 {
     MQ_D(ToolBox);

@@ -31,6 +31,12 @@ TcpClient::TcpClient()
 
 TcpClient::~TcpClient()
 {
+    QHashIterator<int,PacketBuff*> iter(packetBuffs);
+    while (iter.hasNext())
+    {
+         iter.next();
+         delete iter.value();
+    }
     qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"Delete TcpClient";
 }
 

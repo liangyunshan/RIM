@@ -11,6 +11,22 @@
 
 namespace ServerNetwork {
 
+#define MAGIC_NUM 0x7DBCD6AC
+
+struct DataPacket
+{
+    DataPacket()
+    {
+        magicNum = MAGIC_NUM;
+    }
+    unsigned int magicNum;                   //魔数，0x7DBCD6AC
+    unsigned int packId;                     //数据包身份，一个id可对应多个帧，也可以有一个帧
+    unsigned int currentIndex;               //当前帧
+    unsigned int totalIndex;                 //总帧数量
+    unsigned int currentLen;                 //当前数据长度
+    unsigned int totalLen;                   //总数据长度
+};
+
 WorkThread::WorkThread(SharedIocpData *data):
     serverSharedData(data)
 {
@@ -80,24 +96,163 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
 {
     ioData->getPakcet()[recvLen] = 0;
 
-    G_RecvMutex.lock();
+    int lastRecvBuffSize = ioData->getClient()->getHalfPacketBuff().size();
 
-    SocketInData socketData;
-    socketData.sockId = ioData->getClient()->socket();
+    if(lastRecvBuffSize > 0)
+    {
+        int tmpBuffLen = lastRecvBuffSize + recvLen + 1;
+        char * dataBuff = new char[tmpBuffLen];
+        memset(dataBuff,0,tmpBuffLen * sizeof(char));
 
-    socketData.data.resize(recvLen);
-    memcpy(socketData.data.data(),ioData->getPakcet(),recvLen);
+        memcpy(dataBuff,ioData->getClient()->getHalfPacketBuff(),lastRecvBuffSize);
+        memcpy(dataBuff + lastRecvBuffSize,ioData->getPakcet(),recvLen);
 
-    G_RecvButts.enqueue(socketData);
+        ioData->getClient()->getHalfPacketBuff().clear();
 
-    G_RecvMutex.unlock();
+        processRecvData(dataBuff,lastRecvBuffSize + recvLen,ioData);
 
-    G_RecvCondition.wakeOne();
+        delete[] dataBuff;
+    }
+    else
+    {
+        processRecvData(ioData->getPakcet(),recvLen,ioData);
+    }
 
     DWORD dwRecv = 0;
     DWORD dwFlags = 0;
 
     int ret = WSARecv(tcpClient->socket(),&(ioData->getWSABUF()), 1, &dwRecv, &dwFlags,&(ioData->getOverLapped()), NULL);
+}
+
+void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData)
+{
+    DataPacket packet;
+    memset((char *)&packet,0,sizeof(DataPacket));
+
+    if(recvLen > sizeof(DataPacket))
+    {
+        memcpy((char *)&packet,recvData,sizeof(DataPacket));
+        //[1]数据头部分正常
+        if(packet.magicNum == MAGIC_NUM)
+        {
+            SocketInData socketData;
+            socketData.sockId = ioData->getClient()->socket();
+
+            int processLen = sizeof(DataPacket);
+            do
+            {
+                //[1.1]至少存在多余一个完整数据包
+                if(packet.currentLen <= recvLen - processLen)
+                {
+                    //[1.1.1]一包数据
+                    if(packet.totalIndex == 1)
+                    {
+                        socketData.data.resize(packet.currentLen);
+                        memcpy(socketData.data.data(),recvData + processLen,packet.currentLen);
+
+                        G_RecvMutex.lock();
+                        G_RecvButts.enqueue(socketData);
+                        G_RecvMutex.unlock();
+
+                        G_RecvCondition.wakeOne();
+                    }
+                    //[1.1.2]多包数据(只保存数据部分)
+                    else
+                    {
+                       QByteArray data;
+                       data.resize(packet.currentLen);
+                       memcpy(data.data(),ioData->getPakcet() + processLen,packet.currentLen);
+
+                       ioData->getClient()->lock();
+                       if(ioData->getClient()->getPacketBuffs().size() == 0)
+                       {
+                            PacketBuff * buff = new PacketBuff;
+                            buff->totalPackIndex = packet.totalIndex;
+                            buff->recvPackIndex += 1;
+                            buff->recvSize += packet.currentLen;
+                            buff->buff.append(data);
+
+                            ioData->getClient()->getPacketBuffs().insert(packet.packId,buff);
+                       }
+                       else
+                       {
+                            PacketBuff * buff = ioData->getClient()->getPacketBuffs().value(packet.packId,NULL);
+                            if(buff)
+                            {
+                                buff->buff.append(data);
+                                buff->recvSize += packet.currentLen;
+                                buff->recvPackIndex += 1;
+                                if(buff->recvPackIndex == buff->totalPackIndex)
+                                {
+                                    buff->isCompleted = true;
+
+                                    socketData.data.append(buff->getFullData());
+
+                                    ioData->getClient()->getPacketBuffs().remove(packet.packId);
+                                    delete buff;
+
+                                    G_RecvMutex.lock();
+                                    G_RecvButts.enqueue(socketData);
+                                    G_RecvMutex.unlock();
+
+                                    G_RecvCondition.wakeOne();
+                                }
+                            }
+                       }
+                       ioData->getClient()->unLock();
+                    }
+                    processLen += packet.currentLen;
+
+                    //[1.1.3]
+                    int leftLen = recvLen - processLen;
+
+                    if(leftLen == 0)
+                    {
+                        break;
+                    }
+
+                    if(leftLen >= sizeof(DataPacket))
+                    {
+                        memcpy(&packet,recvData + processLen,sizeof(DataPacket));
+                        processLen += sizeof(DataPacket);
+                    }
+                    else
+                    {
+                        //[1.1.3.1]【信息被截断】
+                        memcpy(&packet,recvData + processLen,leftLen);
+                        //FIXME 可能存在死锁问题
+                        ioData->getClient()->lock();
+                        ioData->getClient()->getHalfPacketBuff().clear();
+                        ioData->getClient()->getHalfPacketBuff().append((char *)&packet,leftLen);
+                        ioData->getClient()->unLock();
+
+                        processLen += leftLen;
+                    }
+                }
+                //[1.2]【信息被截断】
+                else
+                {
+                    int leftLen = recvLen - sizeof(DataPacket);
+
+                    memcpy(&packet,recvData + processLen,leftLen);
+
+                    //FIXME 可能存在死锁问题
+                    ioData->getClient()->lock();
+                    ioData->getClient()->getHalfPacketBuff().clear();
+                    ioData->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(DataPacket));
+                    ioData->getClient()->getHalfPacketBuff().append(recvData+sizeof(DataPacket),leftLen);
+                    ioData->getClient()->unLock();
+
+                    processLen += leftLen;
+                }
+
+            }while(processLen < recvLen);
+        }
+        else
+        {
+            qDebug()<<"Recv Error Packet";
+        }
+    }
 }
 
 void WorkThread::handleAccept(IocpContext *ioData)

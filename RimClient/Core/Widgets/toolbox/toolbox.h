@@ -33,6 +33,8 @@ public:
 
     int pageCount();
 
+    void testMe();
+
     void setContextMenu(QMenu * menu);
 
     const QStringList toolPageSNames();

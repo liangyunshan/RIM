@@ -17,6 +17,9 @@
 #include "rtask.h"
 #include "rsocket.h"
 
+#define MAX_PACKET 1024                  //发送数据时一次最大数据长度(不包括前后的控制信息)
+#define MAX_SEND_BUFF (MAX_PACKET + 24)
+
 namespace ClientNetwork{
 
 class NETWORKSHARED_EXPORT MsgSender : public RTask
@@ -41,6 +44,8 @@ private:
 
 private:
     RSocket* tcpSocket;
+
+    char sendBuff[MAX_SEND_BUFF];
 };
 
 }
