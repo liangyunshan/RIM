@@ -109,7 +109,8 @@ SOURCES += \
     Widgets/netsettings.cpp \
     msgcontext.cpp \
     thread/dataprocess.cpp \
-    messdiapatch.cpp
+    messdiapatch.cpp \
+    panelList/contactslistpage.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -169,7 +170,8 @@ HEADERS  += \
     Widgets/netsettings.h \
     msgcontext.h \
     thread/dataprocess.h \
-    messdiapatch.h
+    messdiapatch.h \
+    panelList/contactslistpage.h
 
 DISTFILES += \
     Widgets/Widgets.pri

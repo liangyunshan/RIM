@@ -7,6 +7,10 @@
  *  @date      2017.12.15
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change
+ *      date:20180118 content:添加联系人分组重命名 name:LYS
+ *      date:20180122 content:添加移动联系人至其他分组功能 name:LYS
+ *
  */
 #ifndef PANELPERSONPAGE_H
 #define PANELPERSONPAGE_H
@@ -36,6 +40,9 @@ private slots:
     void showUserDetail();
     void modifyUserInfo();
     void deleteUser();
+
+public slots:
+    void renameEditFinished();
 
 private:
     void createAction();

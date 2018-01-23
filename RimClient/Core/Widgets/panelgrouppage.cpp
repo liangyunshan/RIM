@@ -1,5 +1,6 @@
 ﻿#include "panelgrouppage.h"
 
+#include <QLineEdit>
 #include <QHBoxLayout>
 
 #include "head.h"
@@ -25,6 +26,7 @@ public:
     ToolBox * toolBox;
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
+    QLineEdit *tmpNameEdit;     //重命名时用edit
 
     PanelGroupPage * q_ptr;
 
@@ -48,6 +50,12 @@ void PanelGroupPagePrivate::initWidget()
     contentLayout->setSpacing(0);
     contentLayout->addWidget(toolBox);
     contentWidget->setLayout(contentLayout);
+
+    tmpNameEdit = new QLineEdit(toolBox);
+    QObject::connect(tmpNameEdit,SIGNAL(editingFinished()),q_ptr,SLOT(renameEditFinished()));
+    tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
+    tmpNameEdit->hide();
+
 }
 
 PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
@@ -55,20 +63,20 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
 {
     createAction();
 
-//    ToolPage * page = d_ptr->toolBox->addPage("我的群");
-//    d_ptr->pages.append(page);
-//    for(int i = 0; i < 5;i++)
-//    {
-//        ToolItem * item = new ToolItem(page);
-//        connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
-//        item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLITEM));
-//        item->setName("天地仁谷");
-//        item->setNickName("(16人)");
-//        page->addItem(item);
-//        d_ptr->toolItems.append(item);
-//    }
+    ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的群"));
+    d_ptr->pages.append(page);
+    for(int i = 0; i < 5;i++)
+    {
+        ToolItem * item = new ToolItem(page);
+        connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
+        item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLITEM));
+        item->setName(QStringLiteral("天地仁谷"));
+        item->setNickName(QStringLiteral("(16人)"));
+        page->addItem(item);
+        d_ptr->toolItems.append(item);
+    }
 
-//    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
+    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
 }
 
 PanelGroupPage::~PanelGroupPage()
@@ -91,9 +99,29 @@ void PanelGroupPage::addGroups()
 
 }
 
+/*!
+     * @brief 重命名分组
+     *
+     * @param[in] 无
+     *
+     * @return 无
+     *
+     */
 void PanelGroupPage::renameGroup()
 {
-
+    MQ_D(PanelGroupPage);
+    ToolPage * page = d->toolBox->selectedPage();
+    if(page)
+    {
+        QRect textRec = page->textRect();
+        QRect pageRec = page->geometry();
+        d->tmpNameEdit->raise();
+        d->tmpNameEdit->setText(tr("untitled"));
+        d->tmpNameEdit->selectAll();
+        d->tmpNameEdit->setGeometry(textRec.x(),textRec.y(),pageRec.width(),textRec.height());
+        d->tmpNameEdit->show();
+        d->tmpNameEdit->setFocus();
+    }
 }
 
 void PanelGroupPage::deleteGroup()
@@ -119,6 +147,25 @@ void PanelGroupPage::modifyGroupInfo()
 void PanelGroupPage::exitGroup()
 {
 
+}
+
+/*!
+     * @brief LineEdit中命名完成后将内容设置为page的name
+     *
+     * @param[in] 无
+     *
+     * @return 无
+     *
+     */
+void PanelGroupPage::renameEditFinished()
+{
+    MQ_D(PanelGroupPage);
+    if(d->tmpNameEdit->text() != NULL)
+    {
+        d->toolBox->selectedPage()->setToolName(d->tmpNameEdit->text());
+    }
+    d->tmpNameEdit->setText("");
+    d->tmpNameEdit->hide();
 }
 
 

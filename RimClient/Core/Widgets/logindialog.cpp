@@ -96,12 +96,12 @@ void LoginDialog::login()
 
     int index = -1;
 
-    if(!RSingleton<NetConnector>::instance()->connect())
-    {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
-        return;
-    }
+//    if(!RSingleton<NetConnector>::instance()->connect())
+//    {
+//        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+//        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+//        return;
+//    }
 
     LoginRequest * request = new LoginRequest();
     request->accountId = ui->userList->currentText();

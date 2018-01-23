@@ -57,5 +57,42 @@ struct UserInfoDesc
     friend QDataStream & operator >>(QDataStream & stream,UserInfoDesc & desc);
 };
 
+namespace FriendList {
+    /*!
+      @brief 好友状态
+    */
+    enum UserState
+    {
+        STATE_ONLINE,       //在线
+        STATE_OFFLINE,      //离线
+        STATE_BUSY,         //忙碌
+        STATE_HIDE,         //隐身
+        STATE_NODISTURB,    //请勿打扰
+    };
+
+    /*!
+      @brief 好友信息
+    */
+    struct FriendInfo
+    {
+        QString account;    //账户
+        QString nickName;   //昵称
+        QString remark;     //备注
+        QString signName;   //签名
+        QString headId;     //头像
+        UserState state;    //在线状态
+    };
+
+    /*!
+      @brief 分组信息
+    */
+    struct GroupInfo
+    {
+        bool  ifFold;                   //当前是否折叠
+        QString groupName;              //分组名称
+        QList <FriendInfo> contents;    //分组中内容
+    };
+}
+
 
 #endif // DATASTRUCT_H
