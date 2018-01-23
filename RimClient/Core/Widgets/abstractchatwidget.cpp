@@ -17,6 +17,8 @@
 #include <QFontDialog>
 #include <QColorDialog>
 #include <QRgb>
+#include <QClipboard>
+#include <QMimeData>
 //
 
 #include "head.h"
@@ -224,16 +226,31 @@ void AbstractChatWidgetPrivate::initWidget()
     screenShotButt->setToolTip(QObject::tr("Screenshot"));
     screenShotButt->setPopupMode(QToolButton::InstantPopup);
 
-    QMenu * screenShotMenu = ActionManager::instance()->createMenu(Constant::MENU_CHAT_SCREEN_SHOT);
+    //wey
+//    QMenu * screenShotMenu = ActionManager::instance()->createMenu(Constant::MENU_CHAT_SCREEN_SHOT);
 
-    QAction * screenShotAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_SHOT);
-    ActionManager::instance()->registShortAction(screenShotAction,QKeySequence("Ctrl+Alt+A"));
-    screenShotAction->setText(QObject::tr("Screenshot"));
+//    QAction * screenShotAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_SHOT);
+//    ActionManager::instance()->registShortAction(screenShotAction,QKeySequence("Ctrl+Alt+A"));
+//    screenShotAction->setText(QObject::tr("Screenshot"));
 
-    QAction * hideWindowAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_HIDEWIDOW);
-    hideWindowAction->setText(QObject::tr("Hide current window while screenshot "));
+//    QAction * hideWindowAction = ActionManager::instance()->createAction(Constant::ACTION_CHAT_SCREEN_HIDEWIDOW);
+//    hideWindowAction->setText(QObject::tr("Hide current window while screenshot "));
+//    hideWindowAction->setCheckable(true);
+    //
+
+    //shangchao
+    QMenu * screenShotMenu = new QMenu(q_ptr);
+    screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
+
+    QAction * screenShotAction = new QAction(QObject::tr("Screenshot"),q_ptr);
+    screenShotAction->setObjectName(this->windowId + "Screenshot");
+    screenShotAction->setShortcut(QKeySequence("Ctrl+Alt+A"));
+
+    QAction * hideWindowAction = new QAction(QObject::tr("Hide current window while screenshot "),q_ptr);
+    hideWindowAction->setObjectName(this->windowId + "HideScreenshot");
     hideWindowAction->setCheckable(true);
-
+    hideWindowAction->setChecked(false);
+    //
     screenShotMenu->addAction(screenShotAction);
     screenShotMenu->addAction(hideWindowAction);
 
@@ -261,6 +278,8 @@ void AbstractChatWidgetPrivate::initWidget()
     //ShangChao
     QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
     QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
+    QObject::connect(screenShotAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShot(bool)));
+    QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
     //
 
     /**********聊天内容输入框***************/
@@ -366,6 +385,9 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr->chatInputArea->setFocus();
 
     initChatRecord();
+    p_shotProcess = NULL;
+    p_shotTimer = NULL;
+    b_isScreeHide = false;
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
@@ -374,6 +396,16 @@ AbstractChatWidget::~AbstractChatWidget()
 {
     RSingleton<Subject>::instance()->detach(this);
     delete d_ptr;
+    if(p_shotProcess)
+    {
+        delete p_shotProcess;
+        p_shotProcess = NULL;
+    }
+    if(p_shotTimer)
+    {
+        delete p_shotTimer;
+        p_shotTimer = NULL;
+    }
 }
 
 QString AbstractChatWidget::widgetId()
@@ -389,7 +421,6 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 
     //TODO:将记录写入到数据库
     DatabaseManager::Instance()->insertTableUserChatInfo(readJson);
-
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -468,6 +499,67 @@ void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
     d_ptr->chatInputArea->setTextColor(color);
 }
 
+//截图
+void AbstractChatWidget::slot_ScreenShot(bool flag)
+{
+    Q_UNUSED(flag)
+    if(p_shotProcess==NULL)
+    {
+        p_shotProcess = new QProcess();
+        QObject::connect(p_shotProcess,SIGNAL(finished(int, QProcess::ExitStatus)),
+                         this,SLOT(slot_ScreenShot_Ready(int, QProcess::ExitStatus)));
+    }
+    if(b_isScreeHide)
+    {
+        if(p_shotTimer == NULL)
+        {
+            p_shotTimer = new QTimer();
+            QObject::connect(p_shotTimer,SIGNAL(timeout()),this,SLOT(slot_ScreenTimeout()));
+        }
+        this->showMinimized();
+        p_shotTimer->start(0.1*1000);
+    }
+    else
+    {
+        p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
+    }
+
+}
+
+//截图完成
+void AbstractChatWidget::slot_ScreenShot_Ready(int finish, QProcess::ExitStatus exitStatus)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+    if(mimeData->hasImage())
+    {
+        d_ptr->chatInputArea->insertCopyImage(clipboard->image());
+    }
+    if(this->isMinimized())
+    {
+        this->setAttribute(Qt::WA_AlwaysStackOnTop);
+        this->showNormal();
+        this->raise();
+        this->activateWindow();
+//        this->setAttribute(Qt::WA_AlwaysStackOnTop,false);
+    }
+}
+
+//截屏时聊天界面是否隐藏
+void AbstractChatWidget::slot_ScreenShotHide(bool flag)
+{
+    b_isScreeHide = flag;
+}
+
+void AbstractChatWidget::slot_ScreenTimeout()
+{
+    p_shotTimer->stop();
+    if(p_shotProcess)
+    {
+        p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
+    }
+}
+
 //点击发送按钮，发送聊天编辑区域的信息
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
@@ -528,6 +620,12 @@ void AbstractChatWidget::resizeEvent(QResizeEvent *)
     MQ_D(AbstractChatWidget);
     d->windowToolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - 3 * WINDOW_MARGIN_SIZE,Constant::TOOL_WIDTH);
 }
+
+//void AbstractChatWidget::showEvent(QShowEvent *event)
+//{
+//    this->setAttribute(Qt::WA_Mapped);
+//    QWidget::showEvent(event);
+//}
 
 void AbstractChatWidget::switchWindowSize()
 {

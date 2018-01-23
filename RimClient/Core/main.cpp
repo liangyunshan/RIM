@@ -18,6 +18,7 @@
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
 #include "protocoldata.h"
+#include "global.h"
 using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
@@ -138,6 +139,13 @@ int main(int argc, char *argv[])
 //           receive->startMe();
 //        }
 //    }
+
+    G_Temp_Picture_Path = QString("%1/%2").arg(qApp->applicationDirPath()).arg("temp");
+    QDir dir(G_Temp_Picture_Path);
+    if(!dir.exists())
+    {
+        dir.mkdir(G_Temp_Picture_Path);
+    }
 
     LoginDialog dialog;
     dialog.show();
