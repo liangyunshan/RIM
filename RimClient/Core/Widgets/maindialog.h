@@ -21,6 +21,7 @@ class PanelBottomToolBar;
 class PanelContentArea;
 class PanelTopArea;
 class ToolItem;
+class DatabaseManager;
 
 class MainDialog : public Widget,public Observer
 {
@@ -53,10 +54,12 @@ private:
     void initWidget();
     void readSettings();
     void writeSettings();
+    void initSqlDatabase();
 
 private:
     static MainDialog * dialog;
     MainDialogPrivate * d_ptr;
+    DatabaseManager *p_dbManager;
 };
 
 #endif // MAINDIALOG_H

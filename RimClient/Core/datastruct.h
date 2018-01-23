@@ -57,5 +57,84 @@ struct UserInfoDesc
     friend QDataStream & operator >>(QDataStream & stream,UserInfoDesc & desc);
 };
 
+const int TestUserId = 123456;
+namespace TextUnit {
+    enum ShowType{
+        Type_OnlyHead = 0,
+        Type_NotOnlyHead ,
+    };
+    enum BaseTextEditType{
+        Type_Default = 0,           //编辑器类型:默认
+        Type_UserHead_Friend,       //编辑器类型:用户头
+        Type_UserHead_Me ,          //编辑器类型:用户头
+        Type_ChatDetail ,           //编辑器类型:聊天内容
+        Type_RecordTime ,           //编辑器类型:记录时间
+        Type_Tip                    //编辑器类型:提示信息
+    };
+
+    struct UserInfo{
+        int id;
+        QString name;
+        QString head;
+    };//用户描述
+
+    const char ChatFormatType_Text[] = "Text";
+    const char ChatFormatType_Emoj[] = "Emoj";
+    const char ChatFormatType_Image[] = "Image";
+
+    struct UserChatFont{
+        QString fontName;
+        qint32  fontSize;
+        bool    fontIsBold;
+        bool    fontIsItalic;
+        bool    fontIsUnderline;
+        qint64  fontColorRGBA;
+
+        UserChatFont (){
+            fontName = "Unknown";
+            fontSize = 0;
+            fontIsBold = false;
+            fontIsItalic = false;
+            fontIsUnderline = false;
+            fontColorRGBA = 0x00000000;
+        }
+    };//聊天内容字体描述
+
+    struct ChatInfoUnit{
+        UserInfo user;
+        QString time;
+        UserChatFont font;
+        QString contents;
+
+        ChatInfoUnit (){
+            user.name = "Unknown";
+            user.head = "Unknown";
+            time = "";
+            contents = "";
+        }
+    };//一条聊天记录描述
+
+    enum ParseType{
+        Parase_Send,    //解析本地的控件的html
+        Parase_Recv     //解析网络端发送来的html
+    };//聊天数据包解析类型,替换图形为字符串数据
+
+    typedef QList<ChatInfoUnit> ChatInfoUnitList;
+
+    const QString _Sql_Table_01_Name_ = "UserList";
+    const QString _Sql_UserList_UserId_ = "UserId";
+    const QString _Sql_UserList_UserName_ = "UserName";
+
+    const QString _Sql_Table_02_Name_ = "User_";
+    const QString _Sql_User_UserId_ = "UserId";
+    const QString _Sql_User_UserName_ = "UserName";
+    const QString _Sql_User_Userhead_ = "Userhead";
+    const QString _Sql_User_RecordTime_ = "RecordTime";
+    const QString _Sql_User_RecordContents_ = "RecordContents";
+    const QString _Sql_User_RecordTxt_ = "RecordTxt";
+
+    const unsigned short DefaultQueryRow = 5;  //默认查找的记录数
+}
+
 
 #endif // DATASTRUCT_H

@@ -35,6 +35,8 @@
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
+#include "thread/databasethread.h"
+#include "sql/databasemanager.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -363,6 +365,8 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr->windowToolBar->installEventFilter(this);
     d_ptr->chatInputArea->setFocus();
 
+    initChatRecord();
+
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
 }
 
@@ -376,6 +380,16 @@ QString AbstractChatWidget::widgetId()
 {
     MQ_D(AbstractChatWidget);
     return d->windowId;
+}
+
+void AbstractChatWidget::recvChatMsg(QByteArray msg)
+{
+    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(msg);
+    d_ptr->chatArea->insertMeChatText(readJson);
+
+    //TODO:将记录写入到数据库
+    DatabaseManager::Instance()->insertTableUserChatInfo(readJson);
+
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -466,13 +480,22 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     }
     TextUnit::ChatInfoUnit unit;
     d_ptr->chatInputArea->transTextToUnit(unit);
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<"*****************"
-          <<"\n";
-    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(d_ptr->chatInputArea->WriteJSONFile(unit));
-
-    d_ptr->chatArea->insertMeChatText(readJson);
+    QByteArray msg = d_ptr->chatInputArea->WriteJSONFile(unit);
     d_ptr->chatInputArea->clear();
+
+    //TODO: 发送数据到网络
+
+    //模拟测试已经接收到数据
+    recvChatMsg(msg);
+}
+
+//响应数据库线程查询结果
+void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
+{
+    foreach(TextUnit::ChatInfoUnit unit,list)
+    {
+        d_ptr->chatArea->insertMeChatText(unit);
+    }
 }
 
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
@@ -529,5 +552,19 @@ void AbstractChatWidget::switchWindowSize()
     d->isMaxSize = !d->isMaxSize;
 
     setShadowWindow(!isMaximized());
+}
+
+void AbstractChatWidget::initChatRecord()
+{
+    p_DatabaseThread = new DatabaseThread(this);
+    p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
+
+    connect(p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
+            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
+    connect(p_DatabaseThread,SIGNAL(finished()),
+            p_DatabaseThread,SLOT(deleteLater()));
+    p_DatabaseThread->start();
+
+    p_DatabaseThread->addSqlQueryTask(TestUserId,DatabaseManager::Instance()->querryRecords(TestUserId,5));
 }
 

@@ -26,6 +26,9 @@
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
 
+//shangchao
+#include "sql/databasemanager.h"
+
 #define PANEL_MARGIN 20
 
 class MainDialogPrivate : public GlobalData<MainDialog>
@@ -68,6 +71,7 @@ MainDialog::MainDialog(QWidget *parent) :
     dialog = this;
     RSingleton<Subject>::instance()->attach(this);
 
+    initSqlDatabase();
     initWidget();
 }
 
@@ -90,6 +94,11 @@ MainDialog::~MainDialog()
     }
 
     RSingleton<ShortcutSettings>::instance()->save();
+    if(p_dbManager)
+    {
+        delete p_dbManager;
+        p_dbManager = NULL;
+    }
 }
 
 MainDialog *MainDialog::instance()
@@ -342,4 +351,13 @@ void MainDialog::writeSettings()
     RUtil::globalSettings()->setValue(Constant::SETTING_Y,rect.y());
     RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,rect.width());
     RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,rect.height());
+}
+
+void MainDialog::initSqlDatabase()
+{
+    //shangchao
+    p_dbManager = new DatabaseManager();
+    p_dbManager->setConnectInfo("localhost","./rimclient.db","root","rengu123456");
+    p_dbManager->setDatabaseType("QSQLITE");
+    p_dbManager->newDatabase("sqlite1234");
 }

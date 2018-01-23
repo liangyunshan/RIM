@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui
+QT       += xml
+QT       += sql
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
@@ -107,6 +109,9 @@ SOURCES += \
     Widgets/netsettings.cpp \
     thread/dataprocess.cpp \
     messdiapatch.cpp \
+    sql/database.cpp \
+    sql/databasemanager.cpp \
+    thread/databasethread.cpp
     jsonkey.cpp \
     Widgets/widget/rlabel.cpp
 
@@ -166,6 +171,9 @@ HEADERS  += \
     Widgets/netsettings.h \
     thread/dataprocess.h \
     messdiapatch.h \
+    sql/database.h \
+    sql/databasemanager.h \
+    thread/databasethread.h
     jsonkey.h \
     Widgets/widget/rlabel.h
 

@@ -157,7 +157,7 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
     QImage image(record.user.head);
     image = image.scaled(fontheight,fontheight);
 
-    QString me = QObject::tr("%1 %2").arg(record.user.name).arg(record.time);
+    QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
     this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
     //
 

@@ -15,6 +15,7 @@
 #include "observer.h"
 
 class AbstractChatWidgetPrivate;
+class DatabaseThread;
 
 class AbstractChatWidget : public Widget , public Observer
 {
@@ -25,6 +26,7 @@ public:
     ~AbstractChatWidget();
 
     QString widgetId();
+    void recvChatMsg(QByteArray);
 
     void onMessage(MessageType type);
 
@@ -35,6 +37,7 @@ private slots:
     void slot_SetChatEditFont(bool flag);
     void slot_SetChatEditFontColor(bool flag);
     void slot_ButtClick_SendMsg(bool flag);
+    void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     //
 
 protected:
@@ -43,9 +46,13 @@ protected:
 
 private:
     void switchWindowSize();
+    //shangchao
+    void initChatRecord();
+    //
 
 private:
     AbstractChatWidgetPrivate * d_ptr;
+    DatabaseThread * p_DatabaseThread;
 };
 
 #endif // ABSTRACTCHATWIDGET_H
