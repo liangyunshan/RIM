@@ -11,33 +11,36 @@
 #ifndef MSGSENDER_H
 #define MSGSENDER_H
 
-#include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
 
+#include "rtask.h"
 #include "rsocket.h"
 
 namespace ClientNetwork{
 
-class NETWORKSHARED_EXPORT MsgSender : public QThread
+class NETWORKSHARED_EXPORT MsgSender : public RTask
 {
     Q_OBJECT
 public:
-    explicit MsgSender(RSocket socket,QThread * parent = 0);
+    explicit MsgSender(QThread * parent = 0);
+
+    void setSock(RSocket *sock);
 
     void startMe();
-    void setRunning(bool flag);
+    void stopMe();
+
+signals:
+    void socketError(int errorCode);
 
 protected:
     void run();
 
 private:
-    void handleDataSend(QByteArray & data);
+    bool handleDataSend(QByteArray & data);
 
 private:
-    RSocket socket;
-
-    bool runningFlag;
+    RSocket* tcpSocket;
 };
 
 }

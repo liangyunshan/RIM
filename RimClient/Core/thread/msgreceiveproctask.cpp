@@ -6,10 +6,10 @@
 #include "dataprocess.h"
 #include "rsingleton.h"
 #include "head.h"
+#include "jsonkey.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
-    runningFlag(false),
-    RTask(parent)
+    ClientNetwork::RTask(parent)
 {
 
 }
@@ -31,11 +31,6 @@ void MsgReceiveProcTask::startMe()
     {
         G_RecvCondition.wakeOne();
     }
-}
-
-void MsgReceiveProcTask::runMe()
-{
-    RTask::runMe();
 }
 
 void MsgReceiveProcTask::run()
@@ -75,10 +70,10 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 //        int magicNum =  root.value(context.magicNum).toInt();
 //        if(magicNum == 0xABCDDCBA)
         {
-            switch(root.value(context.msgType).toInt())
+            switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
             {
                 case MSG_CONTROL:
-                                    handleCommandMsg((MsgCommand)root.value(context.msgCommand).toInt(),root.value(context.msgData).toObject());
+                                    handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root.value(JsonKey::key(JsonKey::Data)).toObject());
                                     break;
                 case MSG_TEXT:
                                 break;
@@ -99,7 +94,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
      * @param[in] obj 数据主体
      * @return 无
      */
-void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject obj)
+void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &obj)
 {
     switch(commandType)
     {

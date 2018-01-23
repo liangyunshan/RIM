@@ -2,22 +2,38 @@
 
 #include <QtGlobal>
 
+#include <QDebug>
+
+#ifdef Q_OS_WIN
+#include <winsock2.h>
+#include <windows.h>
+typedef  int socklen_t;
+#elif defined(Q_OS_UNIX)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#define closesocket close
+#endif
+
 #include "Util/rlog.h"
 
 #pragma  comment(lib,"ws2_32.lib")
 
 namespace ServerNetwork {
 
-Socket::Socket()
+RSocket::RSocket()
 {
     tcpSocket = 0;
     socketPort = 0;
+    errorCode = 0;
     socketValid = false;
     blockAble = false;
     memset(socketIp,0,sizeof(socketIp));
 }
 
-bool Socket::createSocket()
+bool RSocket::createSocket()
 {
 #ifdef Q_OS_WIN
     static bool isInit = false;
@@ -36,7 +52,8 @@ bool Socket::createSocket()
     tcpSocket = socket(AF_INET,SOCK_STREAM,0);
     if(tcpSocket == INVALID_SOCKET)
     {
-        RLOG_ERROR("Create socket failed! [ErrorCode:%d]",WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Create socket failed! [ErrorCode:%d]",errorCode);
         return false;
     }
 
@@ -46,7 +63,7 @@ bool Socket::createSocket()
     return true;
 }
 
-bool Socket::bind(const char *ip, unsigned short port)
+bool RSocket::bind(const char *ip, unsigned short port)
 {
     if(!isValid())
     {
@@ -62,7 +79,8 @@ bool Socket::bind(const char *ip, unsigned short port)
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        RLOG_ERROR("Bind socket error [%s:%d] [ErrorCode:%d]",ip,port,WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Bind socket error [%s:%d] [ErrorCode:%d]",ip,port,errorCode);
         return false;
     }
 
@@ -74,7 +92,7 @@ bool Socket::bind(const char *ip, unsigned short port)
     return true;
 }
 
-bool Socket::listen()
+bool RSocket::listen()
 {
     if(!isValid())
     {
@@ -85,7 +103,8 @@ bool Socket::listen()
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        RLOG_ERROR("Listen socket error! [ErrorCode:%d]",WSAGetLastError());
+        errorCode = WSAGetLastError();
+        RLOG_ERROR("Listen socket error! [ErrorCode:%d]",errorCode);
         return false;
     }
 
@@ -94,7 +113,7 @@ bool Socket::listen()
     return true;
 }
 
-bool Socket::closeSocket()
+bool RSocket::closeSocket()
 {
     if(isValid())
     {
@@ -116,9 +135,9 @@ bool Socket::closeSocket()
      * @param[in] 无
      * @return 返回接收的socket描述信息
      */
-Socket Socket::accept()
+RSocket RSocket::accept()
 {
-    Socket tmpSocket;
+    RSocket tmpSocket;
     if(!isValid())
     {
         return tmpSocket;
@@ -149,7 +168,7 @@ Socket Socket::accept()
      * @param[in] length 缓冲区数据长度
      * @return 实际接收数据的长度
      */
-int Socket::recv(char *buff, int length)
+int RSocket::recv(char *buff, int length)
 {
     if(!isValid() || buff == NULL)
     {
@@ -170,7 +189,7 @@ int Socket::recv(char *buff, int length)
      * @param[in] length 待发送的长度
      * @return 是否发送成功
      */
-int Socket::send(const char *buff, const int length)
+int RSocket::send(const char *buff, const int length)
 {
     if(!isValid() || buff == NULL)
     {
@@ -183,6 +202,7 @@ int Socket::send(const char *buff, const int length)
         int ret = ::send(tcpSocket,buff+sendLen,length-sendLen,0);
         if (ret <= 0)
         {
+            sendLen = -1;
             break;
         }
         sendLen += ret;
@@ -197,7 +217,7 @@ int Socket::send(const char *buff, const int length)
      * @param[in] teimeouts 超时时间
      * @return 连接是否成功
      */
-bool Socket::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
+bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
 {
     if(!isValid())
     {
@@ -217,8 +237,8 @@ bool Socket::connect(const char *remoteIp, const unsigned short remotePort, int 
         FD_ZERO(&set);
         FD_SET(tcpSocket,&set);
         timeval tm;
-        tm.tv_sec = 0;
-        tm.tv_usec = timeouts*1000;
+        tm.tv_sec = timeouts;
+        tm.tv_usec = 0;
         if(select(tcpSocket+1,0,&set,0,&tm) <= 0)
         {
             RLOG_ERROR("Connect timeout or error [%s:%d] %s ",remoteIp,remotePort,strerror(errno));
@@ -236,7 +256,7 @@ bool Socket::connect(const char *remoteIp, const unsigned short remotePort, int 
      * @param[in] flag 状态
      * @return 返回设置的是否成功设置
      */
-bool Socket::setBlock(bool flag)
+bool RSocket::setBlock(bool flag)
 {
     if(!isValid())
     {
@@ -270,6 +290,11 @@ bool Socket::setBlock(bool flag)
     }
 #endif
     return true;
+}
+
+int RSocket::getLastError()
+{
+    return errorCode;
 }
 
 }//namespace ServerNetwork

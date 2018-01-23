@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui
+QT       += xml
+QT       += sql
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
@@ -91,14 +93,12 @@ SOURCES += \
     Widgets/toolbox/toolitem.cpp \
     Widgets/toolbox/toolpage.cpp \
     Widgets/widget/rbutton.cpp \
-    Widgets/widget/riconlabel.cpp \
     Widgets/widget/rmessagebox.cpp \
     Widgets/widget/rtoolbutton.cpp \
     datastruct.cpp \
     global.cpp \
     main.cpp \
     thread/msgreceiveproctask.cpp \
-    thread/rtask.cpp \
     thread/taskmanager.cpp \
     rsingleton.cpp \
     user/userinfofile.cpp \
@@ -107,10 +107,13 @@ SOURCES += \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
-    msgcontext.cpp \
     thread/dataprocess.cpp \
     messdiapatch.cpp \
-    panelList/contactslistpage.cpp
+    sql/database.cpp \
+    sql/databasemanager.cpp \
+    thread/databasethread.cpp \
+    jsonkey.cpp \
+    Widgets/widget/rlabel.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -151,7 +154,6 @@ HEADERS  += \
     Widgets/toolbox/toolpage.h \
     Widgets/toolbox/usertoolitem.h \
     Widgets/widget/rbutton.h \
-    Widgets/widget/riconlabel.h \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
     constants.h \
@@ -159,7 +161,6 @@ HEADERS  += \
     global.h \
     head.h \
     thread/msgreceiveproctask.h \
-    thread/rtask.h \
     thread/taskmanager.h \
     rsingleton.h \
     user/userinfofile.h \
@@ -168,16 +169,17 @@ HEADERS  += \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
-    msgcontext.h \
     thread/dataprocess.h \
     messdiapatch.h \
-    panelList/contactslistpage.h
+    sql/database.h \
+    sql/databasemanager.h \
+    thread/databasethread.h \
+    jsonkey.h \
+    Widgets/widget/rlabel.h
 
 DISTFILES += \
     Widgets/Widgets.pri
 
-FORMS += \
-    Widgets/logindialog.ui
 
 RESOURCES += \
     resource.qrc

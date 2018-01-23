@@ -36,16 +36,16 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
             {
                 QClipboard *clipboard = QApplication::clipboard();
                 const QMimeData *mimeData = clipboard->mimeData();
-                if(mimeData->hasText())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasText()";
 
-                    this->setTextColor(this->textColor());
-                }
                 if(mimeData->hasHtml())
                 {
                     qDebug() << "Ctrl + V mimeData->hasHtml()";
                     this->textCursor().insertHtml(mimeData->html());
+                }
+                else if(mimeData->hasText())
+                {
+                    qDebug() << "Ctrl + V mimeData->hasText()";
+                    this->textCursor().insertText(mimeData->text());
                 }
                 if(mimeData->hasImage())
                 {
@@ -98,6 +98,10 @@ TextUnit::ChatInfoUnit BaseTextEdit::ReadJSONFile(QByteArray byteArray)
         if(doucment.isObject())
         {
             QJsonObject obj = doucment.object();
+            if(obj.contains("UserID"))
+            {
+                unit.user.id = obj.value("UserID").toInt();
+            }
             if(obj.contains("UserName"))
             {
                 unit.user.name = obj.value("UserName").toString();
@@ -175,6 +179,7 @@ int BaseTextEdit::transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJ
 
     // 构建 Json 对象
     QJsonObject Unit;
+    Unit.insert("UserID", unit.user.id);
     Unit.insert("UserName", unit.user.name);
     Unit.insert("UserHead", unit.user.head);
     Unit.insert("RecordTime", unit.time);
@@ -193,6 +198,7 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
     QColor color = this->textColor();
     QString contents = this->toChatFormaText();
 
+    unit.user.id = TestUserId;
     unit.user.name = "Me";  //可以根据当前用户
     unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
     unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
@@ -211,9 +217,6 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
 QString BaseTextEdit::toChatFormaText()
 {
     QString ui_html = toHtml();
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<"ui_html:"<<ui_html
-          <<"\n";
     QString contents ;
     parseHtml(contents,ui_html,TextUnit::Parase_Send);
     return contents;
@@ -264,9 +267,6 @@ QString BaseTextEdit::filePathToImgString(QString &path)
     {
         imageFile = path.right(path.length()-8);
     }
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<""<<imageFile
-          <<"\n";
 
     QImage image(imageFile);
     QByteArray ba;
@@ -389,9 +389,6 @@ void BaseTextEdit::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
     html += QString("\n<p style=\"%1\">").arg(style);
 
     while (xml->readNextStartElement()) {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"xml->readNextStartElement():"<<xml->name()
-              <<"\n";
         if (xml->name() == "img")
         {
             readImgindexElement(xml,html,type);
@@ -405,9 +402,6 @@ void BaseTextEdit::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
             xml->skipCurrentElement();
         }
     }
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<""<<xml->name()<<xml->text()
-          <<"\n";
     html += "</p>";
     //
 }

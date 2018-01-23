@@ -3,8 +3,6 @@
 #include <QUdpSocket>
 #include <QDebug>
 
-#include <WinSock2.h>
-
 #include "Util/rlog.h"
 #include "Util/rutil.h"
 #include "netglobal.h"
@@ -13,28 +11,38 @@
 
 namespace ClientNetwork{
 
-MsgReceive::MsgReceive(RSocket tcpSocket, QObject *parent) :
-    tcpSocket(tcpSocket),QThread(parent)
+MsgReceive::MsgReceive(QObject *parent) :
+    tcpSocket(NULL),RTask(parent)
 {
-    runningFlag = false;
+
 }
 
 MsgReceive::~MsgReceive()
 {
-    stop();
+
+}
+
+void MsgReceive::setSock(RSocket *sock)
+{
+    tcpSocket = sock;
 }
 
 void MsgReceive::startMe()
 {
+    RTask::startMe();
     if(!isRunning())
     {
         start();
     }
 }
 
-void MsgReceive::stop()
+void MsgReceive::stopMe()
 {
-    runningFlag = false;
+    if(runningFlag)
+    {
+        RTask::stopMe();
+        runningFlag = false;
+    }
 }
 
 void MsgReceive::run()
@@ -44,7 +52,7 @@ void MsgReceive::run()
     while(runningFlag)
     {
         char buff[MSG_RECV_BUFF] = {0};
-        int ret = tcpSocket.recv(buff,MSG_RECV_BUFF);
+        int ret = tcpSocket->recv(buff,MSG_RECV_BUFF);
         if(ret > 0)
         {
             QByteArray data(buff,ret);
@@ -53,20 +61,18 @@ void MsgReceive::run()
             G_RecvButts.enqueue(data);
             G_RecvMutex.unlock();
 
-            static int index = 0;
-
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<buff<<ret<<index++;
-
             G_RecvCondition.wakeOne();
         }
         else
         {
-            RLOG_ERROR("receive a pack not completely %d",GetLastError());
-            tcpSocket.closeSocket();
+            RLOG_ERROR("receive a pack not completely %d",tcpSocket->getLastError());
+            tcpSocket->closeSocket();
+            emit socketError(tcpSocket->getLastError());
             break;
         }
     }
 
+    runningFlag = false;
     RLOG_INFO("Stop Receive++++++++++++++++++++++");
 }
 

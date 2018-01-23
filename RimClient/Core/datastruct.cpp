@@ -1,5 +1,7 @@
 ﻿#include "datastruct.h"
 
+#include <QMetaType>
+
 QDataStream& operator<<(QDataStream & stream,const UserInfoDesc & desc)
 {
     stream<<desc.userName<<desc.loginState<<desc.originPassWord<<desc.password<<desc.isRemberPassword<<desc.isAutoLogin
@@ -15,3 +17,6 @@ QDataStream& operator>>(QDataStream & stream,UserInfoDesc & desc)
             >>desc.isSystemPixMap>>desc.pixmap;
     return stream;
 }
+
+
+

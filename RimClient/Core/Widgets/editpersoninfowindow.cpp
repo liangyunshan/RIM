@@ -17,7 +17,7 @@
 #include "toolbar.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
-#include "widget/riconlabel.h"
+#include "widget/rlabel.h"
 
 #define EDIT_PERSON_WIDTH 380
 #define EDIT_PERSON_HEIGHT 600
