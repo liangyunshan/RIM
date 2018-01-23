@@ -278,10 +278,18 @@ LoginDialog::LoginDialog(QWidget *parent) :
 void LoginDialog::respConnect(bool flag)
 {
     MQ_D(LoginDialog);
+
+    int index = -1;
+
+//    if(!RSingleton<NetConnector>::instance()->connect())
+//    {
+//        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+//        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+//        return;
+//    }
     if(flag)
     {
         int index = -1;
-
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());

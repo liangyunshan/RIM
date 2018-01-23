@@ -111,7 +111,7 @@ SOURCES += \
     messdiapatch.cpp \
     sql/database.cpp \
     sql/databasemanager.cpp \
-    thread/databasethread.cpp
+    thread/databasethread.cpp \
     jsonkey.cpp \
     Widgets/widget/rlabel.cpp
 
@@ -173,7 +173,7 @@ HEADERS  += \
     messdiapatch.h \
     sql/database.h \
     sql/databasemanager.h \
-    thread/databasethread.h
+    thread/databasethread.h \
     jsonkey.h \
     Widgets/widget/rlabel.h
 
