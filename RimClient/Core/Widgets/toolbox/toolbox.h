@@ -34,8 +34,12 @@ public:
 
     int pageCount();
 
+    void testMe();
+
     void setContextMenu(QMenu * menu);
     QStringList toolPageSNames()const;
+
+    const QStringList toolPageSNames();
 
 private slots:
     void setSlectedPage(ToolPage*);
