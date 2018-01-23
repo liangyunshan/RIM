@@ -63,8 +63,8 @@ const int MAIN_PANEL_MIN_HEIGHT = 450;                  //主面板最小高度
 
 const int MAIN_PANEL_MAX_WIDTH = 600;                   //主面板最大宽度
 
-const int LOGIN_FIX_WIDTH = 500;                        //登陆页面固定宽度
-const int LOGIN_FIX_HEIGHT =  400;                      //登陆页面固定高度
+const int LOGIN_FIX_WIDTH = 430;                        //登陆页面固定宽度
+const int LOGIN_FIX_HEIGHT =  350;                      //登陆页面固定高度
 
 const int ITEM_FIX_HEIGHT = 24;                         //QLineEdit、QLabel等的固定高度
 

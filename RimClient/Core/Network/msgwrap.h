@@ -13,7 +13,6 @@
 
 #include <QJsonObject>
 
-#include "msgcontext.h"
 #include "protocoldata.h"
 using namespace ProtocolType;
 
@@ -31,7 +30,7 @@ private:
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 
 private:
-    MsgRequestContext context;
+
 };
 
 #endif // MSGWRAP_H

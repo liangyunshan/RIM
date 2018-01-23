@@ -12,7 +12,7 @@
 #include "rsingleton.h"
 #include "maindialog.h"
 
-#include "widget/riconlabel.h"
+#include "widget/rlabel.h"
 
 #define PANEL_TOP_USER_ICON_SIZE 66
 #define PANEL_TOP_SEARCH_ICON_SIZE 28

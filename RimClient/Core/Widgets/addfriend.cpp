@@ -14,7 +14,7 @@
 #include "datastruct.h"
 #include "widget/rbutton.h"
 #include "Util/rutil.h"
-#include "widget/riconlabel.h"
+#include "widget/rlabel.h"
 
 #include "Util/imagemanager.h"
 #include "rsingleton.h"

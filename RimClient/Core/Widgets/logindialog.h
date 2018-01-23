@@ -8,17 +8,13 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note      20171212:wey:完善登录页面，增加页面移动、读取保存用户信息；
+ *             20180118:wey:取消UI界面，手写实现；
  */
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
 
-#include <QDialog>
-
+#include "widget.h"
 #include "observer.h"
-
-namespace Ui {
-class LoginDialog;
-}
 
 class QToolButton;
 class ToolBar;
@@ -32,7 +28,7 @@ class SystemTrayIcon;
 class MainDialog;
 class ActionManager;
 
-class LoginDialog : public QDialog , public Observer
+class LoginDialog : public Widget , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(LoginDialog)
@@ -45,8 +41,6 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent * event);
-    void mousePressEvent(QMouseEvent * event);
-    void mouseMoveEvent(QMouseEvent * event);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
 
@@ -58,27 +52,18 @@ private slots:
     void readLocalUser();
     void validateInput(QString text);
     void showNetSettings();
+    void showRegistDialog();
+    void respConnect(bool flag);
+    void respRegistDialogDestory(QObject *);
 
 private:
-    void initWidget();
     void createTrayMenu();
     void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
 
 private:
-    Ui::LoginDialog *ui;
     LoginDialogPrivate * d_ptr;
-
-    ToolBar * toolBar;
-    OnLineState * onlineState;
-
-    QToolButton * systemSetting;
-    SystemTrayIcon * trayIcon;
-
-    MainDialog * mainDialog;
-
-    ActionManager *m_actionManager;
 };
 
 #endif // LOGINDIALOG_H

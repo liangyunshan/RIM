@@ -1,5 +1,4 @@
 ﻿#include "logindialog.h"
-#include "ui_logindialog.h"
 
 #include <QList>
 #include <QToolButton>
@@ -10,6 +9,14 @@
 #include <QMenu>
 #include <QAction>
 #include <QDesktopWidget>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QApplication>
 
 #include "head.h"
 #include "datastruct.h"
@@ -31,21 +38,28 @@
 #include "registdialog.h"
 #include "netsettings.h"
 #include "global.h"
-#include "msgcontext.h"
+#include "widget/rlabel.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
     Q_DECLARE_PUBLIC(LoginDialog)
 public:
-    LoginDialogPrivate()
+    LoginDialogPrivate(LoginDialog * q):q_ptr(q)
     {
-        numberExp.setPattern("[1-9]\\d{6}");
-        passExp.setPattern("\\w{6,16}");
+        initWidget();
+
+        numberExp = QRegExp("[1-9]\\d{4}");
+        passExp = QRegExp("\\w{1,16}");
 
         isSystemUserIcon = true;
         isNewUser = true;
     }
     ~LoginDialogPrivate(){}
+
+    void initWidget();
+
+private:
+    LoginDialog * q_ptr;
 
     int userIndex(QString text);
 
@@ -58,9 +72,175 @@ public:
 
     bool isNewUser;
 
+    QWidget * contentWidget;
+    QWidget * iconWidget;
+
+    RIconLabel *userIcon;
+    RTextLabel *forgetPassword;
+    QPushButton *login;
+    RTextLabel *regist;
+    QLineEdit *password;
+    QCheckBox *rememberPassord;
+    QCheckBox *autoLogin;
+    QComboBox *userList;
+
     QRegExp numberExp;
     QRegExp passExp;
+
+    ToolBar * toolBar;
+    OnLineState * onlineState;
+    QToolButton * systemSetting;
+    SystemTrayIcon * trayIcon;
+    MainDialog * mainDialog;
 };
+
+void LoginDialogPrivate::initWidget()
+{
+    contentWidget = new QWidget(q_ptr);
+    contentWidget->setObjectName("AbstractWidget_ContentWidget");
+
+    QVBoxLayout * contentLayout = new QVBoxLayout();
+    contentLayout->setContentsMargins(0,0,0,0);
+    contentLayout->setSpacing(0);
+
+    QWidget * imageWidget = new QWidget(contentWidget);
+    imageWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    imageWidget->setStyleSheet("border-image:url(':/background/resource/background/login.png')");
+
+    /***************头像显示区****************/
+    QWidget * bottomWidget = new QWidget(contentWidget);
+
+    iconWidget = new QWidget(bottomWidget);
+
+    QVBoxLayout * iconLayout = new QVBoxLayout(iconWidget);
+    iconLayout->setContentsMargins(5,0,5,0);
+
+    userIcon = new RIconLabel(iconWidget);
+    userIcon->setTransparency(true);
+    userIcon->setMinimumSize(QSize(80, 80));
+    userIcon->setMaximumSize(QSize(80, 80));
+    iconLayout->addWidget(userIcon);
+
+    QSpacerItem * iconSpacer = new QSpacerItem(50, 20, QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+    iconLayout->addItem(iconSpacer);
+
+    onlineState = new OnLineState(iconWidget);
+    onlineState->setStyleSheet("background-color:rgba(0,0,0,0)");
+
+    iconWidget->setLayout(iconLayout);
+
+    /*****************登陆输入区******************/
+    QWidget * inputWidget = new QWidget();
+    QGridLayout * inputGridLayout = new QGridLayout;
+
+    inputGridLayout->setHorizontalSpacing(10);
+    inputGridLayout->setVerticalSpacing(2);
+    inputGridLayout->setContentsMargins(0, 0, 0, 0);
+
+    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp("[1-9]\\d{4}"));
+    userList = new QComboBox();
+    userList->setFixedSize(QSize(193, 28));
+    userList->setEditable(true);
+    userList->lineEdit()->setValidator(numberValidator);
+    userList->lineEdit()->setPlaceholderText(QObject::tr("Input number"));
+    userList->setView(new QListView());
+    userList->lineEdit()->installEventFilter(this);
+
+    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp("\\w{1,16}"));
+    password = new QLineEdit();
+    password->setFixedSize(QSize(193, 28));
+    password->setValidator(passValidator);
+    password->setPlaceholderText(QObject::tr("Input password"));
+    password->setEchoMode(QLineEdit::Password);
+    password->installEventFilter(this);
+
+    login = new QPushButton();
+    login->setMinimumSize(QSize(0, 28));
+    login->setText(QObject::tr("Sin in"));
+
+    forgetPassword = new RTextLabel();
+    forgetPassword->setText(QObject::tr("Forget Password"));
+
+    regist = new RTextLabel();
+    regist->setText(QObject::tr("Sin up"));
+    QObject::connect(regist,SIGNAL(mousePress()),q_ptr,SLOT(showRegistDialog()));
+
+    QWidget * widget_4 = new QWidget(inputWidget);
+    widget_4->setObjectName(QStringLiteral("widget_4"));
+    widget_4->setMaximumSize(QSize(193, 28));
+
+    QHBoxLayout * horizontalLayout = new QHBoxLayout(widget_4);
+    horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+    horizontalLayout->setContentsMargins(1, 1, 1, 1);
+
+    rememberPassord = new QCheckBox();
+    rememberPassord->setObjectName(QStringLiteral("rememberPassord"));
+    rememberPassord->setText(QObject::tr("Remember password"));
+
+    autoLogin = new QCheckBox();
+    autoLogin->setText(QObject::tr("Auto login"));
+
+    QSpacerItem * horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    horizontalLayout->addWidget(rememberPassord);
+    horizontalLayout->addItem(horizontalSpacer);
+    horizontalLayout->addWidget(autoLogin);
+
+    inputGridLayout->addWidget(userList, 0, 1, 1, 1);
+    inputGridLayout->addWidget(password, 1, 1, 1, 1);
+    inputGridLayout->addWidget(widget_4, 2, 1, 1, 1);
+
+    inputGridLayout->addWidget(forgetPassword, 1, 2, 1, 1);
+    inputGridLayout->addWidget(regist, 0, 2, 1, 1);
+
+    inputGridLayout->addWidget(login, 3, 1, 1, 1);
+
+    inputWidget->setLayout(inputGridLayout);
+
+    QHBoxLayout * bottomLayout = new QHBoxLayout();
+    bottomLayout->addSpacerItem(new QSpacerItem(50,50,QSizePolicy::Expanding,QSizePolicy::Expanding));
+    bottomLayout->addWidget(iconWidget);
+    bottomLayout->addWidget(inputWidget);
+    bottomLayout->addSpacerItem(new QSpacerItem(50,50,QSizePolicy::Expanding,QSizePolicy::Expanding));
+
+    bottomWidget->setLayout(bottomLayout);
+
+    QObject::connect(userList,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(switchUser(int)));
+    QObject::connect(userList,SIGNAL(currentTextChanged(QString)),q_ptr,SLOT(validateInput(QString)));
+    QObject::connect(login,SIGNAL(pressed()),q_ptr,SLOT(login()));
+    QObject::connect(autoLogin,SIGNAL(clicked(bool)),rememberPassord,SLOT(setChecked(bool)));
+    QObject::connect(password,SIGNAL(textEdited(QString)),q_ptr,SLOT(validateInput(QString)));
+
+    mainDialog = NULL;
+
+    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING),q_ptr,SLOT(showNetSettings()));
+    systemSetting->setToolTip(QObject::tr("System Setting"));
+
+    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),q_ptr,SLOT(minsize()));
+    minSize->setToolTip(QObject::tr("Min"));
+
+    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),q_ptr,SLOT(closeWindow()));
+    closeButt->setToolTip(QObject::tr("Close"));
+
+    toolBar = new ToolBar(contentWidget);
+    toolBar->addStretch(1);
+    toolBar->appendToolButton(systemSetting);
+    toolBar->appendToolButton(minSize);
+    toolBar->appendToolButton(closeButt);
+
+    userList->setEditable(true);
+
+    contentLayout->addWidget(imageWidget);
+    contentLayout->addWidget(bottomWidget);
+
+    contentLayout->setStretchFactor(imageWidget,9);
+    contentLayout->setStretchFactor(bottomWidget,7);
+
+    contentWidget->setLayout(contentLayout);
+
+    q_ptr->setContentWidget(contentWidget);
+}
 
 int LoginDialogPrivate::userIndex(QString text)
 {
@@ -76,87 +256,97 @@ int LoginDialogPrivate::userIndex(QString text)
 }
 
 LoginDialog::LoginDialog(QWidget *parent) :
-    QDialog(parent),
-    m_actionManager(new ActionManager(this)),
-    d_ptr(new LoginDialogPrivate()),
-    ui(new Ui::LoginDialog)
+    Widget(parent),
+    d_ptr(new LoginDialogPrivate(this))
 {
-    ui->setupUi(this);
-
     RSingleton<Subject>::instance()->attach(this);
+    //在多屏状态下，默认选择第一个屏幕
+    QSize size = qApp->desktop()->screen()->size();
 
-    initWidget();
+    setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
+    setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+
     createTrayMenu();
     loadLocalSettings();
+
+    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+
+    QTimer::singleShot(0, this, SLOT(readLocalUser()));
+}
+
+void LoginDialog::respConnect(bool flag)
+{
+    MQ_D(LoginDialog);
+    if(flag)
+    {
+        int index = -1;
+
+        LoginRequest * request = new LoginRequest();
+        request->accountId = d->userList->currentText();
+        request->password = RUtil::MD5( d->password->text());
+        request->status = STATUS_ONLINE;
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+        if( (index = isContainUser()) >= 0)
+        {
+            if(index < d->localUserInfo.size())
+            {
+                d->localUserInfo.at(index)->userName = d->userList->currentText();
+                d->localUserInfo.at(index)->originPassWord = d->password->text();
+                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
+                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
+                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+            }
+        }
+        else
+        {
+            UserInfoDesc * desc = new UserInfoDesc;
+            desc->userName = d->userList->currentText();
+            desc->loginState = (int)d->onlineState->state();
+            desc->originPassWord = d->password->text();
+            desc->password = RUtil::MD5(d->password->text());
+            desc->isAutoLogin = d->autoLogin->isChecked();
+            desc->isRemberPassword = d->rememberPassord->isChecked();
+            desc->isSystemPixMap = d->isSystemUserIcon;
+            desc->pixmap = d->defaultUserIconPath;
+
+            d->localUserInfo.append(desc);
+            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+        }
+
+        setVisible(false);
+        d->trayIcon->disconnect();
+        d->trayIcon->setModel(SystemTrayIcon::System_Main);
+
+        if(!d->mainDialog)
+        {
+            d->mainDialog = new MainDialog();
+        }
+
+        d->mainDialog->show();
+    }
+    else
+    {
+        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+    }
 }
 
 void LoginDialog::login()
 {
-    MQ_D(LoginDialog);
-
-    int index = -1;
-
-    if(!RSingleton<NetConnector>::instance()->connect())
-    {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
-        return;
-    }
-
-    LoginRequest * request = new LoginRequest();
-    request->accountId = ui->userList->currentText();
-    request->password =  ui->password->text();
-    request->status = STATUS_ONLINE;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
-
-    //Yang 20171214待将此处加入网络
-    if( (index = isContainUser()) >= 0)
-    {
-        if(index < d->localUserInfo.size())
-        {
-            d->localUserInfo.at(index)->userName = ui->userList->currentText();
-            d->localUserInfo.at(index)->originPassWord = ui->password->text();
-            d->localUserInfo.at(index)->password = RUtil::MD5(ui->password->text());
-            d->localUserInfo.at(index)->isAutoLogin =  ui->autoLogin->isChecked();
-            d->localUserInfo.at(index)->isRemberPassword = ui->rememberPassord->isChecked();
-            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-        }
-    }
-    else
-    {
-        UserInfoDesc * desc = new UserInfoDesc;
-        desc->userName = ui->userList->currentText();
-        desc->loginState = (int)onlineState->state();
-        desc->originPassWord = ui->password->text();
-        desc->password = RUtil::MD5(ui->password->text());
-        desc->isAutoLogin = ui->autoLogin->isChecked();
-        desc->isRemberPassword = ui->rememberPassord->isChecked();
-        desc->isSystemPixMap = d->isSystemUserIcon;
-        desc->pixmap = d->defaultUserIconPath;
-
-        d->localUserInfo.append(desc);
-        RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-    }
-
-    this->setVisible(false);
-    trayIcon->disconnect();
-    trayIcon->setModel(SystemTrayIcon::System_Main);
-
-    if(!mainDialog)
-    {
-        mainDialog = new MainDialog();
-    }
-
-    mainDialog->show();
+    NetConnector::instance()->connect();
 }
 
 void LoginDialog::minsize()
 {
-    if(trayIcon)
+    MQ_D(LoginDialog);
+    if(d->trayIcon)
     {
-        if(!trayIcon->isVisible())
+        if(!d->trayIcon->isVisible())
         {
-            trayIcon->setVisible(true);
+            d->trayIcon->setVisible(true);
         }
     }
 
@@ -174,27 +364,27 @@ void LoginDialog::switchUser(int index)
 {
     MQ_D(LoginDialog);
 
-    if(d->localUserInfo.size() > 0 && index >= 0 && index < d->localUserInfo.size() )
+    if(d->localUserInfo.size() > 0 && index >= 0 && index < d->localUserInfo.size())
     {
         UserInfoDesc * userInfo = d->localUserInfo.at(index);
-        ui->password->setText(userInfo->originPassWord);
-        ui->rememberPassord->setChecked(userInfo->isRemberPassword);
-        ui->autoLogin->setChecked(userInfo->isAutoLogin);
+        d->password->setText(userInfo->originPassWord);
+        d->rememberPassord->setChecked(userInfo->isRemberPassword);
+        d->autoLogin->setChecked(userInfo->isAutoLogin);
         if(userInfo->isSystemPixMap)
         {
             QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
             if(pixmap.isNull())
             {
                 userInfo->pixmap = d->defaultUserIconPath;
-                ui->userIcon->setPixmap(QPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap)).scaled(ui->userIcon->width(),ui->userIcon->height()));
+                d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
             }
             else
             {
-                ui->userIcon->setPixmap(pixmap.scaled(ui->userIcon->width(),ui->userIcon->height()));
+                d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
             }
         }
 
-        onlineState->setState((OnLineState::UserState)userInfo->loginState);
+        d->onlineState->setState((OnLineState::UserState)userInfo->loginState);
         d->isNewUser = false;
 
         validateInput("");
@@ -205,75 +395,15 @@ void LoginDialog::switchUser(int index)
     }
 }
 
-void LoginDialog::initWidget()
-{
-    MQ_D(LoginDialog);
-
-    //在多屏状态下，默认选择第一个屏幕
-    QSize size = qApp->desktop()->screen()->size();
-
-    this->setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
-
-    mainDialog = NULL;
-
-    toolBar = new ToolBar(this);
-
-    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING),this,SLOT(showNetSettings()));
-    systemSetting->setToolTip(tr("System Setting"));
-
-    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),this,SLOT(minsize()));
-    minSize->setToolTip(tr("Min"));
-
-    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),this,SLOT(closeWindow()));
-    closeButt->setToolTip(tr("Close"));
-
-    toolBar->addStretch(1);
-    toolBar->appendToolButton(systemSetting);
-    toolBar->appendToolButton(minSize);
-    toolBar->appendToolButton(closeButt);
-
-    ui->userList->setEditable(true);
-
-    QRegExpValidator * numberValidator = new QRegExpValidator(d->numberExp);
-    ui->userList->lineEdit()->setValidator(numberValidator);
-    ui->userList->lineEdit()->setPlaceholderText(tr("Input number"));
-    ui->userList->setView(new QListView());
-    ui->userList->lineEdit()->installEventFilter(this);
-
-    QRegExpValidator * passValidator = new QRegExpValidator(d->passExp);
-    ui->password->setValidator(passValidator);
-    ui->password->setPlaceholderText(tr("Input password"));
-    ui->password->setEchoMode(QLineEdit::Password);
-    ui->password->installEventFilter(this);
-
-    ui->rememberPassord->setText(tr("Remember password"));
-    ui->autoLogin->setText(tr("Auto login"));
-    ui->login->setText(tr("Sin in"));
-    ui->forgetPassword->setText(tr("Forget Password"));
-    ui->regist->setText(tr("Sin up"));
-
-    ui->regist->installEventFilter(this);
-
-    connect(ui->userList,SIGNAL(currentIndexChanged(int)),this,SLOT(switchUser(int)));
-    connect(ui->login,SIGNAL(pressed()),this,SLOT(login()));
-    connect(ui->autoLogin,SIGNAL(clicked(bool)),ui->rememberPassord,SLOT(setChecked(bool)));
-    connect(ui->password,SIGNAL(textEdited(QString)),this,SLOT(validateInput(QString)));
-    connect(ui->userList,SIGNAL(currentTextChanged(QString)),this,SLOT(validateInput(QString)));
-
-    onlineState = new OnLineState(this);
-
-    QTimer::singleShot(0, this, SLOT(readLocalUser()));
-}
-
 void LoginDialog::createTrayMenu()
 {
-    trayIcon = new SystemTrayIcon();
-    trayIcon->setModel(SystemTrayIcon::System_Login);
-    trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+    MQ_D(LoginDialog);
+    d->trayIcon = new SystemTrayIcon();
+    d->trayIcon->setModel(SystemTrayIcon::System_Login);
+    d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
 
-    connect(trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
-    connect(trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
+    connect(d->trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
+    connect(d->trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 }
 
 void LoginDialog::loadLocalSettings()
@@ -285,7 +415,7 @@ void LoginDialog::loadLocalSettings()
 int LoginDialog::isContainUser()
 {
     MQ_D(LoginDialog);
-    return d->userIndex(ui->userList->currentText());
+    return d->userIndex(d->userList->currentText());
 }
 
 void LoginDialog::resetDefaultInput()
@@ -297,17 +427,16 @@ void LoginDialog::resetDefaultInput()
     QFileInfo  info(fullPath);
     d->defaultUserIconPath = info.fileName();
 
-    ui->password->setText(tr(""));
-    ui->autoLogin->setChecked(false);
-    ui->rememberPassord->setChecked(false);
-    QPixmap pixmap(fullPath);
+    d->password->setText(tr(""));
+    d->autoLogin->setChecked(false);
+    d->rememberPassord->setChecked(false);
 
-    onlineState->setState(OnLineState::STATE_ONLINE);
-    ui->userIcon->setPixmap(pixmap.scaled(ui->userIcon->width(),ui->userIcon->height()));
+    d->onlineState->setState(OnLineState::STATE_ONLINE);
+    d->userIcon->setPixmap(fullPath);
 
-    ui->login->setEnabled(false);
-    ui->login->style()->unpolish(ui->login);
-    ui->login->style()->polish(ui->login);
+    d->login->setEnabled(false);
+    d->login->style()->unpolish(d->login);
+    d->login->style()->polish(d->login);
 }
 
 void LoginDialog::readLocalUser()
@@ -320,36 +449,32 @@ void LoginDialog::readLocalUser()
     {
         foreach(UserInfoDesc * user,d->localUserInfo)
         {
-             ui->userList->addItem(user->userName);
+             d->userList->addItem(user->userName);
         }
     }
     else
     {
         resetDefaultInput();
     }
-
-    QPoint point = ui->userIcon->mapTo(this,QPoint(ui->userIcon->size().width(),ui->userIcon->size().height()));
-
-    onlineState->setGeometry(point.x() - Constant::TOOL_WIDTH,point.y() - Constant::TOOL_HEIGHT,Constant::TOOL_WIDTH,Constant::TOOL_HEIGHT);
 }
 
 void LoginDialog::validateInput(QString /*text*/)
 {
     MQ_D(LoginDialog);
-    if(ui->userList->currentText().size() >0 && ui->password->text().size() > 0)
+    if(d->userList->currentText().size() >0 && d->password->text().size() > 0)
     {
-        if(d->numberExp.exactMatch(ui->userList->currentText()) && d->passExp.exactMatch(ui->password->text()))
+        if(d->numberExp.exactMatch(d->userList->currentText()) && d->passExp.exactMatch(d->password->text()))
         {
-            ui->login->setEnabled(true);
-            ui->login->style()->unpolish(ui->login);
-            ui->login->style()->polish(ui->login);
+            d->login->setEnabled(true);
+            d->login->style()->unpolish(d->login);
+            d->login->style()->polish(d->login);
             return;
         }
     }
 
-    ui->login->setEnabled(false);
-    ui->login->style()->unpolish(ui->login);
-    ui->login->style()->polish(ui->login);
+    d->login->setEnabled(false);
+
+    repolish(d->login);
 }
 
 void LoginDialog::showNetSettings()
@@ -359,36 +484,50 @@ void LoginDialog::showNetSettings()
     settings->show();
 }
 
+void LoginDialog::showRegistDialog()
+{
+    disconnect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+
+    RegistDialog * dialog = new RegistDialog(this);
+    connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
+    dialog->show();
+}
+
+void LoginDialog::respRegistDialogDestory(QObject *)
+{
+   connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+}
+
 LoginDialog::~LoginDialog()
 {
-    if(toolBar)
+    MQ_D(LoginDialog);
+    if(d->toolBar)
     {
-        delete toolBar;
-        toolBar = NULL;
+        delete d->toolBar;
+        d->toolBar = NULL;
     }
 
-    if(mainDialog)
+    if(d->mainDialog)
     {
-        delete mainDialog;
-        mainDialog = NULL;
+        delete d->mainDialog;
+        d->mainDialog = NULL;
     }
 
-    if(trayIcon)
+    if(d->trayIcon)
     {
-       delete trayIcon;
-       trayIcon = NULL;
+       delete d->trayIcon;
+       d->trayIcon = NULL;
     }
-
-    delete ui;
 }
 
 void LoginDialog::onMessage(MessageType type)
 {
+    MQ_D(LoginDialog);
     switch(type)
     {
         case MESS_SETTINGS:
                             {
-                                trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+                                d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
                                 break;
                             }
         default:
@@ -398,22 +537,12 @@ void LoginDialog::onMessage(MessageType type)
 
 void LoginDialog::resizeEvent(QResizeEvent *event)
 {
-    toolBar->setGeometry(event->size().width() - toolBar->size().width(),0,toolBar->size().width(),toolBar->size().height());
-}
-
-void LoginDialog::mousePressEvent(QMouseEvent *event)
-{
-    MQ_D(LoginDialog);
-    d->mousePreseePoint = event->pos();
-}
-
-void LoginDialog::mouseMoveEvent(QMouseEvent *event)
-{
     MQ_D(LoginDialog);
 
-    QPoint tmpPoint = event->pos() - d->mousePreseePoint;
+    d->toolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - WINDOW_MARGIN_SIZE * 3,d->toolBar->size().height());
 
-    this->setGeometry(this->x() + tmpPoint.x(),this->y() + tmpPoint.y(),Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
+    QRect ioconRect = d->userIcon->geometry();
+    d->onlineState->setGeometry(ioconRect.right() - 20,ioconRect.bottom() - 22,30,30);
 }
 
 void LoginDialog::closeEvent(QCloseEvent *)
@@ -426,27 +555,19 @@ bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
     MQ_D(LoginDialog);
     if(event->type() == QEvent::KeyPress)
     {
-        if(obj == ui->password)
+        if(obj == d->password)
         {
             QKeyEvent * keyEvent = dynamic_cast<QKeyEvent *>(event);
             if(!d->isNewUser && keyEvent->key() == Qt::Key_Backspace)
             {
-                ui->password->setText("");
+                d->password->setText("");
             }
         }
         //Yang 20171213待实现对输入框键盘事件的捕捉
-        else if(obj == ui->userList->lineEdit())
+        else if(obj == d->userList->lineEdit())
         {
 
         }
     }
-    else if(event->type() == QEvent::MouseButtonPress)
-    {
-        if(obj == ui->regist)
-        {
-            RegistDialog * dialog = new RegistDialog(this);
-            dialog->show();
-        }
-    }
-    return QDialog::eventFilter(obj,event);
+    return Widget::eventFilter(obj,event);
 }

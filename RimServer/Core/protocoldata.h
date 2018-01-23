@@ -1,6 +1,7 @@
 ﻿/*!
  *  @brief     通信协议内容
- *  @details
+ *  @details   【1】定义客户端与服务器端通信请求/回复结构体，请求以XXRequest定义，回复以XXResponse定义，
+ *             【2】客户端和服务器端的协议文件保持一致!!
  *  @file      protocoldata.h
  *  @author    wey
  *  @version   1.0

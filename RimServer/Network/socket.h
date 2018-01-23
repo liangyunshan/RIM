@@ -9,48 +9,37 @@
  *  @copyright NanJing RenGu.
  */
 
-#ifndef TCPSOCKET_H
-#define TCPSOCKET_H
+#ifndef RSOCKET_H
+#define RSOCKET_H
 
 #include "network_global.h"
 
-#ifdef Q_OS_WIN
-#include <WinSock2.h>
-typedef  int socklen_t;
-#elif defined(Q_OS_UNIX)
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#define closesocket close
-#endif
-
-
 namespace ServerNetwork {
 
-class NETWORKSHARED_EXPORT  Socket
+class NETWORKSHARED_EXPORT  RSocket
 {
 public:
-    Socket();
+    RSocket();
 
     bool createSocket();
     bool closeSocket();
     bool bind(const char * ip,unsigned short port);
     bool listen();
-    Socket accept();
+    RSocket accept();
 
     unsigned short port(){return socketPort;}
 
     int recv(char * buff,int length);
     int send(const char * buff,const int length);
 
-    bool connect(const char * remoteIp,const unsigned short remotePort,int timeouts = 1000);
+    bool connect(const char * remoteIp,const unsigned short remotePort,int timeouts = 3);
 
     bool setBlock(bool flag);
     bool isBock(){return blockAble;}
 
     bool isValid(){return socketValid;}
+
+    int getLastError();
 
     int getSocket()const {return tcpSocket;}
 
@@ -61,7 +50,9 @@ private:
     bool socketValid;
     bool blockAble;
 
-    SOCKET tcpSocket;
+    int tcpSocket;
+
+    int errorCode;
 };
 
 }   //namespace ServerNetwork

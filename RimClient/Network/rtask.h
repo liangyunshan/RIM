@@ -11,9 +11,12 @@
 #ifndef RTASK_H
 #define RTASK_H
 
+#include "network_global.h"
 #include <QThread>
 
-class RTask : public QThread
+namespace ClientNetwork {
+
+class NETWORKSHARED_EXPORT RTask : public QThread
 {
     Q_OBJECT
 public:
@@ -23,15 +26,13 @@ public:
     enum TaskState
     {
         IdleState,              //任务未启动
-        StartState,             //任务启动中
-        ActiveState,            //任务运行中
+        StartState,             //任务运行中
         StoppedState            //任务停止
     };
 
     bool running();
 
     virtual void startMe();
-    virtual void runMe();
     virtual void stopMe();
 
 signals:
@@ -39,6 +40,10 @@ signals:
 
 protected:
     TaskState taskState;
+
+    bool runningFlag;
 };
+
+} //namespace ClientNetwork
 
 #endif // RTASK_H

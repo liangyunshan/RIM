@@ -74,7 +74,7 @@ private:
 void ToolBarPrivate::initDialog()
 {
     toolBar = new QWidget(q_ptr);
-    toolBar->setMinimumHeight(Constant::TOOL_BAR_HEIGHT);
+    toolBar->setFixedHeight(Constant::TOOL_BAR_HEIGHT);
     toolBarLayout = new QHBoxLayout();
 
     iconLabel = new QLabel(toolBar);
@@ -135,7 +135,7 @@ ToolBar::ToolBar(QWidget *parent) :
     d_ptr(new ToolBarPrivate(this)),
     QWidget(parent)
 {
-
+    setFixedHeight(Constant::TOOL_BAR_HEIGHT);
 }
 
 ToolBar::~ToolBar()

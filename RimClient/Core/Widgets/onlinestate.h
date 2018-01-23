@@ -35,7 +35,7 @@ public:
     enum UserState
     {
         STATE_ONLINE,       /*!< 在线 */
-        STATE_OFFLINE,      /*!< 离开 */
+        STATE_OFFLINE,      /*!< 离线 */
         STATE_BUSY,         /*!< 忙碌 */
         STATE_HIDE,         /*!< 隐身 */
         STATE_NODISTURB     /*!< 请勿打扰 */

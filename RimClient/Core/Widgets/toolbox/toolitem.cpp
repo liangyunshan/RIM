@@ -14,7 +14,7 @@
 #include "constants.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
-#include "Widgets/widget/riconlabel.h"
+#include "Widgets/widget/rlabel.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
 

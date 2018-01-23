@@ -1,7 +1,7 @@
 ﻿/*!
  *  @brief     数据库表
- *  @details   分离硬编码，方便修改数据库
- *  @file      table.h
+ *  @details   分离硬编码，方便数据字段名称的调整。
+ *  @file      datatable.h
  *  @author    wey
  *  @version   1.0
  *  @date      2018.01.11

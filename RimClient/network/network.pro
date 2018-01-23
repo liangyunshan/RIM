@@ -51,12 +51,14 @@ SOURCES += \
     msgreceive.cpp \
     netglobal.cpp \
     msgsender.cpp \
-    rsocket.cpp
+    rsocket.cpp \
+    rtask.cpp
 
 HEADERS +=\
         network_global.h \
     msgreceive.h \
     netglobal.h \
     msgsender.h \
-    rsocket.h
+    rsocket.h \
+    rtask.h
 

@@ -11,24 +11,27 @@
 #ifndef MSGRECEIVE_H
 #define MSGRECEIVE_H
 
-#include <QThread>
 #include "network_global.h"
+#include "rtask.h"
 
 #include "rsocket.h"
 
 namespace ClientNetwork{
 
-class NETWORKSHARED_EXPORT MsgReceive : public QThread
+class NETWORKSHARED_EXPORT MsgReceive : public RTask
 {
     Q_OBJECT
 public:
-    explicit MsgReceive(RSocket tcpSocket,QObject *parent = 0);
+    explicit MsgReceive(QObject *parent = 0);
     ~MsgReceive();
 
-    void startMe();
-    void setRunning(bool flag);
+    void setSock(RSocket * sock);
 
-    void stop();
+    void startMe();
+    void stopMe();
+
+signals:
+    void socketError(int errorCode);
 
 protected:
     void run();
@@ -36,9 +39,7 @@ protected:
 private:
     QString errorString;
 
-    bool runningFlag;
-
-    RSocket tcpSocket;
+    RSocket * tcpSocket;
 };
 
 } //ClientNetwork
