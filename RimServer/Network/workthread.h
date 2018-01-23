@@ -8,6 +8,7 @@
  *  @warning   【1】接收数据时，需要考虑被拆包后导致不同线程接收数据的各个部分，造成数据不完整；
  *             【2】退出时应通知处理线程退出
  *  @copyright NanJing RenGu.
+ *  @note   20180123:wey:增加分包接收、组包功能；增加分包发送功能；
  */
 #ifndef WORKTHREAD_H
 #define WORKTHREAD_H
@@ -31,6 +32,8 @@ private:
     void handleAccept(IocpContext *ioData);
     void handleSend(IocpContext *ioData);
     void handleClose(IocpContext *ioData);
+
+    void processRecvData(char * recvData, int recvLen, IocpContext *ioData);
 
 private:
     HANDLE threadId;

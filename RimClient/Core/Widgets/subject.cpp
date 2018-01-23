@@ -18,8 +18,6 @@ void Subject::attach(Observer *obj)
 {
     QWriteLocker locker(&lock);
     observers.append(obj);
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<observers.size()<<"__"<<obj;
 }
 
 void Subject::detach(Observer *obj)

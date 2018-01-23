@@ -1,10 +1,12 @@
 ﻿#include "rtask.h"
 
+namespace ClientNetwork {
+
 RTask::RTask(QObject *parent):
     taskState(IdleState),
     QThread(parent)
 {
-
+    runningFlag = false;
 }
 
 RTask::~RTask()
@@ -14,7 +16,7 @@ RTask::~RTask()
 
 bool RTask::running()
 {
-    if(taskState == taskState || taskState == ActiveState)
+    if(taskState == StartState)
     {
         return true;
     }
@@ -23,13 +25,7 @@ bool RTask::running()
 
 void RTask::startMe()
 {
-    taskState = ActiveState;
-    emit stateChanged(taskState);
-}
-
-void RTask::runMe()
-{
-    taskState = ActiveState;
+    taskState = StartState;
     emit stateChanged(taskState);
 }
 
@@ -38,3 +34,5 @@ void RTask::stopMe()
     taskState = StoppedState;
     emit stateChanged(taskState);
 }
+
+} //namespace ClientNetwork

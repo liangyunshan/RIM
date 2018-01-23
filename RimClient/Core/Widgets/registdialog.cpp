@@ -21,6 +21,7 @@
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"
+#include "global.h"
 
 using namespace ProtocolType;
 
@@ -33,6 +34,17 @@ public:
         initWidget();
     }
 
+    void setErrorInfo(QString info)
+    {
+        errorInfo->setStyleSheet("color:red;");
+        errorInfo->setText(info);
+    }
+
+    void clearErrorInfo()
+    {
+        setErrorInfo("");
+    }
+
     RegistDialog * q_ptr;
 
 private:
@@ -43,6 +55,8 @@ private:
     QLineEdit * nickNameEdit;
     QLineEdit * passwordEdit;
     QLineEdit * confirmPassEdit;
+
+    QLabel * errorInfo;
 
     RButton * confirmButt;
 };
@@ -94,7 +108,10 @@ void RegistDialogPrivate::initWidget()
     confirmButt->setText(QObject::tr("Sin up"));
     confirmButt->setMaximumWidth(1000);
 
-    QObject::connect(confirmButt,SIGNAL(pressed()),q_ptr,SLOT(respValidInfo()));
+    confirmButt->setEnabled(false);
+    q_ptr->repolish(confirmButt);
+
+    errorInfo = new QLabel(mainWidget);
 
     gridLayout->setRowStretch(0,1);
     gridLayout->setColumnStretch(0,1);
@@ -115,7 +132,14 @@ void RegistDialogPrivate::initWidget()
     gridLayout->setRowStretch(5,1);
     gridLayout->setColumnStretch(4,1);
 
+    gridLayout->addWidget(errorInfo,6,1,1,3);
+
     mainWidget->setLayout(gridLayout);
+
+    QObject::connect(confirmButt,SIGNAL(pressed()),q_ptr,SLOT(connectToServer()));
+    QObject::connect(nickNameEdit,SIGNAL(textChanged(QString)),q_ptr,SLOT(respValidInfo(QString)));
+    QObject::connect(confirmPassEdit,SIGNAL(textChanged(QString)),q_ptr,SLOT(respValidInfo(QString)));
+    QObject::connect(passwordEdit,SIGNAL(textChanged(QString)),q_ptr,SLOT(respValidInfo(QString)));
 
     contentLayout->addWidget(mainWidget);
     contentWidget->setLayout(contentLayout);
@@ -141,8 +165,8 @@ RegistDialog::RegistDialog(QWidget *parent):
         bar->setWindowTitle(windowTitle());
     }
 
-qDebug()<<"Connect:"<<connect(MessDiapatch::instance(),SIGNAL(recvRegistResponse(ResponseRegister,RegistResponse)),
-             this,SLOT(recvResponse(ResponseRegister,RegistResponse)),Qt::QueuedConnection);
+    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(recvRegistResponse(ResponseRegister,RegistResponse)),this,SLOT(recvResponse(ResponseRegister,RegistResponse)));
 }
 
 RegistDialog::~RegistDialog()
@@ -150,54 +174,84 @@ RegistDialog::~RegistDialog()
 
 }
 
-void RegistDialog::respValidInfo()
+void RegistDialog::respValidInfo(QString)
 {
     MQ_D(RegistDialog);
 
+    bool hasError = false;
+
     QRegExp space("\\s+");
 
-    if(d->nickNameEdit->text().size() <= 0 || d->nickNameEdit->text().contains(space))
+    if(d->nickNameEdit->text().contains(space) || d->passwordEdit->text().contains(space)
+            || d->confirmPassEdit->text().contains(space))
     {
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Check nickname!"),RMessageBox::Yes);
-        return;
+        d->setErrorInfo(QObject::tr("Inputs contain spaces!"));
+        hasError = true;
     }
 
-    if(d->passwordEdit->text().size() <=0 || d->passwordEdit->text().contains(space) || d->confirmPassEdit->text().size() <=0 ||
-            d->confirmPassEdit->text().contains(space))
+    if(d->nickNameEdit->text().size() <= 0)
     {
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Check password!"),RMessageBox::Yes);
-        return;
+        d->setErrorInfo(QObject::tr("Input nickname!"));
+        hasError = true;
     }
 
-    if(d->passwordEdit->text() != d->confirmPassEdit->text())
+    if(!hasError && d->passwordEdit->text().size() <= 0 || d->confirmPassEdit->text().size() <= 0)
     {
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Check password!"),RMessageBox::Yes);
-        return;
+        d->setErrorInfo(QObject::tr("Input password!"));
+        hasError = true;
     }
 
-    RegistRequest * request = new RegistRequest;
-
-    request->nickName = d->nickNameEdit->text();
-    request->password = RUtil::MD5(d->passwordEdit->text());
-
-    QString ip = "127.0.0.1";
-    unsigned short port = 8023;
-
-    if(!RSingleton<NetConnector>::instance()->connect())
+    if(!hasError && d->passwordEdit->text() != d->confirmPassEdit->text())
     {
-        RLOG_ERROR("Connect to server %s:%d error!",ip.toLocal8Bit().data(),port);
+        d->setErrorInfo(QObject::tr("Inconsistent password!"));
+        hasError = true;
+    }
+
+    d->confirmButt->setEnabled(!hasError);
+
+    if(!hasError)
+    {
+        d->clearErrorInfo();
+    }
+
+    repolish(d->confirmButt);
+}
+
+void RegistDialog::connectToServer()
+{
+    NetConnector::instance()->connect();
+}
+
+void RegistDialog::respConnect(bool flag)
+{
+    MQ_D(RegistDialog);
+    if(flag)
+    {
+        RegistRequest * request = new RegistRequest;
+
+        request->nickName = d->nickNameEdit->text();
+        request->password = RUtil::MD5(d->passwordEdit->text());
+
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
+    }
+    else
+    {
+        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
-        return;
     }
+}
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+void RegistDialog::closeEvent(QCloseEvent *event)
+{
+    disconnect(NetConnector::instance());
+    Widget::closeEvent(event);
 }
 
 void RegistDialog::recvResponse(ResponseRegister status, RegistResponse resp)
 {
     if(status == REGISTER_SUCCESS)
     {
-        RMessageBox::information(this,tr("Information"),tr("Registered successfully! Remember Id:【%1】").arg(resp.accountId),RMessageBox::Yes);
+        RMessageBox::information(this,tr("Information"),tr("Registered successfully! Remember Id: %1 ").arg(resp.accountId),RMessageBox::Yes);
     }
     else
     {

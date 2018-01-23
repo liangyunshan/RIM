@@ -11,15 +11,19 @@
 #ifndef MSGRECEIVEPROCTASK_H
 #define MSGRECEIVEPROCTASK_H
 
-#include "rtask.h"
+#include "Network/rtask.h"
 #include "protocoldata.h"
-#include "msgcontext.h"
+
 using namespace ProtocolType;
 
 #include <QJsonObject>
 #include <QJsonParseError>
 
-class MsgReceiveProcTask : public RTask
+namespace ClientNetwork{
+class RTask;
+}
+
+class MsgReceiveProcTask : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
@@ -28,19 +32,16 @@ public:
 
     void startMe();
     void stopMe();
-    void runMe();
 
 protected:
     void run();
 
 private:
     void validateRecvData(const QByteArray & data);
-    void handleCommandMsg(MsgCommand commandType,QJsonObject obj);
+    void handleCommandMsg(MsgCommand commandType, QJsonObject &obj);
 
 private:
-    bool runningFlag;
     QJsonParseError jsonParseError;
-    MsgResponseContext context;
 };
 
 #endif // MSGRECEIVEPROCTASK_H

@@ -15,7 +15,9 @@
 #include <QList>
 #include <QReadWriteLock>
 
+namespace ClientNetwork {
 class RTask;
+}
 
 class TaskManager : public QObject
 {
@@ -23,14 +25,14 @@ class TaskManager : public QObject
 public:
     explicit TaskManager(QObject *parent = 0);
 
-    void addTask(RTask * task);
+    void addTask(ClientNetwork::RTask * task);
 
-    void removeTask(RTask * task);
+    void removeTask(ClientNetwork::RTask * task);
     void removeAll();
 
 private:
     QReadWriteLock lock;
-    QList<RTask *> tasks;
+    QList<ClientNetwork::RTask *> tasks;
 
 };
 

@@ -8,6 +8,7 @@
 #include "rsingleton.h"
 #include "dataprocess.h"
 #include "protocoldata.h"
+#include "jsonkey.h"
 
 using namespace ProtocolType;
 
@@ -23,7 +24,7 @@ void DataParse::processData(Database *db,const SocketInData &data)
     if(errorInfo.error == QJsonParseError::NoError)
     {
         QJsonObject obj = document.object();
-        switch(obj.value(context.msgType).toInt())
+        switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
         {
             case MSG_CONTROL:
                                         parseControlData(db,data.sockId,obj);
@@ -41,13 +42,13 @@ void DataParse::processData(Database *db,const SocketInData &data)
 
 void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
-    switch(obj.value(context.msgCommand).toInt())
+    switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
     {
          case MSG_USER_REGISTER:
-                                          onProcessUserRegist(db,socketId,obj.value(context.msgData).toObject());
+                                          onProcessUserRegist(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
                                           break;
          case MSG_USER_LOGIN:
-                                          onProcessUserLogin(db,socketId,obj.value(context.msgData).toObject());
+                                          onProcessUserLogin(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
                                           break;
          default:
              break;
@@ -57,8 +58,8 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 {
     RegistRequest * request = new RegistRequest;
-    request->nickName = obj.value("nickname").toString();
-    request->password = obj.value("pass").toString();
+    request->nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
+    request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
 
     RSingleton<DataProcess>::instance()->processUserRegist(db,socketId,request);
 }
@@ -67,9 +68,9 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
     LoginRequest * request = new LoginRequest;
-    request->accountId = obj.value("name").toString();
-    request->password = obj.value("pass").toString();
-    request->status = (OnlineStatus)obj.value("status").toInt();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
+    request->status = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
 
     RSingleton<DataProcess>::instance()->processUserLogin(db,socketId,request);
 }

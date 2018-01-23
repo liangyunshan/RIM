@@ -39,6 +39,8 @@ public:
 
     bool isValid(){return socketValid;}
 
+    int getLastError();
+
     int getSocket()const {return tcpSocket;}
 
 private:
@@ -49,6 +51,8 @@ private:
     bool blockAble;
 
     int tcpSocket;
+
+    int errorCode;
 };
 
 }   //namespace ServerNetwork

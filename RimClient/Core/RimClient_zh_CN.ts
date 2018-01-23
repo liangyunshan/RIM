@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="zh_CN">
+<TS version="2.1" language="zh_CN">
 <context>
     <name>AbstractWidget</name>
     <message>
         <source>Warning</source>
-        <translation>警告</translation>
+        <translation type="vanished">警告</translation>
     </message>
     <message>
         <source>System don&apos;t support resize window!</source>
-        <translation>系统不支持窗口缩放</translation>
+        <translation type="vanished">系统不支持窗口缩放</translation>
     </message>
 </context>
 <context>
@@ -52,103 +52,88 @@
     <name>FileSaver</name>
     <message>
         <source>Cannot overwrite file %1: %2</source>
-        <translation>不能覆盖文件 %1:%2</translation>
+        <translation type="vanished">不能覆盖文件 %1:%2</translation>
     </message>
     <message>
         <source>Cannot create file %1: %2</source>
-        <translation>不能创建文件 %1:%2</translation>
+        <translation type="vanished">不能创建文件 %1:%2</translation>
     </message>
 </context>
 <context>
     <name>FileSaverBase</name>
     <message>
         <source>Cannot write file %1. Disk full?</source>
-        <translation>不能下入文件%1,磁盘已满？</translation>
+        <translation type="vanished">不能下入文件%1,磁盘已满？</translation>
     </message>
 </context>
 <context>
     <name>LoginDialog</name>
     <message>
-        <location filename="Widgets/logindialog.ui" line="14"/>
-        <source>Dialog</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="Widgets/logindialog.cpp" line="248"/>
         <source>Input password</source>
-        <translation>输入密码</translation>
+        <translation type="vanished">输入密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="225"/>
         <source>System Setting</source>
-        <translation>系统设置</translation>
+        <translation type="vanished">系统设置</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="228"/>
         <source>Min</source>
-        <translation>最小化</translation>
+        <translation type="vanished">最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="231"/>
         <source>Close</source>
-        <translation>关闭</translation>
+        <translation type="vanished">关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="242"/>
         <source>Input number</source>
-        <translation>输入账号</translation>
+        <translation type="vanished">输入账号</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="252"/>
         <source>Remember password</source>
-        <translation>记住密码</translation>
+        <translation type="vanished">记住密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="253"/>
         <source>Auto login</source>
-        <translation>自动登录</translation>
+        <translation type="vanished">自动登录</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="256"/>
         <source>Sin up</source>
-        <translation>注册账号</translation>
+        <translation type="vanished">注册账号</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="254"/>
         <source>Sin in</source>
-        <translation>登 陆</translation>
+        <translation type="vanished">登 陆</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="255"/>
         <source>Forget Password</source>
-        <translation>忘记密码</translation>
+        <translation type="vanished">忘记密码</translation>
     </message>
     <message>
         <source>Exit</source>
-        <translation>退出</translation>
+        <translation type="vanished">退出</translation>
     </message>
     <message>
         <source>Open Panel</source>
-        <translation>打开主面板</translation>
+        <translation type="vanished">打开主面板</translation>
     </message>
 </context>
 <context>
     <name>MainDialog</name>
     <message>
         <source>Dialog</source>
-        <translation>窗口</translation>
+        <translation type="vanished">窗口</translation>
     </message>
     <message>
         <source>Warning</source>
-        <translation>警告</translation>
+        <translation type="vanished">警告</translation>
     </message>
     <message>
         <source>System don&apos;t support resize window!</source>
-        <translation>系统不支持窗口缩放</translation>
+        <translation type="vanished">系统不支持窗口缩放</translation>
     </message>
     <message>
         <source>Front</source>
-        <translation>置顶</translation>
+        <translation type="vanished">置顶</translation>
     </message>
     <message>
         <location filename="Widgets/maindialog.cpp" line="164"/>
@@ -157,11 +142,11 @@
     </message>
     <message>
         <source>Min</source>
-        <translation>最小化</translation>
+        <translation type="vanished">最小化</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation>关闭</translation>
+        <translation type="vanished">关闭</translation>
     </message>
     <message>
         <location filename="Widgets/maindialog.cpp" line="159"/>
@@ -172,27 +157,27 @@
 <context>
     <name>NetSettings</name>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="131"/>
+        <location filename="Widgets/netsettings.cpp" line="134"/>
         <source>Network settings</source>
         <translation>网络设置</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="162"/>
+        <location filename="Widgets/netsettings.cpp" line="170"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="162"/>
+        <location filename="Widgets/netsettings.cpp" line="170"/>
         <source>ip address is error!</source>
         <translation>IP地址!</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="173"/>
+        <location filename="Widgets/netsettings.cpp" line="186"/>
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="173"/>
+        <location filename="Widgets/netsettings.cpp" line="186"/>
         <source>Save changes successfully!</source>
         <translation>修改成功!</translation>
     </message>
@@ -241,11 +226,11 @@
     <name>PanelBottomToolBar</name>
     <message>
         <source>Main menu</source>
-        <translation>主菜单</translation>
+        <translation type="vanished">主菜单</translation>
     </message>
     <message>
         <source>Add Person</source>
-        <translation>加好友</translation>
+        <translation type="vanished">加好友</translation>
     </message>
 </context>
 <context>
@@ -379,11 +364,11 @@
     <name>PanelTopArea</name>
     <message>
         <source>Search person/group</source>
-        <translation>搜索联系人、群组</translation>
+        <translation type="vanished">搜索联系人、群组</translation>
     </message>
     <message>
         <source>Search</source>
-        <translation>搜索</translation>
+        <translation type="vanished">搜索</translation>
     </message>
 </context>
 <context>
@@ -415,30 +400,30 @@
         <translation>请勿打扰</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="64"/>
+        <location filename="main.cpp" line="72"/>
         <source>rengu.com</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="main.cpp" line="65"/>
+        <location filename="main.cpp" line="73"/>
         <source>NanJing RenGu</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="104"/>
-        <location filename="Widgets/registdialog.cpp" line="159"/>
-        <location filename="main.cpp" line="81"/>
+        <location filename="Widgets/logindialog.cpp" line="333"/>
+        <location filename="Widgets/registdialog.cpp" line="240"/>
+        <location filename="main.cpp" line="89"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="104"/>
-        <location filename="Widgets/registdialog.cpp" line="159"/>
+        <location filename="Widgets/logindialog.cpp" line="333"/>
+        <location filename="Widgets/registdialog.cpp" line="240"/>
         <source>Connect to server error!</source>
         <translation>连接服务器失败!</translation>
     </message>
     <message>
-        <location filename="main.cpp" line="81"/>
+        <location filename="main.cpp" line="89"/>
         <source>Log module initialization failure!</source>
         <translation>日志记录模块初始化失败!</translation>
     </message>
@@ -505,11 +490,13 @@
         <translation>输入内容为空</translation>
     </message>
     <message>
+        <location filename="Widgets/logindialog.cpp" line="221"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
         <location filename="Widgets/editpersoninfowindow.cpp" line="228"/>
+        <location filename="Widgets/logindialog.cpp" line="224"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -546,6 +533,7 @@
     </message>
     <message>
         <location filename="Widgets/addfriend.cpp" line="99"/>
+        <location filename="Widgets/logindialog.cpp" line="146"/>
         <source>Input number</source>
         <translation>输入账号</translation>
     </message>
@@ -636,7 +624,7 @@
     </message>
     <message>
         <location filename="Widgets/editpersoninfowindow.cpp" line="225"/>
-        <location filename="Widgets/netsettings.cpp" line="90"/>
+        <location filename="Widgets/netsettings.cpp" line="92"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -743,31 +731,86 @@
         <translation>修改文件接收路径</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="66"/>
+        <location filename="Widgets/registdialog.cpp" line="81"/>
         <source>Nick name</source>
         <translation>昵称</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="70"/>
+        <location filename="Widgets/registdialog.cpp" line="85"/>
         <source>Input nickname</source>
         <translation>输入昵称</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="75"/>
+        <location filename="Widgets/registdialog.cpp" line="90"/>
         <location filename="Widgets/systemsettings.cpp" line="282"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="79"/>
-        <location filename="Widgets/registdialog.cpp" line="88"/>
+        <location filename="Widgets/registdialog.cpp" line="188"/>
+        <source>Inputs contain spaces!</source>
+        <translation>输入内容包含空格!</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="194"/>
+        <source>Input nickname!</source>
+        <translation>请输入用户名!</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="200"/>
+        <source>Input password!</source>
+        <translation>请输入密码!</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="206"/>
+        <source>Inconsistent password!</source>
+        <translation>密码输入不一致!</translation>
+    </message>
+    <message>
+        <source>Check nickname!</source>
+        <translation type="vanished">检查用户名!</translation>
+    </message>
+    <message>
+        <source>Check password!</source>
+        <translation type="vanished">检查密码!</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="154"/>
+        <location filename="Widgets/registdialog.cpp" line="95"/>
+        <location filename="Widgets/registdialog.cpp" line="105"/>
         <source>Input password</source>
         <translation>输入密码</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="91"/>
+        <location filename="Widgets/logindialog.cpp" line="160"/>
+        <source>Sin in</source>
+        <translation>登 陆</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="163"/>
+        <source>Forget Password</source>
+        <translation>忘记密码</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="166"/>
+        <location filename="Widgets/registdialog.cpp" line="108"/>
         <source>Sin up</source>
-        <translation>注 册</translation>
+        <translation>注册账号</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="179"/>
+        <source>Remember password</source>
+        <translation>记住密码</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="182"/>
+        <source>Auto login</source>
+        <translation>自动登录</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="218"/>
+        <source>System Setting</source>
+        <translation>系统设置</translation>
     </message>
     <message>
         <location filename="Widgets/systemsettings.cpp" line="285"/>
@@ -780,7 +823,7 @@
         <translation>新密码</translation>
     </message>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="84"/>
+        <location filename="Widgets/registdialog.cpp" line="100"/>
         <location filename="Widgets/systemsettings.cpp" line="303"/>
         <source>Confirm password</source>
         <translation>确认密码</translation>
@@ -827,22 +870,22 @@
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="65"/>
+        <location filename="Widgets/netsettings.cpp" line="67"/>
         <source>Login Server</source>
         <translation>登陆服务器</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="68"/>
+        <location filename="Widgets/netsettings.cpp" line="70"/>
         <source>Ip Address</source>
         <translation>Ip地址</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="79"/>
+        <location filename="Widgets/netsettings.cpp" line="81"/>
         <source>Port</source>
         <translation>端口</translation>
     </message>
     <message>
-        <location filename="Widgets/netsettings.cpp" line="95"/>
+        <location filename="Widgets/netsettings.cpp" line="97"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -943,9 +986,33 @@
 <context>
     <name>RegistDialog</name>
     <message>
-        <location filename="Widgets/registdialog.cpp" line="126"/>
+        <location filename="Widgets/registdialog.cpp" line="153"/>
         <source>Sin up</source>
         <translation>注 册</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="254"/>
+        <source>Information</source>
+        <translation>提示</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="254"/>
+        <source>Registered successfully! Remember Id: %1 </source>
+        <translation>注册成功!记住ID:%1</translation>
+    </message>
+    <message>
+        <source>Registered successfully! Remember Id:【%1】</source>
+        <translation type="vanished">注册成功!记住ID:【%1】</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="258"/>
+        <source>Warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registdialog.cpp" line="258"/>
+        <source>Registration failed!</source>
+        <translation>注册失败!</translation>
     </message>
 </context>
 <context>
@@ -1021,22 +1088,22 @@
     <name>ToolBar</name>
     <message>
         <source>Min</source>
-        <translation>最小化</translation>
+        <translation type="vanished">最小化</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation>关闭</translation>
+        <translation type="vanished">关闭</translation>
     </message>
 </context>
 <context>
     <name>Widget</name>
     <message>
-        <location filename="Widgets/widget.cpp" line="283"/>
+        <location filename="Widgets/widget.cpp" line="289"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/widget.cpp" line="283"/>
+        <location filename="Widgets/widget.cpp" line="289"/>
         <source>System don&apos;t support resize window!</source>
         <translation>系统不支持窗口缩放!</translation>
     </message>

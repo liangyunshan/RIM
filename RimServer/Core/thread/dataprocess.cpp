@@ -28,11 +28,15 @@ void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *r
         response->accountId = registId;
 
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+
+        delete response;
     }
     else
     {
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,REGISTER_FAILED);
     }
+
+    delete request;
 
     G_SendMutex.lock();
     G_SendButts.enqueue(data);
@@ -61,11 +65,15 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
         response->face = 1;
 
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+
+        delete response;
     }
     else
     {
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,LOGIN_UNREGISTERED);
     }
+
+    delete request;
 
     G_SendMutex.lock();
     G_SendButts.enqueue(data);

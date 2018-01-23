@@ -4,6 +4,7 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QAction>
+#include <QLineEdit>
 
 #include "head.h"
 #include "datastruct.h"
@@ -29,6 +30,7 @@ protected:
     ToolBox * toolBox;
 
     QWidget * contentWidget;
+    QLineEdit *tmpNameEdit;     //重命名时用edit
 
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
@@ -51,6 +53,11 @@ void PanelPersonPagePrivate::initWidget()
     contentLayout->setSpacing(0);
     contentLayout->addWidget(toolBox);
     contentWidget->setLayout(contentLayout);
+
+    tmpNameEdit = new QLineEdit(toolBox);
+    QObject::connect(tmpNameEdit,SIGNAL(editingFinished()),q_ptr,SLOT(renameEditFinished()));
+    tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
+    tmpNameEdit->hide();
 }
 
 PanelPersonPage::PanelPersonPage(QWidget *parent):
@@ -110,16 +117,43 @@ void PanelPersonPage::refreshList()
      */
 void PanelPersonPage::addGroup()
 {
-
+    MQ_D(PanelPersonPage);
+    ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
+    d->pages.append(page);
+    page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
+    QRect textRec = page->textRect();
+    QRect pageRec = page->geometry();
+    qDebug()<<"textRec"<<textRec<<"pageRec"<<pageRec;
+    d->tmpNameEdit->raise();
+    d->tmpNameEdit->setText(tr("untitled"));
+    d->tmpNameEdit->selectAll();
+    d->tmpNameEdit->setGeometry(textRec.x(),textRec.y(),pageRec.width(),textRec.height());
+    d->tmpNameEdit->show();
+    d->tmpNameEdit->setFocus();
 }
 
+/*!
+     * @brief 重命名分组
+     *
+     * @param[in] 无
+     *
+     * @return 无
+     *
+     */
 void PanelPersonPage::renameGroup()
 {
     MQ_D(PanelPersonPage);
     ToolPage * page = d->toolBox->selectedPage();
     if(page)
     {
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<page;
+        QRect textRec = page->textRect();
+        QRect pageRec = page->geometry();
+        d->tmpNameEdit->raise();
+        d->tmpNameEdit->setText(tr("untitled"));
+        d->tmpNameEdit->selectAll();
+        d->tmpNameEdit->setGeometry(textRec.x(),textRec.y(),pageRec.width(),textRec.height());
+        d->tmpNameEdit->show();
+        d->tmpNameEdit->setFocus();
     }
 }
 
@@ -130,7 +164,7 @@ void PanelPersonPage::delGroup()
 
 void PanelPersonPage::createChatWindow(ToolItem *item)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"__"<<item;
+    Q_UNUSED(item);
 }
 
 void PanelPersonPage::sendInstantMessage()
@@ -152,6 +186,25 @@ void PanelPersonPage::modifyUserInfo()
 void PanelPersonPage::deleteUser()
 {
 
+}
+
+/*!
+     * @brief LineEdit中命名完成后将内容设置为page的name
+     *
+     * @param[in] 无
+     *
+     * @return 无
+     *
+     */
+void PanelPersonPage::renameEditFinished()
+{
+    MQ_D(PanelPersonPage);
+    if(d->tmpNameEdit->text() != NULL)
+    {
+        d->toolBox->selectedPage()->setToolName(d->tmpNameEdit->text());
+    }
+    d->tmpNameEdit->setText("");
+    d->tmpNameEdit->hide();
 }
 
 void PanelPersonPage::createAction()
@@ -203,11 +256,18 @@ void PanelPersonPage::createAction()
     QAction * deletePersonAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_DELPERSON,this,SLOT(deleteUser()));
     deletePersonAction->setText(tr("Delete Friend"));
 
+    QAction * movePersonTOAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_MOVEPERSON);
+    movePersonTOAction->setText(tr("Move Friend To"));
+
+    QMenu * groupsMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
+    movePersonTOAction->setMenu(groupsMenu);
+
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_SENDMESSAGE));
     personMenu->addSeparator();
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_VIEWDETAIL));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MODIFYCOMMENTS));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_DELPERSON));
+    personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MOVEPERSON));
     personMenu->addSeparator();
 }
 

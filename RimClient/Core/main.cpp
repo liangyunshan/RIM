@@ -6,9 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDebug>
-#include <QMessageBox>
 #include <QSettings>
-#include <QDateTime>
 
 #include "Util/rutil.h"
 #include "Widgets/logindialog.h"
@@ -22,6 +20,7 @@
 using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
+#include "Widgets/widget/rmessagebox.h"
 
 #include "thread/msgreceiveproctask.h"
 #include "thread/taskmanager.h"
@@ -29,14 +28,21 @@ using namespace ProtocolType;
 #include "Network/rsocket.h"
 #include "Network/msgsender.h"
 #include "Network/msgreceive.h"
+#include "Network/netconnector.h"
 
 /*!
-  目录结构
-  +RIM
-      +bin
-      +config
-           +translations
-           +skin
+  运行目录结构
+  [+]RIM
+      [+]bin
+           *.exe
+           *.dll
+      [+]config
+           [+]translations
+           [+]skin
+           config.xml
+      [+]lib
+           *.lib
+      [+]users
 */
 
 #if _MSC_VER >= 1600
@@ -81,7 +87,7 @@ int main(int argc, char *argv[])
 
     if(!RSingleton<RLog>::instance()->init())
     {
-        QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Log module initialization failure!"),QMessageBox::Yes,QMessageBox::Yes);
+        RMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Log module initialization failure!"),RMessageBox::Yes,RMessageBox::Yes);
     }
 
     QTranslator translator;
@@ -117,12 +123,11 @@ int main(int argc, char *argv[])
         app.setStyleSheet(styleFile.readAll());
     }
 
-
     qRegisterMetaType<RegistResponse>("RegistResponse");
     qRegisterMetaType<ResponseRegister>("ResponseRegister");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
-
+    RSingleton<TaskManager>::instance()->addTask(new NetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
 
 //    QDateTime dt = QDateTime::currentDateTime();

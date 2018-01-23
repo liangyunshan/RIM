@@ -25,6 +25,7 @@
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"
+#include "Network/netconnector.h"
 
 class NetSettingsPrivate : public GlobalData<NetSettings>
 {
@@ -174,8 +175,13 @@ void NetSettings::updateSettings()
     settings->setValue(Constant::SETTING_NETWORK_IP,d->tcpTextServerIpEdit->text());
     settings->setValue(Constant::SETTING_NETWORK_PORT,d->tcpTextServerPortEdit->text());
 
-    G_ServerIp = d->tcpTextServerIpEdit->text();
-    G_ServerPort = d->tcpTextServerPortEdit->text().toUShort();
+    if(G_ServerIp != d->tcpTextServerIpEdit->text() || G_ServerPort != d->tcpTextServerPortEdit->text().toUShort())
+    {
+        G_ServerIp = d->tcpTextServerIpEdit->text();
+        G_ServerPort = d->tcpTextServerPortEdit->text().toUShort();
+
+        NetConnector::instance()->disConnect();
+    }
 
     RMessageBox::information(this,tr("Information"),tr("Save changes successfully!"),RMessageBox::Yes);
 

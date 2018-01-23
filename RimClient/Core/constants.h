@@ -6,6 +6,8 @@
  *  @date      2017.12.11
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change:
+ *      date:20180122   content:添加ACTION_PANEL_MOVEPERSON     name:LYS
  */
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
@@ -63,8 +65,8 @@ const int MAIN_PANEL_MIN_HEIGHT = 450;                  //主面板最小高度
 
 const int MAIN_PANEL_MAX_WIDTH = 600;                   //主面板最大宽度
 
-const int LOGIN_FIX_WIDTH = 500;                        //登陆页面固定宽度
-const int LOGIN_FIX_HEIGHT =  400;                      //登陆页面固定高度
+const int LOGIN_FIX_WIDTH = 430;                        //登陆页面固定宽度
+const int LOGIN_FIX_HEIGHT =  350;                      //登陆页面固定高度
 
 const int ITEM_FIX_HEIGHT = 24;                         //QLineEdit、QLabel等的固定高度
 
@@ -106,6 +108,7 @@ const char Button_Chat_Send[] = "Button_Chat_Send";                             
 const char MENU_PANEL_PERSON_TOOLBOX[] = "Menu.Panel.Person.ToolBox";
 const char MENU_PANEL_PERSON_TOOLGROUP[] = "Menu.Panel.Person.ToolGroup";
 const char MENU_PANEL_PERSON_TOOLITEM[] = "Menu.Panel.Person.ToolItem";
+const char MENU_PANEL_PERSON_TOOLITEM_GROUPS[] = "Menu.Panel.Person.ToolItem.Groups";
 
 const char ACTION_PANEL_PERSON_REFRESH[] = "Action_Panel_Person_Refresh";
 const char ACTION_PANEL_PERSON_ADDGROUP[] = "Action_Panel_Person_AddGroup";
@@ -116,6 +119,7 @@ const char ACTION_PANEL_SENDMESSAGE[] = "Action_Panel_SendPersonMessage";
 const char ACTION_PANEL_VIEWDETAIL[] = "Action_Panel_ViewDetail";
 const char ACTION_PANEL_MODIFYCOMMENTS[] = "Action_Panel_ModifyComments";
 const char ACTION_PANEL_DELPERSON[] = "Action_Panel_DeltePerson";
+const char ACTION_PANEL_MOVEPERSON[] = "Action_Panel_MOVEPERSON";
 
 const char MENU_PANEL_GROUP_TOOLBOX[] = "Menu.Panel.Group.ToolBox";
 const char MENU_PANEL_GROUP_TOOLGROUP[] = "Menu.Panel.Group.ToolGroup";

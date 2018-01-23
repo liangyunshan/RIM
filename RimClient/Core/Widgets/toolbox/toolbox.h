@@ -12,6 +12,7 @@
 #define TOOLBOX_H
 
 #include <QWidget>
+#include <QStringList>
 
 #include "toolpage.h"
 
@@ -33,11 +34,17 @@ public:
 
     int pageCount();
 
+    void testMe();
+
     void setContextMenu(QMenu * menu);
+    QStringList toolPageSNames()const;
+
+    const QStringList toolPageSNames();
 
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
+    void updateLayout();
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);

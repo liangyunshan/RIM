@@ -7,6 +7,9 @@
  *  @date      2017.12.18
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change
+ *      date:20180118   content:添加获取page的文本框位置信息方法textRect()    name:LYS
+ *      date:20180122   content:添加获取page的文本框内容方法toolName()      name:LYS
  */
 #ifndef TOOLPAGE_H
 #define TOOLPAGE_H
@@ -33,12 +36,19 @@ public:
 
     void setMenu(QMenu * menu);
 
+    QRect textRect()const;
+    QString toolName()const;
+
 signals:
     void selectedPage(ToolPage *);
     void clearItemSelection(ToolItem*);
+    void currentPosChanged();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
+    void mousePressEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
 
 private:
     ToolPagePrivate * d_ptr;
