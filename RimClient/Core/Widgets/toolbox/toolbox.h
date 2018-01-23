@@ -35,6 +35,8 @@ public:
 
     void setContextMenu(QMenu * menu);
 
+    const QStringList toolPageSNames();
+
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
