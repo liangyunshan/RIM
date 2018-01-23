@@ -1,12 +1,11 @@
-QT += core
-QT -= gui
+TEMPLATE = subdirs
 
-CONFIG += c++11
+CONFIG += ordered console debug
 
-TARGET = RimServer
-CONFIG += console
-CONFIG -= app_bundle
+SUBDIRS += \
+    Network \
+    Core
 
-TEMPLATE = app
-
-SOURCES += main.cpp
+win32-g++{
+    QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder
+}

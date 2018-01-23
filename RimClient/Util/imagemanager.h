@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.12
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef IMAGEMANAGER_H
 #define IMAGEMANAGER_H
@@ -15,9 +15,10 @@
 #include <QFileInfoList>
 #include <QIcon>
 
-#include "datastruct.h"
+#include "util_global.h"
+#include "Core/datastruct.h"
 
-class ImageManager : public QObject
+class UTILSHARED_EXPORT ImageManager : public QObject
 {
     Q_OBJECT
 public:

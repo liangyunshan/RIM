@@ -6,19 +6,20 @@
  *  @version   1.0
  *  @date      2017.12.13
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef RLOG_H
 #define RLOG_H
 
-#define LOG_INFO(...)       RLog::log(RLog::INFO,__FILE__,__FUNCTION__,__LINE__, __VA_ARGS__)
-#define LOG_WARNING(...)    RLog::log(RLog::WARNING, __FILE__,__FUNCTION__, __LINE__,__VA_ARGS__)
-#define LOG_ERROR(...)      RLog::log(RLog::ERROR,__FILE__, __FUNCTION__,__LINE__, __VA_ARGS__)
-
+#define RLOG_INFO(...)       RLog::log(RLog::RINFO,__FILE__,__FUNCTION__,__LINE__, __VA_ARGS__)
+#define RLOG_WARNING(...)    RLog::log(RLog::RWARNING, __FILE__,__FUNCTION__, __LINE__,__VA_ARGS__)
+#define RLOG_ERROR(...)      RLog::log(RLog::RERROR,__FILE__,__FUNCTION__,__LINE__,__VA_ARGS__)
 #include <QFile>
 #include <QMutex>
 
-class RLog : public QObject
+#include "util_global.h"
+
+class UTILSHARED_EXPORT RLog : public QObject
 {
     Q_OBJECT
 public:
@@ -28,9 +29,9 @@ public:
      */
     enum RLOG_LEVEL
     {
-        INFO,               /*!<    提示  */
-        WARNING,            /*!<    警告  */
-        ERROR               /*!<    提示  */
+        RINFO,               /*!<    提示  */
+        RWARNING,            /*!<    警告  */
+        RERROR               /*!<    提示  */
     };
     Q_FLAG(RLOG_LEVEL)
 

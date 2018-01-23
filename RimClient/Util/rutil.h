@@ -6,7 +6,7 @@
  *  @version   1.0
  *  @date      2017.12.11
  *  @warning
- *  @copyright GNU Public License.
+ *  @copyright NanJing RenGu.
  */
 #ifndef RUTIL_H
 #define RUTIL_H
@@ -14,8 +14,9 @@
 #include <QString>
 #include <QSettings>
 
+#include "util_global.h"
 
-class RUtil
+class UTILSHARED_EXPORT RUtil
 {
 public:
     RUtil();
@@ -34,6 +35,10 @@ public:
     static QString UUID();
 
     static QSize screenSize(int num = -1);
+
+    static qint64 currentMSecsSinceEpoch();
+
+    static bool validateIpFormat(QString dest);
 
 private:
     static QSettings * gSettings;

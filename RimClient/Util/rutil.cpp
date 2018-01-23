@@ -7,6 +7,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QUuid>
+#include <QRegExp>
 
 QSettings * RUtil::gSettings = NULL;
 
@@ -69,7 +70,9 @@ QSettings *RUtil::globalSettings()
 
 QString RUtil::UUID()
 {
-    return QUuid::createUuid().toString();
+    QString uuid = QUuid::createUuid().toString();
+    uuid.replace(QRegExp("\\W+"),"");
+    return uuid;
 }
 
 QSize RUtil::screenSize(int num)
@@ -80,4 +83,18 @@ QSize RUtil::screenSize(int num)
     }
 
     return qApp->desktop()->screen()->size();
+}
+
+qint64 RUtil::currentMSecsSinceEpoch()
+{
+    return QDateTime::currentDateTime().currentMSecsSinceEpoch();
+}
+
+bool RUtil::validateIpFormat(QString dest)
+{
+    QString matchIp = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
+    QString matchWholeIp = QString("(%1\\.){3}%2").arg(matchIp).arg(matchIp);
+    QRegExp rx(matchWholeIp);
+
+    return rx.exactMatch(dest);
 }
