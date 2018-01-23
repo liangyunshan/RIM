@@ -11,22 +11,6 @@
 
 namespace ServerNetwork {
 
-#define MAGIC_NUM 0x7DBCD6AC
-
-struct DataPacket
-{
-    DataPacket()
-    {
-        magicNum = MAGIC_NUM;
-    }
-    unsigned int magicNum;                   //魔数，0x7DBCD6AC
-    unsigned int packId;                     //数据包身份，一个id可对应多个帧，也可以有一个帧
-    unsigned int currentIndex;               //当前帧
-    unsigned int totalIndex;                 //总帧数量
-    unsigned int currentLen;                 //当前数据长度
-    unsigned int totalLen;                   //总数据长度
-};
-
 WorkThread::WorkThread(SharedIocpData *data):
     serverSharedData(data)
 {
@@ -104,7 +88,7 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
         char * dataBuff = new char[tmpBuffLen];
         memset(dataBuff,0,tmpBuffLen * sizeof(char));
 
-        memcpy(dataBuff,ioData->getClient()->getHalfPacketBuff(),lastRecvBuffSize);
+        memcpy(dataBuff,ioData->getClient()->getHalfPacketBuff().data(),lastRecvBuffSize);
         memcpy(dataBuff + lastRecvBuffSize,ioData->getPakcet(),recvLen);
 
         ioData->getClient()->getHalfPacketBuff().clear();
@@ -133,7 +117,7 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
     {
         memcpy((char *)&packet,recvData,sizeof(DataPacket));
         //[1]数据头部分正常
-        if(packet.magicNum == MAGIC_NUM)
+        if(packet.magicNum == RECV_MAGIC_NUM)
         {
             SocketInData socketData;
             socketData.sockId = ioData->getClient()->socket();
@@ -164,7 +148,7 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
                        memcpy(data.data(),ioData->getPakcet() + processLen,packet.currentLen);
 
                        ioData->getClient()->lock();
-                       if(ioData->getClient()->getPacketBuffs().size() == 0)
+                       if(ioData->getClient()->getPacketBuffs().value(packet.packId,NULL) == NULL)
                        {
                             PacketBuff * buff = new PacketBuff;
                             buff->totalPackIndex = packet.totalIndex;
@@ -220,7 +204,7 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
                     {
                         //[1.1.3.1]【信息被截断】
                         memcpy(&packet,recvData + processLen,leftLen);
-                        //FIXME 可能存在死锁问题
+
                         ioData->getClient()->lock();
                         ioData->getClient()->getHalfPacketBuff().clear();
                         ioData->getClient()->getHalfPacketBuff().append((char *)&packet,leftLen);
@@ -236,7 +220,6 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
 
                     memcpy(&packet,recvData + processLen,leftLen);
 
-                    //FIXME 可能存在死锁问题
                     ioData->getClient()->lock();
                     ioData->getClient()->getHalfPacketBuff().clear();
                     ioData->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(DataPacket));

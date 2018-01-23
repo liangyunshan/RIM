@@ -22,9 +22,20 @@ TcpClient *TcpClient::create()
     return client;
 }
 
+int TcpClient::getPackId()
+{
+    QMutexLocker locker(&packIdMutex);
+    sendPackId++;
+
+    return sendPackId;
+}
+
 TcpClient::TcpClient()
 {
     memset(cIp,0,32);
+
+    sendPackId = qrand()%1024 + 1000;
+
     cSocket = 0;
     cPort = 0;
 }

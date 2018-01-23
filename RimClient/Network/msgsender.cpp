@@ -13,22 +13,10 @@ namespace ClientNetwork{
 int SendPackId;
 QMutex SendPackMutex;
 
-#define MAGIC_NUM 0x7DBCD6AC
-
-struct DataPacket
-{
-    unsigned int magicNum;                   //魔数，0x7DBCD6AC
-    unsigned int packId;                     //数据包身份，一个id可对应多个帧，也可以有一个帧
-    unsigned int currentIndex;               //当前帧
-    unsigned int totalIndex;                 //总帧数量
-    unsigned int currentLen;                 //当前数据长度
-    unsigned int totalLen;                   //总数据长度
-};
-
 MsgSender::MsgSender(QThread *parent):tcpSocket(NULL),
    RTask(parent)
 {
-    SendPackId = 0;
+    SendPackId = qrand()%1024 + 1000;
 }
 
 void MsgSender::setSock(RSocket * sock)
@@ -102,7 +90,7 @@ bool MsgSender::handleDataSend(QByteArray &data)
     {
         DataPacket packet;
         memset((char *)&packet,0,sizeof(DataPacket));
-        packet.magicNum = MAGIC_NUM;
+        packet.magicNum = SEND_MAGIC_NUM;
         SendPackMutex.lock();
         packet.packId = ++SendPackId;
         SendPackMutex.unlock();

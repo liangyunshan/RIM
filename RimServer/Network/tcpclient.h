@@ -67,8 +67,10 @@ public:
     QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}
     QByteArray & getHalfPacketBuff(){return halfPackBufff;}
 
-    void lock(){mutex.lock();}
-    void unLock(){mutex.unlock();}
+    void lock(){packBuffMutex.lock();}
+    void unLock(){packBuffMutex.unlock();}
+
+    int getPackId();
 
 private:
     explicit TcpClient();
@@ -83,7 +85,9 @@ private:
     */
     QByteArray halfPackBufff;                       //非完整包缓冲区
     QHash<int,PacketBuff*> packetBuffs;             //多包缓冲区
-    QMutex mutex;
+    QMutex packBuffMutex;
+    QMutex packIdMutex;
+    int sendPackId;                                 //每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。
 
     friend class TcpClientManager;
 };
