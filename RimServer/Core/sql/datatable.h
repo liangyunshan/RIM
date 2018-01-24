@@ -45,7 +45,7 @@ public:
     const QString phone;                    //联系方式
     const QString address;                  //地址
     const QString email;                    //邮箱
-    const QString desc;                     //基本描述
+    const QString remark;                   //基本描述
     const QString face;                     //头像类型
     const QString faceId;                   //图片索引
 };

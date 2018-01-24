@@ -51,7 +51,7 @@ void DataProcess::proLoginResponse(QJsonObject &data)
             response.baseInfo.address = dataObj.value(JsonKey::key(JsonKey::Address)).toString();
             response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
             response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
-            response.baseInfo.desc = dataObj.value(JsonKey::key(JsonKey::Desc)).toString();
+            response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
             response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
             response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
 
@@ -81,7 +81,7 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
             response.baseInfo.address = dataObj.value(JsonKey::key(JsonKey::Address)).toString();
             response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
             response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
-            response.baseInfo.desc = dataObj.value(JsonKey::key(JsonKey::Desc)).toString();
+            response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
             response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
             response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
 

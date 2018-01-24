@@ -70,7 +70,7 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
     data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
     data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
     data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
-    data.insert(JsonKey::key(JsonKey::Desc),packet->baseInfo.desc);
+    data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
     data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
 
     wrappedPack(packet,data);
