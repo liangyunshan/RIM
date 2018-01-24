@@ -32,11 +32,11 @@ namespace ProtocolType {
  * {
  *     'type'   :   MsgType,
  *     'cmd'    :   MsgCommand,
+ *     'status' :   value,                          //若是操作性质,返回操作成功与否标志
  *     'data'   :
  *                  {
- *                      'status' : value,           //若是操作性质返回操作成功与否标志
- *                      -----------------
- *                      'key'   :  value            //
+ *
+ *                      'key'   :  value
  *                  }
  *
  * }
@@ -73,8 +73,8 @@ enum MsgType
 enum MsgCommand
 {
     MSG_Command_INVALID,                               //无意义
-    MSG_USER_REGISTER = 0x01,                          //用户注册
-    MSG_USER_LOGIN,                                    //用户登录
+    MSG_USER_REGISTER = 0x01,                          //用户注册[OK]
+    MSG_USER_LOGIN,                                    //用户登录[OK]
     MSG_USER_LOGOUT,                                   //用户退出
     MSG_USER_VIEW_INFO,                                //用户基本信息
     MSG_USER_UPDATE_INFO,                              //用户更新信息
@@ -119,7 +119,7 @@ enum OnlineStatus
 //登陆结果
 enum ResponseLogin
 {
-    LOGIN_SUCCESS,                  //登陆成功
+    LOGIN_SUCCESS = 0,              //登陆成功
     LOGIN_FAILED,                   //登陆失败
     LOGIN_UNREGISTERED,             //未注册
     LOGIN_PASS_ERROR,               //密码错误
@@ -131,8 +131,7 @@ enum ResponseLogin
 //注册结果信息
 enum ResponseRegister
 {
-    REGISTER_SUCCESS,               //注册成功
-    REGISTER_EXIST,                 //账号已存在
+    REGISTER_SUCCESS = 0,           //注册成功
     REGISTER_FAILED,                //注册失败
     REGISTER_SERVER_REFUSED         //服务器未响应
 };
@@ -194,6 +193,21 @@ public:
 };
 
 /************************登  陆**********************/
+struct UserBaseInfo
+{
+    QString accountId;                      //账号
+    QString nickName;                       //昵称
+    QString signName;                       //签名
+    Sexual  sexual;                         //性别
+    QString birthday;                       //生日
+    QString address;                        //地址
+    QString email;                          //邮箱
+    QString phoneNumber;                    //电话
+    QString desc;                           //备注
+    unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
+    QString customImgId;                    //头像信息(face为0时有效)
+};
+
 class LoginRequest : public MsgPacket
 {
 public:
@@ -209,17 +223,7 @@ class LoginResponse : public MsgPacket
 public:
     LoginResponse();
 
-    QString accountId;                      //账号
-    QString nickName;                       //昵称
-    QString signName;                       //签名
-    Sexual  sexual;                         //性别
-    int birthday;                           //生日
-    QString address;                        //地址
-    QString email;                          //邮箱
-    QString phoneNumber;                    //电话
-    QString desc;                           //备注
-    unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
-    QString customImgId;                    //头像信息(face为0时有效)
+    UserBaseInfo baseInfo;
 };
 
 /************************注  册**********************/
@@ -239,6 +243,24 @@ public:
 
     QString accountId;                       //注册的ID，在登陆时使用此ID作为用户名
 };
+
+/************************更新基本信息**********************/
+class UpdateBaseInfoRequest : public MsgPacket
+{
+public:
+    UpdateBaseInfoRequest();
+
+    UserBaseInfo baseInfo;
+};
+
+class UpdateBaseInfoResponse : public MsgPacket
+{
+public:
+    UpdateBaseInfoResponse();
+
+    UserBaseInfo baseInfo;
+};
+
 
 }
 

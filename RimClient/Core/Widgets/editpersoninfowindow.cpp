@@ -12,12 +12,16 @@
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
+#include "global.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "toolbar.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
 #include "widget/rlabel.h"
+#include "Network/msgwrap.h"
+#include "messdiapatch.h"
+#include "widget/rmessagebox.h"
 
 #define EDIT_PERSON_WIDTH 380
 #define EDIT_PERSON_HEIGHT 600
@@ -30,9 +34,11 @@ private:
     EditPersonInfoWindowPrivate(EditPersonInfoWindow * q):q_ptr(q)
     {
         initWidget();
+        initContent();
     }
 
     void initWidget();
+    void initContent();
 
     EditPersonInfoWindow * q_ptr;
 
@@ -144,6 +150,7 @@ void EditPersonInfoWindowPrivate::initWidget()
     m_birth_label->setText(QObject::tr("Birthday"));
 
     m_birth_dateEdit = new QDateEdit(bodyWidget);
+    m_birth_dateEdit->setDisplayFormat(Constant::Date_Simple);
     m_birth_dateEdit->setFixedSize(Edit_Width,Label_Height);
 
     m_sign_label = new QLabel(bodyWidget);
@@ -224,6 +231,8 @@ void EditPersonInfoWindowPrivate::initWidget()
     saveButton = new RButton();
     saveButton->setText(QObject::tr("Save"));
 
+    QObject::connect(saveButton,SIGNAL(pressed()),q_ptr,SLOT(updateUserBaseInfo()));
+
     closeButton = new RButton();
     closeButton->setText(QObject::tr("Close"));
 
@@ -242,6 +251,19 @@ void EditPersonInfoWindowPrivate::initWidget()
     contentWidget->setLayout(contentLayout);
 
     q_ptr->setContentWidget(contentWidget);
+}
+
+void EditPersonInfoWindowPrivate::initContent()
+{
+    m_account_edit->setText(G_UserBaseInfo.accountId);
+    m_nickName_edit->setText(G_UserBaseInfo.nickName);
+    m_sign_plainEdit->appendPlainText(G_UserBaseInfo.signName);
+    m_sexual_box->setCurrentIndex((int)G_UserBaseInfo.sexual);
+    m_birth_dateEdit->setDate(QDate::fromString(G_UserBaseInfo.birthday,Constant::Date_Simple));
+    m_address_edit->setText(G_UserBaseInfo.address);
+    m_mail_edit->setText(G_UserBaseInfo.email);
+    m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
+    m_desc_plainEdit->appendPlainText(G_UserBaseInfo.desc);
 }
 
 EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
@@ -267,6 +289,8 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
     setFixedSize(EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
     setGeometry((screenSize.width() - EDIT_PERSON_WIDTH)/2,(screenSize.height() - EDIT_PERSON_HEIGHT)/2,EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
+
+    connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),this,SLOT(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
 }
 
 EditPersonInfoWindow::~EditPersonInfoWindow()
@@ -292,6 +316,46 @@ void EditPersonInfoWindow::openLocalImage()
     if(!imageFile.isNull())
     {
 
+    }
+}
+
+void EditPersonInfoWindow::updateUserBaseInfo()
+{
+    MQ_D(EditPersonInfoWindow);
+
+    UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
+
+    request->baseInfo.accountId = G_UserBaseInfo.accountId;
+    request->baseInfo.nickName = d->m_nickName_edit->text();
+    request->baseInfo.signName = d->m_sign_plainEdit->toPlainText();
+    request->baseInfo.sexual = (Sexual)d->m_sexual_box->currentIndex();
+    request->baseInfo.birthday = d->m_birth_dateEdit->text();
+    request->baseInfo.address = d->m_address_edit->text();
+    request->baseInfo.email = d->m_mail_edit->text();
+    request->baseInfo.phoneNumber = d->m_phone_edit->text();
+    request->baseInfo.desc = d->m_desc_plainEdit->toPlainText();
+    request->baseInfo.face = 0;
+    request->baseInfo.customImgId = "456";
+
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+}
+
+void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response)
+{
+    MQ_D(EditPersonInfoWindow);
+    switch(status)
+    {
+        case UPDATE_USER_SUCCESS:
+                                    {
+                                        G_UserBaseInfo = response.baseInfo;
+                                        RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
+                                    }
+                                    break;
+
+        case UPDATE_USER_FAILED:
+        default:
+                                    RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
+                                    break;
     }
 }
 

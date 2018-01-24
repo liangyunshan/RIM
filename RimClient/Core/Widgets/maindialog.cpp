@@ -22,11 +22,12 @@
 #include "rsingleton.h"
 #include "actionmanager/shortcutsettings.h"
 #include "editpersoninfowindow.h"
+#include "messdiapatch.h"
+#include "widget/rmessagebox.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
 
-//shangchao
 #include "sql/databasemanager.h"
 
 #define PANEL_MARGIN 20
@@ -239,8 +240,6 @@ void MainDialog::updateEditInstance()
    MQ_D(MainDialog);
    d->editWindow = NULL;
 }
-
-#include <QToolButton>
 
 void MainDialog::initWidget()
 {

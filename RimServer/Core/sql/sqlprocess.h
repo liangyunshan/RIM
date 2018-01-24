@@ -22,8 +22,11 @@ class SQLProcess
 public:
     SQLProcess();
 
-    bool processUserRegist(Database *db, RegistRequest * request,QString & id);
-    bool processUserLogin(Database *db, LoginRequest * request);
+    ResponseRegister processUserRegist(Database *db, const RegistRequest * request,QString & id);
+    ResponseLogin processUserLogin(Database *db, const LoginRequest * request);
+    ResponseUpdateUser processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest * request);
+
+    void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
 
 private:
 

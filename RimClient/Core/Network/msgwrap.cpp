@@ -28,6 +28,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_USER_LOGIN:
                                             handleLoginRequest((LoginRequest *)packet);
                                             break;
+        case MsgCommand::MSG_USER_UPDATE_INFO:
+                                            handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
+                                            break;
         default:
                 break;
     }
@@ -51,6 +54,24 @@ void MsgWrap::handleRegistRequest(RegistRequest *packet)
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::NickName),packet->nickName);
     data.insert(JsonKey::key(JsonKey::Pass),packet->password);
+
+    wrappedPack(packet,data);
+}
+
+//处理用户更新个人基本信息
+void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->baseInfo.desc);
+    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
 
     wrappedPack(packet,data);
 }

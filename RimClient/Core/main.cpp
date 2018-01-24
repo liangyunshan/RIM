@@ -123,8 +123,12 @@ int main(int argc, char *argv[])
         app.setStyleSheet(styleFile.readAll());
     }
 
+    qRegisterMetaType<ResponseLogin>("ResponseLogin");
+    qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");
     qRegisterMetaType<ResponseRegister>("ResponseRegister");
+    qRegisterMetaType<ResponseUpdateUser>("ResponseUpdateUser");
+    qRegisterMetaType<UpdateBaseInfoResponse>("UpdateBaseInfoResponse");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());

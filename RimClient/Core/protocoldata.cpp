@@ -32,5 +32,17 @@ RegistResponse::RegistResponse()
     msgCommand = MSG_USER_REGISTER;
 }
 
+UpdateBaseInfoRequest::UpdateBaseInfoRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_UPDATE_INFO;
+}
+
+UpdateBaseInfoResponse::UpdateBaseInfoResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_UPDATE_INFO;
+}
+
 
 } //namespace Protocol
