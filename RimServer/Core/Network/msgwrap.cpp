@@ -32,6 +32,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
                                             return handleRegistResponse((RegistResponse *)packet);
         case MsgCommand::MSG_USER_LOGIN:
                                             return handleLoginResponse((LoginResponse *)packet);
+        case MsgCommand::MSG_USER_UPDATE_INFO:
+                                            return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
         default:
                 break;
     }
@@ -73,16 +75,37 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 {
     QJsonObject data;
 
-    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
-    data.insert(JsonKey::key(JsonKey::NickName),packet->nickName);
-    data.insert(JsonKey::key(JsonKey::SignName),packet->signName);
-    data.insert(JsonKey::key(JsonKey::Sexual),packet->sexual);
-    data.insert(JsonKey::key(JsonKey::Birth),packet->birthday);
-    data.insert(JsonKey::key(JsonKey::Address),packet->address);
-    data.insert(JsonKey::key(JsonKey::Email),packet->email);
-    data.insert(JsonKey::key(JsonKey::Phone),packet->phoneNumber);
-    data.insert(JsonKey::key(JsonKey::Desc),packet->desc);
-    data.insert(JsonKey::key(JsonKey::Face),packet->face);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->baseInfo.desc);
+    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+    data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
+
+    return wrappedPack(packet,data);
+}
+
+//处理更新用户信息
+QByteArray MsgWrap::handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->baseInfo.desc);
+    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+    data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
 
     return wrappedPack(packet,data);
 }

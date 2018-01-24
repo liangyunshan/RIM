@@ -69,11 +69,13 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 
 //        int magicNum =  root.value(context.magicNum).toInt();
 //        if(magicNum == 0xABCDDCBA)
+
+        qDebug()<<document.toJson(QJsonDocument::Indented);
         {
             switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
             {
                 case MSG_CONTROL:
-                                    handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root.value(JsonKey::key(JsonKey::Data)).toObject());
+                                    handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                                     break;
                 case MSG_TEXT:
                                 break;
@@ -103,6 +105,9 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
                             break;
         case MSG_USER_LOGIN:
                             RSingleton<DataProcess>::instance()->proLoginResponse(obj);
+                            break;
+        case MSG_USER_UPDATE_INFO:
+                            RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
                             break;
     };
 }

@@ -23,6 +23,7 @@ public:
 
     void processUserRegist(Database *db, int socketId, RegistRequest *request);
     void processUserLogin(Database *db, int socketId, LoginRequest * request);
+    void processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request);
 };
 
 #endif // DATAPROCESS_H

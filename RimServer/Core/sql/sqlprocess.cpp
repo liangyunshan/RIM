@@ -5,10 +5,12 @@
 #include <QSqlQuery>
 #include <QSqlResult>
 #include <QMutex>
+#include <QDate>
 
 #include "datatable.h"
 #include "sql/database.h"
 #include "Util/rutil.h"
+#include "constants.h"
 
 QMutex ACCOUNT_LOCK;
 
@@ -19,7 +21,7 @@ SQLProcess::SQLProcess()
 
 }
 
-bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString &id)
+ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest *request, QString &id)
 {
     DataTable::RimConfig config;
     bool sqlError = true;
@@ -36,7 +38,7 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
             if(query.next())
             {
                G_BaseAccountId = query.value(0).toInt();
-               sqlError = false;
+               sqlError = REGISTER_FAILED;
             }
         }
     }
@@ -51,7 +53,7 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
 
     if(sqlError)
     {
-        return false;
+        return REGISTER_FAILED;
     }
 
     DataTable::User user;
@@ -72,31 +74,79 @@ bool SQLProcess::processUserRegist(Database *db, RegistRequest *request, QString
 
         }
 
-        return true;
+        return REGISTER_SUCCESS;
     }
 
-    return false;
+    return REGISTER_FAILED;
 }
 
-bool SQLProcess::processUserLogin(Database * db,LoginRequest *request)
+ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *request)
 {
     DataTable::User user;
-    QString sql = QString("select * from %1 where %2 = '%3' and %4 = '%5' ")
-            .arg(user.table).arg(user.account).arg(request->accountId).arg(user.password).arg(request->password);
+    QString sql = QString("select %1 from %2 where %3 = '%4'")
+            .arg(user.password).arg(user.table).arg(user.account).arg(request->accountId);
+
+    QSqlQuery query(db->sqlDatabase());
+
+    if(query.exec(sql))
+    {
+        if(query.next())
+        {
+             if(query.value(0).toString() != request->password)
+             {
+                    return LOGIN_PASS_ERROR;
+             }
+             else
+             {
+                    return LOGIN_SUCCESS;
+             }
+        }
+        else
+        {
+            return LOGIN_UNREGISTERED;
+        }
+    }
+
+    return LOGIN_FAILED;
+}
+
+ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest *request)
+{
+    DataTable::User user;
+    QString sql = QString("update %1 set %2 = '%3' where %4 = '%5' ")
+            .arg(user.table).arg(user.nickName).arg(request->baseInfo.nickName).arg(user.account).arg(request->baseInfo.accountId);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
+    {
+        return UPDATE_USER_SUCCESS;
+    }
+
+    return UPDATE_USER_FAILED;
+}
+
+void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
+{
+    DataTable::User user;
+    QString sql = QString("select * from %1 where %2 = '%3' ").arg(user.table).arg(user.account).arg(accountId);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(sql))
     {
         if(query.next())
         {
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"success";
-            return true;
-        }
-        else
-        {
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"no record";
+            userInfo.accountId = accountId;
+            userInfo.nickName = query.value(user.nickName).toString();
+            userInfo.signName = query.value(user.signName).toString();
+            userInfo.sexual = (Sexual)query.value(user.gender).toInt();
+            userInfo.birthday = query.value(user.birthDay).toDate().toString(Constant::Date_Simple);
+            userInfo.address = query.value(user.address).toString();
+            userInfo.email = query.value(user.email).toString();
+            userInfo.phoneNumber = query.value(user.phone).toString();
+            userInfo.desc = query.value(user.desc).toString();
+            userInfo.face = query.value(user.face).toInt();
+            userInfo.customImgId = query.value(user.faceId).toString();
         }
     }
-
-    return false;
 }
+
