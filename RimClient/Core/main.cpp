@@ -145,13 +145,6 @@ int main(int argc, char *argv[])
 //        }
 //    }
 
-    G_Temp_Picture_Path = QString("%1/%2").arg(qApp->applicationDirPath()).arg("temp");
-    QDir dir(G_Temp_Picture_Path);
-    if(!dir.exists())
-    {
-        dir.mkdir(G_Temp_Picture_Path);
-    }
-
     LoginDialog dialog;
     dialog.show();
 

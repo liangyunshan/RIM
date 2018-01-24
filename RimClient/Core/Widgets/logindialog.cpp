@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QApplication>
+#include <QDir>
 
 #include "head.h"
 #include "datastruct.h"
@@ -328,6 +329,11 @@ void LoginDialog::respConnect(bool flag)
         d->trayIcon->disconnect();
         d->trayIcon->setModel(SystemTrayIcon::System_Main);
 
+        //shangchao 创建每个用户对应的缓存文件夹
+        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(d->userList->currentText()).arg(Constant::UserTempName);
+        RUtil::createDir(G_Temp_Picture_Path);
+
         if(!d->mainDialog)
         {
             d->mainDialog = new MainDialog();
@@ -344,7 +350,8 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-    NetConnector::instance()->connect();
+//    NetConnector::instance()->connect();
+    respConnect(true);
 }
 
 void LoginDialog::minsize()

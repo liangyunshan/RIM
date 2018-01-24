@@ -278,6 +278,7 @@ void AbstractChatWidgetPrivate::initWidget()
     //ShangChao
     QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
     QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
+    QObject::connect(shakeButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ShakeWidget(bool)));
     QObject::connect(screenShotAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShot(bool)));
     QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
     //
@@ -387,6 +388,7 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     initChatRecord();
     p_shotProcess = NULL;
     p_shotTimer = NULL;
+    p_shakeTimer = NULL;
     b_isScreeHide = false;
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
@@ -405,6 +407,11 @@ AbstractChatWidget::~AbstractChatWidget()
     {
         delete p_shotTimer;
         p_shotTimer = NULL;
+    }
+    if(p_shakeTimer)
+    {
+        delete p_shakeTimer;
+        p_shakeTimer = NULL;
     }
 }
 
@@ -499,6 +506,64 @@ void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
     d_ptr->chatInputArea->setTextColor(color);
 }
 
+//实现窗口抖动
+//在接收到其它人发送的抖动时，可调用该方法实现
+void AbstractChatWidget::slot_ShakeWidget(bool flag)
+{
+    Q_UNUSED(flag)
+
+    if(p_shakeTimer==NULL)
+    {
+        p_shakeTimer = new QTimer();
+        QObject::connect(p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
+        p_shakeTimer->setInterval(40);
+    }
+    m_nPosition = 0;
+    m_curPos = this->pos();
+    p_shakeTimer->start();
+
+    //TODO:net发送给聊天对象一个窗口抖动
+}
+
+void AbstractChatWidget::slot_ShakeTimeout()
+{
+    if(p_shakeTimer==NULL)
+    {
+        return ;
+    }
+    p_shakeTimer->stop();
+    if(m_nPosition < MaxLimitTimes)
+    {
+        ++m_nPosition;
+        switch(m_nPosition%4)
+        {
+        case 1:
+        {
+            QPoint tmpPos(m_curPos.x(),m_curPos.y()-MaxLimitSpace);
+            this->move(tmpPos);
+        }
+            break;
+        case 2:
+        {
+            QPoint tmpPos(m_curPos.x()-MaxLimitSpace,m_curPos.y()-MaxLimitSpace);
+            this->move(tmpPos);
+        }
+            break;
+        case 3:
+        {
+            QPoint tmpPos(m_curPos.x()-MaxLimitSpace,m_curPos.y());
+            this->move(tmpPos);
+        }
+            break;
+        default:
+        case 0:
+            this->move(m_curPos);
+            break;
+        }
+        p_shakeTimer->start();
+    }
+}
+
 //截图
 void AbstractChatWidget::slot_ScreenShot(bool flag)
 {
@@ -523,12 +588,14 @@ void AbstractChatWidget::slot_ScreenShot(bool flag)
     {
         p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
     }
-
 }
 
 //截图完成
 void AbstractChatWidget::slot_ScreenShot_Ready(int finish, QProcess::ExitStatus exitStatus)
 {
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<"ScreenShot finish:"<<finish<<exitStatus
+          <<"\n";
     QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();
     if(mimeData->hasImage())
@@ -620,12 +687,6 @@ void AbstractChatWidget::resizeEvent(QResizeEvent *)
     MQ_D(AbstractChatWidget);
     d->windowToolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - 3 * WINDOW_MARGIN_SIZE,Constant::TOOL_WIDTH);
 }
-
-//void AbstractChatWidget::showEvent(QShowEvent *event)
-//{
-//    this->setAttribute(Qt::WA_Mapped);
-//    QWidget::showEvent(event);
-//}
 
 void AbstractChatWidget::switchWindowSize()
 {
