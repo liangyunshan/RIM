@@ -16,6 +16,7 @@
 
 class AbstractChatWidgetPrivate;
 class DatabaseThread;
+#include <QProcess>
 
 class AbstractChatWidget : public Widget , public Observer
 {
@@ -36,6 +37,10 @@ private slots:
     //shangchao
     void slot_SetChatEditFont(bool flag);
     void slot_SetChatEditFontColor(bool flag);
+    void slot_ScreenShot(bool flag);
+    void slot_ScreenShot_Ready(int finish, QProcess::ExitStatus exitStatus);
+    void slot_ScreenShotHide(bool flag);
+    void slot_ScreenTimeout();
     void slot_ButtClick_SendMsg(bool flag);
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     //
@@ -43,6 +48,7 @@ private slots:
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
     void resizeEvent(QResizeEvent * event);
+//    void showEvent(QShowEvent *event);
 
 private:
     void switchWindowSize();
@@ -53,6 +59,9 @@ private:
 private:
     AbstractChatWidgetPrivate * d_ptr;
     DatabaseThread * p_DatabaseThread;
+    QProcess *p_shotProcess;
+    bool b_isScreeHide;
+    QTimer *p_shotTimer;
 };
 
 #endif // ABSTRACTCHATWIDGET_H
