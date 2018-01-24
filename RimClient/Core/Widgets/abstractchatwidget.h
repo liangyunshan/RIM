@@ -38,6 +38,9 @@ public:
 
     void onMessage(MessageType type);
 
+public slots:
+    void slot_UpdateKeySequence();
+
 private slots:
     void resizeOnce();
     void setSideVisible(bool flag);
@@ -51,6 +54,7 @@ private slots:
     void slot_ScreenShotHide(bool flag);
     void slot_ScreenTimeout();
     void slot_ButtClick_SendMsg(bool flag);
+    void slot_CheckSendEnter();
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     //
 
@@ -73,6 +77,7 @@ private:
     QTimer *p_shakeTimer;
     int     m_nPosition;
     QPoint  m_curPos;
+    QAction *p_ScreenShotAction;
 };
 
 #endif // ABSTRACTCHATWIDGET_H

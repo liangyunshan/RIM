@@ -1,4 +1,6 @@
 ﻿#include "simpletextedit.h"
+#include <QKeyEvent>
+#include <QDebug>
 
 SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     BaseTextEdit(parent)
@@ -15,10 +17,23 @@ SimpleTextEdit::~SimpleTextEdit()
 
 }
 
+void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
+{
+   switch(event->key())
+   {
+        case Qt::Key_Return:
+            emit sigEnter();
+            break;
+        default:
+        BaseTextEdit::keyPressEvent(event);
+   }
+}
+
 void SimpleTextEdit::clear()
 {
     QTextEdit::clear();
 }
+
 
 void SimpleTextEdit::slot_TextChanged()
 {

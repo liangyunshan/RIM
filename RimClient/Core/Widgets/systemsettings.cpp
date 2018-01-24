@@ -497,7 +497,7 @@ void SystemSettings::respAutoReply()
 
 void SystemSettings::respShortCut()
 {
-
+    //TODO: 设置全局快捷键
 }
 
 void SystemSettings::respSoundSetting()
