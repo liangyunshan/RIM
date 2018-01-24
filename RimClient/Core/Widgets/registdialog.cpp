@@ -251,10 +251,21 @@ void RegistDialog::recvResponse(ResponseRegister status, RegistResponse resp)
 {
     if(status == REGISTER_SUCCESS)
     {
-        RMessageBox::information(this,tr("Information"),tr("Registered successfully! Remember Id: %1 ").arg(resp.accountId),RMessageBox::Yes);
+        RMessageBox::information(this,tr("Information"),tr("Registered successfully!\n Remember Id: %1 ").arg(resp.accountId),RMessageBox::Yes);
     }
     else
     {
+        QString errorInfo;
+        switch(status)
+        {
+            case REGISTER_SERVER_REFUSED:
+                                     errorInfo = QObject::tr("Server unreachable");
+                                     break;
+            case REGISTER_FAILED:
+            default:
+                                     errorInfo = QObject::tr("Registration failure");
+                                     break;
+        }
         RMessageBox::warning(this,tr("Warning"),tr("Registration failed!"),RMessageBox::Yes);
     }
 }

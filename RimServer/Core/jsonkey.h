@@ -38,6 +38,7 @@ public:
         Phone,
         Desc,
         Face,
+        FaceId,
         Status,
     };
     Q_FLAG(KeyId)

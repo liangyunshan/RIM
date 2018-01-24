@@ -21,3 +21,13 @@ void MessDiapatch::onRecvRegistResponse(ResponseRegister status, RegistResponse 
 {
     emit recvRegistResponse(status,response);
 }
+
+void MessDiapatch::onRecvLoginResponse(ResponseLogin status, LoginResponse response)
+{
+    emit recvLoginResponse(status,response);
+}
+
+void MessDiapatch::onRecvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response)
+{
+    emit recvUpdateBaseInfoResponse(status,response);
+}

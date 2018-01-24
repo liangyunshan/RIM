@@ -40,6 +40,7 @@
 #include "netsettings.h"
 #include "global.h"
 #include "widget/rlabel.h"
+#include "messdiapatch.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -272,7 +273,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     loadLocalSettings();
 
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
-
+    connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -280,66 +281,13 @@ void LoginDialog::respConnect(bool flag)
 {
     MQ_D(LoginDialog);
 
-    int index = -1;
-
-//    if(!RSingleton<NetConnector>::instance()->connect())
-//    {
-//        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
-//        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
-//        return;
-//    }
     if(flag)
     {
-        int index = -1;
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
         request->status = STATUS_ONLINE;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
-
-        if( (index = isContainUser()) >= 0)
-        {
-            if(index < d->localUserInfo.size())
-            {
-                d->localUserInfo.at(index)->userName = d->userList->currentText();
-                d->localUserInfo.at(index)->originPassWord = d->password->text();
-                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
-                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
-                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
-                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-            }
-        }
-        else
-        {
-            UserInfoDesc * desc = new UserInfoDesc;
-            desc->userName = d->userList->currentText();
-            desc->loginState = (int)d->onlineState->state();
-            desc->originPassWord = d->password->text();
-            desc->password = RUtil::MD5(d->password->text());
-            desc->isAutoLogin = d->autoLogin->isChecked();
-            desc->isRemberPassword = d->rememberPassord->isChecked();
-            desc->isSystemPixMap = d->isSystemUserIcon;
-            desc->pixmap = d->defaultUserIconPath;
-
-            d->localUserInfo.append(desc);
-            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-        }
-
-        setVisible(false);
-        d->trayIcon->disconnect();
-        d->trayIcon->setModel(SystemTrayIcon::System_Main);
-
-        //shangchao 创建每个用户对应的缓存文件夹
-        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(d->userList->currentText()).arg(Constant::UserTempName);
-        RUtil::createDir(G_Temp_Picture_Path);
-
-        if(!d->mainDialog)
-        {
-            d->mainDialog = new MainDialog();
-        }
-
-        d->mainDialog->show();
     }
     else
     {
@@ -350,8 +298,12 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-//    NetConnector::instance()->connect();
+
+#ifndef __NO_SERVER__
+    NetConnector::instance()->connect();
+#else
     respConnect(true);
+#endif
 }
 
 void LoginDialog::minsize()
@@ -510,7 +462,86 @@ void LoginDialog::showRegistDialog()
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-   connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+}
+
+void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
+{
+    MQ_D(LoginDialog);
+    if(status == LOGIN_SUCCESS)
+    {
+        int index = -1;
+        if( (index = isContainUser()) >= 0)
+        {
+            if(index < d->localUserInfo.size())
+            {
+                d->localUserInfo.at(index)->userName = d->userList->currentText();
+                d->localUserInfo.at(index)->originPassWord = d->password->text();
+                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
+                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
+                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+            }
+        }
+        else
+        {
+            UserInfoDesc * desc = new UserInfoDesc;
+            desc->userName = d->userList->currentText();
+            desc->loginState = (int)d->onlineState->state();
+            desc->originPassWord = d->password->text();
+            desc->password = RUtil::MD5(d->password->text());
+            desc->isAutoLogin = d->autoLogin->isChecked();
+            desc->isRemberPassword = d->rememberPassord->isChecked();
+            desc->isSystemPixMap = d->isSystemUserIcon;
+            desc->pixmap = d->defaultUserIconPath;
+
+            d->localUserInfo.append(desc);
+            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+        }
+
+        G_UserBaseInfo = response.baseInfo;
+
+        //shangchao 创建每个用户对应的缓存文件夹
+        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
+        RUtil::createDir(G_Temp_Picture_Path);
+
+        setVisible(false);
+        d->trayIcon->disconnect();
+        d->trayIcon->setModel(SystemTrayIcon::System_Main);
+
+        if(!d->mainDialog)
+        {
+            d->mainDialog = new MainDialog();
+        }
+
+        d->mainDialog->show();
+    }
+    else
+    {
+        QString errorInfo;
+        switch(status)
+        {
+            case LOGIN_UNREGISTERED:
+                                         errorInfo = QObject::tr("User not registered");
+                                         break;
+            case LOGIN_PASS_ERROR:
+                                         errorInfo = QObject::tr("Incorrect password");
+                                         break;
+            case LOGIN_SERVER_REFUSED:
+                                         errorInfo = QObject::tr("server Unreachable");
+                                         break;
+            case LOGIN_SERVER_NOT_RESP:
+                                         errorInfo = QObject::tr("");
+                                         break;
+            case LOGIN_FAILED:
+            default:
+                                         errorInfo = QObject::tr("Login Failed");
+                                         break;
+        }
+
+        RMessageBox::warning(this,"Warning",errorInfo,RMessageBox::Yes);
+    }
 }
 
 LoginDialog::~LoginDialog()

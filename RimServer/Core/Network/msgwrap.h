@@ -28,6 +28,7 @@ public:
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
+    QByteArray handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet);
 
     QByteArray wrappedPack(MsgPacket * packet, QJsonObject &data);
 

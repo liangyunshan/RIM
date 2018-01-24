@@ -23,14 +23,17 @@ public:
     static MessDiapatch * instance();
 
     void onRecvRegistResponse(ResponseRegister status,RegistResponse response);
+    void onRecvLoginResponse(ResponseLogin status, LoginResponse response);
+    void onRecvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
+    void recvLoginResponse(ResponseLogin status,LoginResponse response);
+    void recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response);
 
 private:
     MessDiapatch(QObject *parent = 0);
     static MessDiapatch * dispatch;
-
 };
 
 #endif // MESSDIAPATCH_H

@@ -27,7 +27,7 @@ class ToolBox : public QWidget
 public:
     explicit ToolBox(QWidget *parent = 0);
 
-    ToolPage *addPage(QString text);
+    ToolPage * addPage(QString text);
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();

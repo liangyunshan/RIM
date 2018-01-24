@@ -221,8 +221,7 @@ QString BaseTextEdit::imgStringTofilePath(QString &img)
     QByteArray bb = QCryptographicHash::hash ( img.toLocal8Bit(), QCryptographicHash::Md5 );
     QString temp_img_filepath ;
     temp_img_filepath.append(bb.toHex());
-    QString currPath = G_Temp_Picture_Path ;
-    QString imgfilepath = currPath + "/" + temp_img_filepath + ".png";
+    QString imgfilepath = G_Temp_Picture_Path + "/" + temp_img_filepath + ".png";
     QByteArray read = img.toLatin1();
     QString rStr = QString::fromLatin1(read.data(), read.size());
     QByteArray readCompressed = QByteArray::fromHex(rStr.toLocal8Bit());
@@ -320,8 +319,7 @@ int BaseTextEdit::insertCopyImage(QImage &image)
     QByteArray bb = QCryptographicHash::hash ( QByteArray((char*)image.bits()), QCryptographicHash::Md5 );
     QString temp_img_filepath ;
     temp_img_filepath.append(bb.toHex());
-    QString currPath = G_Temp_Picture_Path ;
-    QString imgfilepath = currPath + "/" + temp_img_filepath + ".png";
+    QString imgfilepath = G_Temp_Picture_Path + "/" + temp_img_filepath + ".png";
     QFileInfo fileinfo(imgfilepath);
     if(!fileinfo.exists())
     {

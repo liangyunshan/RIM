@@ -9,7 +9,7 @@
 #define IO_BUFF_SIZE  1024
 #define MAX_RECV_SIZE 1024*8                    //接收缓冲区长度
 
-#define MAX_PACKET 20                         //发送数据时一次最大数据长度(不包括前后的控制信息)
+#define MAX_PACKET 1024                         //发送数据时一次最大数据长度(不包括前后的控制信息)
 #define MAX_SEND_BUFF (MAX_PACKET + 24)
 
 /*!

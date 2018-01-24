@@ -86,6 +86,7 @@ ToolBox::ToolBox(QWidget *parent) :
 ToolPage * ToolBox::addPage(QString text)
 {
     MQ_D(ToolBox);
+
     ToolPage * page = new ToolPage(this);
     connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
@@ -147,7 +148,7 @@ const QStringList ToolBox::toolPageSNames()
     QStringList namesList;
     for(int index = 0; index < pageCount(); index++)
     {
-//        namesList.append(d->pages.at(index)->toolName());
+        namesList.append(d->pages.at(index)->toolName());
     }
     return namesList;
 }

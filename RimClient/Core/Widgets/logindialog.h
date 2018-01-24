@@ -15,6 +15,8 @@
 
 #include "widget.h"
 #include "observer.h"
+#include "protocoldata.h"
+using namespace ProtocolType;
 
 class QToolButton;
 class ToolBar;
@@ -24,7 +26,6 @@ class QAction;
 class LoginDialogPrivate;
 class OnLineState;
 class SystemTrayIcon;
-
 class MainDialog;
 class ActionManager;
 
@@ -55,6 +56,7 @@ private slots:
     void showRegistDialog();
     void respConnect(bool flag);
     void respRegistDialogDestory(QObject *);
+    void recvLoginResponse(ResponseLogin status,LoginResponse response);
 
 private:
     void createTrayMenu();

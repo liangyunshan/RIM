@@ -7,6 +7,7 @@
  *  @date      2018.01.17
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note   20180124:wey:增加更新个人基本信息
  */
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
@@ -20,6 +21,7 @@ public:
 
     void proRegistResponse(QJsonObject &data);
     void proLoginResponse(QJsonObject &data);
+    void proUpdateBaseInfoResponse(QJsonObject &data);
 
 private:
 
