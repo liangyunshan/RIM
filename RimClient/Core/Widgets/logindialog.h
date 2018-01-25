@@ -41,7 +41,7 @@ public:
     void onMessage(MessageType type);
 
 protected:
-    void resizeEvent(QResizeEvent * event);
+    void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
 

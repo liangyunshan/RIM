@@ -17,6 +17,13 @@ namespace Constant {
 /*日期*/
 const char Date_Simple[] = "yyyy-MM-dd";
 
+/*正则表达式*/
+const char AccountId_Reg[] = "[1-9]\\d{4}";
+const char AccountPassword_Reg[] = "\\w{1,16}";
+const char Space_Reg[] = "\\s+";
+const char SingleIp_Reg[] = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
+const char FullIp_Reg[] = "(%1\\.){3}%2";
+
 /*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";

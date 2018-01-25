@@ -1,12 +1,13 @@
 ﻿/*!
  *  @brief     list容器
- *  @details
- *  @file
+ *  @details   以列表存放聊天对话记录，支持按个、全部删除
+ *  @file      listbox.h
  *  @author    wey
  *  @version   1.0
  *  @date      2017.12.XX
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note    20180125:wey:添加删除全部item
  */
 #ifndef LISTBOX_H
 #define LISTBOX_H
@@ -28,6 +29,11 @@ public:
     ToolItem * selectedItem();
 
     void setContextMenu(QMenu * menu);
+
+    void clear();
+
+signals:
+    void currentItemChanged(ToolItem * item);
 
 private slots:
     void clearItemSelection(ToolItem*item);

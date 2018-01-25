@@ -1,4 +1,4 @@
-#include "rpersistence.h"
+﻿#include "rpersistence.h"
 
 #include <QDebug>
 
@@ -48,6 +48,146 @@ QString parseList(QList<QString> & selectKeys)
          {
               result += ",";
          }
+    }
+
+    return result;
+}
+
+
+Criteria::Criteria()
+{
+
+}
+
+Criteria & Criteria::add(Restrictions rest)
+{
+    restricitinons.insert(rest,CADD);
+    return *this;
+
+}
+
+Criteria & Criteria::orr(Restrictions rest)
+{
+    restricitinons.insert(rest,COR);
+    return *this;
+}
+
+
+QString Criteria::toSql()
+{
+    QString result;
+
+    QList<Restrictions> ctypes = restricitinons.keys();
+
+    for(int i = 0; i < ctypes.size(); i++)
+    {
+        if(i > 0)
+        {
+            switch(restricitinons.value(ctypes.at(i)))
+            {
+                case CADD: result += (" and ");break;
+                case COR: result += (" or ");break;
+                default:break;
+            }
+        }
+        result += ctypes.at(i).toSql();
+    }
+
+    qDebug()<<result;
+
+    return result;
+}
+
+Restrictions::Restrictions(QString name, QVariant value, OperateType type):
+    name(name),value(value),operation(type)
+{
+
+}
+
+Restrictions Restrictions::eq(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::EQ);
+}
+
+Restrictions Restrictions::gt(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::GT);
+}
+
+Restrictions Restrictions::ge(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::GE);
+}
+
+Restrictions Restrictions::lt(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::LT);
+}
+
+Restrictions Restrictions::le(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::LE);
+}
+
+Restrictions Restrictions::ne(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::NE);
+}
+
+Restrictions Restrictions::like(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::LIKE);
+}
+
+Restrictions Restrictions::in(QString name, QVariant value)
+{
+    return Restrictions(name,value,OperateType::IN);
+}
+
+bool Restrictions::operator<(const Restrictions & src)const
+{
+    if(&src == this)
+    {
+        return false;
+    }
+
+    if(src.name == this->name && src.value == this->value)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+QString Restrictions::toSql() const
+{
+    QString result;
+
+    result +=(" " + name + " ");
+
+    switch(operation)
+    {
+        case EQ: result += " = ";break;
+        case GT: result += " > ";break;
+        case GE: result += " >= ";break;
+        case LT: result += " < ";break;
+        case LE: result += " <= ";break;
+        case NE: result += " != ";break;
+        case LIKE: result += " like ";break;
+        case IN: result += " in ";break;
+        default:break;
+    }
+
+    switch(value.type())
+    {
+         case QVariant::Date:
+         case QVariant::DateTime:
+         case QVariant::String:
+                                 result += (" '" + value.toString() + "' ");
+                                 break;
+         default:
+                                 result += value.toString();
+                                 break;
     }
 
     return result;
@@ -114,11 +254,6 @@ void RUpdate::update(const QString key, QVariant value)
     maps.insert(key,value);
 }
 
-void RUpdate::addCondition(const QString key, QVariant value)
-{
-    conditions.insert(key,value);
-}
-
 QString RUpdate::sql()
 {
     QString result = " update ";
@@ -127,10 +262,10 @@ QString RUpdate::sql()
 
     result += parseMap(maps);
 
-    if(conditions.size() > 0)
+    if(ctia.size() > 0)
     {
         result += " where ";
-        result += parseMap(conditions);
+        result += ctia.toSql();
     }
     return result;
 }
@@ -143,11 +278,6 @@ RSelect::RSelect(const QString tableName):tableName(tableName)
 void RSelect::select(const QString key)
 {
     selectKeys.append(key);
-}
-
-void RSelect::addCondition(const QString key, QVariant value)
-{
-    conditions.insert(key,value);
 }
 
 QString RSelect::sql()
@@ -166,10 +296,10 @@ QString RSelect::sql()
     result += " from ";
     result += tableName;
 
-    if(conditions.size() > 0)
+    if(ctia.size() > 0)
     {
         result += " where ";
-        result += parseMap(conditions);
+        result += ctia.toSql();
     }
     return result;
 }
@@ -178,11 +308,6 @@ RDelete::RDelete(const QString tableName):
     tableName(tableName)
 {
 
-}
-
-void RDelete::addCondition(const QString key, QVariant value)
-{
-    conditions.insert(key,value);
 }
 
 QString RDelete::sql()
@@ -194,10 +319,10 @@ QString RDelete::sql()
     result += " from ";
     result += tableName;
 
-    if(conditions.size() > 0)
+    if(ctia.size() > 0)
     {
         result += " where ";
-        result += parseMap(conditions);
+        result += ctia.toSql();
     }
     return result;
 }

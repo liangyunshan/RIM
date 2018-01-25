@@ -11,7 +11,7 @@ User::User():
 
 }
 
-Group::Group():
+Group::Group():table("group"),
     id("ID"),name("NAME"),userCount("USER_COUNT"),
     userId("UID")
 {
@@ -19,7 +19,7 @@ Group::Group():
 }
 
 ChatRoom::ChatRoom():
-    id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+    table("chatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
 {
 
 }
@@ -37,6 +37,12 @@ User_Chatroom::User_Chatroom():
 }
 
 RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
+{
+
+}
+
+RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
+    requestId("REQUESTID"),time("TIME")
 {
 
 }

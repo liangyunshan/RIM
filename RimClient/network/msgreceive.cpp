@@ -69,9 +69,9 @@ void MsgReceive::run()
                 memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
                 memcpy(dataBuff + lastRecvBuff.size(),recvBuff,recvLen);
 
-                lastRecvBuff.clear();
 
                 processRecvData(dataBuff,lastRecvBuff.size() + recvLen);
+                lastRecvBuff.clear();
 
                 delete[] dataBuff;
             }
@@ -195,13 +195,10 @@ void MsgReceive::processRecvData(char * recvData,int recvLen)
                 //[1.2]【信息被截断】
                 else
                 {
-                    int leftLen = recvLen - sizeof(DataPacket);
-
-                    memcpy(&packet,recvData + processLen,leftLen);
-
+                    int leftLen = recvLen - processLen;
                     lastRecvBuff.clear();
                     lastRecvBuff.append((char *)&packet,sizeof(DataPacket));
-                    lastRecvBuff.append(recvData+sizeof(DataPacket),leftLen);
+                    lastRecvBuff.append(recvData+processLen,leftLen);
 
                     processLen += leftLen;
                 }

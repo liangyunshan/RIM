@@ -136,6 +136,11 @@ ToolItem::ToolItem(ToolPage *page, QWidget *parent) :
     setFixedHeight(TOOL_ITEM_MAX_HEIGHT);
 }
 
+ToolItem::~ToolItem()
+{
+
+}
+
 void ToolItem::setIcon(QString)
 {
 
@@ -145,6 +150,12 @@ void ToolItem::setName(QString name)
 {
     MQ_D(ToolItem);
     d->nameLabel->setText(name);
+}
+
+QString ToolItem::getName() const
+{
+    MQ_D(ToolItem);
+    return d->nameLabel->text();
 }
 
 void ToolItem::setNickName(QString name)

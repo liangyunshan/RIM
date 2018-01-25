@@ -129,6 +129,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseRegister>("ResponseRegister");
     qRegisterMetaType<ResponseUpdateUser>("ResponseUpdateUser");
     qRegisterMetaType<UpdateBaseInfoResponse>("UpdateBaseInfoResponse");
+    qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
+    qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
+    qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());

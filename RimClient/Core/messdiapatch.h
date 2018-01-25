@@ -25,11 +25,15 @@ public:
     void onRecvRegistResponse(ResponseRegister status,RegistResponse response);
     void onRecvLoginResponse(ResponseLogin status, LoginResponse response);
     void onRecvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
+    void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
+    void onRecvAddFriendResponse(ResponseAddFriend status);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response);
+    void recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
+    void recvAddFriendResponse(ResponseAddFriend);
 
 private:
     MessDiapatch(QObject *parent = 0);

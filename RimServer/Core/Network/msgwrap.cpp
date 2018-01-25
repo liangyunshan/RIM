@@ -34,6 +34,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
                                             return handleLoginResponse((LoginResponse *)packet);
         case MsgCommand::MSG_USER_UPDATE_INFO:
                                             return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
+        case MsgCommand::MSG_RELATION_SEARCH:
+                                            return handleSearchFriendResponse((SearchFriendResponse *)packet);
         default:
                 break;
     }
@@ -67,7 +69,7 @@ QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
 
-    return wrappedPack(packet,data);
+    return wrappedPack(packet,REGISTER_SUCCESS,data);
 }
 
 //处理用户登陆
@@ -87,7 +89,7 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
     data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
     data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
 
-    return wrappedPack(packet,data);
+    return wrappedPack(packet,LOGIN_SUCCESS,data);
 }
 
 //处理更新用户信息
@@ -107,7 +109,26 @@ QByteArray MsgWrap::handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet
     data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
     data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
 
-    return wrappedPack(packet,data);
+    return wrappedPack(packet,UPDATE_USER_SUCCESS,data);
+}
+
+QByteArray MsgWrap::handleSearchFriendResponse(SearchFriendResponse * packet)
+{
+    QJsonArray data;
+
+    for(int i = 0; i < packet->result.size(); i++)
+    {
+        QJsonObject obj;
+        obj.insert(JsonKey::key(JsonKey::AccountId),packet->result.at(i).accountId);
+        obj.insert(JsonKey::key(JsonKey::NickName),packet->result.at(i).nickName);
+        obj.insert(JsonKey::key(JsonKey::SignName),packet->result.at(i).signName);
+        obj.insert(JsonKey::key(JsonKey::Face),packet->result.at(i).face);
+        obj.insert(JsonKey::key(JsonKey::FaceId),packet->result.at(i).customImgId);
+
+        data.append(obj);
+    }
+
+    return wrappedPack(packet,FIND_FRIEND_FOUND,data);
 }
 
 /*!
@@ -115,12 +136,27 @@ QByteArray MsgWrap::handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet
      * @param[in] packet
      * @return 是否插入成功
      */
-QByteArray MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
+QByteArray MsgWrap::wrappedPack(MsgPacket *packet, int status, QJsonObject & data)
 {
     QJsonObject obj;
     obj.insert(JsonKey::key(JsonKey::Type),packet->msgType);
     obj.insert(JsonKey::key(JsonKey::Command),packet->msgCommand);
-    obj.insert(JsonKey::key(JsonKey::Status),0);
+    obj.insert(JsonKey::key(JsonKey::Status),status);
+
+    obj.insert(JsonKey::key(JsonKey::Data),data);
+
+    QJsonDocument document;
+    document.setObject(obj);
+
+    return document.toJson(QJsonDocument::Compact);
+}
+
+QByteArray MsgWrap::wrappedPack(MsgPacket *packet,int status, QJsonArray &data)
+{
+    QJsonObject obj;
+    obj.insert(JsonKey::key(JsonKey::Type),packet->msgType);
+    obj.insert(JsonKey::key(JsonKey::Command),packet->msgCommand);
+    obj.insert(JsonKey::key(JsonKey::Status),status);
 
     obj.insert(JsonKey::key(JsonKey::Data),data);
 

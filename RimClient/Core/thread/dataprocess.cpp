@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 #include "Util/rlog.h"
 #include "rsingleton.h"
@@ -93,4 +94,43 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
         ResponseUpdateUser rr = (ResponseUpdateUser)data.value(JsonKey::key(JsonKey::Status)).toInt();
         MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(rr,response);
     }
+}
+
+void DataProcess::proSearchFriendResponse(QJsonObject &data)
+{
+    SearchFriendResponse response;
+    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == FIND_FRIEND_FOUND)
+    {
+        QJsonArray dataArray = data.value(JsonKey::key(JsonKey::Data)).toArray();
+        if(!dataArray.isEmpty())
+        {
+            for(int i = 0; i < dataArray.count(); i++)
+            {
+                QJsonObject obj = dataArray.at(i).toObject();
+                if(!obj.isEmpty())
+                {
+                    SearchResult result;
+                    result.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+                    result.nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
+                    result.signName = obj.value(JsonKey::key(JsonKey::SignName)).toString();
+                    result.face = obj.value(JsonKey::key(JsonKey::Face)).toInt();
+                    result.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
+
+                    response.result.append(result);
+                }
+            }
+
+            MessDiapatch::instance()->onRecvSearchFriendResponse(FIND_FRIEND_FOUND,response);
+        }
+    }
+    else
+    {
+        ResponseAddFriend rr = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
+        MessDiapatch::instance()->onRecvSearchFriendResponse(rr,response);
+    }
+}
+
+void DataProcess::proAddFriendResponse(QJsonObject &data)
+{
+    MessDiapatch::instance()->onRecvAddFriendResponse((ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt());
 }

@@ -50,8 +50,8 @@ public:
     {
         initWidget();
 
-        numberExp = QRegExp("[1-9]\\d{4}");
-        passExp = QRegExp("\\w{1,16}");
+        numberExp = QRegExp(Constant::AccountId_Reg);
+        passExp = QRegExp(Constant::AccountPassword_Reg);
 
         isSystemUserIcon = true;
         isNewUser = true;
@@ -140,7 +140,7 @@ void LoginDialogPrivate::initWidget()
     inputGridLayout->setVerticalSpacing(2);
     inputGridLayout->setContentsMargins(0, 0, 0, 0);
 
-    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp("[1-9]\\d{4}"));
+    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp(Constant::AccountId_Reg));
     userList = new QComboBox();
     userList->setFixedSize(QSize(193, 28));
     userList->setEditable(true);
@@ -149,7 +149,7 @@ void LoginDialogPrivate::initWidget()
     userList->setView(new QListView());
     userList->lineEdit()->installEventFilter(this);
 
-    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp("\\w{1,16}"));
+    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp(Constant::AccountPassword_Reg));
     password = new QLineEdit();
     password->setFixedSize(QSize(193, 28));
     password->setValidator(passValidator);
@@ -581,7 +581,7 @@ void LoginDialog::onMessage(MessageType type)
     }
 }
 
-void LoginDialog::resizeEvent(QResizeEvent *event)
+void LoginDialog::resizeEvent(QResizeEvent *)
 {
     MQ_D(LoginDialog);
 

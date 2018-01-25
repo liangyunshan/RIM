@@ -40,6 +40,10 @@ public:
         Face,
         FaceId,
         Status,
+        SearchContent,
+        SearchType,
+        AddType,
+        FriendId
     };
     Q_FLAG(KeyId)
 

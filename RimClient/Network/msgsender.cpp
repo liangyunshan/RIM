@@ -54,7 +54,7 @@ void MsgSender::run()
     RLOG_INFO("Start Send++++++++++++++++++++++");
     while(runningFlag)
     {
-        if(G_SendBuff.size() <= 0)
+        while(G_SendBuff.size() <= 0)
         {
             G_SendMutex.lock();
             G_SendWaitCondition.wait(&G_SendMutex);
@@ -102,7 +102,7 @@ bool MsgSender::handleDataSend(QByteArray &data)
 
         qDebug()<<data.length()<<sizeof(DataPacket)<<packet.totalIndex;
 
-        for(int i = 0; i < packet.totalIndex; i++)
+        for(unsigned int i = 0; i < packet.totalIndex; i++)
         {
             memset(sendBuff,0,MAX_SEND_BUFF);
             packet.currentIndex = i;
