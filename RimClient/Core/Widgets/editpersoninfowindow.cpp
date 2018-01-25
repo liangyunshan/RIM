@@ -263,7 +263,7 @@ void EditPersonInfoWindowPrivate::initContent()
     m_address_edit->setText(G_UserBaseInfo.address);
     m_mail_edit->setText(G_UserBaseInfo.email);
     m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
-    m_desc_plainEdit->appendPlainText(G_UserBaseInfo.desc);
+    m_desc_plainEdit->appendPlainText(G_UserBaseInfo.remark);
 }
 
 EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
@@ -333,7 +333,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.address = d->m_address_edit->text();
     request->baseInfo.email = d->m_mail_edit->text();
     request->baseInfo.phoneNumber = d->m_phone_edit->text();
-    request->baseInfo.desc = d->m_desc_plainEdit->toPlainText();
+    request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
     request->baseInfo.face = 0;
     request->baseInfo.customImgId = "456";
 

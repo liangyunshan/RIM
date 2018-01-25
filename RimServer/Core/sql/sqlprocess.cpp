@@ -11,6 +11,7 @@
 #include "sql/database.h"
 #include "Util/rutil.h"
 #include "constants.h"
+#include "rpersistence.h"
 
 QMutex ACCOUNT_LOCK;
 
@@ -29,16 +30,17 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
 
     if(G_BaseAccountId == 0)
     {
-        //Yang 待优化对数据库操作的方式
-        QString sql = QString("select %1 from %2 where %3 = '%4'").arg(config.value)
-                .arg(config.table).arg(config.name).arg(config.accuoutId);
+        RSelect rst(config.table);
+        rst.select(config.value);
+        rst.addCondition(config.name,config.accuoutId);
+
         QSqlQuery query(db->sqlDatabase());
-        if(query.exec(sql))
+        if(query.exec(rst.sql()))
         {
             if(query.next())
             {
                G_BaseAccountId = query.value(0).toInt();
-               sqlError = REGISTER_FAILED;
+               sqlError = false;
             }
         }
     }
@@ -57,19 +59,22 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
     }
 
     DataTable::User user;
-    QString sql = QString("insert into %1 (%2,%3,%4,%5) values ('%6','%7','%8','%9')").arg(user.table)
-            .arg(user.id).arg(user.account).arg(user.password).arg(user.nickName)
-            .arg(RUtil::UUID()).arg(QString::number(G_BaseAccountId)).arg(request->password).arg(request->nickName);
+    RPersistence rpc(user.table);
+    rpc.insert(user.id,RUtil::UUID());
+    rpc.insert(user.account,QString::number(G_BaseAccountId));
+    rpc.insert(user.password,request->password);
+    rpc.insert(user.nickName,request->nickName);
 
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(rpc.sql()))
     {
         id  = QString::number(G_BaseAccountId);
 
-        QString sql = QString("update %1 set %2 = %3 where %4 = '%5'")
-                .arg(config.table).arg(config.value).arg(G_BaseAccountId)
-                .arg(config.name).arg(config.accuoutId);
-        if(query.exec(sql))
+        RUpdate rpd(config.table);
+        rpd.update(config.value,G_BaseAccountId);
+        rpd.addCondition(config.name,config.accuoutId);
+
+        if(query.exec(rpd.sql()))
         {
 
         }
@@ -83,12 +88,14 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
 ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *request)
 {
     DataTable::User user;
-    QString sql = QString("select %1 from %2 where %3 = '%4'")
-            .arg(user.password).arg(user.table).arg(user.account).arg(request->accountId);
+
+    RSelect rst(user.table);
+    rst.select(user.password);
+    rst.addCondition(user.account,request->accountId);
 
     QSqlQuery query(db->sqlDatabase());
 
-    if(query.exec(sql))
+    if(query.exec(rst.sql()))
     {
         if(query.next())
         {
@@ -113,11 +120,23 @@ ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *req
 ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest *request)
 {
     DataTable::User user;
-    QString sql = QString("update %1 set %2 = '%3' where %4 = '%5' ")
-            .arg(user.table).arg(user.nickName).arg(request->baseInfo.nickName).arg(user.account).arg(request->baseInfo.accountId);
+
+    RUpdate rpd(user.table);
+    rpd.update(user.nickName,request->baseInfo.nickName);
+    rpd.update(user.signName,request->baseInfo.signName);
+    rpd.update(user.gender,(int)request->baseInfo.sexual);
+    rpd.update(user.birthDay,QDate::fromString(request->baseInfo.birthday,Constant::Date_Simple));
+    rpd.update(user.phone,request->baseInfo.phoneNumber);
+    rpd.update(user.address,request->baseInfo.address);
+    rpd.update(user.email,request->baseInfo.email);
+    rpd.update(user.remark,request->baseInfo.remark);
+    rpd.update(user.face,request->baseInfo.face);
+    rpd.update(user.faceId,request->baseInfo.customImgId);
+
+    rpd.addCondition(user.account,request->baseInfo.accountId);
 
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(rpd.sql()))
     {
         return UPDATE_USER_SUCCESS;
     }
@@ -128,10 +147,12 @@ ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateB
 void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
 {
     DataTable::User user;
-    QString sql = QString("select * from %1 where %2 = '%3' ").arg(user.table).arg(user.account).arg(accountId);
+
+    RSelect rst(user.table);
+    rst.addCondition(user.account ,accountId);
 
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(rst.sql()))
     {
         if(query.next())
         {
@@ -143,7 +164,7 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             userInfo.address = query.value(user.address).toString();
             userInfo.email = query.value(user.email).toString();
             userInfo.phoneNumber = query.value(user.phone).toString();
-            userInfo.desc = query.value(user.desc).toString();
+            userInfo.remark = query.value(user.remark).toString();
             userInfo.face = query.value(user.face).toInt();
             userInfo.customImgId = query.value(user.faceId).toString();
         }

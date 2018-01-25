@@ -6,7 +6,7 @@ User::User():
     table("user"),id("ID"),account("ACCOUNT"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
     gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ADDRESS"),
-    email("EMAIL"),desc("DESC"),face("FACE"),faceId("FACEID")
+    email("EMAIL"),remark("REMARK"),face("FACE"),faceId("FACEID")
 {
 
 }

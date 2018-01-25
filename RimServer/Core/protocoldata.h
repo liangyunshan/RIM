@@ -203,7 +203,7 @@ struct UserBaseInfo
     QString address;                        //地址
     QString email;                          //邮箱
     QString phoneNumber;                    //电话
-    QString desc;                           //备注
+    QString remark;                         //备注
     unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
     QString customImgId;                    //头像信息(face为0时有效)
 };
