@@ -283,11 +283,15 @@ void LoginDialog::respConnect(bool flag)
 
     if(flag)
     {
+#ifndef __NO_SERVER__
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
         request->status = STATUS_ONLINE;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
+#else
+        recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
+#endif
     }
     else
     {

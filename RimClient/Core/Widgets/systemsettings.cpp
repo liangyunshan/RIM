@@ -23,6 +23,7 @@
 #include "panelcontentarea.h"
 #include "subject.h"
 #include "widget/rmessagebox.h"
+#include "setkeysequencedialog.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
 {
@@ -128,6 +129,7 @@ private:
     QCheckBox * lockCheckBox;
 
     QCheckBox * recordCheckBox;
+    SetKeySequenceDialog *p_keySequenceDialog;
 };
 
 void SystemSettingsPrivate::initWidget()
@@ -223,6 +225,8 @@ void SystemSettingsPrivate::initWidget()
     sessionPage->addItem(windowShaking);
 
     /****************快捷键设置********************/
+    p_keySequenceDialog = new SetKeySequenceDialog(basicWidget);
+
     SystemSettingsPage * shortCutPage = new SystemSettingsPage(basicWidget);
     shortCutPage->setDescInfo(QObject::tr("Shortcut"));
 
@@ -402,7 +406,11 @@ SystemSettings::SystemSettings(QWidget *parent):
 
 SystemSettings::~SystemSettings()
 {
-
+    if(d_ptr->p_keySequenceDialog)
+    {
+        delete d_ptr->p_keySequenceDialog;
+        d_ptr->p_keySequenceDialog = NULL;
+    }
 }
 
 void SystemSettings::onMessage(MessageType)
@@ -498,6 +506,7 @@ void SystemSettings::respAutoReply()
 void SystemSettings::respShortCut()
 {
     //TODO: 设置全局快捷键
+    d_ptr->p_keySequenceDialog->showNormal();
 }
 
 void SystemSettings::respSoundSetting()

@@ -11,7 +11,7 @@ QT       += sql
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
 //是否开启网络连接
-#DEFINES += __NO_SERVER__
+DEFINES += __NO_SERVER__
 
 TARGET = RimClient
 TEMPLATE = app
@@ -116,7 +116,8 @@ SOURCES += \
     sql/databasemanager.cpp \
     thread/databasethread.cpp \
     jsonkey.cpp \
-    Widgets/widget/rlabel.cpp
+    Widgets/widget/rlabel.cpp \
+    Widgets/setkeysequencedialog.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -178,7 +179,8 @@ HEADERS  += \
     sql/databasemanager.h \
     thread/databasethread.h \
     jsonkey.h \
-    Widgets/widget/rlabel.h
+    Widgets/widget/rlabel.h \
+    Widgets/setkeysequencedialog.h
 
 DISTFILES += \
     Widgets/Widgets.pri
