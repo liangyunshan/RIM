@@ -36,7 +36,7 @@ public:
         Address,
         Email,
         Phone,
-        Desc,
+        Remark,
         Face,
         FaceId,
         Status,

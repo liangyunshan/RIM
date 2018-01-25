@@ -89,7 +89,7 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.address = obj.value(JsonKey::key(JsonKey::Address)).toString();
     request->baseInfo.email = obj.value(JsonKey::key(JsonKey::Email)).toString();
     request->baseInfo.phoneNumber = obj.value(JsonKey::key(JsonKey::Phone)).toString();
-    request->baseInfo.desc = obj.value(JsonKey::key(JsonKey::Desc)).toString();
+    request->baseInfo.remark = obj.value(JsonKey::key(JsonKey::Remark)).toString();
     request->baseInfo.face = obj.value(JsonKey::key(JsonKey::Face)).toInt();
     request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
 
