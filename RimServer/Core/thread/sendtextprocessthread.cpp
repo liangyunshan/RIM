@@ -30,6 +30,10 @@ void SendTextProcessThread::run()
     {
         while(G_SendButts.size() == 0)
         {
+            if(!runningFlag)
+            {
+                break;
+            }
             G_SendMutex.lock();
             G_SendCondition.wait(&G_SendMutex);
             G_SendMutex.unlock();

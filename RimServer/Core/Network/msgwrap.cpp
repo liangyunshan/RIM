@@ -36,6 +36,9 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
                                             return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
         case MsgCommand::MSG_RELATION_SEARCH:
                                             return handleSearchFriendResponse((SearchFriendResponse *)packet);
+        case MsgCommand::MSG_RELATION_OPERATE:
+                                            return handleOperateFriendResponse((OperateFriendResponse *)packet);
+
         default:
                 break;
     }
@@ -129,6 +132,26 @@ QByteArray MsgWrap::handleSearchFriendResponse(SearchFriendResponse * packet)
     }
 
     return wrappedPack(packet,FIND_FRIEND_FOUND,data);
+}
+
+QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
+{
+    QJsonObject obj;
+
+    obj.insert(JsonKey::key(JsonKey::Type),packet->type);
+    obj.insert(JsonKey::key(JsonKey::Result),packet->result);
+    obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+
+    QJsonObject requsetInfo;
+    requsetInfo.insert(JsonKey::key(JsonKey::AccountId),packet->requestInfo.accountId);
+    requsetInfo.insert(JsonKey::key(JsonKey::NickName),packet->requestInfo.nickName);
+    requsetInfo.insert(JsonKey::key(JsonKey::SignName),packet->requestInfo.signName);
+    requsetInfo.insert(JsonKey::key(JsonKey::Face),packet->requestInfo.face);
+    requsetInfo.insert(JsonKey::key(JsonKey::FaceId),packet->requestInfo.customImgId);
+
+    obj.insert(JsonKey::key(JsonKey::OperateInfo),requsetInfo);
+
+    return wrappedPack(packet,FRIEND_REQUEST,obj);
 }
 
 /*!

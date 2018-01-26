@@ -41,6 +41,7 @@
 #include "global.h"
 #include "widget/rlabel.h"
 #include "messdiapatch.h"
+#include "media/mediaplayer.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -274,6 +275,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
+
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -541,6 +544,35 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         }
 
         RMessageBox::warning(this,"Warning",errorInfo,RMessageBox::Yes);
+    }
+}
+
+void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
+{
+    MQ_D(LoginDialog);
+    d->trayIcon->notify(SystemTrayIcon::SystemNotify);
+    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
+
+
+    ResponseFriendApply reqType = (ResponseFriendApply)resp.result;
+    switch (reqType)    {
+        case FRIEND_REQUEST:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++qingqiu";
+                            }
+                            break;
+        case FRIEND_AGREE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++tongyi";
+                            }
+                            break;
+        case FRIEND_REFUSE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++jujue";
+                            }
+                            break;
+        default:
+            break;
     }
 }
 

@@ -33,7 +33,7 @@ namespace ProtocolType {
  * {
  *     'type'   :   MsgType,
  *     'cmd'    :   MsgCommand,
- *     'status' :   value,                          //若是操作性质,返回操作成功与否标志
+ *     'status' :   value,                          //若是操作性质,返回操作成功与否标志,部分不会返回data段
  *     'data'   :
  *                  {
  *
@@ -82,12 +82,10 @@ enum MsgCommand
     MSG_USER_STATE,                                    //用户状态
 
     MSG_RELATION_SEARCH = 0x11,                        //查找好友[OK]
-    MSG_REALTION_ADD,                                  //添加好友
-    MSG_RELATION_REQUEST,                              //好友请求
-    MSG_RELATION_REMOVE,                               //删除好友
+    MSG_REALTION_ADD,                                  //添加好友[OK]
+    MSG_RELATION_OPERATE,                              //好友操作(参照OperateFriend)
     MSG_RELATION_VIEW_INFO,                            //查看好友信息
     MSG_RELATION_EDIT_INFO,                            //更新好友备注
-    MSG_RELATION_MOVE,                                 //移动好友
 
     MSG_GROUP_SEARCH = 0x31,                           //查找群
     MSG_GROUP_CREATE,                                  //创建群
@@ -165,9 +163,23 @@ enum ResponseRegister
 enum OperateFriend
 {
     FRIEND_APPLY,                   //好友请求
-    FRIEND_AGREE,                   //同意请求
-    FRIEND_REFUSE,                  //拒绝请求
     FRIEND_DELETE,                  //删除好友
+    FRIEND_MOVE                     //移动好友
+};
+
+//好友请求结果
+enum ResponseFriendApply
+{
+    FRIEND_REQUEST,                 //请求
+    FRIEND_AGREE,                   //同意请求
+    FRIEND_REFUSE                   //拒绝请求
+};
+
+//删除好友结果信息
+enum ResponseDeleteFriend
+{
+    DELETE_SUCCESS,                 //删除成功
+    DELETE_FAILED                   //删除失败
 };
 
 //添加好友结果信息
@@ -178,13 +190,6 @@ enum ResponseAddFriend
     FIND_FRIEND_FAILED,             //查找失败
     ADD_FRIEND_SENDED,              //请求发送成功
     ADD_FRIEND_SENDED_FAILED        //请求发送失败
-};
-
-//删除好友结果信息
-enum ResponseDeleteFriend
-{
-    DELETE_SUCCESS,                 //删除成功
-    DELETE_FAILED                   //删除失败
 };
 
 //发送/接收信息结果
@@ -310,8 +315,8 @@ class SearchFriendRequest : public MsgPacket
 {
 public:
     SearchFriendRequest();
-    SearchType stype;
-    QString accountOrNickName;
+    SearchType stype;                       //查询方式
+    QString accountOrNickName;              //用户的AccountId或NickName
 };
 
 class SearchFriendResponse : public MsgPacket
@@ -319,7 +324,7 @@ class SearchFriendResponse : public MsgPacket
 public:
     SearchFriendResponse();
 
-    QList<SearchResult> result;
+    QList<SearchResult> result;              //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
 };
 
 /***********************添加好友**********************/
@@ -327,9 +332,9 @@ class AddFriendRequest : public MsgPacket
 {
 public:
     AddFriendRequest();
-    SearchType stype;
-    QString accountId;
-    QString friendId;
+    SearchType stype;                        //添加人或群
+    QString accountId;                       //自己id
+    QString friendId;                        //想添加的用户或群ID
 };
 
 class AddFriendResponse : public MsgPacket
@@ -338,7 +343,27 @@ public:
     AddFriendResponse();
 };
 
-}
+/***********************联系人操作**********************/
+class OperateFriendRequest : public MsgPacket
+{
+public:
+    OperateFriendRequest();
+    OperateFriend type;
+    int result;                              //type为FRIEND_APPLY时，对应ResponseFriendApply；type为FRIEND_DELETE，对应ResponseDeleteFriend
+    QString accountId;
+    QString operateId;                       //待操作的好友ID。type为请求时，代表请求方ID；type为删除时，代表待删除ID
+};
 
+class OperateFriendResponse : public MsgPacket
+{
+public:
+    OperateFriendResponse();
+    OperateFriend type;
+    int result;
+    QString accountId;
+    SearchResult requestInfo;
+};
+
+}
 
 #endif // PROTOCOLDATA_H

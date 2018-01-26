@@ -67,6 +67,18 @@ public:
     QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}
     QByteArray & getHalfPacketBuff(){return halfPackBufff;}
 
+    void setOnLine(bool flag = true);
+    bool isOnLine(){return onLine;}
+
+    void setOnLineState(int val){onlineState = val;}
+    int getOnLineState(){return onlineState;}
+
+    void setAccount(QString id){accountId = id;}
+    QString getAccount(){return accountId;}
+
+    void setNickName(QString name){nickName = name;}
+    QString getNickName(){return nickName;}
+
     void lock(){packBuffMutex.lock();}
     void unLock(){packBuffMutex.unlock();}
 
@@ -75,6 +87,7 @@ public:
 private:
     explicit TcpClient();
     ~TcpClient();
+
     char cIp[32];
     unsigned short cPort;
     int cSocket;
@@ -88,6 +101,11 @@ private:
     QMutex packBuffMutex;
     QMutex packIdMutex;
     int sendPackId;                                 //每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。
+
+    bool onLine;                       //是否在线
+    int onlineState;                   //在线状态(与OnlineStatus保持一致)
+    QString accountId;                 //用户ID
+    QString nickName;
 
     friend class TcpClientManager;
 };
@@ -104,6 +122,7 @@ public:
     void removeAll();
 
     TcpClient *  getClient(int sock);
+    TcpClient *  getClient(QString accountId);
     TcpClient *  addClient(int sockId, char* ip, unsigned short port);
 
     int counts();

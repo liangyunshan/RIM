@@ -1,6 +1,4 @@
-﻿#include <QApplication>
-
-#include <QTextCodec>
+﻿#include <QTextCodec>
 #include <QTranslator>
 #include <QDir>
 #include <QFile>
@@ -17,6 +15,7 @@
 #include "Util/imagemanager.h"
 #include "protocoldata.h"
 #include "global.h"
+#include "application.h"
 using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
@@ -39,6 +38,7 @@ using namespace ProtocolType;
       [+]config
            [+]translations
            [+]skin
+           [+]sound
            config.xml
       [+]lib
            *.lib
@@ -51,7 +51,7 @@ using namespace ProtocolType;
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    Application app(argc, argv);
 
     // Background color
 //    HBRUSH windowBackground = CreateSolidBrush( RGB( 255, 0, 255 ) );
@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
+    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());

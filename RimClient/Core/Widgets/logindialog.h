@@ -57,6 +57,7 @@ private slots:
     void respConnect(bool flag);
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
+    void recvFriendResponse(OperateFriendResponse resp);
 
 private:
     void createTrayMenu();

@@ -134,3 +134,34 @@ void DataProcess::proAddFriendResponse(QJsonObject &data)
 {
     MessDiapatch::instance()->onRecvAddFriendResponse((ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt());
 }
+
+void DataProcess::proOperateFriendResponse(QJsonObject &data)
+{
+    QJsonObject dataobj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+
+    OperateFriend optype = (OperateFriend)dataobj.value(JsonKey::key(JsonKey::Type)).toInt();
+    switch(optype)
+    {
+        case FRIEND_APPLY:
+                           {
+                                OperateFriendResponse response;
+
+                                response.accountId = dataobj.value(JsonKey::key(JsonKey::AccountId)).toString();
+                                response.result = dataobj.value(JsonKey::key(JsonKey::Result)).toInt();
+                                QJsonObject requestInfo = dataobj.value(JsonKey::key(JsonKey::OperateInfo)).toObject();
+                                if(!requestInfo.isEmpty())
+                                {
+                                    response.requestInfo.accountId = requestInfo.value(JsonKey::key(JsonKey::AccountId)).toString();
+                                    response.requestInfo.nickName = requestInfo.value(JsonKey::key(JsonKey::NickName)).toString();
+                                    response.requestInfo.signName = requestInfo.value(JsonKey::key(JsonKey::SignName)).toString();
+                                    response.requestInfo.face = requestInfo.value(JsonKey::key(JsonKey::Face)).toInt();
+                                    response.requestInfo.customImgId = requestInfo.value(JsonKey::key(JsonKey::FaceId)).toString();
+                                }
+
+                                MessDiapatch::instance()->onRecvFriendRequest(response);
+                           }
+                           break;
+        default:
+            break;
+    }
+}

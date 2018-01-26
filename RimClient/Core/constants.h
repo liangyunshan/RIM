@@ -29,11 +29,15 @@ const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
 const char UserTempName[] = "temp";
 const char PATH_UserPath[] = "/../users";
+
 const char PATH_ImagePath[] = "/../image";
+const char PATH_SystemIconPath[] = "/systemIcon";
+
 const char PATH_ConfigPath[] = "/../config";
 const char PATH_LocalePath[] = "/translations";
 const char PATH_StylePath[] = "/style";
-const char PATH_SystemIconPath[] = "/systemIcon";
+const char PATH_SountPath[] = "/sound";
+
 
 /*系统设置*/
 const char SETTING_X[] = "Main/X";
@@ -57,6 +61,8 @@ const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
 const char SETTING_NETWORK_IP[] = "Network/LoginIp";
 const char SETTING_NETWORK_PORT[] = "Network/LoginPort";
 
+const char SETTING_SOUND_GROUP[] = "Sound";
+
 const QString DEFAULT_NETWORK_IP = "127.0.0.1";
 const QString DEFAULT_NETWORK_PORT = "8023";
 
@@ -64,6 +70,7 @@ const QString DEFAULT_NETWORK_PORT = "8023";
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
 const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
 const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
+const char ICON_SYSTEM_NOTIFY[] = ":/icon/resource/icon/systemnotify.png";
 
 
 /*控件尺寸*/

@@ -43,7 +43,9 @@ public:
         SearchContent,
         SearchType,
         AddType,
-        FriendId
+        FriendId,
+        OperateInfo,
+        Result
     };
     Q_FLAG(KeyId)
 

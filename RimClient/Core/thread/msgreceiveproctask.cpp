@@ -66,7 +66,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
     if(jsonParseError.error == QJsonParseError::NoError)
     {
         QJsonObject root = document.object();
-#ifdef __NO_SQL_PRINT__
+#ifndef __NO_SQL_PRINT__
         qDebug()<<document.toJson(QJsonDocument::Indented);
 #endif
         switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
@@ -110,6 +110,9 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
                             break;
         case MSG_REALTION_ADD:
                             RSingleton<DataProcess>::instance()->proAddFriendResponse(obj);
+                            break;
+        case MSG_RELATION_OPERATE:
+                            RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
                             break;
     };
 }

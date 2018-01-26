@@ -56,6 +56,10 @@ void MsgSender::run()
     {
         while(G_SendBuff.size() <= 0)
         {
+            if(!runningFlag)
+            {
+                break;
+            }
             G_SendMutex.lock();
             G_SendWaitCondition.wait(&G_SendMutex);
             G_SendMutex.unlock();

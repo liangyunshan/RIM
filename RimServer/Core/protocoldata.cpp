@@ -68,5 +68,17 @@ AddFriendResponse::AddFriendResponse()
     msgCommand = MSG_REALTION_ADD;
 }
 
+OperateFriendRequest::OperateFriendRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_OPERATE;
+}
+
+OperateFriendResponse::OperateFriendResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_OPERATE;
+}
+
 
 } //namespace Protocol

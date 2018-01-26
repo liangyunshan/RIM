@@ -22,6 +22,12 @@ TcpClient *TcpClient::create()
     return client;
 }
 
+void TcpClient::setOnLine(bool flag)
+{
+    onLine = flag;
+    onlineState = 0;
+}
+
 int TcpClient::getPackId()
 {
     QMutexLocker locker(&packIdMutex);
@@ -38,6 +44,8 @@ TcpClient::TcpClient()
 
     cSocket = 0;
     cPort = 0;
+
+    onLine = false;
 }
 
 TcpClient::~TcpClient()
@@ -55,13 +63,12 @@ TcpClientManager * TcpClientManager::manager = NULL;
 
 TcpClientManager::TcpClientManager()
 {
-
+    manager = this;
 }
 
 TcpClientManager *TcpClientManager::instance()
 {
-//    QMutexLocker locker(&mutex);
-    if(manager)
+    if(manager ==  NULL)
     {
         manager = new TcpClientManager();
     }
@@ -101,6 +108,22 @@ TcpClient *TcpClientManager::getClient(int sock)
     while(iter != clientList.end())
     {
         if((*iter)->socket() == sock)
+        {
+            return (*iter);
+        }
+        iter++;
+    }
+    return NULL;
+}
+
+TcpClient *TcpClientManager::getClient(QString accountId)
+{
+    QMutexLocker locker(&mutex);
+    qDebug()<<clientList.size();
+    QList<TcpClient *>::iterator iter = clientList.begin();
+    while(iter != clientList.end())
+    {
+        if((*iter)->getAccount() == accountId)
         {
             return (*iter);
         }

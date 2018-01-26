@@ -21,6 +21,7 @@ class SystemTrayIconPrivate;
 
 class QMenu;
 class QAction;
+class QTimer;
 
 class SystemTrayIcon : public QSystemTrayIcon
 {
@@ -36,11 +37,22 @@ public:
      */
     enum SystemTrayModel
     {
-        System_Login,       /*!<    登录页面模式  */
-        System_Main         /*!<    主页面模式*/
+        System_Login,       //登录页面模式
+        System_Main         //主页面模式
+    };
+
+    enum NotifyModel
+    {
+        NoneNotify,
+        SystemNotify,       //系统通知
+        UserNotify          //用户通知
     };
 
     void setModel(SystemTrayIcon::SystemTrayModel model);
+
+    void notify(NotifyModel model,QString imagePath = QString(""));
+    void startBliking(int interval = 400);
+
     SystemTrayIcon::SystemTrayModel model();
 
 signals:
@@ -48,24 +60,17 @@ signals:
     void showMainPanel();
     void quitApp();
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event);
+    bool event(QEvent *eve);
+
 private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
-
-private:
-    void initWidget();
+    void switchNotifyImage();
 
 private:
     static SystemTrayIcon * systemIcon;
-
     SystemTrayIconPrivate * d_ptr;
-
-    QMenu * trayLoginMenu;
-    QMenu * taryMainMenu;
-    QAction * exitAction;
-    QAction * mainPanelAction;
-
-    QAction * lockAction;
-
 };
 
 #endif // SYSTEMTRAYICON_H
