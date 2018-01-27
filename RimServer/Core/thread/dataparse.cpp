@@ -53,6 +53,12 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
          case MSG_USER_UPDATE_INFO:
                                           onProcessUpdateUserInfo(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
                                           break;
+         case MSG_RELATION_SEARCH:
+                                          onProcessSearchFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+                                          break;
+         case MSG_REALTION_ADD:
+                                          onProcessAddFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+                                          break;
          default:
              break;
     }
@@ -94,4 +100,23 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
 
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
+}
+
+void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
+{
+    SearchFriendRequest * request = new SearchFriendRequest;
+    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+    request->accountOrNickName = obj.value(JsonKey::key(JsonKey::SearchContent)).toString();
+
+    RSingleton<DataProcess>::instance()->processSearchFriend(db,socketId,request);
+}
+
+void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
+{
+    AddFriendRequest * request = new AddFriendRequest;
+    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->friendId = obj.value(JsonKey::key(JsonKey::FriendId)).toString();
+
+    RSingleton<DataProcess>::instance()->processAddFriend(db,socketId,request);
 }

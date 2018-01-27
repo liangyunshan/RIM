@@ -26,10 +26,13 @@ class ToolItem : public QWidget
     Q_DECLARE_PRIVATE(ToolItem)
 public:
     explicit ToolItem(ToolPage *page,QWidget * parent = 0);
+    ~ToolItem();
 
     void setIcon(QString icon);
 
     void setName(QString name);
+    QString getName()const;
+
     void setNickName(QString name);
     void setDescInfo(QString text);
 

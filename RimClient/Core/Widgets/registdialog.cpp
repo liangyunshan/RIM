@@ -180,7 +180,7 @@ void RegistDialog::respValidInfo(QString)
 
     bool hasError = false;
 
-    QRegExp space("\\s+");
+    QRegExp space(Constant::Space_Reg);
 
     if(d->nickNameEdit->text().contains(space) || d->passwordEdit->text().contains(space)
             || d->confirmPassEdit->text().contains(space))

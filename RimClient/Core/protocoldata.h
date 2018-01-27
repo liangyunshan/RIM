@@ -13,6 +13,7 @@
 #define PROTOCOLDATA_H
 
 #include <QString>
+#include <QList>
 
 namespace ProtocolType {
 
@@ -32,7 +33,7 @@ namespace ProtocolType {
  * {
  *     'type'   :   MsgType,
  *     'cmd'    :   MsgCommand,
- *     'status' :   value,                          //若是操作性质,返回操作成功与否标志
+ *     'status' :   value,                          //若是操作性质,返回操作成功与否标志,部分不会返回data段
  *     'data'   :
  *                  {
  *
@@ -76,16 +77,15 @@ enum MsgCommand
     MSG_USER_REGISTER = 0x01,                          //用户注册[OK]
     MSG_USER_LOGIN,                                    //用户登录[OK]
     MSG_USER_LOGOUT,                                   //用户退出
-    MSG_USER_VIEW_INFO,                                //用户基本信息
-    MSG_USER_UPDATE_INFO,                              //用户更新信息
+    MSG_USER_VIEW_INFO,                                //用户基本信息[OK]
+    MSG_USER_UPDATE_INFO,                              //用户更新信息[OK]
     MSG_USER_STATE,                                    //用户状态
 
-    MSG_RELATION_SEARCH = 0x11,                        //查找好友
-    MSG_REALTION_ADD,                                  //添加好友
-    MSG_RELATION_REMOVE,                               //删除好友
+    MSG_RELATION_SEARCH = 0x11,                        //查找好友[OK]
+    MSG_REALTION_ADD,                                  //添加好友[OK]
+    MSG_RELATION_OPERATE,                              //好友操作(参照OperateFriend)
     MSG_RELATION_VIEW_INFO,                            //查看好友信息
     MSG_RELATION_EDIT_INFO,                            //更新好友备注
-    MSG_RELATION_MOVE,                                 //移动好友
 
     MSG_GROUP_SEARCH = 0x31,                           //查找群
     MSG_GROUP_CREATE,                                  //创建群
@@ -116,6 +116,12 @@ enum OnlineStatus
     STATUS_AWAY                     //离开
 };
 
+/*!
+    举例：
+    [1]:A 登陆信息  服务器;
+    [2]:服务器 验证并发回结果信息 A
+    [3]:服务器 查找历史聊天信息、请求信息 A
+*/
 //登陆结果
 enum ResponseLogin
 {
@@ -128,6 +134,12 @@ enum ResponseLogin
     LOGIN_SERVER_NOT_RESP           //服务器未响应
 };
 
+/*!
+    举例：小明想注册
+    [1]:A 发送ResponseRegister 服务器;
+    [2]:服务器 发送账号   A
+*/
+
 //注册结果信息
 enum ResponseRegister
 {
@@ -136,13 +148,38 @@ enum ResponseRegister
     REGISTER_SERVER_REFUSED         //服务器未响应
 };
 
+/*!
+   举例：A想添加B为好友:
+   [1]:A 发送MSG_RELATION_SEARCH  服务器;         查询好友信息
+   [2]:服务器 发送ResponseAddFriend  A;           查询结果
+   [3]:A 发送 MSG_REALTION_ADD 服务器;            好友请求
+   [4]:服务器 发送ResponseAddFriend A;            好友请求确认
+   [5]:服务器 发送MSG_RELATION_REQUEST B;         好友请求(B在线直接发送；B未在线，缓存请求等B登陆)
+   [6]:B 发送OperateFriend 服务器;                请求结果
+   [7]:服务器 发送MSG_RELATION_REQUEST A;         转发请求结果
+*/
+
 //好友操作类型
 enum OperateFriend
 {
     FRIEND_APPLY,                   //好友请求
-    FRIEND_AGREE,                   //同意请求
-    FRIEND_REFUSE,                  //拒绝请求
     FRIEND_DELETE,                  //删除好友
+    FRIEND_MOVE                     //移动好友
+};
+
+//好友请求结果
+enum ResponseFriendApply
+{
+    FRIEND_REQUEST,                 //请求
+    FRIEND_AGREE,                   //同意请求
+    FRIEND_REFUSE                   //拒绝请求
+};
+
+//删除好友结果信息
+enum ResponseDeleteFriend
+{
+    DELETE_SUCCESS,                 //删除成功
+    DELETE_FAILED                   //删除失败
 };
 
 //添加好友结果信息
@@ -151,16 +188,8 @@ enum ResponseAddFriend
     FIND_FRIEND_NOT_FOUND,          //未找到好友
     FIND_FRIEND_FOUND,              //找到好友
     FIND_FRIEND_FAILED,             //查找失败
-
-    ADD_FRIEND_SUCCESS,             //添加成功
-    ADD_FRIEND_FAILED               //添加失败
-};
-
-//删除好友结果信息
-enum ResponseDeleteFriend
-{
-    DELETE_SUCCESS,                 //删除成功
-    DELETE_FAILED                   //删除失败
+    ADD_FRIEND_SENDED,              //请求发送成功
+    ADD_FRIEND_SENDED_FAILED        //请求发送失败
 };
 
 //发送/接收信息结果
@@ -175,6 +204,11 @@ enum ResponseOpoerateMsg
     RECV_FILE_FAILED,               //接收文件失败
 };
 
+/*!
+    举例：小明想更新信息
+    [1]:A 修改基本信息 服务器
+    [2]:服务器 修改结果  A
+*/
 //更新用户信息结果
 enum ResponseUpdateUser
 {
@@ -261,8 +295,75 @@ public:
     UserBaseInfo baseInfo;
 };
 
+/***********************查询好友**********************/
+struct SearchResult
+{
+    QString accountId;                      //账号
+    QString nickName;                       //昵称
+    QString signName;                       //签名
+    unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
+    QString customImgId;                    //头像信息(face为0时有效)
+};
+
+enum SearchType
+{
+    SearchPerson,
+    SearchGroup
+};
+
+class SearchFriendRequest : public MsgPacket
+{
+public:
+    SearchFriendRequest();
+    SearchType stype;                       //查询方式
+    QString accountOrNickName;              //用户的AccountId或NickName
+};
+
+class SearchFriendResponse : public MsgPacket
+{
+public:
+    SearchFriendResponse();
+
+    QList<SearchResult> result;              //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
+};
+
+/***********************添加好友**********************/
+class AddFriendRequest : public MsgPacket
+{
+public:
+    AddFriendRequest();
+    SearchType stype;                        //添加人或群
+    QString accountId;                       //自己id
+    QString friendId;                        //想添加的用户或群ID
+};
+
+class AddFriendResponse : public MsgPacket
+{
+public:
+    AddFriendResponse();
+};
+
+/***********************联系人操作**********************/
+class OperateFriendRequest : public MsgPacket
+{
+public:
+    OperateFriendRequest();
+    OperateFriend type;
+    int result;                              //type为FRIEND_APPLY时，对应ResponseFriendApply；type为FRIEND_DELETE，对应ResponseDeleteFriend
+    QString accountId;
+    QString operateId;                       //待操作的好友ID。type为请求时，代表请求方ID；type为删除时，代表待删除ID
+};
+
+class OperateFriendResponse : public MsgPacket
+{
+public:
+    OperateFriendResponse();
+    OperateFriend type;
+    int result;
+    QString accountId;
+    SearchResult requestInfo;
+};
 
 }
-
 
 #endif // PROTOCOLDATA_H

@@ -342,7 +342,6 @@ void EditPersonInfoWindow::updateUserBaseInfo()
 
 void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response)
 {
-    MQ_D(EditPersonInfoWindow);
     switch(status)
     {
         case UPDATE_USER_SUCCESS:

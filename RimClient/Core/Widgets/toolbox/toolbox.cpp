@@ -179,7 +179,6 @@ void ToolBox::clearItemSelection(ToolItem * item)
     }
 }
 
-
 //TODO LYS-20180122 在布局中移动分组进行排序
 void ToolBox::updateLayout()
 {

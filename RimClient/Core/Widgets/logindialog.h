@@ -41,7 +41,7 @@ public:
     void onMessage(MessageType type);
 
 protected:
-    void resizeEvent(QResizeEvent * event);
+    void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
 
@@ -57,6 +57,7 @@ private slots:
     void respConnect(bool flag);
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
+    void recvFriendResponse(OperateFriendResponse resp);
 
 private:
     void createTrayMenu();

@@ -57,6 +57,7 @@
         <file>resource/icon/alert_info.png</file>
         <file>resource/icon/alert_warning.png</file>
         <file>resource/icon/Tool_Chat_FontColor.png</file>
+        <file>resource/icon/systemnotify.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

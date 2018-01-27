@@ -121,13 +121,8 @@ QIcon ImageManager::getCircularIcons(QString imagePath)
  */
 QString ImageManager::getWindowIcon(WinIconColor color,WinIcon icon)
 {
-#if QT_VERSION > 0x050500
     QMetaEnum iconMetaEnum =  QMetaEnum::fromType<WinIcon>();
     QMetaEnum colorMetaEnum =  QMetaEnum::fromType<WinIconColor>();
 
     return QString(":/icon/resource/icon/%1_%2.png").arg(QString(iconMetaEnum.key(icon)).toLower(),QString(colorMetaEnum.key(color)).toLower());
-#else
-
-#endif
-
 }

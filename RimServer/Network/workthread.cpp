@@ -105,10 +105,10 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
     DWORD dwRecv = 0;
     DWORD dwFlags = 0;
 
-    int ret = WSARecv(tcpClient->socket(),&(ioData->getWSABUF()), 1, &dwRecv, &dwFlags,&(ioData->getOverLapped()), NULL);
+    WSARecv(tcpClient->socket(),&(ioData->getWSABUF()), 1, &dwRecv, &dwFlags,&(ioData->getOverLapped()), NULL);
 }
 
-void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData)
+void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpContext *ioData)
 {
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
@@ -122,7 +122,7 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
             SocketInData socketData;
             socketData.sockId = ioData->getClient()->socket();
 
-            int processLen = sizeof(DataPacket);
+            unsigned int processLen = sizeof(DataPacket);
             do
             {
                 //[1.1]至少存在多余一个完整数据包
@@ -216,14 +216,12 @@ void WorkThread::processRecvData(char * recvData,int recvLen,IocpContext *ioData
                 //[1.2]【信息被截断】
                 else
                 {
-                    int leftLen = recvLen - sizeof(DataPacket);
-
-                    memcpy(&packet,recvData + processLen,leftLen);
+                    int leftLen = recvLen - processLen;
 
                     ioData->getClient()->lock();
                     ioData->getClient()->getHalfPacketBuff().clear();
                     ioData->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(DataPacket));
-                    ioData->getClient()->getHalfPacketBuff().append(recvData+sizeof(DataPacket),leftLen);
+                    ioData->getClient()->getHalfPacketBuff().append(recvData+processLen,leftLen);
                     ioData->getClient()->unLock();
 
                     processLen += leftLen;

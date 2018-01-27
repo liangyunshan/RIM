@@ -41,6 +41,7 @@
 #include "global.h"
 #include "widget/rlabel.h"
 #include "messdiapatch.h"
+#include "media/mediaplayer.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -50,8 +51,8 @@ public:
     {
         initWidget();
 
-        numberExp = QRegExp("[1-9]\\d{4}");
-        passExp = QRegExp("\\w{1,16}");
+        numberExp = QRegExp(Constant::AccountId_Reg);
+        passExp = QRegExp(Constant::AccountPassword_Reg);
 
         isSystemUserIcon = true;
         isNewUser = true;
@@ -140,7 +141,7 @@ void LoginDialogPrivate::initWidget()
     inputGridLayout->setVerticalSpacing(2);
     inputGridLayout->setContentsMargins(0, 0, 0, 0);
 
-    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp("[1-9]\\d{4}"));
+    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp(Constant::AccountId_Reg));
     userList = new QComboBox();
     userList->setFixedSize(QSize(193, 28));
     userList->setEditable(true);
@@ -149,7 +150,7 @@ void LoginDialogPrivate::initWidget()
     userList->setView(new QListView());
     userList->lineEdit()->installEventFilter(this);
 
-    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp("\\w{1,16}"));
+    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp(Constant::AccountPassword_Reg));
     password = new QLineEdit();
     password->setFixedSize(QSize(193, 28));
     password->setValidator(passValidator);
@@ -274,6 +275,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
+
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -544,6 +547,35 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
     }
 }
 
+void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
+{
+    MQ_D(LoginDialog);
+    d->trayIcon->notify(SystemTrayIcon::SystemNotify);
+    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
+
+
+    ResponseFriendApply reqType = (ResponseFriendApply)resp.result;
+    switch (reqType)    {
+        case FRIEND_REQUEST:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++qingqiu";
+                            }
+                            break;
+        case FRIEND_AGREE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++tongyi";
+                            }
+                            break;
+        case FRIEND_REFUSE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++jujue";
+                            }
+                            break;
+        default:
+            break;
+    }
+}
+
 LoginDialog::~LoginDialog()
 {
     MQ_D(LoginDialog);
@@ -581,7 +613,7 @@ void LoginDialog::onMessage(MessageType type)
     }
 }
 
-void LoginDialog::resizeEvent(QResizeEvent *event)
+void LoginDialog::resizeEvent(QResizeEvent *)
 {
     MQ_D(LoginDialog);
 

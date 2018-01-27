@@ -26,7 +26,7 @@ void RecvTextProcessThread::run()
 {
     while(true)
     {
-        if(G_RecvButts.size() == 0)
+        while(G_RecvButts.size() == 0)
         {
             G_RecvMutex.lock();
             G_RecvCondition.wait(&G_RecvMutex);

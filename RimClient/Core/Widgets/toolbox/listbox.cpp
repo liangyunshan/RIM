@@ -71,9 +71,7 @@ void ListBox::addItem(ToolItem * item)
     MQ_D(ListBox);
 
     QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
-
     connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),this,SLOT(clearItemSelection(ToolItem *)));
-
     d->toolItems.append(item);
 
     layout->insertWidget(d->contentWidget->children().size() - 1,item);
@@ -91,6 +89,23 @@ void ListBox::setContextMenu(QMenu *menu)
     d->contextMenu = menu;
 }
 
+void ListBox::clear()
+{
+    MQ_D(ListBox);
+    QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+
+    QLayoutItem * item = NULL;
+    while((item = layout->takeAt(0))!= NULL)
+    {
+        if(item->widget())
+        {
+            delete item->widget();
+        }
+    }
+
+    d->toolItems.clear();
+}
+
 void ListBox::clearItemSelection(ToolItem *item)
 {
     MQ_D(ListBox);
@@ -106,6 +121,8 @@ void ListBox::clearItemSelection(ToolItem *item)
         }
         iter++;
     }
+
+    emit currentItemChanged(item);
 }
 
 bool ListBox::eventFilter(QObject *watched, QEvent *event)
