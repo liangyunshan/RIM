@@ -66,7 +66,6 @@ void SystemUserImageWindowPrivate::initWidget()
     q_ptr->setContentWidget(scrollArea);
 }
 
-
 SystemUserImageWindow::SystemUserImageWindow(QWidget *parent):
     d_ptr(new SystemUserImageWindowPrivate(this)),
     Widget(parent)
@@ -80,10 +79,11 @@ SystemUserImageWindow::SystemUserImageWindow(QWidget *parent):
     const int height = 600;
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_DIALOG);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(tr("Local Image"));
     }

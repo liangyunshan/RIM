@@ -139,10 +139,6 @@ ToolBar * Widget::enableToolBar(bool flag)
         d->toolBar->setObjectName("Widget_ToolBarWidget");
         d->toolBar->setFixedHeight(ABSTRACT_TOOL_BAR_HEGIHT);
 
-        connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
-        connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SLOT(showMaximizedWindow(bool)));
-        connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(close()));
-
         if(!d->contentWidget->layout())
         {
             QVBoxLayout * layout = new QVBoxLayout;
@@ -165,6 +161,28 @@ ToolBar * Widget::enableToolBar(bool flag)
     }
 
     return NULL;
+}
+
+/*!
+     * @brief 是否开启默认的信号连接；若为true，则窗口工具栏点击后，不会发送信号；
+     * @param[in] flag 状态
+     * @return 无
+     */
+void Widget::enableDefaultSignalConection(bool flag)
+{
+    MQ_D(Widget);
+    if(flag)
+    {
+        connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
+        connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SLOT(showMaximizedWindow(bool)));
+        connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(close()));
+    }
+    else
+    {
+        connect(d->toolBar,SIGNAL(minimumWindow()),this,SIGNAL(minimumWindow()));
+        connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SIGNAL(maxWindow(bool)));
+        connect(d->toolBar,SIGNAL(closeWindow()),this,SIGNAL(closeWindow()));
+    }
 }
 
 void Widget::paintEvent(QPaintEvent *)

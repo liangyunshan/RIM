@@ -60,10 +60,6 @@ signals:
     void showMainPanel();
     void quitApp();
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event);
-    bool event(QEvent *eve);
-
 private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
     void switchNotifyImage();

@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note    20180125:wey:添加删除全部item
+ *           20180127:wey:添加删除指定item；修复清空后，再次添加item布局错误问题；
  */
 #ifndef LISTBOX_H
 #define LISTBOX_H
@@ -26,11 +27,14 @@ public:
     explicit ListBox(QWidget *parent = 0);
 
     void addItem(ToolItem * item);
+    QList<ToolItem *> items()const;
+
+    bool removeItem(ToolItem * item);
+    void clear();
+
     ToolItem * selectedItem();
 
     void setContextMenu(QMenu * menu);
-
-    void clear();
 
 signals:
     void currentItemChanged(ToolItem * item);

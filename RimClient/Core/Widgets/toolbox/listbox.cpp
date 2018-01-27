@@ -72,9 +72,50 @@ void ListBox::addItem(ToolItem * item)
 
     QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
     connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),this,SLOT(clearItemSelection(ToolItem *)));
-    d->toolItems.append(item);
 
     layout->insertWidget(d->contentWidget->children().size() - 1,item);
+    d->toolItems.append(item);
+}
+
+QList<ToolItem *> ListBox::items() const
+{
+    MQ_D(ListBox);
+
+    return d->toolItems;
+}
+
+bool ListBox::removeItem(ToolItem *item)
+{
+    MQ_D(ListBox);
+
+    if(d->toolItems.size() > 0)
+    {
+        QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+
+        if(layout)
+        {
+            int index = -1;
+            for(int i = 0; i < layout->count();i++)
+            {
+                if(layout->itemAt(i)->widget() && layout->itemAt(i)->widget() == item)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if(index >= 0)
+            {
+                QLayoutItem * layItem = layout->takeAt(index);
+                if(layItem->widget())
+                {
+                    d->toolItems.removeOne(item);
+                    delete layItem->widget();
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 ToolItem *ListBox::selectedItem()
@@ -104,6 +145,7 @@ void ListBox::clear()
     }
 
     d->toolItems.clear();
+    layout->addStretch(1);
 }
 
 void ListBox::clearItemSelection(ToolItem *item)

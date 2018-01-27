@@ -23,7 +23,7 @@
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"
 
-#define ADD_FRIEND_WIDTH 500
+#define ADD_FRIEND_WIDTH 380
 #define ADD_FRIEND_HEIGHT 400
 
 class AddFriendPrivate : public GlobalData<AddFriend>
@@ -140,7 +140,7 @@ void AddFriendPrivate::initWidget()
     searchLayout->setContentsMargins(0,10,0,0);
     searchLayout->addStretch(1);
     searchLayout->addWidget(searchList);
-    searchLayout->setStretchFactor(searchList,4);
+    searchLayout->setStretchFactor(searchList,10);
     searchLayout->addStretch(1);
 
     searchWidget->setLayout(searchLayout);
@@ -187,16 +187,17 @@ AddFriend::AddFriend(QWidget * parent):
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_DIALOG);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(tr("Lookup"));
     }
     setFixedSize(ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
-    setGeometry((screenSize.width() - ADD_FRIEND_WIDTH)/2,screenSize.height()/2 - ADD_FRIEND_HEIGHT,ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
+    setGeometry((screenSize.width() - ADD_FRIEND_WIDTH)/2,(screenSize.height() - ADD_FRIEND_HEIGHT)/2 ,ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
 
     connect(MessDiapatch::instance(),SIGNAL(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)),this,
             SLOT(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)));
@@ -293,6 +294,8 @@ void AddFriend::recvSearchFriendResponse(ResponseAddFriend status, SearchFriendR
             item->setDescInfo(response.result.at(i).signName);
             d->searchList->addItem(item);
         }
+
+        d->enableSearch(false);
     }
     else
     {

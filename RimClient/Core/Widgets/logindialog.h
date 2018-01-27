@@ -49,6 +49,7 @@ private slots:
     void login();
     void minsize();
     void closeWindow();
+    void setPassword(bool flag);
     void switchUser(int index);
     void readLocalUser();
     void validateInput(QString text);

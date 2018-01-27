@@ -162,7 +162,7 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString imagePath
                         }
         case SystemNotify:
                         {
-                            d->blinkingIcon = QIcon(Constant::ICON_SYSTEM_NOTIFY);
+                            d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_24));
                             startBliking();
                             break;
                         }
@@ -205,22 +205,11 @@ SystemTrayIcon::SystemTrayModel SystemTrayIcon::model()
     return d->model();
 }
 
-bool SystemTrayIcon::eventFilter(QObject *watched, QEvent *event)
-{
-    return QSystemTrayIcon::eventFilter(watched,event);
-}
-
-bool SystemTrayIcon::event(QEvent *eve)
-{
-    if(eve->type() == QEvent::Enter)
-    {
-    }
-    return QSystemTrayIcon::event(eve);
-}
-
 void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     MQ_D(SystemTrayIcon);
+
+    qDebug()<<"+++++:"<<(int)reason;
 
     switch(reason)
     {
@@ -230,6 +219,10 @@ void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
                                                emit showMainPanel();
                                           }
                                            break;
+    case QSystemTrayIcon::Trigger:
+                                            {
+                                            }
+    break;
         default:
             break;
     }

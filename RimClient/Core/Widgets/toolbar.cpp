@@ -80,7 +80,7 @@ void ToolBarPrivate::initDialog()
     iconLabel = new QLabel(toolBar);
     iconLabel->setFixedSize(WINDOW_ICON_SIZE,WINDOW_ICON_SIZE);
     iconLabel->setVisible(flags & ToolBar::TOOL_ICON);
-    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
     windowTitle = new QLabel(toolBar);
     windowTitle->setObjectName("ToolBar_Window_Title");
