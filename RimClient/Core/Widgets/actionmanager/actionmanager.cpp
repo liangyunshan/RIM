@@ -27,6 +27,7 @@ ActionManager::ActionManager(QObject *parent):
     QObject(parent)
 {
     actionManager = this;
+
 }
 
 ActionManager *ActionManager::instance()

@@ -505,7 +505,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
         G_UserBaseInfo = response.baseInfo;
 
-        //shangchao 创建每个用户对应的缓存文件夹
+        //创建每个用户对应的缓存文件夹
         QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
         G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
         RUtil::createDir(G_Temp_Picture_Path);

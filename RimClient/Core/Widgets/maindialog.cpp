@@ -12,6 +12,7 @@
 #include "Util/rutil.h"
 #include "constants.h"
 #include "head.h"
+#include "global.h"
 #include "toolbar.h"
 #include "panelbottomtoolbar.h"
 #include "panelcontentarea.h"
@@ -29,6 +30,7 @@
 #include "itemhoverinfo.h"
 
 #include "sql/databasemanager.h"
+#include "screenshot.h"
 
 #define PANEL_MARGIN 20
 
@@ -71,7 +73,7 @@ MainDialog::MainDialog(QWidget *parent) :
 
     dialog = this;
     RSingleton<Subject>::instance()->attach(this);
-
+    ScreenShot::instance();
     initSqlDatabase();
     initWidget();
 }
@@ -354,7 +356,6 @@ void MainDialog::writeSettings()
 
 void MainDialog::initSqlDatabase()
 {
-    //shangchao
     p_dbManager = new DatabaseManager();
     p_dbManager->setConnectInfo("localhost","./rimclient.db","root","rengu123456");
     p_dbManager->setDatabaseType("QSQLITE");

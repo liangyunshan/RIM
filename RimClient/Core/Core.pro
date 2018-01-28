@@ -117,7 +117,8 @@ SOURCES += \
     thread/databasethread.cpp \
     jsonkey.cpp \
     Widgets/widget/rlabel.cpp \
-    Widgets/setkeysequencedialog.cpp
+    Widgets/setkeysequencedialog.cpp \
+    Widgets/screenshot.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -180,7 +181,8 @@ HEADERS  += \
     thread/databasethread.h \
     jsonkey.h \
     Widgets/widget/rlabel.h \
-    Widgets/setkeysequencedialog.h
+    Widgets/setkeysequencedialog.h \
+    Widgets/screenshot.h
 
 DISTFILES += \
     Widgets/Widgets.pri

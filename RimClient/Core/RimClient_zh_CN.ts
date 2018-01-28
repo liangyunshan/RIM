@@ -136,7 +136,7 @@
         <translation type="vanished">置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="174"/>
+        <location filename="Widgets/maindialog.cpp" line="176"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
@@ -149,7 +149,7 @@
         <translation type="vanished">关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="169"/>
+        <location filename="Widgets/maindialog.cpp" line="171"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -444,64 +444,63 @@
         <translation>日志记录模块初始化失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="205"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="213"/>
         <source>Font</source>
         <translation>字体工具栏</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="210"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="217"/>
         <source>FontColor</source>
         <translation>字体颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="215"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="221"/>
         <source>Emoji</source>
         <translation>选择表情</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="219"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="225"/>
         <source>Shake window</source>
         <translation>发送抖动窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="223"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="229"/>
         <source>Image</source>
         <translation>发送图像</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="227"/>
-        <location filename="Widgets/abstractchatwidget.cpp" line="246"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="233"/>
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="250"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="239"/>
         <source>Hide current window while screenshot </source>
         <translation>截图时隐藏当前窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="262"/>
-        <location filename="Widgets/abstractchatwidget.cpp" line="264"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="251"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="253"/>
         <source>Record data</source>
         <translation>聊天记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="301"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="290"/>
         <source>Close window</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="315"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="295"/>
         <source>Send message</source>
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="524"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="503"/>
         <source>ColorDialog</source>
         <translation>颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="653"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="608"/>
         <source>Input contents is empty.</source>
         <translation>输入内容为空</translation>
     </message>
@@ -645,104 +644,104 @@
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="151"/>
-        <location filename="Widgets/systemsettings.cpp" line="152"/>
+        <location filename="Widgets/systemsettings.cpp" line="153"/>
+        <location filename="Widgets/systemsettings.cpp" line="154"/>
         <source>Basic Settings</source>
         <translation>基础设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="157"/>
-        <location filename="Widgets/systemsettings.cpp" line="158"/>
+        <location filename="Widgets/systemsettings.cpp" line="159"/>
+        <location filename="Widgets/systemsettings.cpp" line="160"/>
         <source>Security Settings</source>
         <translation>安全设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="174"/>
+        <location filename="Widgets/systemsettings.cpp" line="176"/>
         <source>Login</source>
         <translation>登录</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="177"/>
+        <location filename="Widgets/systemsettings.cpp" line="179"/>
         <source>Boot automatically</source>
         <translation>开机自动运行程序</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="181"/>
+        <location filename="Widgets/systemsettings.cpp" line="183"/>
         <source>Automatic login</source>
         <translation>开启程序自动登录</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="189"/>
+        <location filename="Widgets/systemsettings.cpp" line="191"/>
         <source>Main Page</source>
         <translation>主面板</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="192"/>
+        <location filename="Widgets/systemsettings.cpp" line="194"/>
         <source>Stick to the top</source>
         <translation>面板置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="196"/>
+        <location filename="Widgets/systemsettings.cpp" line="198"/>
         <source>Quit directly</source>
         <translation>程序退出时直接退出</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="200"/>
+        <location filename="Widgets/systemsettings.cpp" line="202"/>
         <source>Display taskbar icon</source>
         <translation>任务栏显示程序图标</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="209"/>
+        <location filename="Widgets/systemsettings.cpp" line="211"/>
         <source>State</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="212"/>
+        <location filename="Widgets/systemsettings.cpp" line="214"/>
         <source>Automatic response</source>
         <translation>自动回复</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="219"/>
+        <location filename="Widgets/systemsettings.cpp" line="221"/>
         <source>Session</source>
         <translation>会话</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="222"/>
+        <location filename="Widgets/systemsettings.cpp" line="224"/>
         <source>Allow window jitter</source>
         <translation>允许窗口抖动</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="231"/>
+        <location filename="Widgets/systemsettings.cpp" line="233"/>
         <source>Shortcut</source>
         <translation>快捷键</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="234"/>
+        <location filename="Widgets/systemsettings.cpp" line="236"/>
         <source>Shortcut Setting</source>
         <translation>快捷键设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="241"/>
+        <location filename="Widgets/systemsettings.cpp" line="243"/>
         <source>Sound</source>
         <translation>声音</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="244"/>
+        <location filename="Widgets/systemsettings.cpp" line="246"/>
         <source>Sound Available</source>
         <translation>开启声音</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="248"/>
+        <location filename="Widgets/systemsettings.cpp" line="250"/>
         <source>Sound Setting</source>
         <translation>声音设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="256"/>
+        <location filename="Widgets/systemsettings.cpp" line="258"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="259"/>
+        <location filename="Widgets/systemsettings.cpp" line="261"/>
         <source>Change Recv Path</source>
         <translation>修改文件接收路径</translation>
     </message>
@@ -758,7 +757,7 @@
     </message>
     <message>
         <location filename="Widgets/registdialog.cpp" line="90"/>
-        <location filename="Widgets/systemsettings.cpp" line="286"/>
+        <location filename="Widgets/systemsettings.cpp" line="288"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
@@ -859,43 +858,43 @@
         <translation>登陆失败</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="289"/>
+        <location filename="Widgets/systemsettings.cpp" line="291"/>
         <source>Original password</source>
         <translation>旧密码</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="298"/>
+        <location filename="Widgets/systemsettings.cpp" line="300"/>
         <source>New password</source>
         <translation>新密码</translation>
     </message>
     <message>
         <location filename="Widgets/registdialog.cpp" line="100"/>
-        <location filename="Widgets/systemsettings.cpp" line="307"/>
+        <location filename="Widgets/systemsettings.cpp" line="309"/>
         <source>Confirm password</source>
         <translation>确认密码</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="316"/>
+        <location filename="Widgets/systemsettings.cpp" line="318"/>
         <source>Confirm the changes</source>
         <translation>确认修改</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="321"/>
+        <location filename="Widgets/systemsettings.cpp" line="323"/>
         <source>Lock</source>
         <translation>锁</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="325"/>
+        <location filename="Widgets/systemsettings.cpp" line="327"/>
         <source>Turn on the device lock</source>
         <translation>打开设备锁</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="332"/>
+        <location filename="Widgets/systemsettings.cpp" line="334"/>
         <source>Message record</source>
         <translation>消息记录</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="335"/>
+        <location filename="Widgets/systemsettings.cpp" line="337"/>
         <source>Exit to delete the record</source>
         <translation>退出时删除聊天记录</translation>
     </message>
@@ -1072,61 +1071,98 @@
     </message>
 </context>
 <context>
+    <name>ScreenShot</name>
+    <message>
+        <location filename="Widgets/screenshot.cpp" line="56"/>
+        <source>screen shot</source>
+        <translation>屏幕截图</translation>
+    </message>
+</context>
+<context>
     <name>SetKeySequenceDialog</name>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="106"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="127"/>
         <source>SetKeySequenceDialog</source>
         <translation>设置全局快捷键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="107"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="128"/>
         <source>set global KeySequence</source>
         <translation>全局热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="108"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="129"/>
         <source>can click to change hotkey</source>
         <translation>你可以通过点击选择需要修改的热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="110"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="131"/>
         <source>function describ</source>
         <translation>功能描述</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="112"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="133"/>
         <source>hot key</source>
         <translation>热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="114"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="135"/>
         <source>KeySequence status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="115"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="136"/>
         <source>ResetDefaultKey</source>
         <translation>恢复默认热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="116"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="137"/>
         <source>quik hotkey set</source>
         <translation>加速键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="117"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="138"/>
         <source>chat dialog send msg</source>
         <translation>会话窗口中发送消息</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="118"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="139"/>
         <source>rdbutt_Ctrl_Enter</source>
         <translation>按Ctrl + Enter键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="119"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="140"/>
         <source>rdbutt_Enter</source>
         <translation>按Enter键</translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="152"/>
+        <source>normal</source>
+        <translation>正常</translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="153"/>
+        <source>error</source>
+        <translation>失准</translation>
+    </message>
+    <message>
+        <source>screen shot</source>
+        <translation type="vanished">屏幕截图</translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="156"/>
+        <source>Chat_Close_Window</source>
+        <translation>关闭窗口</translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="168"/>
+        <source>key_Button_Chat_Shot</source>
+        <translation>截屏</translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="180"/>
+        <source>key_Button_Chat_Send</source>
+        <translation>发送信息</translation>
     </message>
 </context>
 <context>
@@ -1145,28 +1181,28 @@
 <context>
     <name>SystemSettings</name>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="390"/>
-        <location filename="Widgets/systemsettings.cpp" line="397"/>
+        <location filename="Widgets/systemsettings.cpp" line="392"/>
+        <location filename="Widgets/systemsettings.cpp" line="399"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="477"/>
+        <location filename="Widgets/systemsettings.cpp" line="475"/>
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="477"/>
+        <location filename="Widgets/systemsettings.cpp" line="475"/>
         <source>Use account password to unlock!</source>
         <translation>使用账户密码解锁!</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="487"/>
+        <location filename="Widgets/systemsettings.cpp" line="485"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="487"/>
+        <location filename="Widgets/systemsettings.cpp" line="485"/>
         <source>After setting the chat history will not be retained, whether to continue setting?</source>
         <translation>设置后不会保留聊天记录，是否继续设置？</translation>
     </message>
