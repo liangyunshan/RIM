@@ -35,8 +35,10 @@ public:
     QKeySequence shortCut(Id id);
     void addShortcut(Id id,QKeySequence  &key);
     void addShortcut(QString id,QKeySequence &key);
-
+    int  removeShortCut(Id id);
+    bool contains(QKeySequence);
     void save();
+
 
 private:
     bool loadShortcuts();
