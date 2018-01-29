@@ -8,6 +8,7 @@
 #include "Network/msgwrap.h"
 #include "Network/head.h"
 #include "Network/netglobal.h"
+
 #include "Network/tcpclient.h"
 using namespace ServerNetwork;
 
@@ -25,18 +26,17 @@ void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *r
     SocketOutData data;
     data.sockId = socketId;
 
-    QString registId;
+    QString registId,uuid;
 
-    ResponseRegister regResult = RSingleton<SQLProcess>::instance()->processUserRegist(db,request,registId);
+    ResponseRegister regResult = RSingleton<SQLProcess>::instance()->processUserRegist(db,request,registId,uuid);
 
     if(regResult == REGISTER_SUCCESS)
     {
         RegistResponse * response = new RegistResponse;
 
+        RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),true);
         response->accountId = registId;
-
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-
         delete response;
     }
     else
@@ -132,6 +132,7 @@ void DataProcess::processSearchFriend(Database * db,int socketId, SearchFriendRe
     SendData(data)
 }
 
+//TODO 找群时，先查找群主信息，查看是否在线
 void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest *request)
 {
     SocketOutData responseData;
@@ -139,7 +140,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
 
     ResponseAddFriend result = ADD_FRIEND_SENDED;
 
-    TcpClient * client = TcpClientManager::instance()->getClient(request->friendId);
+    TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
     if(client && client->isOnLine())
     {
         SocketOutData reqeuestData;
@@ -148,6 +149,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
         OperateFriendResponse * ofresponse = new OperateFriendResponse();
         ofresponse->type = FRIEND_APPLY;
         ofresponse->result = (int)FRIEND_REQUEST;
+        ofresponse->stype = request->stype;
         ofresponse->accountId = client->getAccount();
 
         UserBaseInfo baseInfo;
@@ -164,7 +166,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
     }
     else
     {
-        result = RSingleton<SQLProcess>::instance()->processAddFriend(db,request);
+        result = RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)FRIEND_REQUEST);
     }
 
     responseData.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,result);
@@ -172,4 +174,72 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
     delete request;
 
     SendData(responseData)
+}
+
+//处理好友请求操作,包括同意或者拒绝
+void DataProcess::processRelationOperate(Database *db, int socketId, OperateFriendRequest *request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    bool flag = false;
+
+    ResponseFriendApply result = (ResponseFriendApply)request->result;
+    if(result == FRIEND_AGREE)
+    {
+       flag = RSingleton<SQLProcess>::instance()->establishRelation(db,request);
+    }
+
+    if(flag)
+    {
+        TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
+
+        if(client && client->isOnLine())
+        {
+            SocketOutData reqeuestData;
+            reqeuestData.sockId = client->socket();
+
+            OperateFriendResponse * ofresponse = new OperateFriendResponse();
+            ofresponse->type = FRIEND_APPLY;
+            ofresponse->result = (int)request->result;
+            ofresponse->stype = request->stype;
+            ofresponse->accountId = client->getAccount();
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
+            ofresponse->requestInfo.accountId = baseInfo.accountId;
+            ofresponse->requestInfo.nickName = baseInfo.nickName;
+            ofresponse->requestInfo.signName = baseInfo.signName;
+            ofresponse->requestInfo.face = baseInfo.face;
+            ofresponse->requestInfo.customImgId = baseInfo.customImgId;
+
+            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse);
+
+            SendData(reqeuestData)
+        }
+        else
+        {
+            RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
+        }
+    }
+}
+
+void DataProcess::processFriendList(Database *db, int socketId, FriendListRequest *request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    FriendListResponse * response = new FriendListResponse;
+    response->accountId = request->accountId;
+    bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response);
+    if(flag)
+    {
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response);
+    }
+    else
+    {
+        responseData.data = RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,(int)STATUS_FAILE);
+    }
+
+    SendData(responseData);
 }

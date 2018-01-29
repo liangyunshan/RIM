@@ -26,6 +26,8 @@ public:
     void processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request);
     void processSearchFriend(Database * db,int socketId, SearchFriendRequest *request);
     void processAddFriend(Database * db, int socketId, AddFriendRequest *request);
+    void processRelationOperate(Database * db, int socketId, OperateFriendRequest *request);
+    void processFriendList(Database *db, int socketId, FriendListRequest *request);
 };
 
 #endif // DATAPROCESS_H

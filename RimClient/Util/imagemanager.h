@@ -47,7 +47,10 @@ public:
     enum IconType
     {
         ICON_SYSTEM,
-        ICON_SYSTEMNOTIFY
+        ICON_SYSTEMNOTIFY,
+        ICON_SUCCESS,
+        ICON_STAR,
+        ICON_ERROR
     };
     Q_ENUM(IconType)
 

@@ -22,13 +22,18 @@ class SQLProcess
 public:
     SQLProcess();
 
-    ResponseRegister processUserRegist(Database *db, const RegistRequest * request,QString & id);
+    ResponseRegister processUserRegist(Database *db, const RegistRequest * request, QString & id, QString &uuid);
     ResponseLogin processUserLogin(Database *db, const LoginRequest * request);
     ResponseUpdateUser processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest * request);
     ResponseAddFriend processSearchFriend(Database *db,SearchFriendRequest *request,SearchFriendResponse * response);
-    ResponseAddFriend processAddFriend(Database *db,AddFriendRequest *request);
+    ResponseAddFriend processAddFriendRequest(Database *db,QString accountId,QString operateId,int type);
 
+    bool createGroup(Database *db,QString userId,QString groupName,bool isDefault = false);
+    bool establishRelation(Database *db,OperateFriendRequest *request);
+    bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
     void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
+
+    QString getDefaultGroupByUser(Database * db,const QString id);
 
 private:
 

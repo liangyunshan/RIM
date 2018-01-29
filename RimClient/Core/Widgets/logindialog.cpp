@@ -43,6 +43,7 @@
 #include "messdiapatch.h"
 #include "media/mediaplayer.h"
 #include "notifywindow.h"
+#include "systemnotifyview.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -536,10 +537,14 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         if(!d->notifyWindow)
         {
             d->notifyWindow = new NotifyWindow;
-//            d->notifyWindow->show();
+            connect(d->notifyWindow,SIGNAL(showSystemNotifyInfo(NotifyInfo)),this,SLOT(viewSystemNotify(NotifyInfo)));
         }
 
         d->mainDialog->show();
+
+        FriendListRequest * request = new FriendListRequest;
+        request->accountId = G_UserBaseInfo.accountId;
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
     else
     {
@@ -568,41 +573,51 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
     }
 }
 
+/*!
+     * @brief 接收好友操作响应信息
+     * @details 可操作好友请求、同意请求、拒绝请求
+     * @param[in] toolButton 待插入的工具按钮
+     * @return 是否插入成功
+     */
 void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
     MQ_D(LoginDialog);
-    d->trayIcon->notify(SystemTrayIcon::SystemNotify);
+
     RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
 
-    d->notifyWindow->showMe();
-
     NotifyInfo  info;
+    info.identityId = RUtil::UUID();
     info.accountId = resp.requestInfo.accountId;
     info.type = NotifySystem;
+    info.stype = resp.stype;
     info.pixmap = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
-    d->notifyWindow->addNotifyInfo(info);
+    info.ofriendResult = resp.result;
 
-    ResponseFriendApply reqType = (ResponseFriendApply)resp.result;
-    switch (reqType)
-    {
-        case FRIEND_REQUEST:
-                            {
-                                qDebug()<<resp.requestInfo.accountId<<"+++qingqiu";
-                            }
-                            break;
-        case FRIEND_AGREE:
-                            {
-                                qDebug()<<resp.requestInfo.accountId<<"+++tongyi";
-                            }
-                            break;
-        case FRIEND_REFUSE:
-                            {
-                                qDebug()<<resp.requestInfo.accountId<<"+++jujue";
-                            }
-                            break;
-        default:
-            break;
-    }
+    d->notifyWindow->addNotifyInfo(info);
+    d->notifyWindow->showMe();
+
+    d->trayIcon->notify(SystemTrayIcon::SystemNotify,info.identityId);
+}
+
+void LoginDialog::viewSystemNotify(NotifyInfo info)
+{
+    MQ_D(LoginDialog);
+    ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
+
+    SystemNotifyView * view = new SystemNotifyView();
+    connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
+
+    view->setNotifyType(reqType);
+    view->setNotifyInfo(info);
+    view->show();
+
+    d->trayIcon->removeNotify(info.identityId);
+}
+
+//TODO 待打开对应的窗口
+void LoginDialog::openChatDialog(QString accountId)
+{
+
 }
 
 LoginDialog::~LoginDialog()

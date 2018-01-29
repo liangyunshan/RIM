@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     }
 
     TcpServer server;
-    server.startMe("127.0.0.1",8023);
+    server.startMe("192.168.0.118",8023);
 
     return a.exec();
 }

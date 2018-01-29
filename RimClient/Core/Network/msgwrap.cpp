@@ -37,6 +37,12 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_REALTION_ADD:
                                             handleAddFriendRequest((AddFriendRequest *)packet);
                                             break;
+        case MsgCommand::MSG_RELATION_OPERATE:
+                                            handleOperateFriendRequest((OperateFriendRequest *)packet);
+                                            break;
+        case MsgCommand::MSG_RELATION_LIST:
+                                            handleFriendListRequest((FriendListRequest *)packet);
+                                            break;
         default:
                 break;
     }
@@ -92,13 +98,34 @@ void MsgWrap::handleSearchFriendRequest(SearchFriendRequest * packet)
     wrappedPack(packet,data);
 }
 
+//处理添加好友
 void MsgWrap::handleAddFriendRequest(AddFriendRequest * packet)
 {
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::AddType),packet->stype);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
-    data.insert(JsonKey::key(JsonKey::FriendId),packet->friendId);
+    data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
 
+    wrappedPack(packet,data);
+}
+
+//处理用户操作请求
+void MsgWrap::handleOperateFriendRequest(OperateFriendRequest * packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
+    data.insert(JsonKey::key(JsonKey::Result),packet->result);
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+
+    wrappedPack(packet,data);
+}
+
+//处理用户信息列表请求
+void MsgWrap::handleFriendListRequest(FriendListRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     wrappedPack(packet,data);
 }
 

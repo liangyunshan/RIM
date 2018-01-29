@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QTimer>
+#include <QMap>
 
 #include "head.h"
 #include "constants.h"
@@ -40,6 +41,8 @@ private:
 
     QIcon blinkingIcon;
     int notifyCount;
+
+    QList<SystemTrayIcon::NotifyDesc> notifyList;
 
     SystemTrayIcon::NotifyModel notifyModel;
 };
@@ -142,11 +145,19 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
     }
 }
 
-void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString imagePath)
+void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QString imagePath)
 {
     MQ_D(SystemTrayIcon);
     d->notifyModel = model;
     d->notifyCount = 0;
+
+    if(id.length() > 0)
+    {
+        NotifyDesc notify;
+        notify.id = id;
+        notify.imagePath = imagePath;
+        d->notifyList.append(notify);
+    }
 
     switch(model)
     {
@@ -177,6 +188,41 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString imagePath
     }
 }
 
+void SystemTrayIcon::removeNotify(QString id)
+{
+    MQ_D(SystemTrayIcon);
+
+    if(d->notifyList.size() > 0)
+    {
+        int index = -1;
+        for(int i = 0; i < d->notifyList.size(); i++)
+        {
+            if(d->notifyList.at(i).id == id)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if(index >= 0)
+        {
+            d->notifyList.removeAt(index);
+
+            if(d->notifyList.size() > 0)
+            {
+                d->blinkingIcon = QIcon(d->notifyList.last().imagePath);
+            }
+            else
+            {
+                stopBliking();
+
+                d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
+                setIcon(d->blinkingIcon);
+            }
+        }
+    }
+}
+
 void SystemTrayIcon::startBliking(int interval)
 {
     MQ_D(SystemTrayIcon);
@@ -190,6 +236,16 @@ void SystemTrayIcon::startBliking(int interval)
     if(!d->blinkingTimer->isActive())
     {
         d->blinkingTimer->start(interval);
+    }
+}
+
+void SystemTrayIcon::stopBliking()
+{
+    MQ_D(SystemTrayIcon);
+
+    if(d->blinkingTimer && d->blinkingTimer->isActive())
+    {
+        d->blinkingTimer->stop();
     }
 }
 

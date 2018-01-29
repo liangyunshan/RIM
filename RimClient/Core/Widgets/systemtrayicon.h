@@ -50,8 +50,11 @@ public:
 
     void setModel(SystemTrayIcon::SystemTrayModel model);
 
-    void notify(NotifyModel model,QString imagePath = QString(""));
+    void notify(NotifyModel model,QString id = QString(""),QString imagePath = QString(""));
+    void removeNotify(QString id);
+
     void startBliking(int interval = 400);
+    void stopBliking();
 
     SystemTrayIcon::SystemTrayModel model();
 
@@ -63,6 +66,13 @@ signals:
 private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
     void switchNotifyImage();
+
+private:
+    struct NotifyDesc
+    {
+        QString id;
+        QString imagePath;
+    };
 
 private:
     static SystemTrayIcon * systemIcon;

@@ -10,10 +10,12 @@
 #include <QStateMachine>
 #include <QState>
 #include <QSignalTransition>
+#include <QMap>
 
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
+#include "global.h"
 #include "toolbar.h"
 #include "toolbox/listbox.h"
 #include "toolbox/toolitem.h"
@@ -32,11 +34,11 @@ class NotifyWindowPrivate : public GlobalData<NotifyWindow>
     Q_DECLARE_PUBLIC(NotifyWindow)
 public:
     NotifyWindowPrivate(NotifyWindow * q):q_ptr(q),
-        propertName("NotifyType"),porpertyId("AccountId")
+        propertName("NotifyType"),porpertyId("AccountId"),notifId("NotifyId")
     {
         //获取任务栏的尺寸
         ::GetWindowRect(::FindWindow(TEXT("Shell_TrayWNd"), NULL), &taskBarRect);
-
+        toolBar = NULL;
         initWidget();
         initStateMachine();
     }
@@ -51,11 +53,15 @@ private:
     ListBox * infoList;
     RButton * ignoreButt;
     RButton * viewAllButt;
+    ToolBar * toolBar;
 
     const QString propertName;
     const QString porpertyId;
+    const QString notifId;
 
     QStateMachine * stateMachine;
+
+    QMap<ToolItem*,NotifyInfo> systemNotifyInfos;
 };
 
 void NotifyWindowPrivate::initWidget()
@@ -123,18 +129,24 @@ NotifyWindow::NotifyWindow(QWidget *parent):
 {
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
-    ToolBar * bar = enableToolBar(true);
+    d_ptr->toolBar = enableToolBar(true);
     enableDefaultSignalConection(false);
-    if(bar)
+    if(d_ptr->toolBar)
     {
-        bar->setToolFlags((ToolBar::ToolType)(ToolBar::TOOL_DIALOG & ~ToolBar::TOOL_CLOSE));
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
-        bar->setWindowTitle(tr("Notify"));
-
+        d_ptr->toolBar->setToolFlags((ToolBar::ToolType)(ToolBar::TOOL_DIALOG & ~ToolBar::TOOL_CLOSE));
+        d_ptr->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
+        d_ptr->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
         connect(this,SIGNAL(minimumWindow()),this,SIGNAL(hideWindow()));
     }
     setMaximumWidth(NOTIFY_WINDOW_WIDTH);
     setMaximumHeight(NOTIFY_WINDOW_HEIGHT);
+
+    RSingleton<Subject>::instance()->attach(this);
+}
+
+NotifyWindow::~NotifyWindow()
+{
+    RSingleton<Subject>::instance()->detach(this);
 }
 
 void NotifyWindow::addNotifyInfo(NotifyInfo info)
@@ -169,9 +181,11 @@ void NotifyWindow::addNotifyInfo(NotifyInfo info)
         connect(item,SIGNAL(itemDoubleClick(ToolItem*)),this,SLOT(viewNotify(ToolItem *)));
         item->setProperty(d->propertName.toLocal8Bit().data(),info.type);
         item->setProperty(d->porpertyId.toLocal8Bit().data(),info.accountId);
+
         if(info.type == NotifySystem)
         {
             item->setName(QObject::tr("System info"));
+            d->systemNotifyInfos.insert(item,info);
         }
         else if(info.type == NotifyUser || info.type == NotifyGroup)
         {
@@ -194,6 +208,15 @@ void NotifyWindow::showMe()
 void NotifyWindow::hideMe()
 {
     emit hideWindow();
+}
+
+void NotifyWindow::onMessage(MessageType type)
+{
+    MQ_D(NotifyWindow);
+    if(type == MESS_BASEINFO_UPDATE)
+    {
+        d->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
+    }
 }
 
 void NotifyWindow::resizeEvent(QResizeEvent *event)
@@ -220,6 +243,13 @@ void NotifyWindow::viewNotify(ToolItem *item)
 
     if(item)
     {
+        emit showSystemNotifyInfo(d->systemNotifyInfos.value(item));
+        d->systemNotifyInfos.remove(item);
         d->infoList->removeItem(item);
+
+        if(d->infoList->count() <= 0)
+        {
+            ignoreAll();
+        }
     }
 }

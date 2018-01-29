@@ -29,6 +29,8 @@ private:
     void handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet);
     void handleSearchFriendRequest(SearchFriendRequest * packet);
     void handleAddFriendRequest(AddFriendRequest * packet);
+    void handleOperateFriendRequest(OperateFriendRequest * packet);
+    void handleFriendListRequest(FriendListRequest *packet);
 
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 

@@ -15,21 +15,25 @@
 
 #include "widget.h"
 #include "datastruct.h"
+#include "observer.h"
 
 class NotifyWindowPrivate;
 class ToolItem;
 
-class NotifyWindow : public Widget
+class NotifyWindow : public Widget ,public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(NotifyWindow)
 public:
     explicit NotifyWindow(QWidget * parent = 0);
+    ~NotifyWindow();
 
     void addNotifyInfo(NotifyInfo info);
 
     void showMe();
     void hideMe();
+
+    void onMessage(MessageType type);
 
 protected:
     void resizeEvent(QResizeEvent *event);
@@ -37,6 +41,7 @@ protected:
 signals:
     void showWindow();
     void hideWindow();
+    void showSystemNotifyInfo(NotifyInfo info);
 
 private slots:
     void viewAll();

@@ -120,7 +120,8 @@ SOURCES += \
     Widgets/widget/rlabel.cpp \
     application.cpp \
     media/mediaplayer.cpp \
-    Widgets/notifywindow.cpp
+    Widgets/notifywindow.cpp \
+    Widgets/systemnotifyview.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -159,7 +160,6 @@ HEADERS  += \
     Widgets/toolbox/toolbox.h \
     Widgets/toolbox/toolitem.h \
     Widgets/toolbox/toolpage.h \
-    Widgets/toolbox/usertoolitem.h \
     Widgets/widget/rbutton.h \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
@@ -185,7 +185,8 @@ HEADERS  += \
     Widgets/widget/rlabel.h \
     application.h \
     media/mediaplayer.h \
-    Widgets/notifywindow.h
+    Widgets/notifywindow.h \
+    Widgets/systemnotifyview.h
 
 DISTFILES += \
     Widgets/Widgets.pri
