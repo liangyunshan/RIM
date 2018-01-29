@@ -45,7 +45,8 @@ SOURCES += main.cpp\
     thread/dataprocess.cpp \
     Network/msgwrap.cpp \
     thread/sendtextprocessthread.cpp \
-    jsonkey.cpp
+    jsonkey.cpp \
+    sql/rpersistence.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -60,7 +61,8 @@ HEADERS  += widget.h \
     thread/dataprocess.h \
     Network/msgwrap.h \
     thread/sendtextprocessthread.h \
-    jsonkey.h
+    jsonkey.h \
+    sql/rpersistence.h
 
 FORMS    += widget.ui
 

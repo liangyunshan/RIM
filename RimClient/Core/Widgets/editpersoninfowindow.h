@@ -15,6 +15,8 @@
 #include "widget.h"
 #include "observer.h"
 #include "systemuserimagewindow.h"
+#include "protocoldata.h"
+using namespace ProtocolType;
 
 class EditPersonInfoWindowPrivate;
 
@@ -31,8 +33,9 @@ public:
 private slots:
     void openSystemImage();
     void openLocalImage();
-
+    void updateUserBaseInfo();
     void updateSystemIconInfo(QString filename);
+    void recvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
 
 private:
     EditPersonInfoWindowPrivate * d_ptr;

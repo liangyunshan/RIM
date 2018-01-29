@@ -39,7 +39,7 @@ void MsgReceiveProcTask::run()
 
     while(runningFlag)
     {
-        if(G_RecvButts.isEmpty())
+        while(G_RecvButts.isEmpty())
         {
             G_RecvMutex.lock();
             G_RecvCondition.wait(&G_RecvMutex);
@@ -66,24 +66,22 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
     if(jsonParseError.error == QJsonParseError::NoError)
     {
         QJsonObject root = document.object();
-
-//        int magicNum =  root.value(context.magicNum).toInt();
-//        if(magicNum == 0xABCDDCBA)
+#ifndef __NO_SQL_PRINT__
+        qDebug()<<document.toJson(QJsonDocument::Indented);
+#endif
+        switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
         {
-            switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
-            {
-                case MSG_CONTROL:
-                                    handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root.value(JsonKey::key(JsonKey::Data)).toObject());
-                                    break;
-                case MSG_TEXT:
+            case MSG_CONTROL:
+                                handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                                 break;
-                case MSG_IMAGE:
-                                break;
-                case MSG_FILE:
-                                break;
-                default:
-                    break;
-            }
+            case MSG_TEXT:
+                            break;
+            case MSG_IMAGE:
+                            break;
+            case MSG_FILE:
+                            break;
+            default:
+                break;
         }
     }
 }
@@ -103,6 +101,18 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
                             break;
         case MSG_USER_LOGIN:
                             RSingleton<DataProcess>::instance()->proLoginResponse(obj);
+                            break;
+        case MSG_USER_UPDATE_INFO:
+                            RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
+                            break;
+        case MSG_RELATION_SEARCH:
+                            RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);
+                            break;
+        case MSG_REALTION_ADD:
+                            RSingleton<DataProcess>::instance()->proAddFriendResponse(obj);
+                            break;
+        case MSG_RELATION_OPERATE:
+                            RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
                             break;
     };
 }

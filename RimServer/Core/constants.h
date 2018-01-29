@@ -12,6 +12,9 @@
 
 namespace Constant {
 
+/*日期*/
+const char Date_Simple[] = "yyyy-MM-dd";
+
 /*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimServer";

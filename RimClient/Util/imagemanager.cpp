@@ -93,6 +93,11 @@ QString ImageManager::getSystemImageDir()
     return dir.absolutePath();
 }
 
+/*!
+     * @brief 获取原型图标
+     * @param[in] imagePath 图片路径
+     * @return 处理后圆形图标
+     */
 QIcon ImageManager::getCircularIcons(QString imagePath)
 {
     QPixmap pixmap(imagePath);
@@ -116,18 +121,27 @@ QIcon ImageManager::getCircularIcons(QString imagePath)
 
 /*!
  * @brief 根据尺寸获取对应系统图标
+ * @param[in] type 图表类型
+ * @param[in] size 图标尺寸
+ * @return 图片路径
+ */
+QString ImageManager::getIcon(ImageManager::IconType type, ImageManager::IconSize size)
+{
+    QMetaEnum iconMetaEnum =  QMetaEnum::fromType<IconType>();
+
+    return QString(":/icon/resource/icon/%1_%2.png").arg(QString(iconMetaEnum.key(type)).toLower(),QString::number((int)size));
+}
+
+/*!
+ * @brief 根据尺寸获取对应系统图标
  * @param[in] WinIcon 图标尺寸
  * @return 图标资源路径
  */
-QString ImageManager::getWindowIcon(WinIconColor color,WinIcon icon)
+QString ImageManager::getWindowIcon(WinIconColor color,IconType type,IconSize size)
 {
-#if QT_VERSION > 0x050500
-    QMetaEnum iconMetaEnum =  QMetaEnum::fromType<WinIcon>();
+    QMetaEnum iconMetaEnum =  QMetaEnum::fromType<IconType>();
     QMetaEnum colorMetaEnum =  QMetaEnum::fromType<WinIconColor>();
 
-    return QString(":/icon/resource/icon/%1_%2.png").arg(QString(iconMetaEnum.key(icon)).toLower(),QString(colorMetaEnum.key(color)).toLower());
-#else
-
-#endif
-
+    return QString(":/icon/resource/icon/%1_%2_%3.png").arg(QString(iconMetaEnum.key(type)).toLower(),QString::number((int)size),
+                                                            QString(colorMetaEnum.key(color)).toLower());
 }

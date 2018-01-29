@@ -23,6 +23,9 @@ public:
 
     void processUserRegist(Database *db, int socketId, RegistRequest *request);
     void processUserLogin(Database *db, int socketId, LoginRequest * request);
+    void processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request);
+    void processSearchFriend(Database * db,int socketId, SearchFriendRequest *request);
+    void processAddFriend(Database * db, int socketId, AddFriendRequest *request);
 };
 
 #endif // DATAPROCESS_H

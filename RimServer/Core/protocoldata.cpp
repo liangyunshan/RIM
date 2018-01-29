@@ -32,5 +32,53 @@ RegistResponse::RegistResponse()
     msgCommand = MSG_USER_REGISTER;
 }
 
+UpdateBaseInfoRequest::UpdateBaseInfoRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_UPDATE_INFO;
+}
+
+UpdateBaseInfoResponse::UpdateBaseInfoResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_UPDATE_INFO;
+}
+
+SearchFriendRequest::SearchFriendRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_SEARCH;
+}
+
+SearchFriendResponse::SearchFriendResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_SEARCH;
+}
+
+AddFriendRequest::AddFriendRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_REALTION_ADD;
+}
+
+AddFriendResponse::AddFriendResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_REALTION_ADD;
+}
+
+OperateFriendRequest::OperateFriendRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_OPERATE;
+}
+
+OperateFriendResponse::OperateFriendResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_OPERATE;
+}
+
 
 } //namespace Protocol

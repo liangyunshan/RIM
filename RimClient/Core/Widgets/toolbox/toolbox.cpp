@@ -86,6 +86,7 @@ ToolBox::ToolBox(QWidget *parent) :
 ToolPage * ToolBox::addPage(QString text)
 {
     MQ_D(ToolBox);
+
     ToolPage * page = new ToolPage(this);
     connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
@@ -118,6 +119,14 @@ int ToolBox::pageCount()
     return d->pages.size();
 }
 
+void ToolBox::testMe()
+{
+    for(int i = 0; i < pageCount(); i++)
+    {
+
+    }
+}
+
 void ToolBox::setContextMenu(QMenu *menu)
 {
     MQ_D(ToolBox);
@@ -132,11 +141,12 @@ void ToolBox::setContextMenu(QMenu *menu)
      * @return 包含所有分组名称的QStringList
      *
      */
-QStringList ToolBox::toolPageSNames() const
+
+const QStringList ToolBox::toolPageSNames()
 {
     MQ_D(ToolBox);
     QStringList namesList;
-    for(int index=0;index<d->pages.size();index++)
+    for(int index = 0; index < pageCount(); index++)
     {
         namesList.append(d->pages.at(index)->toolName());
     }
@@ -168,7 +178,6 @@ void ToolBox::clearItemSelection(ToolItem * item)
         }
     }
 }
-
 
 //TODO LYS-20180122 在布局中移动分组进行排序
 void ToolBox::updateLayout()

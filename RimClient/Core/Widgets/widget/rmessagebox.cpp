@@ -70,7 +70,7 @@ void RMessageBoxPrivate::initWidget()
     toolBar->setObjectName("Widget_ToolBarWidget");
     toolBar->setFixedHeight(ABSTRACT_TOOL_BAR_HEGIHT);
     toolBar->setToolFlags(ToolBar::TOOL_MESSAGEBOX);
-    toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+    toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
     toolBar->setWindowTitle(QObject::tr("Information"));
 
     QObject::connect(toolBar,SIGNAL(closeWindow()),q_ptr,SLOT(close()));

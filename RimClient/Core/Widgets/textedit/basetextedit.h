@@ -32,6 +32,7 @@ public:
     void insertChatFormatText(const QString &text);
 
     int parseHtml(QString &out, const QString &html, TextUnit::ParseType type);
+    int insertCopyImage(QImage &image);
 
 protected:
     bool eventFilter(QObject *, QEvent *);

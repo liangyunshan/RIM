@@ -15,6 +15,9 @@
 #include "widget.h"
 #include "observer.h"
 
+#include "protocoldata.h"
+using namespace ProtocolType;
+
 class MainDialogPrivate;
 class ToolBar;
 class PanelBottomToolBar;

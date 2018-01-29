@@ -12,9 +12,9 @@
 #define MSGWRAP_H
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 #include "protocoldata.h"
-
 using namespace ProtocolType;
 
 class MsgWrap
@@ -28,8 +28,12 @@ public:
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
+    QByteArray handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet);
+    QByteArray handleSearchFriendResponse(SearchFriendResponse * packet);
+    QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
 
-    QByteArray wrappedPack(MsgPacket * packet, QJsonObject &data);
+    QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
+    QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);
 
 };
 
