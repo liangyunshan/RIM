@@ -55,6 +55,7 @@ class Group
 {
 public:
     Group();
+    const QString table;
     const QString id;                       //UUID
     const QString name;                     //分组名
     const QString userCount;                //分组成员数量
@@ -78,6 +79,7 @@ class ChatRoom
 {
 public:
     ChatRoom();
+    const QString table;
     const QString id;                       //UUID
     const QString name;                     //群名称
     const QString desc;                     //群描述
@@ -93,6 +95,18 @@ public:
     const QString id;                       //UUID
     const QString chatId;                   //对应群ID
     const QString userId;                   //群成员ID
+};
+
+//请求缓存表
+class RequestCache
+{
+public:
+    RequestCache();
+    const QString table;
+    const QString id;                       //UUID
+    const QString account;                  //用户ID(user Id)
+    const QString requestId;                //发送请求用户ID(user id)
+    const QString time;
 };
 
 }

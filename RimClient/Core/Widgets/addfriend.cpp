@@ -11,16 +11,20 @@
 
 #include "head.h"
 #include "constants.h"
+#include "global.h"
 #include "datastruct.h"
 #include "widget/rbutton.h"
 #include "Util/rutil.h"
 #include "widget/rlabel.h"
-
+#include "widget/rmessagebox.h"
 #include "Util/imagemanager.h"
 #include "rsingleton.h"
+#include "Network/msgwrap.h"
+#include "messdiapatch.h"
+#include "toolbox/listbox.h"
 
-#define ADD_FRIEND_WIDTH 500
-#define ADD_FRIEND_HEIGHT 240
+#define ADD_FRIEND_WIDTH 380
+#define ADD_FRIEND_HEIGHT 400
 
 class AddFriendPrivate : public GlobalData<AddFriend>
 {
@@ -31,6 +35,12 @@ private:
         LabelWidth(200)
     {
         initWidget();
+    }
+
+    void enableSearch(bool flag)
+    {
+        addRelationButt->setEnabled(flag);
+        q_ptr->repolish(addRelationButt);
     }
 
     void initWidget();
@@ -54,9 +64,8 @@ private:
     QLineEdit * inputEdit;
     RButton * searchButt;
 
-    RIconLabel * userIconLabel;
-    QLabel * accountLabel;
-    QLabel * userNickNameLabel;
+    ListBox * searchList;
+
     RButton * addRelationButt;
     RButton * reLookupButt;
 };
@@ -86,6 +95,8 @@ void AddFriendPrivate::initWidget()
 
     searchButt = new RButton(lookupWidget);
     searchButt->setText(QObject::tr("Search"));
+    searchButt->setEnabled(false);
+    q_ptr->repolish(searchButt);
     QObject::connect(searchButt,SIGNAL(pressed()),q_ptr,SLOT(startSearch()));
 
     containLayout->addWidget(searchTip);
@@ -96,12 +107,12 @@ void AddFriendPrivate::initWidget()
 
     inputEdit = new QLineEdit(lookupWidget);
     inputEdit->setFixedSize(LabelWidth,25);
-    inputEdit->setPlaceholderText(QObject::tr("Input number"));
+    inputEdit->setPlaceholderText(QObject::tr("Input number or nickname"));
+    QObject::connect(inputEdit,SIGNAL(textChanged(QString)),q_ptr,SLOT(validateInputState(QString)));
 
     statusLabel = new QLabel(lookupWidget);
     statusLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
     statusLabel->setAlignment(Qt::AlignCenter);
-    statusLabel->setVisible(false);
 
     QGridLayout * layout = new QGridLayout;
     layout->setRowStretch(0,1);
@@ -120,38 +131,43 @@ void AddFriendPrivate::initWidget()
     /**************结果页面***************/
     resultWidget = new QWidget();
 
-    userIconLabel = new RIconLabel(resultWidget);
-    userIconLabel->setFixedSize(64,64);
-    userIconLabel->setTransparency(true);
-    userIconLabel->setCorner();
+    QWidget * searchWidget = new QWidget();
 
-    accountLabel = new QLabel(resultWidget);
-    accountLabel->setObjectName("Add_Friend_Account_Label");
-    accountLabel->setMinimumWidth(LabelWidth);
+    searchList = new ListBox(searchWidget);
+    QObject::connect(searchList,SIGNAL(currentItemChanged(ToolItem*)),q_ptr,SLOT(itemSelected(ToolItem *)));
 
-    userNickNameLabel = new QLabel(resultWidget);
-    userNickNameLabel->setMinimumWidth(LabelWidth);
+    QHBoxLayout * searchLayout = new QHBoxLayout;
+    searchLayout->setContentsMargins(0,10,0,0);
+    searchLayout->addStretch(1);
+    searchLayout->addWidget(searchList);
+    searchLayout->setStretchFactor(searchList,10);
+    searchLayout->addStretch(1);
 
-    reLookupButt = new RButton(resultWidget);
+    searchWidget->setLayout(searchLayout);
+
+    QWidget * toolBox = new QWidget();
+    QHBoxLayout * toolLayout = new QHBoxLayout;
+
+    reLookupButt = new RButton(toolBox);
     reLookupButt->setText(QObject::tr("Redo"));
 
-    addRelationButt = new RButton(resultWidget);
+    addRelationButt = new RButton(toolBox);
     addRelationButt->setText(QObject::tr("Add"));
+    enableSearch(false);
 
-    QGridLayout * resultLayout = new QGridLayout;
-    resultLayout->setRowStretch(0,1);
-    resultLayout->setColumnStretch(0,1);
-    resultLayout->addWidget(userIconLabel,1,1,2,1);
-    resultLayout->addWidget(accountLabel,1,2,1,2);
-    resultLayout->addWidget(userNickNameLabel,2,2,1,2);
-    resultLayout->setColumnStretch(4,1);
+    toolLayout->setContentsMargins(0,0,10,10);
+    toolLayout->addStretch(1);
+    toolLayout->addWidget(reLookupButt);
+    toolLayout->addWidget(addRelationButt);
+    toolBox->setLayout(toolLayout);
 
-    resultLayout->setRowStretch(4,1);
-    resultLayout->addWidget(reLookupButt,5,2,1,1);
-    resultLayout->addWidget(addRelationButt,5,3,1,1);
-    resultLayout->setRowStretch(6,2);
+    QVBoxLayout * resultLayout = new QVBoxLayout;
+    resultLayout->setContentsMargins(0,0,0,0);
+    resultLayout->addWidget(searchWidget);
+    resultLayout->addWidget(toolBox);
 
     QObject::connect(reLookupButt,SIGNAL(pressed()),q_ptr,SLOT(reSearch()));
+    QObject::connect(addRelationButt,SIGNAL(pressed()),q_ptr,SLOT(addFriend()));
 
     resultWidget->setLayout(resultLayout);
 
@@ -171,16 +187,21 @@ AddFriend::AddFriend(QWidget * parent):
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_DIALOG);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(tr("Lookup"));
     }
     setFixedSize(ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
-    setGeometry((screenSize.width() - ADD_FRIEND_WIDTH)/2,screenSize.height()/2 - ADD_FRIEND_HEIGHT,ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
+    setGeometry((screenSize.width() - ADD_FRIEND_WIDTH)/2,(screenSize.height() - ADD_FRIEND_HEIGHT)/2 ,ADD_FRIEND_WIDTH,ADD_FRIEND_HEIGHT);
+
+    connect(MessDiapatch::instance(),SIGNAL(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)),this,
+            SLOT(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvAddFriendResponse(ResponseAddFriend)),this,SLOT(recvAddFriendResponse(ResponseAddFriend)));
 }
 
 AddFriend::~AddFriend()
@@ -196,25 +217,133 @@ void AddFriend::onMessage(MessageType)
 void AddFriend::startSearch()
 {
     MQ_D(AddFriend);
-    d->statusLabel->setVisible(true);
-    d->statusLabel->setText("正在查找...");
-    d->userNickNameLabel->setText(QStringLiteral("Say Something"));
-    d->userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
 
-    d->accountLabel->setText("407859345");
+    SearchFriendRequest * request = new SearchFriendRequest;
+    request->accountOrNickName = d->inputEdit->text();
+    request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
 
-    d->stackedWidget->setCurrentIndex(1);
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    d->statusLabel->setText(tr("searching..."));
+
+    enableInput(false);
 }
 
 void AddFriend::reSearch()
 {
     MQ_D(AddFriend);
 
-    d->userNickNameLabel->clear();
-    d->accountLabel->clear();
-    d->userIconLabel->setPixmap("");
+    enableInput(true);
+    d->statusLabel->clear();
     d->stackedWidget->setCurrentIndex(0);
-    d->statusLabel->setVisible(false);
+    d->searchList->clear();
+}
+
+void AddFriend::addFriend()
+{
+    MQ_D(AddFriend);
+    if(d->searchList->selectedItem())
+    {
+        AddFriendRequest * request = new AddFriendRequest;
+        request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
+        request->accountId = G_UserBaseInfo.accountId;
+        request->friendId = d->searchList->selectedItem()->getName();
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
+    }
+}
+
+void AddFriend::validateInputState(QString content)
+{
+    MQ_D(AddFriend);
+
+    bool isCorrect = true;
+
+    if(content.contains(QRegExp(Constant::Space_Reg)))
+    {
+        isCorrect = false;
+        d->statusLabel->setText(tr("input contains space"));
+    }
+
+    if(isCorrect && content.length() <= 0)
+    {
+        isCorrect = false;
+        d->statusLabel->setText(tr("empty input"));
+    }
+
+    if(isCorrect)
+    {
+        d->statusLabel->clear();
+    }
+
+    d->searchButt->setEnabled(isCorrect);
+
+    repolish(d->searchButt);
+}
+
+void AddFriend::recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response)
+{
+    MQ_D(AddFriend);
+    if(status == FIND_FRIEND_FOUND)
+    {
+        d->stackedWidget->setCurrentIndex(1);
+
+        for(int i = 0; i < response.result.size(); i++)
+        {
+            ToolItem * item = new ToolItem(NULL);
+            item->setName(response.result.at(i).accountId);
+            item->setNickName(response.result.at(i).nickName);
+            item->setDescInfo(response.result.at(i).signName);
+            d->searchList->addItem(item);
+        }
+
+        d->enableSearch(false);
+    }
+    else
+    {
+         QString errorInfo;
+         switch(status)
+         {
+              case FIND_FRIEND_NOT_FOUND:
+                                         errorInfo = QObject::tr("No result");
+                                         break;
+              case FIND_FRIEND_FAILED:
+              default:
+                                        errorInfo = QObject::tr("Find failed");
+                                        break;
+         }
+         enableInput(true);
+         d->statusLabel->setText(errorInfo);
+    }
+}
+
+void AddFriend::recvAddFriendResponse(ResponseAddFriend status)
+{
+    switch(status)
+    {
+        case ADD_FRIEND_SENDED:
+                                RMessageBox::information(this,"information","Request send successfully",RMessageBox::Yes);
+                                break;
+        case ADD_FRIEND_SENDED_FAILED:
+        default:
+                                RMessageBox::warning(this,"warning","Request send failed",RMessageBox::Yes);
+                                break;
+    }
+}
+
+void AddFriend::itemSelected(ToolItem * item)
+{
+    MQ_D(AddFriend);
+    if(item)
+    {
+        d->enableSearch(true);
+    }
+}
+
+void AddFriend::enableInput(bool flag)
+{
+    MQ_D(AddFriend);
+    d->inputEdit->setReadOnly(!flag);
+    d->searchButt->setEnabled(flag);
+    repolish(d->searchButt);
 }
 
 

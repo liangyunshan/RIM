@@ -46,7 +46,6 @@ ActionManager::~ActionManager()
 
 RToolButton *ActionManager::createToolButton(Id id,QObject * reciver, const char *slot, bool isToggled)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<toolButtons.size();
     if(contains<Id,RToolButton>(toolButtons,id))
     {
         return toolButtons.value(id);

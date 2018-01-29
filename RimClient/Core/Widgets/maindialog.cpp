@@ -281,7 +281,7 @@ void MainDialog::initWidget()
     connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
     connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
 
-    d->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+    d->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
     RToolButton * frontButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FRONT,this,SLOT(makeWindowFront(bool)),true);
 

@@ -31,3 +31,18 @@ void MessDiapatch::onRecvUpdateBaseInfoResponse(ResponseUpdateUser status,Update
 {
     emit recvUpdateBaseInfoResponse(status,response);
 }
+
+void MessDiapatch::onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response)
+{
+    emit recvSearchFriendResponse(status,response);
+}
+
+void MessDiapatch::onRecvAddFriendResponse(ResponseAddFriend status)
+{
+    emit recvAddFriendResponse(status);
+}
+
+void MessDiapatch::onRecvFriendRequest(OperateFriendResponse response)
+{
+    emit recvFriendRequest(response);
+}

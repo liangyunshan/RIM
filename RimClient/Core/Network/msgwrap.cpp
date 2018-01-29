@@ -31,6 +31,12 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_USER_UPDATE_INFO:
                                             handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
                                             break;
+        case MsgCommand::MSG_RELATION_SEARCH:
+                                            handleSearchFriendRequest((SearchFriendRequest *)packet);
+                                            break;
+        case MsgCommand::MSG_REALTION_ADD:
+                                            handleAddFriendRequest((AddFriendRequest *)packet);
+                                            break;
         default:
                 break;
     }
@@ -72,6 +78,26 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
     data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
     data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
     data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+
+    wrappedPack(packet,data);
+}
+
+//处理查找好友信息
+void MsgWrap::handleSearchFriendRequest(SearchFriendRequest * packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+    data.insert(JsonKey::key(JsonKey::SearchContent),packet->accountOrNickName);
+
+    wrappedPack(packet,data);
+}
+
+void MsgWrap::handleAddFriendRequest(AddFriendRequest * packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AddType),packet->stype);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::FriendId),packet->friendId);
 
     wrappedPack(packet,data);
 }

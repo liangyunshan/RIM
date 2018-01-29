@@ -57,6 +57,29 @@ struct UserInfoDesc
     friend QDataStream & operator >>(QDataStream & stream,UserInfoDesc & desc);
 };
 
+/*!
+ *  @brief 通知消息类型
+ */
+enum NotifyType
+{
+    NotifySystem,
+    NotifyUser,
+    NotifyGroup
+};
+
+/*!
+ *  @brief 系统通知信息；
+ *  @details 接收到系统发送的请求、聊天等信息，将信息加入通知列表；
+ */
+struct NotifyInfo
+{
+    NotifyType type;
+    QString accountId;
+    QString nickName;
+    QString content;
+    QString pixmap;
+};
+
 const int TestUserId = 123456;
 namespace TextUnit {
     enum ShowType{

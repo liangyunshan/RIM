@@ -28,8 +28,12 @@ void SendTextProcessThread::run()
 
     while(runningFlag)
     {
-        if(G_SendButts.size() == 0)
+        while(G_SendButts.size() == 0)
         {
+            if(!runningFlag)
+            {
+                break;
+            }
             G_SendMutex.lock();
             G_SendCondition.wait(&G_SendMutex);
             G_SendMutex.unlock();
@@ -58,7 +62,7 @@ void SendTextProcessThread::run()
                 packet.totalLen = sockData.data.size();
 
                 int sendLen = 0;
-                for(int i = 0; i < packet.totalIndex; i++)
+                for(unsigned int i = 0; i < packet.totalIndex; i++)
                 {
                     packet.currentIndex = i;
                     int leftLen = sockData.data.size() - sendLen;

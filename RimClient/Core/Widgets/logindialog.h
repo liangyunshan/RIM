@@ -41,7 +41,7 @@ public:
     void onMessage(MessageType type);
 
 protected:
-    void resizeEvent(QResizeEvent * event);
+    void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
 
@@ -49,6 +49,7 @@ private slots:
     void login();
     void minsize();
     void closeWindow();
+    void setPassword(bool flag);
     void switchUser(int index);
     void readLocalUser();
     void validateInput(QString text);
@@ -57,6 +58,7 @@ private slots:
     void respConnect(bool flag);
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
+    void recvFriendResponse(OperateFriendResponse resp);
 
 private:
     void createTrayMenu();

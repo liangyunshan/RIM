@@ -17,16 +17,27 @@ namespace Constant {
 /*日期*/
 const char Date_Simple[] = "yyyy-MM-dd";
 
+/*正则表达式*/
+const char AccountId_Reg[] = "[1-9]\\d{4}";
+const char AccountPassword_Reg[] = "\\w{1,16}";
+const char Space_Reg[] = "\\s+";
+const char SingleIp_Reg[] = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
+const char FullIp_Reg[] = "(%1\\.){3}%2";
+
 /*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
 const char UserTempName[] = "temp";
 const char PATH_UserPath[] = "/../users";
+
 const char PATH_ImagePath[] = "/../image";
+const char PATH_SystemIconPath[] = "/systemIcon";
+
 const char PATH_ConfigPath[] = "/../config";
 const char PATH_LocalePath[] = "/translations";
 const char PATH_StylePath[] = "/style";
-const char PATH_SystemIconPath[] = "/systemIcon";
+const char PATH_SountPath[] = "/sound";
+
 
 /*系统设置*/
 const char SETTING_X[] = "Main/X";
@@ -49,6 +60,8 @@ const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
 
 const char SETTING_NETWORK_IP[] = "Network/LoginIp";
 const char SETTING_NETWORK_PORT[] = "Network/LoginPort";
+
+const char SETTING_SOUND_GROUP[] = "Sound";
 
 const QString DEFAULT_NETWORK_IP = "127.0.0.1";
 const QString DEFAULT_NETWORK_PORT = "8023";

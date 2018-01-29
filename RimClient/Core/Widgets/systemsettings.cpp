@@ -393,6 +393,7 @@ SystemSettings::SystemSettings(QWidget *parent):
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_DIALOG);

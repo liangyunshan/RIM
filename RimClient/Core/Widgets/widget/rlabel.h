@@ -29,7 +29,6 @@ protected:
     void enterEvent(QEvent * event);
     void leaveEvent(QEvent * event);
     void mouseReleaseEvent(QMouseEvent *);
-
 };
 
 class RIconLabel : public QLabel
@@ -40,17 +39,11 @@ public:
     explicit RIconLabel(QWidget * parent = 0);
 
     void setCorner(bool isCorner = true);
-
     void setBackroundColor(QColor color);
-
     void setTransparency(bool flag = false);
-
     void setEnterCursorChanged(bool flag = true);
-
     void setHoverDelay(bool flag = true);
-
     void setEnterHighlight(bool flag = false);
-
     void setEnterHighlightColor(QColor color);
 
     void setPixmap(const QString &fileName);

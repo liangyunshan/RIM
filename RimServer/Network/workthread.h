@@ -33,7 +33,7 @@ private:
     void handleSend(IocpContext *ioData);
     void handleClose(IocpContext *ioData);
 
-    void processRecvData(char * recvData, int recvLen, IocpContext *ioData);
+    void processRecvData(char * recvData, unsigned long recvLen, IocpContext *ioData);
 
 private:
     HANDLE threadId;

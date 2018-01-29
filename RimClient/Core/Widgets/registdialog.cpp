@@ -157,10 +157,11 @@ RegistDialog::RegistDialog(QWidget *parent):
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_MESSAGEBOX);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(windowTitle());
     }
@@ -180,7 +181,7 @@ void RegistDialog::respValidInfo(QString)
 
     bool hasError = false;
 
-    QRegExp space("\\s+");
+    QRegExp space(Constant::Space_Reg);
 
     if(d->nickNameEdit->text().contains(space) || d->passwordEdit->text().contains(space)
             || d->confirmPassEdit->text().contains(space))

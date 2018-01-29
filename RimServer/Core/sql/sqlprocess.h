@@ -25,6 +25,8 @@ public:
     ResponseRegister processUserRegist(Database *db, const RegistRequest * request,QString & id);
     ResponseLogin processUserLogin(Database *db, const LoginRequest * request);
     ResponseUpdateUser processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest * request);
+    ResponseAddFriend processSearchFriend(Database *db,SearchFriendRequest *request,SearchFriendResponse * response);
+    ResponseAddFriend processAddFriend(Database *db,AddFriendRequest *request);
 
     void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
 
