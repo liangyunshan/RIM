@@ -114,6 +114,9 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_RELATION_OPERATE:
                             RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
                             break;
+        case MSG_RELATION_LIST:
+                            RSingleton<DataProcess>::instance()->proFriendListResponse(obj);
+                            break;
     };
 }
 

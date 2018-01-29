@@ -2,8 +2,8 @@
 
 namespace DataTable {
 
-User::User():
-    table("user"),id("ID"),account("ACCOUNT"),
+RUser::RUser():
+    table("ruser"),id("ID"),account("ACCOUNT"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
     gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ADDRESS"),
     email("EMAIL"),remark("REMARK"),face("FACE"),faceId("FACEID")
@@ -11,26 +11,26 @@ User::User():
 
 }
 
-Group::Group():table("group"),
+RGroup::RGroup():table("rgroup"),
     id("ID"),name("NAME"),userCount("USER_COUNT"),
-    userId("UID")
+    userId("UID"),defaultGroup("DEFAUL")
 {
 
 }
 
-ChatRoom::ChatRoom():
-    table("chatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+RChatRoom::RChatRoom():
+    table("rchatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
 {
 
 }
 
-User_Group::User_Group():
+RGroup_User::RGroup_User():table("rgroup_user"),
     id("ID"),groupId("GID"),userId("UID"),remarks("REMARKS"),visible("VISIBLE")
 {
 
 }
 
-User_Chatroom::User_Chatroom():
+RChatroom_User::RChatroom_User():
     id("ID"),chatId("CID"),userId("UID")
 {
 
@@ -42,7 +42,7 @@ RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId(
 }
 
 RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
-    requestId("REQUESTID"),time("TIME")
+    operateId("OPERATEID"),type("TYPE"),time("TIME")
 {
 
 }

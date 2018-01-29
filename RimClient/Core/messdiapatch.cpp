@@ -46,3 +46,8 @@ void MessDiapatch::onRecvFriendRequest(OperateFriendResponse response)
 {
     emit recvFriendRequest(response);
 }
+
+void MessDiapatch::onRecvFriendList(FriendListResponse *response)
+{
+    emit recvFriendList(response);
+}

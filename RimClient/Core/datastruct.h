@@ -14,6 +14,9 @@
 #include <QString>
 #include <QDataStream>
 
+#include "protocoldata.h"
+using namespace ProtocolType;
+
 template<class T>
 class GlobalData
 {
@@ -30,7 +33,8 @@ enum MessageType
 {
     MESS_STYLE,                  //样式更新
     MESS_SHORTCUT,               //快捷键更新
-    MESS_SETTINGS                //系统设置修改
+    MESS_SETTINGS,               //系统设置修改
+    MESS_BASEINFO_UPDATE         //基本信息修改
 };
 
 /*!
@@ -73,11 +77,19 @@ enum NotifyType
  */
 struct NotifyInfo
 {
+    QString identityId;                     //消息唯一标识
     NotifyType type;
-    QString accountId;
+    QString accountId;                      //对方ID
     QString nickName;
-    QString content;
+    unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
     QString pixmap;
+
+    QString content;                        //type为NotifyUser或NotifyGroup时表示聊天内容
+
+    OperateFriend ofriendType;              //type为NotifySystem时，可用
+    SearchType stype;                       //当前请求的类型(人/群)
+    int ofriendResult;                      //ResponseFriendApply
+
 };
 
 const int TestUserId = 123456;

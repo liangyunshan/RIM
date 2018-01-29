@@ -348,6 +348,7 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
         case UPDATE_USER_SUCCESS:
                                     {
                                         G_UserBaseInfo = response.baseInfo;
+                                        RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
                                         RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
                                     }
                                     break;
