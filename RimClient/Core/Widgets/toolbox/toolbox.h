@@ -7,6 +7,10 @@
  *  @date      2017.12.18
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change
+ *      date:20180129   content:添加获取倒数第二个page方法penultimatePage   name:LYS
+ *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
+ *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H

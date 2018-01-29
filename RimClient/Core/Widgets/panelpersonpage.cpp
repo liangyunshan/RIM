@@ -262,18 +262,15 @@ void PanelPersonPage::movePersonTo()
     MQ_D(PanelPersonPage);
     QAction * target = qobject_cast<QAction *>(QObject::sender());
     QString targetUuid = target->data().toString();
-    //TODO LYS-20180123 根据触发的Action的uuid比对所有page的uuid，匹配则移动至该page
     ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
     ToolPage * sourcePage = d->pageOfMovedItem;
     ToolItem * targetItem = d->toolBox->selectedItem();
-    qDebug()<<"targetItem"<<targetItem->getName();
     if(!targetPage||!sourcePage)
     {
         return;
     }
     else
     {
-        //TODO 20190129-LYS 将targetItem从sourcePage中移除并添加到targetPage
         bool result = sourcePage->removeItem(targetItem);
         if(result)
         {

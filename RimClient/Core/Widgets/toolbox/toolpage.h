@@ -8,8 +8,10 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @change
- *      date:20180118   content:添加获取page的文本框位置信息方法textRect()    name:LYS
- *      date:20180122   content:添加获取page的文本框内容方法toolName()      name:LYS
+ *      date:20180118   content:添加获取page的文本框位置信息方法textRect    name:LYS
+ *      date:20180122   content:添加获取page的文本框内容方法toolName      name:LYS
+ *      date:20180129   content:添加移除page中的目标item方法removeItem   name:LYS
+ *      date:20180129   content:添加page的item移除信号itemRemoved   name:LYS
  */
 #ifndef TOOLPAGE_H
 #define TOOLPAGE_H
