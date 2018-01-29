@@ -74,7 +74,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 
     for(int j = 0; j < 5;j++)
     {
-        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友")+QString::number(j));
+        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友"));
         d_ptr->pages.append(page);
         for(int i = 0; i < 5;i++)
         {

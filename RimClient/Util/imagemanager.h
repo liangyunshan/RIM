@@ -7,6 +7,7 @@
  *  @date      2017.12.12
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note      20180127:wey:将图片的名称和尺寸分开设置
  */
 #ifndef IMAGEMANAGER_H
 #define IMAGEMANAGER_H
@@ -25,20 +26,30 @@ public:
     ImageManager();
 
     /*!
-     *  @brief 系统图标尺寸 w*h pix
+     *  @brief 图标尺寸
      */
-    enum WinIcon
+    enum IconSize
     {
-        ICON_SYSTEM_16,                 //用于窗口工具栏左上角
-        ICON_SYSTEM_24,                 //用于windows中的任务栏、系统托盘
-        ICON_SYSTEM_32,
-        ICON_SYSTEM_48,
-        ICON_SYSTEM_64,
-        ICON_SYSTEM_72,
-        ICON_SYSTEM_96,
-        ICON_SYSTEM_128
+        ICON_16 = 16,                   //用于窗口工具栏左上角
+        ICON_24 = 24,                   //用于windows中的任务栏、系统托盘
+        ICON_32 = 32,
+        ICON_48 = 48,
+        ICON_64 = 64,                   //用户头像
+        ICON_72 = 72,
+        ICON_96 = 96,
+        ICON_128 = 128,
     };
-    Q_ENUM(WinIcon)
+    Q_ENUM(IconSize)
+
+    /*!
+     *  @brief 图标类型
+     */
+    enum IconType
+    {
+        ICON_SYSTEM,
+        ICON_SYSTEMNOTIFY
+    };
+    Q_ENUM(IconType)
 
     enum WinIconColor
     {
@@ -52,14 +63,13 @@ public:
     const QFileInfoList systemIcons();
 
     QString getSystemUserIcon(int index = 0,bool fullPath = true);
-
     QString getSystemUserIcon(QString imageName);
-
     QString getSystemImageDir();
 
     QIcon getCircularIcons(QString imagePath);
 
-    QString getWindowIcon(WinIconColor color = NORMAL, WinIcon icon = ICON_SYSTEM_24);
+    QString getIcon(IconType type = ICON_SYSTEM,IconSize size = ICON_24);
+    QString getWindowIcon(WinIconColor color = NORMAL,IconType type = ICON_SYSTEM,IconSize size = ICON_24);
 
 private:
     QFileInfoList localSystemUserIcon;

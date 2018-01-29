@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QApplication>
+#include <QDir>
 
 #include "head.h"
 #include "datastruct.h"
@@ -39,6 +40,9 @@
 #include "netsettings.h"
 #include "global.h"
 #include "widget/rlabel.h"
+#include "messdiapatch.h"
+#include "media/mediaplayer.h"
+#include "notifywindow.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -48,8 +52,10 @@ public:
     {
         initWidget();
 
-        numberExp = QRegExp("[1-9]\\d{4}");
-        passExp = QRegExp("\\w{1,16}");
+        numberExp = QRegExp(Constant::AccountId_Reg);
+        passExp = QRegExp(Constant::AccountPassword_Reg);
+
+        notifyWindow = NULL;
 
         isSystemUserIcon = true;
         isNewUser = true;
@@ -92,6 +98,8 @@ private:
     QToolButton * systemSetting;
     SystemTrayIcon * trayIcon;
     MainDialog * mainDialog;
+
+    NotifyWindow * notifyWindow;
 };
 
 void LoginDialogPrivate::initWidget()
@@ -138,22 +146,20 @@ void LoginDialogPrivate::initWidget()
     inputGridLayout->setVerticalSpacing(2);
     inputGridLayout->setContentsMargins(0, 0, 0, 0);
 
-    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp("[1-9]\\d{4}"));
+    QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp(Constant::AccountId_Reg));
     userList = new QComboBox();
     userList->setFixedSize(QSize(193, 28));
     userList->setEditable(true);
     userList->lineEdit()->setValidator(numberValidator);
     userList->lineEdit()->setPlaceholderText(QObject::tr("Input number"));
     userList->setView(new QListView());
-    userList->lineEdit()->installEventFilter(this);
 
-    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp("\\w{1,16}"));
+    QRegExpValidator * passValidator = new QRegExpValidator(QRegExp(Constant::AccountPassword_Reg));
     password = new QLineEdit();
     password->setFixedSize(QSize(193, 28));
     password->setValidator(passValidator);
     password->setPlaceholderText(QObject::tr("Input password"));
     password->setEchoMode(QLineEdit::Password);
-    password->installEventFilter(this);
 
     login = new QPushButton();
     login->setMinimumSize(QSize(0, 28));
@@ -209,6 +215,7 @@ void LoginDialogPrivate::initWidget()
     QObject::connect(userList,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(switchUser(int)));
     QObject::connect(userList,SIGNAL(currentTextChanged(QString)),q_ptr,SLOT(validateInput(QString)));
     QObject::connect(login,SIGNAL(pressed()),q_ptr,SLOT(login()));
+    QObject::connect(rememberPassord,SIGNAL(toggled(bool)),q_ptr,SLOT(setPassword(bool)));
     QObject::connect(autoLogin,SIGNAL(clicked(bool)),rememberPassord,SLOT(setChecked(bool)));
     QObject::connect(password,SIGNAL(textEdited(QString)),q_ptr,SLOT(validateInput(QString)));
 
@@ -240,6 +247,8 @@ void LoginDialogPrivate::initWidget()
     contentWidget->setLayout(contentLayout);
 
     q_ptr->setContentWidget(contentWidget);
+    userList->lineEdit()->installEventFilter(q_ptr);
+    password->installEventFilter(q_ptr);
 }
 
 int LoginDialogPrivate::userIndex(QString text)
@@ -271,6 +280,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
     loadLocalSettings();
 
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
 
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
@@ -279,61 +290,13 @@ void LoginDialog::respConnect(bool flag)
 {
     MQ_D(LoginDialog);
 
-    int index = -1;
-
-//    if(!RSingleton<NetConnector>::instance()->connect())
-//    {
-//        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
-//        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
-//        return;
-//    }
     if(flag)
     {
-        int index = -1;
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
         request->status = STATUS_ONLINE;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
-
-        if( (index = isContainUser()) >= 0)
-        {
-            if(index < d->localUserInfo.size())
-            {
-                d->localUserInfo.at(index)->userName = d->userList->currentText();
-                d->localUserInfo.at(index)->originPassWord = d->password->text();
-                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
-                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
-                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
-                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-            }
-        }
-        else
-        {
-            UserInfoDesc * desc = new UserInfoDesc;
-            desc->userName = d->userList->currentText();
-            desc->loginState = (int)d->onlineState->state();
-            desc->originPassWord = d->password->text();
-            desc->password = RUtil::MD5(d->password->text());
-            desc->isAutoLogin = d->autoLogin->isChecked();
-            desc->isRemberPassword = d->rememberPassord->isChecked();
-            desc->isSystemPixMap = d->isSystemUserIcon;
-            desc->pixmap = d->defaultUserIconPath;
-
-            d->localUserInfo.append(desc);
-            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
-        }
-
-        setVisible(false);
-        d->trayIcon->disconnect();
-        d->trayIcon->setModel(SystemTrayIcon::System_Main);
-
-        if(!d->mainDialog)
-        {
-            d->mainDialog = new MainDialog();
-        }
-
-        d->mainDialog->show();
     }
     else
     {
@@ -344,8 +307,12 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-//    NetConnector::instance()->connect();
-    respConnect(true);
+#ifndef __NO_SERVER__
+    NetConnector::instance()->connect();
+#else
+    LoginResponse response;
+    recvLoginResponse(LOGIN_SUCCESS, response);
+#endif
 }
 
 void LoginDialog::minsize()
@@ -367,6 +334,15 @@ void LoginDialog::closeWindow()
     qDebug()<<__LINE__<<__FUNCTION__;
     RSingleton<TaskManager>::instance()->removeAll();
     this->close();
+}
+
+void LoginDialog::setPassword(bool flag)
+{
+    MQ_D(LoginDialog);
+    if(!flag && d->autoLogin->isChecked())
+    {
+        d->autoLogin->setChecked(false);
+    }
 }
 
 void LoginDialog::switchUser(int index)
@@ -504,7 +480,129 @@ void LoginDialog::showRegistDialog()
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-   connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+}
+
+void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
+{
+    MQ_D(LoginDialog);
+    if(status == LOGIN_SUCCESS)
+    {
+        int index = -1;
+        if( (index = isContainUser()) >= 0)
+        {
+            if(index < d->localUserInfo.size())
+            {
+                d->localUserInfo.at(index)->userName = d->userList->currentText();
+                d->localUserInfo.at(index)->originPassWord = d->password->text();
+                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
+                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
+                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+            }
+        }
+        else
+        {
+            UserInfoDesc * desc = new UserInfoDesc;
+            desc->userName = d->userList->currentText();
+            desc->loginState = (int)d->onlineState->state();
+            desc->originPassWord = d->password->text();
+            desc->password = RUtil::MD5(d->password->text());
+            desc->isAutoLogin = d->autoLogin->isChecked();
+            desc->isRemberPassword = d->rememberPassord->isChecked();
+            desc->isSystemPixMap = d->isSystemUserIcon;
+            desc->pixmap = d->defaultUserIconPath;
+
+            d->localUserInfo.append(desc);
+            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+        }
+
+        G_UserBaseInfo = response.baseInfo;
+
+        //shangchao 创建每个用户对应的缓存文件夹
+        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
+        RUtil::createDir(G_Temp_Picture_Path);
+
+        setVisible(false);
+        d->trayIcon->disconnect();
+        d->trayIcon->setModel(SystemTrayIcon::System_Main);
+
+        if(!d->mainDialog)
+        {
+            d->mainDialog = new MainDialog();
+        }
+
+        if(!d->notifyWindow)
+        {
+            d->notifyWindow = new NotifyWindow;
+//            d->notifyWindow->show();
+        }
+
+        d->mainDialog->show();
+    }
+    else
+    {
+        QString errorInfo;
+        switch(status)
+        {
+            case LOGIN_UNREGISTERED:
+                                         errorInfo = QObject::tr("User not registered");
+                                         break;
+            case LOGIN_PASS_ERROR:
+                                         errorInfo = QObject::tr("Incorrect password");
+                                         break;
+            case LOGIN_SERVER_REFUSED:
+                                         errorInfo = QObject::tr("server Unreachable");
+                                         break;
+            case LOGIN_SERVER_NOT_RESP:
+                                         errorInfo = QObject::tr("");
+                                         break;
+            case LOGIN_FAILED:
+            default:
+                                         errorInfo = QObject::tr("Login Failed");
+                                         break;
+        }
+
+        RMessageBox::warning(this,"Warning",errorInfo,RMessageBox::Yes);
+    }
+}
+
+void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
+{
+    MQ_D(LoginDialog);
+    d->trayIcon->notify(SystemTrayIcon::SystemNotify);
+    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
+
+    d->notifyWindow->showMe();
+
+    NotifyInfo  info;
+    info.accountId = resp.requestInfo.accountId;
+    info.type = NotifySystem;
+    info.pixmap = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
+    d->notifyWindow->addNotifyInfo(info);
+
+    ResponseFriendApply reqType = (ResponseFriendApply)resp.result;
+    switch (reqType)
+    {
+        case FRIEND_REQUEST:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++qingqiu";
+                            }
+                            break;
+        case FRIEND_AGREE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++tongyi";
+                            }
+                            break;
+        case FRIEND_REFUSE:
+                            {
+                                qDebug()<<resp.requestInfo.accountId<<"+++jujue";
+                            }
+                            break;
+        default:
+            break;
+    }
 }
 
 LoginDialog::~LoginDialog()
@@ -544,7 +642,7 @@ void LoginDialog::onMessage(MessageType type)
     }
 }
 
-void LoginDialog::resizeEvent(QResizeEvent *event)
+void LoginDialog::resizeEvent(QResizeEvent *)
 {
     MQ_D(LoginDialog);
 
@@ -562,6 +660,7 @@ void LoginDialog::closeEvent(QCloseEvent *)
 bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
 {
     MQ_D(LoginDialog);
+
     if(event->type() == QEvent::KeyPress)
     {
         if(obj == d->password)
@@ -578,5 +677,6 @@ bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
 
         }
     }
+
     return Widget::eventFilter(obj,event);
 }

@@ -5,13 +5,13 @@ namespace DataTable {
 User::User():
     table("user"),id("ID"),account("ACCOUNT"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
-    gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ID"),
-    email("ADDRESS"),desc("EMAIL")
+    gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ADDRESS"),
+    email("EMAIL"),remark("REMARK"),face("FACE"),faceId("FACEID")
 {
 
 }
 
-Group::Group():
+Group::Group():table("group"),
     id("ID"),name("NAME"),userCount("USER_COUNT"),
     userId("UID")
 {
@@ -19,7 +19,7 @@ Group::Group():
 }
 
 ChatRoom::ChatRoom():
-    id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+    table("chatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
 {
 
 }
@@ -37,6 +37,12 @@ User_Chatroom::User_Chatroom():
 }
 
 RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
+{
+
+}
+
+RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
+    requestId("REQUESTID"),time("TIME")
 {
 
 }

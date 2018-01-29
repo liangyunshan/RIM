@@ -21,3 +21,28 @@ void MessDiapatch::onRecvRegistResponse(ResponseRegister status, RegistResponse 
 {
     emit recvRegistResponse(status,response);
 }
+
+void MessDiapatch::onRecvLoginResponse(ResponseLogin status, LoginResponse response)
+{
+    emit recvLoginResponse(status,response);
+}
+
+void MessDiapatch::onRecvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response)
+{
+    emit recvUpdateBaseInfoResponse(status,response);
+}
+
+void MessDiapatch::onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response)
+{
+    emit recvSearchFriendResponse(status,response);
+}
+
+void MessDiapatch::onRecvAddFriendResponse(ResponseAddFriend status)
+{
+    emit recvAddFriendResponse(status);
+}
+
+void MessDiapatch::onRecvFriendRequest(OperateFriendResponse response)
+{
+    emit recvFriendRequest(response);
+}

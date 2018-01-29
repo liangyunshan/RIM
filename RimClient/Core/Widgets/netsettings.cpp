@@ -71,8 +71,7 @@ void NetSettingsPrivate::initWidget()
 
     tcpTextServerIpEdit = new QLineEdit(mainWidget);
 
-    QString matchIp = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
-    QString matchWholeIp = QString("(%1\\.){3}%2").arg(matchIp).arg(matchIp);
+    QString matchWholeIp = QString(Constant::FullIp_Reg).arg(Constant::SingleIp_Reg).arg(Constant::SingleIp_Reg);
     QRegExp rx(matchWholeIp);
     QRegExpValidator * ipValidator = new QRegExpValidator(rx);
     tcpTextServerIpEdit->setValidator(ipValidator);
@@ -138,10 +137,11 @@ NetSettings::NetSettings(QWidget * parent):Widget(parent),
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_MESSAGEBOX);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(windowTitle());
     }

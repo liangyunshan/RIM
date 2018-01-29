@@ -387,6 +387,7 @@ SystemSettings::SystemSettings(QWidget *parent):
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_DIALOG);
@@ -497,7 +498,7 @@ void SystemSettings::respAutoReply()
 
 void SystemSettings::respShortCut()
 {
-
+    //TODO: 设置全局快捷键
 }
 
 void SystemSettings::respSoundSetting()

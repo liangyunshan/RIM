@@ -2,16 +2,21 @@
 
 #include <QDebug>
 #include <QDateTime>
+#include <QMutex>
+#include <qmath.h>
 
 #include "netglobal.h"
 #include "Util/rlog.h"
 
 namespace ClientNetwork{
 
+int SendPackId;
+QMutex SendPackMutex;
+
 MsgSender::MsgSender(QThread *parent):tcpSocket(NULL),
    RTask(parent)
 {
-
+    SendPackId = qrand()%1024 + 1000;
 }
 
 void MsgSender::setSock(RSocket * sock)
@@ -49,8 +54,12 @@ void MsgSender::run()
     RLOG_INFO("Start Send++++++++++++++++++++++");
     while(runningFlag)
     {
-        if(G_SendBuff.size() <= 0)
+        while(G_SendBuff.size() <= 0)
         {
+            if(!runningFlag)
+            {
+                break;
+            }
             G_SendMutex.lock();
             G_SendWaitCondition.wait(&G_SendMutex);
             G_SendMutex.unlock();
@@ -73,11 +82,59 @@ void MsgSender::run()
     RLOG_INFO("Stop Send++++++++++++++++++++++");
 }
 
+/*!
+     * @brief 向服务器发送指定数据
+     * @details 此时需要在数据内容前加入数据头信息，用于控制分包发送时的序列
+     * @param[in] data 待发送数据内容
+     * @return 是否完全发送成功
+     */
 bool MsgSender::handleDataSend(QByteArray &data)
 {
-    if(tcpSocket->isValid() && tcpSocket->send(data.data(),data.length()) > 0)
+    if(tcpSocket->isValid())
     {
-       return true;
+        DataPacket packet;
+        memset((char *)&packet,0,sizeof(DataPacket));
+        packet.magicNum = SEND_MAGIC_NUM;
+        SendPackMutex.lock();
+        packet.packId = ++SendPackId;
+        SendPackMutex.unlock();
+
+        packet.totalIndex = qCeil(((float)data.length() / MAX_PACKET));
+        packet.totalLen = data.size();
+
+        int sendLen = 0;
+
+        qDebug()<<data.length()<<sizeof(DataPacket)<<packet.totalIndex;
+
+        for(unsigned int i = 0; i < packet.totalIndex; i++)
+        {
+            memset(sendBuff,0,MAX_SEND_BUFF);
+            packet.currentIndex = i;
+            int leftLen = data.size() - sendLen;
+            packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+
+            memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
+            memcpy(sendBuff + sizeof(DataPacket),data.data() + sendLen,packet.currentLen);
+
+            int dataLen = sizeof(DataPacket)+packet.currentLen;
+            int realSendLen = tcpSocket->send(sendBuff,dataLen);
+
+            qDebug()<<"Send:"<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
+
+            if(realSendLen == dataLen)
+            {
+                sendLen += packet.currentLen;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if(sendLen == packet.totalLen)
+        {
+            return true;
+        }
     }
 
     RLOG_ERROR("Send a data error!");

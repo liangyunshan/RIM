@@ -14,8 +14,11 @@
 
 #include "widget.h"
 #include "observer.h"
+#include "protocoldata.h"
+using namespace ProtocolType;
 
 class AddFriendPrivate;
+class ToolItem;
 
 class AddFriend : public Widget,public Observer
 {
@@ -30,6 +33,14 @@ public:
 private slots:
     void startSearch();
     void reSearch();
+    void addFriend();
+    void itemSelected(ToolItem * item);
+    void validateInputState(QString content);
+    void recvSearchFriendResponse(ResponseAddFriend status,SearchFriendResponse response);
+    void recvAddFriendResponse(ResponseAddFriend status);
+
+private:
+    void enableInput(bool flag);
 
 private:
     AddFriendPrivate * d_ptr;

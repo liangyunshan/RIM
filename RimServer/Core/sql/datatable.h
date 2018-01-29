@@ -45,7 +45,9 @@ public:
     const QString phone;                    //联系方式
     const QString address;                  //地址
     const QString email;                    //邮箱
-    const QString desc;                     //基本描述
+    const QString remark;                   //基本描述
+    const QString face;                     //头像类型
+    const QString faceId;                   //图片索引
 };
 
 //用户分组表
@@ -53,6 +55,7 @@ class Group
 {
 public:
     Group();
+    const QString table;
     const QString id;                       //UUID
     const QString name;                     //分组名
     const QString userCount;                //分组成员数量
@@ -76,6 +79,7 @@ class ChatRoom
 {
 public:
     ChatRoom();
+    const QString table;
     const QString id;                       //UUID
     const QString name;                     //群名称
     const QString desc;                     //群描述
@@ -91,6 +95,18 @@ public:
     const QString id;                       //UUID
     const QString chatId;                   //对应群ID
     const QString userId;                   //群成员ID
+};
+
+//请求缓存表
+class RequestCache
+{
+public:
+    RequestCache();
+    const QString table;
+    const QString id;                       //UUID
+    const QString account;                  //用户ID(user Id)
+    const QString requestId;                //发送请求用户ID(user id)
+    const QString time;
 };
 
 }

@@ -22,6 +22,12 @@ public:
 
     void clear();
 
+protected:
+    void keyPressEvent(QKeyEvent *event);
+
+signals:
+    void sigEnter();
+
 private slots:
     void slot_TextChanged();
 

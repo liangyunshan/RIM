@@ -1,6 +1,4 @@
-﻿#include <QApplication>
-
-#include <QTextCodec>
+﻿#include <QTextCodec>
 #include <QTranslator>
 #include <QDir>
 #include <QFile>
@@ -16,6 +14,8 @@
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
 #include "protocoldata.h"
+#include "global.h"
+#include "application.h"
 using namespace ProtocolType;
 
 #include "Widgets/nativewindow/MainWindow.h"
@@ -38,6 +38,7 @@ using namespace ProtocolType;
       [+]config
            [+]translations
            [+]skin
+           [+]sound
            config.xml
       [+]lib
            *.lib
@@ -50,7 +51,7 @@ using namespace ProtocolType;
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    Application app(argc, argv);
 
     // Background color
 //    HBRUSH windowBackground = CreateSolidBrush( RGB( 255, 0, 255 ) );
@@ -122,12 +123,35 @@ int main(int argc, char *argv[])
         app.setStyleSheet(styleFile.readAll());
     }
 
+    qRegisterMetaType<ResponseLogin>("ResponseLogin");
+    qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");
     qRegisterMetaType<ResponseRegister>("ResponseRegister");
+    qRegisterMetaType<ResponseUpdateUser>("ResponseUpdateUser");
+    qRegisterMetaType<UpdateBaseInfoResponse>("UpdateBaseInfoResponse");
+    qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
+    qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
+    qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
+    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
+
+//    QDateTime dt = QDateTime::currentDateTime();
+//    qsrand(dt.time().msec() + dt.time().second()*1000);
+//    TcpSocket socket;
+//    if(socket.createSocket())
+//    {
+//        if(socket.connect("127.0.0.1",8023))
+//        {
+//           MsgSender * sender = new MsgSender(socket);
+//           sender->startMe();
+
+//           MsgReceive * receive = new MsgReceive(socket);
+//           receive->startMe();
+//        }
+//    }
 
     LoginDialog dialog;
     dialog.show();

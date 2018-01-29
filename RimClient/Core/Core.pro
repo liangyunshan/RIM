@@ -7,8 +7,12 @@
 QT       += core gui
 QT       += xml
 QT       += sql
+QT       += multimedia
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
+
+DEFINES += __NO_SERVER__
+DEFINES += __NO_SQL_PRINT__
 
 TARGET = RimClient
 TEMPLATE = app
@@ -113,7 +117,10 @@ SOURCES += \
     sql/databasemanager.cpp \
     thread/databasethread.cpp \
     jsonkey.cpp \
-    Widgets/widget/rlabel.cpp
+    Widgets/widget/rlabel.cpp \
+    application.cpp \
+    media/mediaplayer.cpp \
+    Widgets/notifywindow.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -175,7 +182,10 @@ HEADERS  += \
     sql/databasemanager.h \
     thread/databasethread.h \
     jsonkey.h \
-    Widgets/widget/rlabel.h
+    Widgets/widget/rlabel.h \
+    application.h \
+    media/mediaplayer.h \
+    Widgets/notifywindow.h
 
 DISTFILES += \
     Widgets/Widgets.pri

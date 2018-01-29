@@ -17,6 +17,7 @@
 #include <QStandardPaths>
 #include <QCryptographicHash>
 #include <QDir>
+#include "global.h"
 
 #include <QDebug>
 
@@ -52,26 +53,7 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
                     qDebug() << "Ctrl + V mimeData->hasImage()";
                     QImage image = qvariant_cast<QImage>(mimeData->imageData());
 
-                    QByteArray bb = QCryptographicHash::hash ( QByteArray((char*)image.bits()), QCryptographicHash::Md5 );
-                    QString temp_img_filepath ;
-                    temp_img_filepath.append(bb.toHex());
-                    QString currPath = qApp->applicationDirPath() ;
-                    QString imgfilepath = currPath + "/" + temp_img_filepath + ".png";
-                    QFileInfo fileinfo(imgfilepath);
-                    if(!fileinfo.exists())
-                    {
-                        image.save(imgfilepath);
-                    }
-
-                    int width = this->viewport()->width() - 7;
-                    if (image.size().width() > width || image.size().height() > width)
-                    {
-                        image = image.scaled(width, width, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                    }
-
-                    QTextImageFormat imageFormat;;
-                    imageFormat.setName(imgfilepath);
-                    this->textCursor().insertImage(imageFormat);
+                    insertCopyImage(image);
                 }
 
                 if(mimeData->hasColor())
@@ -239,9 +221,7 @@ QString BaseTextEdit::imgStringTofilePath(QString &img)
     QByteArray bb = QCryptographicHash::hash ( img.toLocal8Bit(), QCryptographicHash::Md5 );
     QString temp_img_filepath ;
     temp_img_filepath.append(bb.toHex());
-    QString currPath = qApp->applicationDirPath() ;
-    QString imgfilepath = currPath + "/" + temp_img_filepath + ".png";
-
+    QString imgfilepath = G_Temp_Picture_Path + "/" + temp_img_filepath + ".png";
     QByteArray read = img.toLatin1();
     QString rStr = QString::fromLatin1(read.data(), read.size());
     QByteArray readCompressed = QByteArray::fromHex(rStr.toLocal8Bit());
@@ -309,10 +289,10 @@ int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
     QXmlStreamReader xml(html);
     QString newhtml = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n";
     newhtml += "<html>";
-    newhtml += "<head>";
-    newhtml += "<meta name=\"qrichtext\" content=\"1\" />";
-    newhtml += "<style type=\"text/css\">\n p, li { white-space: pre-wrap; }\n</style>";
-    newhtml += "</head>\n";
+//    newhtml += "<head>";
+//    newhtml += "<meta name=\"qrichtext\" content=\"1\" />";
+//    newhtml += "<style type=\"text/css\">\n p, li { white-space: pre-wrap; }\n</style>";
+//    newhtml += "</head>\n";
 //! [0]
 
     if (xml.readNextStartElement()) {
@@ -330,6 +310,31 @@ int BaseTextEdit::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
     if (xml.hasError()) {
         return !xml.error();;
     }
+
+    return 0;
+}
+
+int BaseTextEdit::insertCopyImage(QImage &image)
+{
+    QByteArray bb = QCryptographicHash::hash ( QByteArray((char*)image.bits()), QCryptographicHash::Md5 );
+    QString temp_img_filepath ;
+    temp_img_filepath.append(bb.toHex());
+    QString imgfilepath = G_Temp_Picture_Path + "/" + temp_img_filepath + ".png";
+    QFileInfo fileinfo(imgfilepath);
+    if(!fileinfo.exists())
+    {
+        image.save(imgfilepath);
+    }
+
+    int width = this->viewport()->width() - 7;
+    if (image.size().width() > width || image.size().height() > width)
+    {
+        image = image.scaled(width, width, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    QTextImageFormat imageFormat;;
+    imageFormat.setName(imgfilepath);
+    this->textCursor().insertImage(imageFormat);
 
     return 0;
 }

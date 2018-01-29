@@ -88,6 +88,7 @@ ToolBox::ToolBox(QWidget *parent) :
 ToolPage * ToolBox::addPage(QString text)
 {
     MQ_D(ToolBox);
+
     ToolPage * page = new ToolPage(this);
     connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
@@ -122,6 +123,14 @@ int ToolBox::pageCount()
     return d->pages.size();
 }
 
+void ToolBox::testMe()
+{
+    for(int i = 0; i < pageCount(); i++)
+    {
+
+    }
+}
+
 void ToolBox::setContextMenu(QMenu *menu)
 {
     MQ_D(ToolBox);
@@ -136,6 +145,7 @@ void ToolBox::setContextMenu(QMenu *menu)
      * @return 包含所有分组名称的QStringList
      *
      */
+
 const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 {
     MQ_D(ToolBox);

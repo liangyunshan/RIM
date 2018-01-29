@@ -16,12 +16,12 @@ QLabel#ToolBar_Window_Title
 	font-size:13px;
 }
 
-/****************************登录页面********************************/
-QWidget#loginBar
+QWidget#Widget_ContentWidget
 {
-	border-image:url(":/background/resource/background/login.png");
+	background-color:rgb(255,255,255);
 }
 
+/****************************登录页面********************************/
 QToolButton
 {
 	font-family:"微软雅黑";
@@ -194,6 +194,15 @@ QLabel#Tool_Item_DescLabel
 	font-size:13px;
 }
 
+QLabel#Tool_Item_InfoLabel[ItemInfoLabelType="ItemSystemInfo"]
+{
+	background-color:red;
+	border-radius:12px;
+	font-weight:600;
+	font-size:15px;
+	color:white;
+}
+
 /****************************滚动区域********************************/
 QScrollArea
 {
@@ -303,11 +312,5 @@ QLabel#Add_Friend_Account_Label
 	font-size:13px;
 	color:red;
 	font-weight:600;
-}
-
-/****************************编辑个人信息********************************/
-QWidget#Edit_Person_ContentWidget
-{
-	background-color:rgb(255,255,255);
 }
 
