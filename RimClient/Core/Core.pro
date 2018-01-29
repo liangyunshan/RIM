@@ -11,6 +11,7 @@ QT       += multimedia
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
+//是否开启网络连接
 DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
@@ -118,9 +119,12 @@ SOURCES += \
     thread/databasethread.cpp \
     jsonkey.cpp \
     Widgets/widget/rlabel.cpp \
+    Widgets/setkeysequencedialog.cpp \
+    Widgets/screenshot.cpp \
     application.cpp \
     media/mediaplayer.cpp \
-    Widgets/notifywindow.cpp
+    Widgets/notifywindow.cpp \
+    Widgets/systemnotifyview.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -159,7 +163,6 @@ HEADERS  += \
     Widgets/toolbox/toolbox.h \
     Widgets/toolbox/toolitem.h \
     Widgets/toolbox/toolpage.h \
-    Widgets/toolbox/usertoolitem.h \
     Widgets/widget/rbutton.h \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
@@ -183,9 +186,12 @@ HEADERS  += \
     thread/databasethread.h \
     jsonkey.h \
     Widgets/widget/rlabel.h \
+    Widgets/setkeysequencedialog.h \
+    Widgets/screenshot.h \
     application.h \
     media/mediaplayer.h \
-    Widgets/notifywindow.h
+    Widgets/notifywindow.h \
+    Widgets/systemnotifyview.h
 
 DISTFILES += \
     Widgets/Widgets.pri

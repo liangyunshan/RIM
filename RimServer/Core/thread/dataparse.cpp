@@ -59,6 +59,11 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
          case MSG_REALTION_ADD:
                                           onProcessAddFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
                                           break;
+        case MSG_RELATION_OPERATE:
+                                          onProcessRelationOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+        case MSG_RELATION_LIST:
+                                          onProcessFriendListOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+                                          break;
          default:
              break;
     }
@@ -111,12 +116,31 @@ void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &ob
     RSingleton<DataProcess>::instance()->processSearchFriend(db,socketId,request);
 }
 
+void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj)
+{
+    OperateFriendRequest * request = new OperateFriendRequest;
+    request->type = (OperateFriend)obj.value(JsonKey::key(JsonKey::Type)).toInt();
+    request->result = (ResponseFriendApply)obj.value(JsonKey::key(JsonKey::Result)).toInt();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
+
+    RSingleton<DataProcess>::instance()->processRelationOperate(db,socketId,request);
+}
+
 void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 {
     AddFriendRequest * request = new AddFriendRequest;
     request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
-    request->friendId = obj.value(JsonKey::key(JsonKey::FriendId)).toString();
+    request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
 
     RSingleton<DataProcess>::instance()->processAddFriend(db,socketId,request);
+}
+
+void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
+{
+    FriendListRequest * request = new FriendListRequest;
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+
+    RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
 }

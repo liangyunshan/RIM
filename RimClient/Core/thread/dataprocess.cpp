@@ -109,7 +109,7 @@ void DataProcess::proSearchFriendResponse(QJsonObject &data)
                 QJsonObject obj = dataArray.at(i).toObject();
                 if(!obj.isEmpty())
                 {
-                    SearchResult result;
+                    SimpleUserInfo result;
                     result.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
                     result.nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
                     result.signName = obj.value(JsonKey::key(JsonKey::SignName)).toString();
@@ -132,7 +132,7 @@ void DataProcess::proSearchFriendResponse(QJsonObject &data)
 
 void DataProcess::proAddFriendResponse(QJsonObject &data)
 {
-    MessDiapatch::instance()->onRecvAddFriendResponse((ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt());
+   MessDiapatch::instance()->onRecvAddFriendResponse((ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt());
 }
 
 void DataProcess::proOperateFriendResponse(QJsonObject &data)
@@ -148,6 +148,7 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
 
                                 response.accountId = dataobj.value(JsonKey::key(JsonKey::AccountId)).toString();
                                 response.result = dataobj.value(JsonKey::key(JsonKey::Result)).toInt();
+                                response.stype = (SearchType)dataobj.value(JsonKey::key(JsonKey::SearchType)).toInt();
                                 QJsonObject requestInfo = dataobj.value(JsonKey::key(JsonKey::OperateInfo)).toObject();
                                 if(!requestInfo.isEmpty())
                                 {
@@ -163,5 +164,51 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
                            break;
         default:
             break;
+    }
+}
+
+void DataProcess::proFriendListResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == STATUS_SUCCESS)
+    {
+        QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
+
+        FriendListResponse * response = new FriendListResponse;
+        response->accountId = dataObject.value(JsonKey::key(JsonKey::AccountId)).toString();
+        QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
+        for(int i = 0; i < groups.size(); i++)
+        {
+            QJsonObject group = groups.at(i).toObject();
+
+            RGroupData * groupData = new RGroupData;
+            groupData->groupId = group.value(JsonKey::key(JsonKey::GroupId)).toString();
+            groupData->groupName = group.value(JsonKey::key(JsonKey::GroupName)).toString();
+            groupData->isDefault = group.value(JsonKey::key(JsonKey::IsDefault)).toBool();
+
+            QJsonArray users = group.value(JsonKey::key(JsonKey::Users)).toArray();
+            for(int j = 0; j < users.size();j++)
+            {
+                QJsonObject user = users.at(j).toObject();
+
+                SimpleUserInfo userInfo;
+                userInfo.accountId = user.value(JsonKey::key(JsonKey::AccountId)).toString();
+                userInfo.nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
+                userInfo.signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
+                userInfo.remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
+                userInfo.face = user.value(JsonKey::key(JsonKey::Face)).toInt();
+                userInfo.customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+
+                groupData->users.append(userInfo);
+            }
+
+            response->groups.append(groupData);
+        }
+
+        MessDiapatch::instance()->onRecvFriendList(response);
+    }
+    else
+    {
+
     }
 }

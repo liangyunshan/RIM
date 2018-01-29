@@ -2,6 +2,8 @@
 #include <QKeyEvent>
 #include <QDebug>
 
+#include "global.h"
+
 SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     BaseTextEdit(parent)
 {
@@ -19,14 +21,29 @@ SimpleTextEdit::~SimpleTextEdit()
 
 void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
 {
-   switch(event->key())
-   {
-        case Qt::Key_Return:
-            emit sigEnter();
-            break;
-        default:
-        BaseTextEdit::keyPressEvent(event);
-   }
+    if(event->key())
+    {
+        if(event->modifiers() == Qt::NoModifier)
+        {
+            if(event->key() == Qt::Key_Return)
+            {
+                if(G_mIsEnter == Qt::Key_Return)
+                {
+                    emit sigEnter();
+                }
+            }
+        }
+        else if(event->modifiers() == Qt::ControlModifier)
+        {
+            if(event->key() == Qt::Key_Return)
+            {
+                if(G_mIsEnter == (Qt::Key_Control+Qt::Key_Return))
+                {
+                    emit sigEnter();
+                }
+            }
+        }
+    }
 }
 
 void SimpleTextEdit::clear()

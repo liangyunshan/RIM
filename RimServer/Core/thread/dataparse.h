@@ -37,6 +37,8 @@ private:
 
     void onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj);
     void onProcessAddFriend(Database * db,int socketId,QJsonObject &obj);
+    void onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj);
+    void onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj);
 
 };
 

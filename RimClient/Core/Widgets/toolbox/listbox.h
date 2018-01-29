@@ -32,6 +32,8 @@ public:
     bool removeItem(ToolItem * item);
     void clear();
 
+    int count()const;
+
     ToolItem * selectedItem();
 
     void setContextMenu(QMenu * menu);

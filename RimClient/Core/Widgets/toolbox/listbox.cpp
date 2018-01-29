@@ -157,6 +157,12 @@ void ListBox::clear()
     layout->addStretch(1);
 }
 
+int ListBox::count() const
+{
+    MQ_D(ListBox);
+    return d->toolItems.size();
+}
+
 void ListBox::clearItemSelection(ToolItem *item)
 {
     MQ_D(ListBox);

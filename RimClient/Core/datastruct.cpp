@@ -1,5 +1,7 @@
 ﻿#include "datastruct.h"
 
+#include "util/rutil.h"
+
 #include <QMetaType>
 
 QDataStream& operator<<(QDataStream & stream,const UserInfoDesc & desc)
@@ -17,6 +19,3 @@ QDataStream& operator>>(QDataStream & stream,UserInfoDesc & desc)
             >>desc.isSystemPixMap>>desc.pixmap;
     return stream;
 }
-
-
-

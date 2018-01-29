@@ -25,6 +25,7 @@ public:
     void proSearchFriendResponse(QJsonObject &data);
     void proAddFriendResponse(QJsonObject &data);
     void proOperateFriendResponse(QJsonObject &data);
+    void proFriendListResponse(QJsonObject &data);
 
 private:
 

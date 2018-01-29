@@ -59,6 +59,8 @@ private slots:
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
+    void viewSystemNotify(NotifyInfo info);
+    void openChatDialog(QString accountId);
 
 private:
     void createTrayMenu();

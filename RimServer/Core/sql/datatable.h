@@ -13,7 +13,6 @@
 
 #include <QString>
 
-
 namespace DataTable
 {
 
@@ -30,10 +29,10 @@ public:
 };
 
 //用户信息表
-class User
+class RUser
 {
 public:
-    User();
+    RUser();
     const QString table;
     const QString id;                       //UUID
     const QString account;                  //账号(登陆时使用)
@@ -50,23 +49,33 @@ public:
     const QString faceId;                   //图片索引
 };
 
-//用户分组表
-class Group
+/*!
+  用户分组表
+  保存用户名下所有的分组信息
+  RUSE (1 - N) RGroup
+*/
+class RGroup
 {
 public:
-    Group();
+    RGroup();
     const QString table;
     const QString id;                       //UUID
     const QString name;                     //分组名
     const QString userCount;                //分组成员数量
     const QString userId;                   //分组所属用户ID(同User中ID)
+    const QString defaultGroup;             //默认分组(1表示默认分组，0表示非默认分组)
 };
 
-//用户-分组表
-class User_Group
+/*!
+  分组-用户表
+  保存用户分组中联系人的信息，通过RGroup中的id信息，找到该分组下所有的ID信息
+  RGROUP_USER (N - 1) RGroup
+*/
+class RGroup_User
 {
 public:
-    User_Group();
+    RGroup_User();
+    const QString table;
     const QString id;                       //UUID
     const QString groupId;                  //分组ID(group id)
     const QString userId;                   //用户ID(user Id)
@@ -75,10 +84,10 @@ public:
 };
 
 //群信息表
-class ChatRoom
+class RChatRoom
 {
 public:
-    ChatRoom();
+    RChatRoom();
     const QString table;
     const QString id;                       //UUID
     const QString name;                     //群名称
@@ -88,10 +97,10 @@ public:
 };
 
 //用户-群信息表
-class User_Chatroom
+class RChatroom_User
 {
 public:
-    User_Chatroom();
+    RChatroom_User();
     const QString id;                       //UUID
     const QString chatId;                   //对应群ID
     const QString userId;                   //群成员ID
@@ -105,8 +114,9 @@ public:
     const QString table;
     const QString id;                       //UUID
     const QString account;                  //用户ID(user Id)
-    const QString requestId;                //发送请求用户ID(user id)
-    const QString time;
+    const QString operateId;                //待操作用户ID(user id)
+    const QString type;                     //请求类型(好友请求/同意请求/拒绝请求)
+    const QString time;                     //时间戳
 };
 
 }
