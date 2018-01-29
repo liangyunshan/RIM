@@ -17,9 +17,12 @@
 #include <QWidget>
 
 #include "toolitem.h"
+#include "datastruct.h"
 
 class ToolBox;
 class ToolPagePrivate;
+
+using namespace GroupPerson;
 
 class ToolPage : public QWidget
 {
@@ -38,11 +41,18 @@ public:
 
     QRect textRect()const;
     QString toolName()const;
+    int txtFixedHeight();
+    const PersonGroupInfo & pageInfo();
+    void setSortNum(const int num);
+
+public slots:
+    void updateGroupActions();
 
 signals:
     void selectedPage(ToolPage *);
     void clearItemSelection(ToolItem*);
     void currentPosChanged();
+    void updateGroupActions(ToolPage *);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

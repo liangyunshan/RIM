@@ -37,14 +37,18 @@ public:
     void testMe();
 
     void setContextMenu(QMenu * menu);
-    QStringList toolPageSNames()const;
+    const QList<PersonGroupInfo> toolPagesinfos();
+    ToolPage *penultimatePage();
+    ToolPage *targetPage(QString &);
 
-    const QStringList toolPageSNames();
+signals:
+    void updateGroupActions(ToolPage *);
 
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
     void updateLayout();
+    void setGroupActions(ToolPage *);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);

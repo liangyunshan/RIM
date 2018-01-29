@@ -19,6 +19,7 @@
 
 class PanelPersonPagePrivate;
 class ToolItem;
+class ToolPage;
 
 class PanelPersonPage : public QWidget
 {
@@ -43,6 +44,8 @@ private slots:
 
 public slots:
     void renameEditFinished();
+    void updateGroupActions(ToolPage *);
+    void movePersonTo();
 
 private:
     void createAction();

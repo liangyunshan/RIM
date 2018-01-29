@@ -311,11 +311,11 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-
 #ifndef __NO_SERVER__
     NetConnector::instance()->connect();
 #else
-    respConnect(true);
+    LoginResponse response;
+    recvLoginResponse(LOGIN_SUCCESS, response);
 #endif
 }
 
