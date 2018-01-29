@@ -17,6 +17,7 @@
 #include <QFontMetrics>
 #include <QMenu>
 #include <QPoint>
+#include <QUuid>
 
 #include "toolbox.h"
 
@@ -57,6 +58,7 @@ private:
     QPoint m_oldPoint;
     bool m_bButtonPressed;
     bool m_dragPage;
+   GroupPerson::PersonGroupInfo m_pageInfo;
 };
 
 void ToolPagePrivate::initWidget()
@@ -110,7 +112,7 @@ void ToolPagePrivate::initWidget()
 void ToolPagePrivate::setToolName(QString text)
 {
     textLabel->setText(text);
-
+    m_pageInfo.name = text;
     QFontMetrics fm(textLabel->font());
     textLabel->setFixedWidth(fm.width(textLabel->text()));
 }
@@ -146,6 +148,7 @@ ToolPage::ToolPage(ToolBox *parent):
     d_ptr->toolBox = parent;
     d_ptr->detailWidget->installEventFilter(this);
     d_ptr->simpleTextWidget->installEventFilter(this);
+    d_ptr->m_pageInfo.uuid = QUuid::createUuid().toString();
 }
 
 ToolPage::~ToolPage()
@@ -226,6 +229,61 @@ QString ToolPage::toolName() const
     return d->textLabel->text();
 }
 
+/*!
+     * @brief 获取textLabel的默认固定高度
+     *
+     * @param 无
+     *
+     * @return textLabel的默认固定高度
+     *
+     */
+int ToolPage::txtFixedHeight()
+{
+    int fixedHeight = TOOL_SIMPLE_HEIGHT;
+    return fixedHeight;
+}
+
+/*!
+     * @brief 获取page的pageInfo(分组唯一标识、分组序号、分组名称)
+     *
+     * @param 无
+     *
+     * @return const PersonGroupInfo &
+     *
+     */
+const PersonGroupInfo & ToolPage::pageInfo()
+{
+    MQ_D(ToolPage);
+    return d->m_pageInfo;
+}
+
+/*!
+     * @brief 设置page的sortNum(分组排序序号)
+     *
+     * @param [in]page的sortNum(分组排序序号)
+     *
+     * @return 无
+     *
+     */
+void ToolPage::setSortNum(const int num)
+{
+    MQ_D(ToolPage);
+    d->m_pageInfo.sortNum = num;
+}
+
+/*!
+     * @brief 处理Item的SIGNAL：updateGroupActions()
+     *
+     * @param 无
+     *
+     * @return 无
+     *
+     */
+void ToolPage::updateGroupActions()
+{
+    emit updateGroupActions(this);
+}
+
 bool ToolPage::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(ToolPage);
@@ -290,7 +348,6 @@ void ToolPage::mousePressEvent(QMouseEvent *e)
         d->m_bButtonPressed = true;
         d->m_dragPage = false;
     }
-//    QWidget::mousePressEvent(e);
 }
 
 void ToolPage::mouseMoveEvent(QMouseEvent *e)

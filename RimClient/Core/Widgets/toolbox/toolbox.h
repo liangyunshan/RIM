@@ -35,12 +35,17 @@ public:
     int pageCount();
 
     void setContextMenu(QMenu * menu);
-    QStringList toolPageSNames()const;
+    const QList<PersonGroupInfo> toolPagesinfos();
+    ToolPage *penultimatePage();
+
+signals:
+    void updateGroupActions(ToolPage *);
 
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
     void updateLayout();
+    void setGroupActions(ToolPage *);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);

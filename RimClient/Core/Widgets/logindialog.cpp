@@ -344,7 +344,8 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-    NetConnector::instance()->connect();
+//    NetConnector::instance()->connect();
+    respConnect(true);
 }
 
 void LoginDialog::minsize()

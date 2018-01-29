@@ -13,6 +13,8 @@
 #include "constants.h"
 #include "datastruct.h"
 
+using namespace GroupPerson;
+
 class ToolBoxPrivate : public GlobalData<ToolBox>
 {
     Q_DECLARE_PUBLIC(ToolBox)
@@ -90,9 +92,11 @@ ToolPage * ToolBox::addPage(QString text)
     connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
     connect(page,SIGNAL(currentPosChanged()),this,SLOT(updateLayout()));
+    connect(page,SIGNAL(updateGroupActions(ToolPage*)),this,SLOT(setGroupActions(ToolPage*)));
     page->setToolName(text);
 
     d->addPage(page);
+    setSlectedPage(page);
 
     return page;
 }
@@ -132,15 +136,29 @@ void ToolBox::setContextMenu(QMenu *menu)
      * @return 包含所有分组名称的QStringList
      *
      */
-QStringList ToolBox::toolPageSNames() const
+const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 {
     MQ_D(ToolBox);
-    QStringList namesList;
-    for(int index=0;index<d->pages.size();index++)
+    QList <PersonGroupInfo> infoList;
+    for(int index=0;index<pageCount();index++)
     {
-        namesList.append(d->pages.at(index)->toolName());
+        infoList.append(d->pages.at(index)->pageInfo());
     }
-    return namesList;
+    return infoList;
+}
+
+/*!
+     * @brief 倒数第二个page
+     *
+     * @param[in] 无
+     *
+     * @return 倒数第二个page
+     *
+     */
+ToolPage *ToolBox::penultimatePage()
+{
+    MQ_D(ToolBox);
+    return d->pages.at(d->pages.count()-2);
 }
 
 void ToolBox::setSlectedPage(ToolPage *item)
@@ -169,11 +187,31 @@ void ToolBox::clearItemSelection(ToolItem * item)
     }
 }
 
-
+/*!
+     * @brief 处理page移动后的布局
+     *
+     * @param[in] 无
+     *
+     * @return
+     *
+     */
 //TODO LYS-20180122 在布局中移动分组进行排序
 void ToolBox::updateLayout()
 {
 
+}
+
+/*!
+     * @brief 处理page的SIGNAL：updateGroupActions(ToolPage *)
+     *
+     * @param[in] page:ToolPage *,信源page
+     *
+     * @return
+     *
+     */
+void ToolBox::setGroupActions(ToolPage *page)
+{
+    emit updateGroupActions(page);
 }
 
 void ToolBox::contextMenuEvent(QContextMenuEvent *)
