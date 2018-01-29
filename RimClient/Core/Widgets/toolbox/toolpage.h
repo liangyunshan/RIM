@@ -43,7 +43,7 @@ public:
     QString toolName()const;
     int txtFixedHeight();
     const PersonGroupInfo & pageInfo();
-    void setSortNum(const int);
+    void setSortNum(const int num);
 
 public slots:
     void updateGroupActions();

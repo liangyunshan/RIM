@@ -33,6 +33,7 @@ protected:
 
     QWidget * contentWidget;
     QLineEdit *tmpNameEdit;     //重命名时用edit
+    ToolPage * pageOfMovedItem; //待移动分组的item所属的page
 
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
@@ -61,6 +62,8 @@ void PanelPersonPagePrivate::initWidget()
     QObject::connect(tmpNameEdit,SIGNAL(editingFinished()),q_ptr,SLOT(renameEditFinished()));
     tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
     tmpNameEdit->hide();
+
+    pageOfMovedItem = NULL;
 }
 
 PanelPersonPage::PanelPersonPage(QWidget *parent):
@@ -71,7 +74,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 
     for(int j = 0; j < 5;j++)
     {
-        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友"));
+        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友")+QString::number(j));
         d_ptr->pages.append(page);
         for(int i = 0; i < 5;i++)
         {
@@ -157,7 +160,6 @@ void PanelPersonPage::renameGroup()
         d->tmpNameEdit->setText(page->toolName());
         d->tmpNameEdit->selectAll();
         d->tmpNameEdit->setGeometry(textRec.x(),pageRec.y(),pageRec.width(),textRec.height());
-//        qDebug()<<textRec.x()<<pageRec.y()<<pageRec.width()<<textRec.height();
         d->tmpNameEdit->show();
         d->tmpNameEdit->setFocus();
     }
@@ -224,6 +226,7 @@ void PanelPersonPage::renameEditFinished()
 void PanelPersonPage::updateGroupActions(ToolPage * page)
 {
     MQ_D(PanelPersonPage);
+    d->pageOfMovedItem = page;
     QList <PersonGroupInfo> infoList = d->toolBox->toolPagesinfos();
     QMenu * movePersonTo  = ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
     if(!movePersonTo->isEmpty())
@@ -256,10 +259,23 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
      */
 void PanelPersonPage::movePersonTo()
 {
+    MQ_D(PanelPersonPage);
     QAction * target = qobject_cast<QAction *>(QObject::sender());
     QString targetUuid = target->data().toString();
-    Q_UNUSED(targetUuid);
     //TODO LYS-20180123 根据触发的Action的uuid比对所有page的uuid，匹配则移动至该page
+    ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
+    ToolPage * sourcePage = d->pageOfMovedItem;
+    ToolItem * targetItem = d->toolBox->selectedItem();
+    if(!targetPage)
+    {
+        return;
+    }
+    else
+    {
+        //TODO 20190129-LYS 将targetItem从sourcePage中移除并添加到targetPage
+        Q_UNUSED(targetItem);
+        Q_UNUSED(sourcePage);
+    }
 }
 
 void PanelPersonPage::createAction()

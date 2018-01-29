@@ -158,7 +158,31 @@ const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 ToolPage *ToolBox::penultimatePage()
 {
     MQ_D(ToolBox);
+    //注：联系人分组列表中必须保证有一个默认分组
     return d->pages.at(d->pages.count()-2);
+}
+
+/*!
+     * @brief 获取目标uuid的page
+     *
+     * @param[in] 无
+     *
+     * @return 匹配目标uuid的page
+     *
+     */
+ToolPage *ToolBox::targetPage(QString &target)
+{
+    MQ_D(ToolBox);
+    ToolPage * targetPage= NULL;
+    for(int index=0;index<d->pages.count();index++)
+    {
+        QString uuid = d->pages.at(index)->pageInfo().uuid;
+        if(target == uuid)
+        {
+            targetPage = d->pages.at(index);
+        }
+    }
+    return targetPage;
 }
 
 void ToolBox::setSlectedPage(ToolPage *item)

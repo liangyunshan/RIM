@@ -37,6 +37,7 @@ public:
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
     ToolPage *penultimatePage();
+    ToolPage *targetPage(QString &);
 
 signals:
     void updateGroupActions(ToolPage *);
