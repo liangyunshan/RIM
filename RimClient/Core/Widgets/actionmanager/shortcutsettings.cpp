@@ -14,13 +14,6 @@ ShortcutSettings::ShortcutSettings(QObject *parent):
     {
         RLOG_ERROR("can't read shortcuts file %s",commandFile->fileName().toLocal8Bit().data());
     }
-
-//    QList<ShortcutItem*>::iterator iter = items.begin();
-//    while(iter != items.end())
-//    {
-//        qDebug()<<(*iter)->m_id.data()<<"__"<<(*iter)->m_key;
-//        iter++;
-//    }
 }
 
 ShortcutSettings::~ShortcutSettings()
@@ -61,6 +54,35 @@ void ShortcutSettings::addShortcut(QString id, QKeySequence &key)
         item->m_key = key;
         items.append(item);
     }
+}
+
+int ShortcutSettings::removeShortCut(Id id)
+{
+    QList<ShortcutItem*>::iterator iter = items.begin();
+    while(iter != items.end())
+    {
+        if((*iter)->m_id == id)
+        {
+            items.removeOne((*iter));
+            return 1;
+        }
+        iter++;
+    }
+    return 0;
+}
+
+bool ShortcutSettings::contains(QKeySequence key)
+{
+    QList<ShortcutItem*>::iterator iter = items.begin();
+    while(iter != items.end())
+    {
+        if((*iter)->m_key == key)
+        {
+            return true;
+        }
+        iter++;
+    }
+    return false;
 }
 
 void ShortcutSettings::save()
