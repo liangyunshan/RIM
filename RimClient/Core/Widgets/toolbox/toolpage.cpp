@@ -195,6 +195,48 @@ QList<ToolItem *>& ToolPage::items()
     return d->toolItems;
 }
 
+bool ToolPage::removeItem(ToolItem *item)
+{
+    MQ_D(ToolPage);
+    if(d->toolItems.size() > 0)
+    {
+        QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->detailWidget->layout());
+
+        if(layout)
+        {
+            int index = -1;
+            for(int i = 0; i < layout->count();i++)
+            {
+                if(layout->itemAt(i)->widget())
+                {
+                    ToolItem * tmpItem = dynamic_cast<ToolItem *>(layout->itemAt(i)->widget());
+                    if(tmpItem == item)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+
+            if(index >= 0)
+            {
+                QLayoutItem * layItem = layout->takeAt(index);
+                if(layItem->widget())
+                {
+                    bool removeResult = d->toolItems.removeOne(item);
+                    if(removeResult)
+                    {
+                        emit itemRemoved(item);
+                    }
+                    return removeResult;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void ToolPage::setMenu(QMenu *menu)
 {
     MQ_D(ToolPage);
@@ -311,11 +353,12 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
                 {
                     d->setExpanded(!d->expanded);
                 }
-
+                return true;
             }
             else if(e->button() == Qt::RightButton)
             {
                 emit selectedPage(this);
+                return true;
             }
         }
         else if(event->type() == QEvent::ContextMenu)

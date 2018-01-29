@@ -49,6 +49,7 @@ private slots:
     void clearItemSelection(ToolItem*item);
     void updateLayout();
     void setGroupActions(ToolPage *);
+    void itemRemoved(ToolItem*);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);

@@ -33,9 +33,11 @@ public:
     ~ToolPage();
 
     void setToolName(QString text);
-    void addItem(ToolItem *item);
 
+    void addItem(ToolItem *item);
     QList<ToolItem *> &items();
+
+    bool removeItem(ToolItem * item);
 
     void setMenu(QMenu * menu);
 
@@ -53,6 +55,7 @@ signals:
     void clearItemSelection(ToolItem*);
     void currentPosChanged();
     void updateGroupActions(ToolPage *);
+    void itemRemoved(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

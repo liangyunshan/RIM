@@ -74,7 +74,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 
     for(int j = 0; j < 5;j++)
     {
-        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友"));
+        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友")+QString::number(j));
         d_ptr->pages.append(page);
         for(int i = 0; i < 5;i++)
         {
@@ -266,15 +266,19 @@ void PanelPersonPage::movePersonTo()
     ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
     ToolPage * sourcePage = d->pageOfMovedItem;
     ToolItem * targetItem = d->toolBox->selectedItem();
-    if(!targetPage)
+    qDebug()<<"targetItem"<<targetItem->getName();
+    if(!targetPage||!sourcePage)
     {
         return;
     }
     else
     {
         //TODO 20190129-LYS 将targetItem从sourcePage中移除并添加到targetPage
-        Q_UNUSED(targetItem);
-        Q_UNUSED(sourcePage);
+        bool result = sourcePage->removeItem(targetItem);
+        if(result)
+        {
+            targetPage->addItem(targetItem);
+        }
     }
 }
 

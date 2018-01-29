@@ -94,6 +94,7 @@ ToolPage * ToolBox::addPage(QString text)
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
     connect(page,SIGNAL(currentPosChanged()),this,SLOT(updateLayout()));
     connect(page,SIGNAL(updateGroupActions(ToolPage*)),this,SLOT(setGroupActions(ToolPage*)));
+    connect(page,SIGNAL(itemRemoved(ToolItem*)),this,SLOT(itemRemoved(ToolItem*)));
     page->setToolName(text);
 
     d->addPage(page);
@@ -246,6 +247,23 @@ void ToolBox::updateLayout()
 void ToolBox::setGroupActions(ToolPage *page)
 {
     emit updateGroupActions(page);
+}
+
+/*!
+     * @brief 处理page的SIGNAL：itemRemoved(ToolItem*)
+     *
+     * @param[in] removedItem:ToolItem *,被删除的item
+     *
+     * @return
+     *
+     */
+void ToolBox::itemRemoved(ToolItem * removedItem)
+{
+    MQ_D(ToolBox);
+    if(removedItem == d->currentItem)
+    {
+        d->currentItem = NULL;
+    }
 }
 
 void ToolBox::contextMenuEvent(QContextMenuEvent *)
