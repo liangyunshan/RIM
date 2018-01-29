@@ -70,7 +70,6 @@ const QString DEFAULT_NETWORK_PORT = "8023";
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";
 const char ICON_SIGN24[] = ":/icon/resource/icon/icon_sign.png";
 const char ICON_PANEL_SEARCH[] = ":/icon/resource/icon/panel_search.png";
-const char ICON_SYSTEM_NOTIFY[] = ":/icon/resource/icon/systemnotify.png";
 
 
 /*控件尺寸*/

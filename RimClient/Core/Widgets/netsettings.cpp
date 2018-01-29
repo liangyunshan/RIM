@@ -137,10 +137,11 @@ NetSettings::NetSettings(QWidget * parent):Widget(parent),
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
 
     ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
     if(bar)
     {
         bar->setToolFlags(ToolBar::TOOL_MESSAGEBOX);
-        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM_16));
+        bar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
 
         bar->setWindowTitle(windowTitle());
     }

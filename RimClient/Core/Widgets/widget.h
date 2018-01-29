@@ -39,6 +39,7 @@ protected:
     void setContentWidget(QWidget * child);
 
     ToolBar *enableToolBar(bool flag = false);
+    void enableDefaultSignalConection(bool flag);
 
     virtual void paintEvent(QPaintEvent * event);
     virtual bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
@@ -50,6 +51,11 @@ protected:
     virtual void leaveEvent(QEvent *);
 
     void repolish(QWidget * widget);
+
+signals:
+    void minimumWindow();
+    void maxWindow(bool);
+    void closeWindow();
 
 private slots:
     void setLayoutMargin();

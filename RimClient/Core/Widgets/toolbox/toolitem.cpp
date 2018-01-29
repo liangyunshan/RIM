@@ -17,6 +17,7 @@
 #include "Widgets/widget/rlabel.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
+#define TOOL_ITEM_INFOLABEL_WIDTH 25
 
 class ToolItemPrivate : public GlobalData<ToolItem>
 {
@@ -28,6 +29,13 @@ protected:
         initWidget();
         checked = false;
         contenxMenu = NULL;
+        notifyCount = 0;
+    }
+
+    void updateNotifyInfoCount()
+    {
+        infoLabel->setAlignment(Qt::AlignCenter);
+        infoLabel->setText(QString::number(++notifyCount));
     }
 
     ToolItem * q_ptr;
@@ -41,10 +49,11 @@ protected:
     QLabel * nameLabel;                 //个人、群组、历史聊天的用户名
     QLabel * nickLabel;                 //个人昵称、群组成员数量
     QLabel * descLabel;                 //个人签名、群组和历史聊天的聊天记录信息
-    QLabel * infoLabel;                 //群组和历史聊天的日期
+    QLabel * infoLabel;                 //群组和历史聊天的日期或作为通知时的条数信息
+
+    int notifyCount;                    //作为通知消息时，显示通知消息的数量
 
     QMenu * contenxMenu;
-
     bool checked;                       //是否被选中
 };
 
@@ -110,8 +119,12 @@ void ToolItemPrivate::initWidget()
     middleLayout->addWidget(descLabel);
     middleWidget->setLayout(middleLayout);
 
+    QMetaEnum metaEnum = QMetaEnum::fromType<ToolItem::ItemInfoLabelType>();
+
     infoLabel = new QLabel(contentWidget);
-    infoLabel->setFixedWidth(25);
+    infoLabel->setObjectName("Tool_Item_InfoLabel");
+    infoLabel->setProperty(metaEnum.name(),metaEnum.key(ToolItem::ItemTextInfo));
+    infoLabel->setFixedSize(TOOL_ITEM_INFOLABEL_WIDTH,TOOL_ITEM_INFOLABEL_WIDTH);
 
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSpacing(3);
@@ -141,9 +154,10 @@ ToolItem::~ToolItem()
 
 }
 
-void ToolItem::setIcon(QString)
+void ToolItem::setIcon(QString icon)
 {
-
+    MQ_D(ToolItem);
+    d->iconLabel->setPixmap(icon);
 }
 
 void ToolItem::setName(QString name)
@@ -186,6 +200,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
             if(!d->checked)
             {
                 setItemState(Mouse_Enter);
+                return true;
             }
         }
         else if(event->type() == QEvent::Leave)
@@ -193,6 +208,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
             if(!d->checked)
             {
                 setItemState(Mouse_Leave);
+                return true;
             }
         }
         else if(event->type() == QEvent::MouseButtonRelease)
@@ -202,6 +218,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
             {
                 setChecked(true);
                 emit clearSelectionOthers(this);
+                return true;
             }
         }
         else if(event->type() == QEvent::ContextMenu)
@@ -215,6 +232,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
         else if(event->type() == QEvent::MouseButtonDblClick)
         {
             emit itemDoubleClick(this);
+            return true;
         }
     }
     return QWidget::eventFilter(watched,event);
@@ -250,6 +268,25 @@ void ToolItem::setContentMenu(QMenu *contentMenu)
 {
     MQ_D(ToolItem);
     d->contenxMenu = contentMenu;
+}
+
+/*!
+     * @brief 添加一条消息显示
+     * @details 当ToolItem作为NotifyWindow中显示通知消息，infoLabel用于记录当前联系人消息的数量
+     * @param[in] 无
+     * @return 无
+     */
+void ToolItem::addNotifyInfo()
+{
+    MQ_D(ToolItem);
+    if(d->notifyCount == 0)
+    {
+        QMetaEnum metaEnum = QMetaEnum::fromType<ItemInfoLabelType>();
+        d->infoLabel->setProperty(metaEnum.name(),metaEnum.key(ItemSystemInfo));
+        style()->unpolish(d->infoLabel);
+        style()->polish(d->infoLabel);
+    }
+    d->updateNotifyInfoCount();
 }
 
 bool ToolItem::isChecked()

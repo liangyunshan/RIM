@@ -1,6 +1,8 @@
 ﻿/*!
  *  @brief     工具栏条目
- *  @details   显示联系人信息、群信息、历史聊天信息
+ *  @details   1.用于在联系人信息、群信息、历史聊天信息面板中显示用户信息；
+ *             2.用于在好友查询结果时，显示查询结果的简单描述；
+ *             3.用于在系统通知窗口中，显示通知信息；
  *  @file      toolitem.h
  *  @author    wey
  *  @version   1.0
@@ -39,6 +41,8 @@ public:
     void setGroupMemberCoung(int number);
     void setContentMenu(QMenu * contentMenu);
 
+    void addNotifyInfo();
+
     bool isChecked();
     void setChecked(bool flag);
 
@@ -49,6 +53,13 @@ public:
        Mouse_Checked
     };
     Q_FLAG(ItemState)
+
+    enum ItemInfoLabelType
+    {
+        ItemTextInfo,
+        ItemSystemInfo
+    };
+    Q_FLAG(ItemInfoLabelType)
 
 signals:
     void clearSelectionOthers(ToolItem *);

@@ -119,7 +119,8 @@ SOURCES += \
     jsonkey.cpp \
     Widgets/widget/rlabel.cpp \
     application.cpp \
-    media/mediaplayer.cpp
+    media/mediaplayer.cpp \
+    Widgets/notifywindow.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -183,7 +184,8 @@ HEADERS  += \
     jsonkey.h \
     Widgets/widget/rlabel.h \
     application.h \
-    media/mediaplayer.h
+    media/mediaplayer.h \
+    Widgets/notifywindow.h
 
 DISTFILES += \
     Widgets/Widgets.pri
