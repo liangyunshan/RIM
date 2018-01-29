@@ -289,15 +289,17 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
 void LoginDialog::respConnect(bool flag)
 {
-    MQ_D(LoginDialog);
-
     if(flag)
     {
+#ifndef __NO_SERVER__
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
         request->status = STATUS_ONLINE;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
+#else
+        recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
+#endif
     }
     else
     {
@@ -308,11 +310,11 @@ void LoginDialog::respConnect(bool flag)
 
 void LoginDialog::login()
 {
-
 #ifndef __NO_SERVER__
     NetConnector::instance()->connect();
 #else
-    respConnect(true);
+    LoginResponse response;
+    recvLoginResponse(LOGIN_SUCCESS, response);
 #endif
 }
 
@@ -520,7 +522,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
         G_UserBaseInfo = response.baseInfo;
 
-        //shangchao 创建每个用户对应的缓存文件夹
+        //创建每个用户对应的缓存文件夹
         QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
         G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
         RUtil::createDir(G_Temp_Picture_Path);

@@ -225,6 +225,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
         {
             if(d->contenxMenu)
             {
+                emit updateGroupActions();
                 d->contenxMenu->exec(QCursor::pos());
                 return true;
             }

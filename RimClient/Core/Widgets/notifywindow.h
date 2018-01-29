@@ -36,7 +36,7 @@ public:
     void onMessage(MessageType type);
 
 protected:
-    void resizeEvent(QResizeEvent *event);
+    void resizeEvent(QResizeEvent *);
 
 signals:
     void showWindow();

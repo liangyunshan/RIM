@@ -219,9 +219,9 @@ void NotifyWindow::onMessage(MessageType type)
     }
 }
 
-void NotifyWindow::resizeEvent(QResizeEvent *event)
+void NotifyWindow::resizeEvent(QResizeEvent *)
 {
-    MQ_D(NotifyWindow);
+
 }
 
 void NotifyWindow::viewAll()

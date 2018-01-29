@@ -66,6 +66,7 @@ signals:
     void showChatWindow(ToolItem *);
     void itemDoubleClick(ToolItem *);
     void itemMouseHover(bool,ToolItem*);
+    void updateGroupActions();
 
 private slots:
     void cursorHoverIcon(bool flag);

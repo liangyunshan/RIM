@@ -171,5 +171,13 @@ namespace TextUnit {
     const unsigned short DefaultQueryRow = 5;  //默认查找的记录数
 }
 
+namespace GroupPerson {
+    struct PersonGroupInfo{
+        QString uuid;
+        QString name;
+        int sortNum;
+    };//联系人分组信息
+}
+
 
 #endif // DATASTRUCT_H
