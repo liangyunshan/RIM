@@ -80,5 +80,17 @@ OperateFriendResponse::OperateFriendResponse()
     msgCommand = MSG_RELATION_OPERATE;
 }
 
+FriendListRequest::FriendListRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_LIST;
+}
+
+FriendListResponse::FriendListResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_LIST;
+}
+
 
 } //namespace Protocol

@@ -38,6 +38,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
                                             return handleSearchFriendResponse((SearchFriendResponse *)packet);
         case MsgCommand::MSG_RELATION_OPERATE:
                                             return handleOperateFriendResponse((OperateFriendResponse *)packet);
+        case MsgCommand::MSG_RELATION_LIST:
+                                            return handleFriendListResponse((FriendListResponse *)packet);
 
         default:
                 break;
@@ -140,6 +142,7 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
 
     obj.insert(JsonKey::key(JsonKey::Type),packet->type);
     obj.insert(JsonKey::key(JsonKey::Result),packet->result);
+    obj.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
     obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
 
     QJsonObject requsetInfo;
@@ -152,6 +155,46 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
     obj.insert(JsonKey::key(JsonKey::OperateInfo),requsetInfo);
 
     return wrappedPack(packet,FRIEND_REQUEST,obj);
+}
+
+QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
+{
+    QJsonObject obj;
+
+    obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+
+    QJsonArray groups;
+    for(int i  = 0; i < packet->groups.size(); i++)
+    {
+        RGroupData * gdata = packet->groups.at(i);
+
+        QJsonObject groupData;
+        groupData.insert(JsonKey::key(JsonKey::GroupId),gdata->groupId);
+        groupData.insert(JsonKey::key(JsonKey::GroupName),gdata->groupName);
+        groupData.insert(JsonKey::key(JsonKey::IsDefault),gdata->isDefault);
+
+        QJsonArray users;
+        for(int j = 0; j < gdata->users.size(); j++)
+        {
+            SimpleUserInfo userInfo = gdata->users.at(j);
+
+            QJsonObject user;
+            user.insert(JsonKey::key(JsonKey::AccountId),userInfo.accountId);
+            user.insert(JsonKey::key(JsonKey::NickName),userInfo.nickName);
+            user.insert(JsonKey::key(JsonKey::SignName),userInfo.signName);
+            user.insert(JsonKey::key(JsonKey::Face),userInfo.face);
+            user.insert(JsonKey::key(JsonKey::FaceId),userInfo.customImgId);
+            user.insert(JsonKey::key(JsonKey::Remark),userInfo.remarks);
+
+            users.append(user);
+        }
+        groupData.insert(JsonKey::key(JsonKey::Users),users);
+
+        groups.append(groupData);
+    }
+    obj.insert(JsonKey::key(JsonKey::Groups),groups);
+
+    return wrappedPack(packet,STATUS_SUCCESS,obj);
 }
 
 /*!
@@ -170,6 +213,8 @@ QByteArray MsgWrap::wrappedPack(MsgPacket *packet, int status, QJsonObject & dat
 
     QJsonDocument document;
     document.setObject(obj);
+
+    qDebug()<<document.toJson(QJsonDocument::Indented);
 
     return document.toJson(QJsonDocument::Compact);
 }

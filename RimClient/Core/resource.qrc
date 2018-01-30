@@ -59,6 +59,9 @@
         <file>resource/icon/Tool_Chat_FontColor.png</file>
         <file>resource/icon/icon_systemnotify_24.png</file>
         <file>resource/icon/icon_systemnotify_64.png</file>
+        <file>resource/icon/icon_error_32.png</file>
+        <file>resource/icon/icon_success_32.png</file>
+        <file>resource/icon/icon_star_32.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>

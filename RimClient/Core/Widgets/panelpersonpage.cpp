@@ -14,6 +14,8 @@
 
 #include "toolbox/toolbox.h"
 
+using namespace GroupPerson;
+
 class PanelPersonPagePrivate : public GlobalData<PanelPersonPage>
 {
     Q_DECLARE_PUBLIC(PanelPersonPage)
@@ -31,6 +33,7 @@ protected:
 
     QWidget * contentWidget;
     QLineEdit *tmpNameEdit;     //重命名时用edit
+    ToolPage * pageOfMovedItem; //待移动分组的item所属的page
 
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
@@ -48,6 +51,7 @@ void PanelPersonPagePrivate::initWidget()
     q_ptr->setLayout(mainLayout);
 
     toolBox = new ToolBox(contentWidget);
+    QObject::connect(toolBox,SIGNAL(updateGroupActions(ToolPage *)),q_ptr,SLOT(updateGroupActions(ToolPage *)));
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
@@ -58,6 +62,8 @@ void PanelPersonPagePrivate::initWidget()
     QObject::connect(tmpNameEdit,SIGNAL(editingFinished()),q_ptr,SLOT(renameEditFinished()));
     tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
     tmpNameEdit->hide();
+
+    pageOfMovedItem = NULL;
 }
 
 PanelPersonPage::PanelPersonPage(QWidget *parent):
@@ -66,7 +72,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
-    for(int j = 0; j < 2;j++)
+    for(int j = 0; j < 5;j++)
     {
         ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友"));
         d_ptr->pages.append(page);
@@ -77,6 +83,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
             connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
             connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
             connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
+            connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
             item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
             item->setName(QString(QStringLiteral("韩天才%1")).arg(i));
             item->setNickName("MagnyCopper");
@@ -121,13 +128,14 @@ void PanelPersonPage::addGroup()
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
     d->pages.append(page);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
-    QRect textRec = page->textRect();
-    QRect pageRec = page->geometry();
-    qDebug()<<"textRec"<<textRec<<"pageRec"<<pageRec;
+    QRect textRec = d->toolBox->penultimatePage()->textRect();
+    QRect pageRec = d->toolBox->penultimatePage()->geometry();
+    int textY = pageRec.y()+page->txtFixedHeight();
+
     d->tmpNameEdit->raise();
     d->tmpNameEdit->setText(tr("untitled"));
     d->tmpNameEdit->selectAll();
-    d->tmpNameEdit->setGeometry(textRec.x(),textRec.y(),pageRec.width(),textRec.height());
+    d->tmpNameEdit->setGeometry(textRec.x(),textY,pageRec.width(),page->txtFixedHeight());
     d->tmpNameEdit->show();
     d->tmpNameEdit->setFocus();
 }
@@ -149,9 +157,9 @@ void PanelPersonPage::renameGroup()
         QRect textRec = page->textRect();
         QRect pageRec = page->geometry();
         d->tmpNameEdit->raise();
-        d->tmpNameEdit->setText(tr("untitled"));
+        d->tmpNameEdit->setText(page->toolName());
         d->tmpNameEdit->selectAll();
-        d->tmpNameEdit->setGeometry(textRec.x(),textRec.y(),pageRec.width(),textRec.height());
+        d->tmpNameEdit->setGeometry(textRec.x(),pageRec.y(),pageRec.width(),textRec.height());
         d->tmpNameEdit->show();
         d->tmpNameEdit->setFocus();
     }
@@ -205,6 +213,69 @@ void PanelPersonPage::renameEditFinished()
     }
     d->tmpNameEdit->setText("");
     d->tmpNameEdit->hide();
+}
+
+/*!
+     * @brief 根据触发右键菜单的Item所属的Page来添加“移动联系人至”菜单中Action
+     *
+     * @param[in] page：ToolPage *
+     *
+     * @return 无
+     *
+     */
+void PanelPersonPage::updateGroupActions(ToolPage * page)
+{
+    MQ_D(PanelPersonPage);
+    d->pageOfMovedItem = page;
+    QList <PersonGroupInfo> infoList = d->toolBox->toolPagesinfos();
+    QMenu * movePersonTo  = ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
+    if(!movePersonTo->isEmpty())
+    {
+        movePersonTo->clear();
+    }
+    for(int index=0;index<infoList.count();index++)
+    {
+        if(page->pageInfo().uuid != infoList.at(index).uuid)
+        {
+            QAction *tmpAction = new QAction(infoList.at(index).name);
+            tmpAction->setData(infoList.at(index).uuid);
+            connect(tmpAction,SIGNAL(triggered(bool)),this,SLOT(movePersonTo()));
+            movePersonTo->addAction(tmpAction);
+        }
+        else
+        {
+            continue;
+        }
+    }
+}
+
+/*!
+     * @brief 移动至各分组的Action响应
+     *
+     * @param
+     *
+     * @return 无
+     *
+     */
+void PanelPersonPage::movePersonTo()
+{
+    MQ_D(PanelPersonPage);
+    QAction * target = qobject_cast<QAction *>(QObject::sender());
+    QString targetUuid = target->data().toString();
+    //TODO LYS-20180123 根据触发的Action的uuid比对所有page的uuid，匹配则移动至该page
+    ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
+    ToolPage * sourcePage = d->pageOfMovedItem;
+    ToolItem * targetItem = d->toolBox->selectedItem();
+    if(!targetPage)
+    {
+        return;
+    }
+    else
+    {
+        //TODO 20190129-LYS 将targetItem从sourcePage中移除并添加到targetPage
+        Q_UNUSED(targetItem);
+        Q_UNUSED(sourcePage);
+    }
 }
 
 void PanelPersonPage::createAction()
@@ -270,4 +341,3 @@ void PanelPersonPage::createAction()
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MOVEPERSON));
     personMenu->addSeparator();
 }
-

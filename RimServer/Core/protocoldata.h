@@ -83,9 +83,10 @@ enum MsgCommand
 
     MSG_RELATION_SEARCH = 0x11,                        //查找好友[OK]
     MSG_REALTION_ADD,                                  //添加好友[OK]
-    MSG_RELATION_OPERATE,                              //好友操作(参照OperateFriend)
+    MSG_RELATION_OPERATE,                              //好友操作(参照OperateFriend)FRIEND_APPLY[OK]
     MSG_RELATION_VIEW_INFO,                            //查看好友信息
     MSG_RELATION_EDIT_INFO,                            //更新好友备注
+    MSG_RELATION_LIST,                                 //请好友列表/更新好友列表
 
     MSG_GROUP_SEARCH = 0x31,                           //查找群
     MSG_GROUP_CREATE,                                  //创建群
@@ -98,6 +99,14 @@ enum MsgCommand
 
     MSG_OTHER_HEAT = 0x41                              //心跳报
 };
+
+//通用json操作结果status
+enum MsgOperateResponse
+{
+    STATUS_SUCCESS,
+    STATUS_FAILE
+};
+
 
 //性别
 enum Sexual
@@ -296,13 +305,14 @@ public:
 };
 
 /***********************查询好友**********************/
-struct SearchResult
+struct SimpleUserInfo
 {
     QString accountId;                      //账号
     QString nickName;                       //昵称
     QString signName;                       //签名
     unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
     QString customImgId;                    //头像信息(face为0时有效)
+    QString remarks;                        //备注名
 };
 
 enum SearchType
@@ -324,7 +334,7 @@ class SearchFriendResponse : public MsgPacket
 public:
     SearchFriendResponse();
 
-    QList<SearchResult> result;              //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
+    QList<SimpleUserInfo> result;              //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
 };
 
 /***********************添加好友**********************/
@@ -334,7 +344,7 @@ public:
     AddFriendRequest();
     SearchType stype;                        //添加人或群
     QString accountId;                       //自己id
-    QString friendId;                        //想添加的用户或群ID
+    QString operateId;                       //想添加的用户或群ID
 };
 
 class AddFriendResponse : public MsgPacket
@@ -349,6 +359,7 @@ class OperateFriendRequest : public MsgPacket
 public:
     OperateFriendRequest();
     OperateFriend type;
+    SearchType stype;                        //添加人或群
     int result;                              //type为FRIEND_APPLY时，对应ResponseFriendApply；type为FRIEND_DELETE，对应ResponseDeleteFriend
     QString accountId;
     QString operateId;                       //待操作的好友ID。type为请求时，代表请求方ID；type为删除时，代表待删除ID
@@ -359,9 +370,34 @@ class OperateFriendResponse : public MsgPacket
 public:
     OperateFriendResponse();
     OperateFriend type;
+    SearchType stype;                        //添加人或群
     int result;
     QString accountId;
-    SearchResult requestInfo;
+    SimpleUserInfo requestInfo;
+};
+
+/***********************联系人列表操作**********************/
+struct RGroupData
+{
+    QString groupId;
+    QString groupName;
+    bool isDefault;
+    QList<SimpleUserInfo> users;
+};
+
+class FriendListRequest : public MsgPacket
+{
+public:
+    FriendListRequest();
+    QString accountId;
+};
+
+class FriendListResponse : public MsgPacket
+{
+public:
+    FriendListResponse();
+    QString accountId;
+    QList<RGroupData *> groups;
 };
 
 }
