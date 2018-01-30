@@ -44,6 +44,7 @@ void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
             }
         }
     }
+    BaseTextEdit::keyPressEvent(event);
 }
 
 void SimpleTextEdit::clear()
