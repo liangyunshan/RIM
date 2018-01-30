@@ -28,6 +28,7 @@ public:
     void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
+    void onRecvFriendList(FriendListResponse * response);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
@@ -36,6 +37,7 @@ signals:
     void recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
+    void recvFriendList(FriendListResponse * response);
 
 private:
     MessDiapatch(QObject *parent = 0);

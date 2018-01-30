@@ -246,7 +246,7 @@ void AddFriend::addFriend()
         AddFriendRequest * request = new AddFriendRequest;
         request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
         request->accountId = G_UserBaseInfo.accountId;
-        request->friendId = d->searchList->selectedItem()->getName();
+        request->operateId = d->searchList->selectedItem()->getName();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
 }
@@ -332,7 +332,8 @@ void AddFriend::recvAddFriendResponse(ResponseAddFriend status)
 void AddFriend::itemSelected(ToolItem * item)
 {
     MQ_D(AddFriend);
-    if(item)
+    //TODO 判断是否已经是添加过的联系人
+    if(item && item->getName() != G_UserBaseInfo.accountId)
     {
         d->enableSearch(true);
     }

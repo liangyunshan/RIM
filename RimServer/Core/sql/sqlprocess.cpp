@@ -12,17 +12,20 @@
 #include "Util/rutil.h"
 #include "constants.h"
 #include "rpersistence.h"
+#include "Util/rlog.h"
 
 QMutex ACCOUNT_LOCK;
 
 int G_BaseAccountId = 0;
+
+#define SQL_ERROR -1
 
 SQLProcess::SQLProcess()
 {
 
 }
 
-ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest *request, QString &id)
+ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest *request, QString &id,QString & uuid)
 {
     DataTable::RimConfig config;
     bool sqlError = true;
@@ -33,7 +36,6 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
         RSelect rst(config.table);
         rst.select(config.value);
         rst.createCriteria().add(Restrictions::eq(config.name,config.accuoutId));
-//        rst.addCondition(config.name,config.accuoutId);
 
         QSqlQuery query(db->sqlDatabase());
         if(query.exec(rst.sql()))
@@ -59,9 +61,10 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
         return REGISTER_FAILED;
     }
 
-    DataTable::User user;
+    DataTable::RUser user;
     RPersistence rpc(user.table);
-    rpc.insert(user.id,RUtil::UUID());
+    uuid = RUtil::UUID();
+    rpc.insert(user.id,uuid);
     rpc.insert(user.account,QString::number(G_BaseAccountId));
     rpc.insert(user.password,request->password);
     rpc.insert(user.nickName,request->nickName);
@@ -88,7 +91,7 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
 
 ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *request)
 {
-    DataTable::User user;
+    DataTable::RUser user;
 
     RSelect rst(user.table);
     rst.select(user.password);
@@ -120,7 +123,7 @@ ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *req
 
 ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest *request)
 {
-    DataTable::User user;
+    DataTable::RUser user;
 
     RUpdate rpd(user.table);
     rpd.update(user.nickName,request->baseInfo.nickName);
@@ -147,8 +150,8 @@ ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateB
 
 ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequest *request, SearchFriendResponse *response)
 {
-    DataTable::User user;
-    DataTable::ChatRoom room;
+    DataTable::RUser user;
+    DataTable::RChatRoom room;
 
     QString sql;
     if(request->stype == SearchPerson)
@@ -178,7 +181,7 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
         {
             while(query.next())
             {
-                SearchResult result;
+                SimpleUserInfo result;
                 result.accountId = query.value(user.account).toString();
                 result.nickName = query.value(user.nickName).toString();
                 result.signName = query.value(user.signName).toString();
@@ -196,15 +199,16 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     return FIND_FRIEND_FAILED;
 }
 
-ResponseAddFriend SQLProcess::processAddFriend(Database *db, AddFriendRequest *request)
+ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accountId,QString operateId,int type)
 {
     DataTable::RequestCache rc;
 
     RPersistence rps(rc.table);
 
     rps.insert(rc.id,RUtil::UUID());
-    rps.insert(rc.account,request->friendId);
-    rps.insert(rc.requestId,request->accountId);
+    rps.insert(rc.account,accountId);
+    rps.insert(rc.operateId,operateId);
+    rps.insert(rc.type,type);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))
@@ -215,9 +219,189 @@ ResponseAddFriend SQLProcess::processAddFriend(Database *db, AddFriendRequest *r
     return ADD_FRIEND_SENDED_FAILED;
 }
 
+/*!
+     * @brief 创建用户分组
+     * @param[in] db 数据库
+     * @param[in] userId User表Id
+     * @param[in] groupName 分组名
+     * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
+     * @return 是否创建成功
+     */
+bool SQLProcess::createGroup(Database *db, QString userId, QString groupName, bool isDefault)
+{
+    DataTable::RGroup rgp;
+    RPersistence rps(rgp.table);
+    rps.insert(rgp.id,RUtil::UUID());
+    rps.insert(rgp.name,groupName);
+    rps.insert(rgp.userId,userId);
+    rps.insert(rgp.defaultGroup,(int)isDefault);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rps.sql()))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/*!
+     * @brief 建立两个用户之间的关系
+     * @param[in] db 数据库
+     * @param[in] request 操作请求
+     * @return 是否插入成功
+     */
+bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
+{
+    db->sqlDatabase().transaction();
+    try
+    {
+        QSqlQuery query(db->sqlDatabase());
+        QString idA,nickNameA,idB,nickNameB;
+
+        DataTable::RUser user;
+        RSelect rsA(user.table);
+        rsA.select(user.id);
+        rsA.select(user.nickName);
+        rsA.createCriteria().add(Restrictions::eq(user.account,request->accountId));
+
+        if(!query.exec(rsA.sql()))
+        {
+            throw __LINE__;
+        }
+
+        if(query.next())
+        {
+            idA = query.value(user.id).toString();
+            nickNameA = query.value(user.nickName).toString();
+        }
+
+        RSelect rsB(user.table);
+        rsB.select(user.id);
+        rsB.select(user.nickName);
+        rsB.createCriteria().add(Restrictions::eq(user.account,request->operateId));
+
+        if(!query.exec(rsB.sql()))
+        {
+            throw __LINE__;
+        }
+
+        if(query.next())
+        {
+            idB = query.value(user.id).toString();
+            nickNameB = query.value(user.nickName).toString();
+        }
+
+        QString defaultGroupA = getDefaultGroupByUser(db,idA);
+        QString defaultGroupB = getDefaultGroupByUser(db,idB);
+
+        if(defaultGroupA.size() <= 0 ||defaultGroupB.size() <= 0)
+        {
+            throw __LINE__;
+        }
+
+        DataTable::RGroup_User rgu;
+        RPersistence rpsA(rgu.table);
+        rpsA.insert(rgu.id,RUtil::UUID());
+        rpsA.insert(rgu.groupId,defaultGroupA);
+        rpsA.insert(rgu.userId,idB);
+        rpsA.insert(rgu.remarks,nickNameB);
+
+        if(!query.exec(rpsA.sql()))
+        {
+            throw __LINE__;
+        }
+
+        RPersistence rpsB(rgu.table);
+        rpsB.insert(rgu.id,RUtil::UUID());
+        rpsB.insert(rgu.groupId,defaultGroupB);
+        rpsB.insert(rgu.userId,idA);
+        rpsB.insert(rgu.remarks,nickNameA);
+
+        if(!query.exec(rpsB.sql()))
+        {
+            throw __LINE__;
+        }
+
+        db->sqlDatabase().commit();
+
+        return true;
+    }
+    catch(int value)
+    {
+        RLOG_ERROR("Execute sql error line:%1",value);
+        db->sqlDatabase().rollback();
+    }
+
+    return false;
+}
+
+//获取好友列表
+bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListResponse *response)
+{
+    DataTable::RUser user;
+    DataTable::RGroup group;
+    DataTable::RGroup_User groupUser;
+    RSelect rst(user.table);
+    rst.select(user.id);
+    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next())
+    {
+        QString uid = query.value(user.id).toString();
+
+        QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.face,ru.faceid,rr.remarks,rp.defaul,rp.id,rp.name  from rgroup_user rr left join  rgroup\
+                              rp on rr.gid = rp.id left join ruser ru on rr.uid = ru.id where rp.uid = '%1' ").arg(uid);
+        if(query.exec(sql))
+        {
+            while(query.next())
+            {
+                SimpleUserInfo simpleUserInfo;
+
+                QString groupId = query.value(group.id).toString();
+                RGroupData * groupData = NULL;
+
+                for(int i = 0; i < response->groups.size(); i++)
+                {
+                    if(response->groups.at(i)->groupId == groupId)
+                    {
+                        groupData = response->groups.at(i);
+                        break;
+                    }
+                }
+
+                if(groupData == NULL)
+                {
+                    groupData = new RGroupData;
+                    groupData->groupId = groupId;
+                    groupData->groupName = query.value(group.name).toString();
+                    groupData->isDefault = query.value(group.defaultGroup).toBool();
+                    response->groups.append(groupData);
+                }
+
+                simpleUserInfo.accountId = query.value(user.account).toString();
+                simpleUserInfo.nickName = query.value(user.nickName).toString();
+                simpleUserInfo.signName = query.value(user.signName).toString();
+                simpleUserInfo.face = query.value(user.face).toUInt();
+                simpleUserInfo.customImgId = query.value(user.faceId).toString();
+                simpleUserInfo.remarks = query.value(groupUser.remarks).toString();
+
+                groupData->users.append(simpleUserInfo);
+
+                query.value(group.defaultGroup).toString();
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
 {
-    DataTable::User user;
+    DataTable::RUser user;
 
     RSelect rst(user.table);
     rst.createCriteria().add(Restrictions::eq(user.account,accountId));
@@ -240,5 +424,25 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             userInfo.customImgId = query.value(user.faceId).toString();
         }
     }
+}
+
+//根据User表ID查找用户默认分组
+QString SQLProcess::getDefaultGroupByUser(Database *db, const QString id)
+{
+    DataTable::RGroup group;
+
+    RSelect rs(group.table);
+    rs.select(group.id);
+    rs.createCriteria().add(Restrictions::eq(group.userId,id)).add(Restrictions::eq(group.defaultGroup,1));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rs.sql()))
+    {
+        if(query.next())
+        {
+            return query.value(group.id).toString();
+        }
+    }
+    return QString();
 }
 

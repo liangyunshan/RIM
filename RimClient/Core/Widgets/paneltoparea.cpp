@@ -7,6 +7,7 @@
 
 #include "datastruct.h"
 #include "constants.h"
+#include "global.h"
 #include "head.h"
 #include "Util/imagemanager.h"
 #include "rsingleton.h"
@@ -78,12 +79,12 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel = new QLabel(contentWidget);
     userNikcNameLabel->setObjectName("Panel_Top_UserNikcNameLabel");
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userNikcNameLabel->setText(QStringLiteral("一路向北"));
+    userNikcNameLabel->setText(G_UserBaseInfo.nickName);
 
     userSignNameEdit = new QLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userSignNameEdit->setText(QStringLiteral("Say Something"));
+    userSignNameEdit->setText(G_UserBaseInfo.signName);
 
     extendToolWiget = new QWidget(contentWidget);
     extendToolWiget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
