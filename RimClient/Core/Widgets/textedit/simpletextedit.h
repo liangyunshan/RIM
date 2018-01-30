@@ -1,6 +1,6 @@
 ﻿/*!
  *  @brief     简单文本编辑区
- *  @details   可设置输入的
+ *  @details   输入聊天内容，按快捷键Enter或Ctrl+Enter发送
  *  @file      simpletextedit.h
  *  @author    wey
  *  @version   1.0
