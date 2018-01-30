@@ -337,7 +337,7 @@ class SearchFriendResponse : public MsgPacket
 public:
     SearchFriendResponse();
 
-    QList<SimpleUserInfo> result;              //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
+    QList<SimpleUserInfo> result;            //在status为FIND_FRIEND_FOUND字段时，填充查找的结果
 };
 
 /***********************添加好友**********************/
@@ -441,6 +441,19 @@ public:
     GroupingType gtype;                     //分组类型
     QString groupId;                        //分组ID
     OperateGrouping type;                   //分组操作类型
+};
+
+/*********************聊天信息操作**********************/
+class TextRequest : public MsgPacket
+{
+public:
+    TextRequest();
+
+    QString accountId;                      //用户自己ID
+    SearchType type;                        //联系人or群消息
+    QString destAccountId;                  //对方ID
+    qint64 timeStamp;                       //时间戳
+    QString sendData;                       //发送数据
 };
 
 }

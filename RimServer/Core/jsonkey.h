@@ -52,7 +52,9 @@ public:
         IsDefault,
         Users,
         Groups,
-        GroupType
+        GroupType,
+        DestId,
+        Time
     };
     Q_FLAG(KeyId)
 

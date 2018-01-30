@@ -28,6 +28,7 @@ public:
 
     static QString getTimeStamp(QString format = "yyyy-MM-dd hh:mm:ss:zzz");
     static QString getDate(QString format = "yyyy-MM-dd");
+    static qint64 timeStamp();
 
     static void setGlobalSettings(QSettings * settings);
     static QSettings * globalSettings();

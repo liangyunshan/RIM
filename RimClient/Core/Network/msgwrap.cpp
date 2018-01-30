@@ -52,6 +52,20 @@ void MsgWrap::handleMsg(MsgPacket *packet)
 
 }
 
+void MsgWrap::hanleText(TextRequest *packet)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::DestId),packet->destAccountId);
+    data.insert(JsonKey::key(JsonKey::SearchType),packet->type);
+    data.insert(JsonKey::key(JsonKey::Time),packet->timeStamp);
+    //TODO 数据压缩
+    data.insert(JsonKey::key(JsonKey::Data),packet->sendData);
+
+    wrappedPack(packet,data);
+}
+
 //处理用户登陆
 void MsgWrap::handleLoginRequest(LoginRequest *packet)
 {

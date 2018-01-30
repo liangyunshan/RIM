@@ -14,6 +14,7 @@
 #include "actionmanager/actionmanager.h"
 #include "rsingleton.h"
 #include "Network/msgwrap.h"
+#include "user/userclient.h"
 
 #include "toolbox/toolbox.h"
 #include "protocoldata.h"
@@ -113,6 +114,11 @@ void PanelPersonPage::addGroupAndUsers()
             item->setNickName(userInfo.nickName);
             item->setDescInfo(userInfo.signName);
             page->addItem(item);
+
+            UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo.accountId);
+            client->simpleUserInfo = userInfo;
+            client->toolItem = item;
+
             d->toolItems.append(item);
         }
 

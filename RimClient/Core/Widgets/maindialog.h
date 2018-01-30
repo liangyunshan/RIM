@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
+ *      20180130:wey:
  */
 #ifndef MAINDIALOG_H
 #define MAINDIALOG_H

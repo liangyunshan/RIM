@@ -26,6 +26,7 @@ public:
     MsgWrap();
 
     void handleMsg(MsgPacket * packet);
+    void hanleText(TextRequest *packet);
 
 private:
     void handleRegistRequest(RegistRequest *packet);

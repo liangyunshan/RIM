@@ -104,5 +104,10 @@ GroupingResponse::GroupingResponse()
     msgCommand = MSG_GROUPING_OPERATE;
 }
 
+TextRequest::TextRequest()
+{
+    msgType = MSG_TEXT;
+}
+
 
 } //namespace Protocol
