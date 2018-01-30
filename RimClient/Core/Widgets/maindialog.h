@@ -53,6 +53,10 @@ private slots:
     void showPersonalEditWindow();
     void updateEditInstance();
 
+    void updateFriendList(FriendListResponse * friendList);
+    void recvGroupingOperate(GroupingResponse response);
+    void errorGroupingOperate(OperateGrouping type);
+
 private:
     void initWidget();
     void readSettings();

@@ -39,6 +39,7 @@ private slots:
 
 private:
     EditPersonInfoWindowPrivate * d_ptr;
+    QSharedPointer<Observer> share_pointer;
 };
 
 #endif // EDITPERSONINFOWINDOW_H

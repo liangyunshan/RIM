@@ -92,5 +92,17 @@ FriendListResponse::FriendListResponse()
     msgCommand = MSG_RELATION_LIST;
 }
 
+GroupingRequest::GroupingRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUPING_OPERATE;
+}
+
+GroupingResponse::GroupingResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUPING_OPERATE;
+}
+
 
 } //namespace Protocol

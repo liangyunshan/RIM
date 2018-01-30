@@ -29,6 +29,8 @@ public:
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
     void onRecvFriendList(FriendListResponse * response);
+    void onRecvGroupingOperate(GroupingResponse response);
+    void onErrorGroupingOperate(OperateGrouping type);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
@@ -38,6 +40,8 @@ signals:
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
     void recvFriendList(FriendListResponse * response);
+    void recvGroupingOperate(GroupingResponse response);
+    void errorGroupingOperate(OperateGrouping type);
 
 private:
     MessDiapatch(QObject *parent = 0);

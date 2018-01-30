@@ -24,6 +24,7 @@ public:
 
     enum KeyId
     {
+        Uuid,
         Type,
         Command,
         Data,
@@ -50,7 +51,8 @@ public:
         GroupName,
         IsDefault,
         Users,
-        Groups
+        Groups,
+        GroupType
     };
     Q_FLAG(KeyId)
 

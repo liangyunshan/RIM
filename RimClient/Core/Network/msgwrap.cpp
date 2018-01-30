@@ -43,6 +43,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_RELATION_LIST:
                                             handleFriendListRequest((FriendListRequest *)packet);
                                             break;
+        case MsgCommand::MSG_GROUPING_OPERATE:
+                                            handleGroupingOperateRequest((GroupingRequest *)packet);
+                                            break;
         default:
                 break;
     }
@@ -126,6 +129,19 @@ void MsgWrap::handleFriendListRequest(FriendListRequest *packet)
 {
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    wrappedPack(packet,data);
+}
+
+//处理用户分组操作
+void MsgWrap::handleGroupingOperateRequest(GroupingRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::GroupType),packet->gtype);
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::GroupName),packet->groupName);
+
     wrappedPack(packet,data);
 }
 

@@ -76,6 +76,10 @@ MainDialog::MainDialog(QWidget *parent) :
     ScreenShot::instance();
     initSqlDatabase();
     initWidget();
+
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
+    connect(MessDiapatch::instance(),SIGNAL(recvGroupingOperate(GroupingResponse)),this,SLOT(recvGroupingOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
 }
 
 MainDialog::~MainDialog()
@@ -241,6 +245,68 @@ void MainDialog::updateEditInstance()
 {
    MQ_D(MainDialog);
    d->editWindow = NULL;
+}
+
+void MainDialog::updateFriendList(FriendListResponse *friendList)
+{
+    QList<RGroupData *>::iterator iter = G_FriendList.begin();
+    while(iter != G_FriendList.end())
+    {
+        delete (*iter);
+        iter = G_FriendList.erase(iter);
+    }
+    G_FriendList.clear();
+
+    QList<RGroupData *>::iterator fiter = friendList->groups.begin();
+    while(fiter != friendList->groups.end())
+    {
+        RGroupData * recvData = (*fiter);
+        RGroupData * data = new RGroupData;
+        data->groupId = recvData->groupId;
+        data->groupName = recvData->groupName;
+        data->isDefault = recvData->isDefault;
+        data->users = recvData->users;
+
+        G_FriendList.append(data);
+
+        fiter = friendList->groups.erase(fiter);
+    }
+    friendList->groups.clear();
+    delete friendList;
+
+    RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
+}
+
+//TODO 根据服务器返回的信息更新本地分组信息
+void MainDialog::recvGroupingOperate(GroupingResponse response)
+{
+
+}
+
+void MainDialog::errorGroupingOperate(OperateGrouping type)
+{
+    QString errorInfo;
+    switch(type)
+    {
+        case GROUPING_CREATE:
+                            {
+                                errorInfo = QObject::tr("Create group failed!");
+                            }
+                            break;
+        case GROUPING_RENAME:
+                            {
+                                errorInfo = QObject::tr("Rename group failed!");
+                            }
+                            break;
+        case GROUPING_DELETE:
+                            {
+                                errorInfo = QObject::tr("Delete group failed!");
+                            }
+                            break;
+        default:break;
+    }
+
+    RMessageBox::warning(this,"warning",errorInfo,RMessageBox::Yes);
 }
 
 void MainDialog::initWidget()

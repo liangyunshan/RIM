@@ -7,6 +7,10 @@
  *  @date      2018.01.15
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20170128:wey:添加联系人请求
+ *      20170129:wey:添加好友列表请求
+ *      20170130:wey:添加分组操作请求
  */
 #ifndef MSGWRAP_H
 #define MSGWRAP_H
@@ -31,6 +35,7 @@ private:
     void handleAddFriendRequest(AddFriendRequest * packet);
     void handleOperateFriendRequest(OperateFriendRequest * packet);
     void handleFriendListRequest(FriendListRequest *packet);
+    void handleGroupingOperateRequest(GroupingRequest *packet);
 
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 

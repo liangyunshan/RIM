@@ -97,6 +97,8 @@ enum MsgCommand
     MSG_GROUP_VIEW_INFO,                               //查看群信息
     MSG_GROUP_UPDATE_INFO,                             //更新群信息
 
+    MSG_GROUPING_OPERATE = 0x51,                       //联系人、群分组操作，操作类型见OperateGrouping
+
     MSG_OTHER_HEAT = 0x41                              //心跳报
 };
 
@@ -238,6 +240,7 @@ public:
 /************************登  陆**********************/
 struct UserBaseInfo
 {
+    QString uuid;                           //数据库数据ID
     QString accountId;                      //账号
     QString nickName;                       //昵称
     QString signName;                       //签名
@@ -398,6 +401,46 @@ public:
     FriendListResponse();
     QString accountId;
     QList<RGroupData *> groups;
+};
+
+/**********************分组操作**********************/
+//分组类型
+enum GroupingType
+{
+    GROUPING_FRIEND,                //联系人分组
+    GROUPING_GROUP                  //群分组
+};
+
+//对于联系人/群分组操作种类
+enum OperateGrouping
+{
+    GROUPING_CREATE,                //创建分组
+    GROUPING_RENAME,                //重命名分组
+    GROUPING_DELETE,                //删除分组
+    GROUPING_SORT                   //分组排序
+};
+
+class GroupingRequest : public MsgPacket
+{
+public:
+    GroupingRequest();
+    QString uuid;                           //联系人uuid
+    QString groupId;                        //分组ID(创建分组时无需填写)
+    GroupingType gtype;                     //分组类型
+    OperateGrouping type;                   //分组操作类型
+    QString groupName;                      //分组名称
+
+    //int groupIndex;                       //分组序号
+};
+
+class GroupingResponse : public MsgPacket
+{
+public:
+    GroupingResponse();
+    QString uuid;                           //联系人uuid
+    GroupingType gtype;                     //分组类型
+    QString groupId;                        //分组ID
+    OperateGrouping type;                   //分组操作类型
 };
 
 }

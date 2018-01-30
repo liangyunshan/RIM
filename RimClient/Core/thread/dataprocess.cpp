@@ -44,6 +44,7 @@ void DataProcess::proLoginResponse(QJsonObject &data)
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
         {
+            response.baseInfo.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
             response.baseInfo.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
             response.baseInfo.nickName = dataObj.value(JsonKey::key(JsonKey::NickName)).toString();
             response.baseInfo.signName = dataObj.value(JsonKey::key(JsonKey::SignName)).toString();
@@ -206,6 +207,25 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
         }
 
         MessDiapatch::instance()->onRecvFriendList(response);
+    }
+    else
+    {
+
+    }
+}
+
+void DataProcess::proGroupingOperateResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        GroupingResponse response;
+        response.gtype = (GroupingType)dataObj.value(JsonKey::key(JsonKey::GroupType)).toInt();
+        response.type = (OperateGrouping) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+        response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
+        MessDiapatch::instance()->onRecvGroupingOperate(response);
     }
     else
     {

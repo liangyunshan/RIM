@@ -367,7 +367,6 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr(new AbstractChatWidgetPrivate(this)),
     Widget(parent)
 {
-    RSingleton<Subject>::instance()->attach(this);
     setMinimumHeight(CHAT_MIN_HEIGHT);
     setWindowFlags(windowFlags() &(~Qt::Tool));
 
@@ -377,17 +376,16 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     initChatRecord();
 
-
     d_ptr->p_shakeTimer = NULL;
     d_ptr->b_isScreeHide = false;
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
+
+    RSingleton<Subject>::instance()->attach(this);
 }
 
 AbstractChatWidget::~AbstractChatWidget()
 {
-    RSingleton<Subject>::instance()->detach(this);
-
     if(d_ptr->p_shotProcess)
     {
         delete d_ptr->p_shotProcess;
