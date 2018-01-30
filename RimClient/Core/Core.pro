@@ -26,7 +26,7 @@ CONFIG(debug, debug|release) {
   } else {
     DESTDIR = ../Bin
   }
-} else {
+} else {__NO_SERVER__
   contains(TEMPLATE, "lib") {
     DESTDIR = ../Lib
     DLLDESTDIR = ../Bin
