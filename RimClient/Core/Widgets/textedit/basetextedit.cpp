@@ -17,6 +17,7 @@
 #include <QStandardPaths>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QTextCursor>
 #include "global.h"
 
 #include <QDebug>
@@ -24,6 +25,7 @@
 BaseTextEdit::BaseTextEdit(QWidget *parent):
     QTextEdit(parent)
 {
+    this->setStyleSheet("border:0px;border-radius:3px;");
     this->installEventFilter(this);
 }
 
@@ -476,13 +478,11 @@ void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 {
     if(e->mimeData()->hasFormat("text/uri-list")) //只能打开文本文件
     {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"e->mimeData()->hasFormat(\"text/uri-listb\")"
-              <<"\n";
         e->acceptProposedAction(); //可以在这个窗口部件上拖放对象
     }
 }
 
+//处理拖拽进来的文件
 void BaseTextEdit::dropEvent(QDropEvent *e) //释放对方时，执行的操作
 {
     QList<QUrl> urls = e->mimeData()->urls();
@@ -492,25 +492,11 @@ void BaseTextEdit::dropEvent(QDropEvent *e) //释放对方时，执行的操作
     QString fileName = urls.first().toLocalFile();
 
     foreach (QUrl u, urls) {
-        qDebug()<<__FUNCTION__<<u.toString();
+        this->insertPlainText(QString("%1 - %2").arg(u.toString()).arg("Drag File"));
     }
-    qDebug()<< urls.size();
 
     if(fileName.isEmpty())
         return;
 
-    if(readFile(fileName))
-        setWindowTitle(tr("%1 - %2").arg(fileName).arg("Drag File"));
-}
-
-bool BaseTextEdit::readFile(const QString &fileName) //读文件
-{
-//    QFile file(fileName);
-//    if(!file.open(QFile::ReadOnly | QFile::Text))
-//          return false;
-
-//    QByteArray data;
-//    data = file.readAll();
-//    this->setText(QString::fromLocal8Bit(data));
-    return true;
+    //TODO:发送该文件
 }

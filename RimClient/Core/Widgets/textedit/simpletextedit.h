@@ -20,6 +20,9 @@ public:
     SimpleTextEdit(QWidget * parent = 0 );
     ~SimpleTextEdit();
 
+    void setInputColor(QColor);
+    void setInputFont(QFont);
+    void updateInputInfo();
     void clear();
 
 protected:
@@ -32,7 +35,8 @@ private slots:
     void slot_TextChanged();
 
 private:
-    QColor m_Fontcolor;
+    QColor m_fontcolor;
+    QFont  m_inputFont;
 };
 
 #endif // SIMPLETEXTEDIT_H

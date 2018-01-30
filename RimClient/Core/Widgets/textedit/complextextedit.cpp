@@ -13,13 +13,12 @@ ComplexTextEdit::ComplexTextEdit(QWidget *parent):
 {
     m_ShowType = TextUnit::Type_NotOnlyHead;
 
-    QFont frindFont("Times", 10, QFont::Bold);
-    QFont meFont("Times", 10, QFont::Bold);
+    QFont frindFont(tr("wryh"), 10, QFont::Bold);
+    QFont meFont(tr("wryh"), 10, QFont::Bold);
 
     m_Type_Default_Format.setForeground(Qt::black);
     m_Type_UserHead_Friend_Format.setForeground(Qt::blue);
     m_Type_UserHead_Friend_Format.setFont(frindFont);
-//    m_Type_UserHead_Me_Format.setForeground(Qt::darkGreen);
     m_Type_UserHead_Me_Format.setForeground(QBrush(QColor(0,128,64)));
     m_Type_UserHead_Me_Format.setFont(meFont);
     m_Type_UserHead_Me_Format.setVerticalAlignment(QTextCharFormat::AlignMiddle);
@@ -118,61 +117,65 @@ void ComplexTextEdit::setChatFont(const QFont &font, TextUnit::BaseTextEditType 
 //添加对方的聊天内容
 void ComplexTextEdit::insertFriendChatText(const TextUnit::ChatInfoUnit record)
 {
+    QTextFrameFormat frameFormat;                  //创建框架格式
+    frameFormat.setBackground(Qt::white);           //设置背景色
+    frameFormat.setMargin(3);
+    frameFormat.setBorder(1);
+
+    QTextBlockFormat blockFormat_head = QTextBlockFormat();
+    blockFormat_head.setLeftMargin(1);
+    blockFormat_head.setRightMargin(1);
+    blockFormat_head.setTopMargin(1);
+    blockFormat_head.setBottomMargin(1);
+
+    QTextBlockFormat blockFormat_contents = QTextBlockFormat();
+    blockFormat_contents.setLeftMargin(15);
+    blockFormat_contents.setRightMargin(15);
+    blockFormat_contents.setTopMargin(3);
+    blockFormat_contents.setBottomMargin(10);
+
     //描述聊天信息的用户标识和时间标识等，目前采用固定的格式
-    //头像+用户名+聊天信息时间戳
-    QFontMetrics fontMetrics(m_Type_UserHead_Friend_Format.font());
-    int fontheight = fontMetrics.height();
-    QImage image(record.user.head);
-    image = image.scaled(fontheight,fontheight);
+    //用户名+聊天信息时间戳
+    QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
 
-    QString me = QObject::tr("%1 %2").arg(record.user.name).arg(record.time);
-    this->textCursor().insertText(me ,m_Type_UserHead_Friend_Format);
-    //
-
-    //显示聊天信息
     this->moveCursor(QTextCursor::End);
-    QTextFrameFormat frameFormat_chatinfo;                  //创建框架格式
-    frameFormat_chatinfo.setBackground(Qt::white);          //设置背景色
-    frameFormat_chatinfo.setMargin(3);                      //设置边距
-    frameFormat_chatinfo.setLeftMargin(15);                 //设置左边距
-    frameFormat_chatinfo.setBottomMargin(9);                //设置边距
-    frameFormat_chatinfo.setPadding(3);                     //设置填充
-    frameFormat_chatinfo.setBorder(0);                      //设置边界宽度
-    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
+    QTextCursor cursor  = this->textCursor();
+    cursor.insertBlock(blockFormat_head);
+    cursor.insertText(me ,m_Type_UserHead_Friend_Format);
+    cursor.insertBlock(blockFormat_contents);
     this->insertChatFormatText(record.contents);
-    //
-
-    this->moveCursor(QTextCursor::End);
 }
 
 //添加自己发送的聊天信息
 void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
 {
-    this->moveCursor(QTextCursor::End);
+    QTextFrameFormat frameFormat;                  //创建框架格式
+    frameFormat.setBackground(Qt::white);           //设置背景色
+    frameFormat.setMargin(3);
+    frameFormat.setBorder(1);
+
+    QTextBlockFormat blockFormat_head = QTextBlockFormat();
+    blockFormat_head.setLeftMargin(1);
+    blockFormat_head.setRightMargin(1);
+    blockFormat_head.setTopMargin(1);
+    blockFormat_head.setBottomMargin(1);
+
+    QTextBlockFormat blockFormat_contents = QTextBlockFormat();
+    blockFormat_contents.setLeftMargin(15);
+    blockFormat_contents.setRightMargin(15);
+    blockFormat_contents.setTopMargin(3);
+    blockFormat_contents.setBottomMargin(10);
 
     //描述聊天信息的用户标识和时间标识等，目前采用固定的格式
-    //头像+用户名+聊天信息时间戳
-    QFontMetrics fontMetrics(m_Type_UserHead_Me_Format.font());
-    int fontheight = fontMetrics.height();
-    QImage image(record.user.head);
-    image = image.scaled(fontheight,fontheight);
-
+    //用户名+聊天信息时间戳
     QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
-    this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
-    //
 
-    //显示聊天信息
     this->moveCursor(QTextCursor::End);
-    QTextFrameFormat frameFormat_chatinfo;                  //创建框架格式
-    frameFormat_chatinfo.setBackground(Qt::white);          //设置背景色
-    frameFormat_chatinfo.setMargin(3);                      //设置边距
-    frameFormat_chatinfo.setLeftMargin(15);                 //设置左边距
-    frameFormat_chatinfo.setBottomMargin(9);                //设置边距
-    frameFormat_chatinfo.setPadding(3);                     //设置填充
-    frameFormat_chatinfo.setBorder(0);                      //设置边界宽度
-    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
+    QTextCursor cursor  = this->textCursor();
+    cursor.insertBlock(blockFormat_head);
+    cursor.insertText(me ,m_Type_UserHead_Me_Format);
+    cursor.insertBlock(blockFormat_contents);
     this->insertChatFormatText(record.contents);
-    //
 
     //
 //    this->moveCursor(QTextCursor::End);
@@ -181,7 +184,6 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
 //    this->insertPlainText(record.contents);
     //
 
-    this->moveCursor(QTextCursor::End);
 }
 
 //添加标注提示信息

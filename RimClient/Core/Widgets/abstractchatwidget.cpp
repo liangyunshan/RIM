@@ -486,10 +486,7 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
     QFont font = QFontDialog::getFont(
                   &ok, QFont("Helvetica [Cronyx]", 10), this);
     if (ok) {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"font:"<<font
-              <<"\n";
-        d_ptr->chatInputArea->setFont(font);
+        d_ptr->chatInputArea->setInputFont(font);
     } else {
 
     }
@@ -501,7 +498,7 @@ void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
     Q_UNUSED(flag)
 
     QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
-    d_ptr->chatInputArea->setTextColor(color);
+    d_ptr->chatInputArea->setInputColor(color);
 }
 
 //实现窗口抖动
@@ -701,6 +698,6 @@ void AbstractChatWidget::initChatRecord()
             d_ptr->p_DatabaseThread,SLOT(deleteLater()));
     d_ptr->p_DatabaseThread->start();
 
-    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,DatabaseManager::Instance()->querryRecords(TestUserId,5));
+    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,DatabaseManager::Instance()->querryRecords(TestUserId,20));
 }
 

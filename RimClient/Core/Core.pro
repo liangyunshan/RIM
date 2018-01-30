@@ -124,7 +124,8 @@ SOURCES += \
     application.cpp \
     media/mediaplayer.cpp \
     Widgets/notifywindow.cpp \
-    Widgets/systemnotifyview.cpp
+    Widgets/systemnotifyview.cpp \
+    Widgets/textedit/chattextframe.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -191,7 +192,8 @@ HEADERS  += \
     application.h \
     media/mediaplayer.h \
     Widgets/notifywindow.h \
-    Widgets/systemnotifyview.h
+    Widgets/systemnotifyview.h \
+    Widgets/textedit/chattextframe.h
 
 DISTFILES += \
     Widgets/Widgets.pri

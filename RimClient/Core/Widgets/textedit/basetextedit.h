@@ -49,9 +49,6 @@ protected:
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
 
-private:
-    bool readFile(const QString &fileName);
-
 };
 
 #endif // BASETEXTEDIT_H
