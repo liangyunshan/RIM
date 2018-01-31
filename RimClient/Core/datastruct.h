@@ -93,7 +93,8 @@ struct NotifyInfo
 };
 
 const int TestUserId = 123456;
-namespace TextUnit {
+namespace TextUnit
+{
     enum ShowType{
         Type_OnlyHead = 0,
         Type_NotOnlyHead ,
@@ -136,12 +137,14 @@ namespace TextUnit {
     };//聊天内容字体描述
 
     struct ChatInfoUnit{
+        int rowid;
         UserInfo user;
         QString time;
         UserChatFont font;
         QString contents;
 
         ChatInfoUnit (){
+            rowid = 0;
             user.name = "Unknown";
             user.head = "Unknown";
             time = "";
@@ -156,19 +159,20 @@ namespace TextUnit {
 
     typedef QList<ChatInfoUnit> ChatInfoUnitList;
 
-    const QString _Sql_Table_01_Name_ = "UserList";
+    const QString _Sql_UserList_TableName_ = "UserList";
     const QString _Sql_UserList_UserId_ = "UserId";
     const QString _Sql_UserList_UserName_ = "UserName";
 
-    const QString _Sql_Table_02_Name_ = "User_";
+    const QString _Sql_User_TableName_ = "User_";
     const QString _Sql_User_UserId_ = "UserId";
     const QString _Sql_User_UserName_ = "UserName";
     const QString _Sql_User_Userhead_ = "Userhead";
     const QString _Sql_User_RecordTime_ = "RecordTime";
     const QString _Sql_User_RecordContents_ = "RecordContents";
     const QString _Sql_User_RecordTxt_ = "RecordTxt";
+    const QString _Sql_User_Rowid_ = "rowid";
 
-    const unsigned short DefaultQueryRow = 15;  //默认查找的记录数
+    const unsigned short DefaultQueryRow = 10;  //默认查找的记录数
 }
 
 namespace GroupPerson {

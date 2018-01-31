@@ -125,7 +125,8 @@ SOURCES += \
     media/mediaplayer.cpp \
     Widgets/notifywindow.cpp \
     Widgets/systemnotifyview.cpp \
-    Widgets/textedit/chattextframe.cpp
+    Widgets/textedit/chattextframe.cpp \
+    sql/sqlprocess.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -193,7 +194,9 @@ HEADERS  += \
     media/mediaplayer.h \
     Widgets/notifywindow.h \
     Widgets/systemnotifyview.h \
-    Widgets/textedit/chattextframe.h
+    Widgets/textedit/chattextframe.h \
+    sql/sqlprocess.h \
+    sql/sqlheader.h
 
 DISTFILES += \
     Widgets/Widgets.pri

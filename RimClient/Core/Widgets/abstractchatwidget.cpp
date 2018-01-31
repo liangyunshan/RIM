@@ -37,6 +37,7 @@
 #include "toolbar.h"
 #include "thread/databasethread.h"
 #include "sql/databasemanager.h"
+#include "sql/sqlprocess.h"
 #include "screenshot.h"
 
 #ifdef Q_OS_WIN
@@ -419,7 +420,7 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
     d_ptr->chatArea->insertMeChatText(readJson);
 
     //TODO:将记录写入到数据库
-    DatabaseManager::Instance()->insertTableUserChatInfo(readJson);
+    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),readJson);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -698,6 +699,7 @@ void AbstractChatWidget::initChatRecord()
             d_ptr->p_DatabaseThread,SLOT(deleteLater()));
     d_ptr->p_DatabaseThread->start();
 
-    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,DatabaseManager::Instance()->querryRecords(TestUserId,20));
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),TestUserId);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,SQLProcess::instance()->querryRecords(TestUserId,lastRow));
 }
 

@@ -12,6 +12,8 @@ ComplexTextEdit::ComplexTextEdit(QWidget *parent):
     BaseTextEdit(parent)
 {
     m_ShowType = TextUnit::Type_NotOnlyHead;
+    startRecordRowid = 0;
+    endRecordRowid = 0;
 
     QFont frindFont(tr("wryh"), 10, QFont::Bold);
     QFont meFont(tr("wryh"), 10, QFont::Bold);
@@ -184,6 +186,7 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
 //    this->insertPlainText(record.contents);
     //
 
+    compareRowId(record.rowid);
 }
 
 //添加标注提示信息
@@ -251,6 +254,19 @@ void ComplexTextEdit::addAnimation(const QUrl& url, const QString& fileName)
     delete file;
 }
 
+//鼠标滚动显示历史记录信息
+void ComplexTextEdit::wheelEvent(QWheelEvent *event)
+{
+    if(event->delta()>0)
+    {
+        qDebug()<<__FILE__<<__LINE__<<"\n"
+               <<""<<event
+              <<"\n";
+        //TODO: 查询是否有历史信息，并显示在聊天框
+    }
+    BaseTextEdit::wheelEvent(event);
+}
+
 void ComplexTextEdit::animate(int anim)
 {
        // qDebug()<<"hash count is "<<urls.count();
@@ -260,5 +276,28 @@ void ComplexTextEdit::animate(int anim)
                                 urls.value(movie), movie->currentPixmap());
 
         setLineWrapColumnOrWidth(lineWrapColumnOrWidth()); // ..刷新显示
+    }
+}
+
+//记录当前聊天记录页面的数据记录索引
+void ComplexTextEdit::compareRowId(int rowid)
+{
+    if(startRecordRowid == 0)
+    {
+        startRecordRowid = rowid;
+    }
+    if(endRecordRowid == 0)
+    {
+        endRecordRowid = rowid;
+    }
+
+    if(rowid<startRecordRowid)
+    {
+        startRecordRowid = rowid;
+    }
+
+    if(rowid>endRecordRowid)
+    {
+        endRecordRowid = rowid;
     }
 }

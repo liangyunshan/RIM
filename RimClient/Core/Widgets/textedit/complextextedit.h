@@ -30,9 +30,13 @@ protected:
     void updateChatShow();
     void showTextFrame();
     void addAnimation(const QUrl& url, const QString& fileName);
+    void wheelEvent(QWheelEvent *event);
 
 private slots:
     void animate(int anim);
+
+private:
+    void compareRowId(int rowid);
 
 private:
     TextUnit::ShowType m_ShowType;
@@ -42,6 +46,9 @@ private:
     QTextCharFormat m_Type_ChatDetail_Format;
     QTextCharFormat m_Type_RecordTime_Format;
     QTextCharFormat m_Type_Tip_Format;
+
+    int startRecordRowid;
+    int endRecordRowid;
 };
 
 #endif // COMPLEXTEXTEDIT_H
