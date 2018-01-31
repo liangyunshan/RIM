@@ -139,9 +139,7 @@ void ToolBox::setContextMenu(QMenu *menu)
 
 /*!
      * @brief 获取所有分组名称
-     *
      * @param[in] 无
-     *
      * @return 包含所有分组名称的QStringList
      *
      */
@@ -159,9 +157,7 @@ const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 
 /*!
      * @brief 倒数第二个page
-     *
      * @param[in] 无
-     *
      * @return 倒数第二个page
      *
      */
@@ -174,9 +170,7 @@ ToolPage *ToolBox::penultimatePage()
 
 /*!
      * @brief 获取目标uuid的page
-     *
      * @param[in] 无
-     *
      * @return 匹配目标uuid的page
      *
      */
@@ -223,9 +217,7 @@ void ToolBox::clearItemSelection(ToolItem * item)
 
 /*!
      * @brief 处理page移动后的布局
-     *
      * @param[in] 无
-     *
      * @return
      *
      */
@@ -237,9 +229,7 @@ void ToolBox::updateLayout()
 
 /*!
      * @brief 处理page的SIGNAL：updateGroupActions(ToolPage *)
-     *
      * @param[in] page:ToolPage *,信源page
-     *
      * @return
      *
      */

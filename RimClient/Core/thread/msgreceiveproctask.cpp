@@ -117,6 +117,9 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_RELATION_LIST:
                             RSingleton<DataProcess>::instance()->proFriendListResponse(obj);
                             break;
+        case MSG_GROUPING_OPERATE:
+                            RSingleton<DataProcess>::instance()->proGroupingOperateResponse(obj);
+                            break;
     };
 }
 

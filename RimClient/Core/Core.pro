@@ -11,8 +11,7 @@ QT       += multimedia
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
-//是否开启网络连接
-DEFINES += __NO_SERVER__
+#DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
 TARGET = RimClient
@@ -126,7 +125,8 @@ SOURCES += \
     Widgets/notifywindow.cpp \
     Widgets/systemnotifyview.cpp \
     Widgets/textedit/chattextframe.cpp \
-    sql/sqlprocess.cpp
+    sql/sqlprocess.cpp \
+    user/userclient.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -196,7 +196,8 @@ HEADERS  += \
     Widgets/systemnotifyview.h \
     Widgets/textedit/chattextframe.h \
     sql/sqlprocess.h \
-    sql/sqlheader.h
+    sql/sqlheader.h \
+    user/userclient.h
 
 DISTFILES += \
     Widgets/Widgets.pri

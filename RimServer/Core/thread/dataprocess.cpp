@@ -33,8 +33,8 @@ void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *r
     if(regResult == REGISTER_SUCCESS)
     {
         RegistResponse * response = new RegistResponse;
-
-        RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),true);
+        QString groupId;
+        RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),groupId,true);
         response->accountId = registId;
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
         delete response;
@@ -222,6 +222,8 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
         }
     }
+
+    delete request;
 }
 
 void DataProcess::processFriendList(Database *db, int socketId, FriendListRequest *request)
@@ -240,6 +242,62 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
     {
         responseData.data = RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,(int)STATUS_FAILE);
     }
+
+    delete request;
+
+    SendData(responseData);
+}
+
+void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingRequest *request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    bool flag = false;
+    QString groupId = request->groupId;
+
+    switch(request->type)
+    {
+        case GROUPING_CREATE:
+                            {
+                               flag = RSingleton<SQLProcess>::instance()->createGroup(db,request->uuid,request->groupName,groupId);
+                            }
+                            break;
+        case GROUPING_RENAME:
+                            {
+                               flag = RSingleton<SQLProcess>::instance()->renameGroup(db,request);
+                            }
+                            break;
+        case GROUPING_DELETE:
+                            {
+                               flag = RSingleton<SQLProcess>::instance()->deleteGroup(db,request);
+                            }
+                            break;
+        case GROUPING_SORT:
+                            {
+                                //RSingleton<SQLProcess>::instance()->createGroup(db,socketId,request->groupName);
+                            }
+                            break;
+        default:
+            break;
+    }
+
+    if(flag)
+    {
+        GroupingResponse * response = new GroupingResponse;
+        response->uuid = request->uuid;
+        response->gtype = request->gtype;
+        response->type = request->type;
+        response->groupId = groupId;
+
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response);
+    }
+    else
+    {
+
+    }
+
+    delete request;
 
     SendData(responseData);
 }

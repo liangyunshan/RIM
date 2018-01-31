@@ -40,6 +40,7 @@ private:
     void onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj);
     void onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj);
 
+    void onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj);
 };
 
 #endif // DATAPROCESS_H
