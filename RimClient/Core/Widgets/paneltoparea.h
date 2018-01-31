@@ -7,6 +7,8 @@
  *  @date      2017.12.15
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20180130:wey:响应用户信息更改
  */
 #ifndef PANELTOPAREA_H
 #define PANELTOPAREA_H
@@ -26,9 +28,12 @@ public:
     explicit PanelTopArea(QWidget *parent = 0);
     ~PanelTopArea();
 
-    void onMessage(MessageType);
+    void onMessage(MessageType type);
 
 signals:
+
+private:
+    void updateUserInfo();
 
 private:
     PanelTopAreaPrivate * d_ptr;

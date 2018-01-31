@@ -296,7 +296,7 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
 
 EditPersonInfoWindow::~EditPersonInfoWindow()
 {
-
+    RSingleton<Subject>::instance()->detach(this);
 }
 
 void EditPersonInfoWindow::onMessage(MessageType)

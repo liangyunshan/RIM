@@ -40,6 +40,8 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
                                             return handleOperateFriendResponse((OperateFriendResponse *)packet);
         case MsgCommand::MSG_RELATION_LIST:
                                             return handleFriendListResponse((FriendListResponse *)packet);
+        case MsgCommand::MSG_GROUPING_OPERATE:
+                                            return handleGroupingResponse((GroupingResponse *)packet);
 
         default:
                 break;
@@ -82,6 +84,7 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 {
     QJsonObject data;
 
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->baseInfo.uuid);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
     data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
     data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
@@ -193,6 +196,17 @@ QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
         groups.append(groupData);
     }
     obj.insert(JsonKey::key(JsonKey::Groups),groups);
+
+    return wrappedPack(packet,STATUS_SUCCESS,obj);
+}
+
+QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet)
+{
+    QJsonObject obj;
+    obj.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
+    obj.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    obj.insert(JsonKey::key(JsonKey::GroupType),packet->gtype);
+    obj.insert(JsonKey::key(JsonKey::Type),packet->type);
 
     return wrappedPack(packet,STATUS_SUCCESS,obj);
 }

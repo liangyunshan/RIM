@@ -34,7 +34,9 @@ enum MessageType
     MESS_STYLE,                  //样式更新
     MESS_SHORTCUT,               //快捷键更新
     MESS_SETTINGS,               //系统设置修改
-    MESS_BASEINFO_UPDATE         //基本信息修改
+    MESS_BASEINFO_UPDATE,        //基本信息修改
+    MESS_FRIENDLIST_UPDATE,      //好友列表更新
+    MESS_GROUPLIST_UPDATE        //群列表更新
 };
 
 /*!

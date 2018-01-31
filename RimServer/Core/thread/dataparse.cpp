@@ -61,8 +61,12 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
                                           break;
         case MSG_RELATION_OPERATE:
                                           onProcessRelationOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+                                          break;
         case MSG_RELATION_LIST:
                                           onProcessFriendListOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+                                          break;
+        case MSG_GROUPING_OPERATE:
+                                          onProcessGroupingOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
                                           break;
          default:
              break;
@@ -143,4 +147,16 @@ void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObjec
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
+}
+
+void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)
+{
+    GroupingRequest * request = new GroupingRequest;
+    request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
+    request->groupId = obj.value(JsonKey::key(JsonKey::GroupId)).toString();
+    request->gtype = (GroupingType)obj.value(JsonKey::key(JsonKey::GroupType)).toInt();
+    request->type = (OperateGrouping)obj.value(JsonKey::key(JsonKey::Type)).toInt();
+    request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
+
+    RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
 }

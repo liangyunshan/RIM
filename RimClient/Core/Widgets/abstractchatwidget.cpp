@@ -16,6 +16,7 @@
 #include <QColorDialog>
 #include <QRgb>
 #include <QClipboard>
+#include <QProcess>
 #include <QMimeData>
 
 #include "head.h"
@@ -32,6 +33,7 @@
 #include "Widgets/textedit/simpletextedit.h"
 #include "slidebar.h"
 #include "Widgets/maindialog.h"
+#include "Network/msgwrap.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -72,6 +74,8 @@ protected:
     QWidget * userInfoWidget;              //用户、群组头像等信息页面
     RIconLabel * userInfo_IconLabel;
     QLabel * userInfo_NameLabel;
+
+    SimpleUserInfo userInfo;               //用户基本信息
 
     ToolBar * toolBar;                     //工具栏
     SlideBar * slideBar;
@@ -128,10 +132,8 @@ void AbstractChatWidgetPrivate::initWidget()
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
-    userInfo_NameLabel->setText(QStringLiteral("我是测试对话框"));
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
-    q_ptr->setWindowTitle(QStringLiteral("测试对话框"));
     q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
@@ -367,7 +369,6 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr(new AbstractChatWidgetPrivate(this)),
     Widget(parent)
 {
-    RSingleton<Subject>::instance()->attach(this);
     setMinimumHeight(CHAT_MIN_HEIGHT);
     setWindowFlags(windowFlags() &(~Qt::Tool));
 
@@ -377,17 +378,16 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     initChatRecord();
 
-
     d_ptr->p_shakeTimer = NULL;
     d_ptr->b_isScreeHide = false;
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
+
+    RSingleton<Subject>::instance()->attach(this);
 }
 
 AbstractChatWidget::~AbstractChatWidget()
 {
-    RSingleton<Subject>::instance()->detach(this);
-
     if(d_ptr->p_shotProcess)
     {
         delete d_ptr->p_shotProcess;
@@ -420,6 +420,14 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 
     //TODO:将记录写入到数据库
     DatabaseManager::Instance()->insertTableUserChatInfo(readJson);
+}
+
+void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
+{
+    MQ_D(AbstractChatWidget);
+    d->userInfo = info;
+    d->userInfo_NameLabel->setText(info.nickName);
+    setWindowTitle(info.nickName);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -602,6 +610,7 @@ void AbstractChatWidget::slot_ScreenTimeout()
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
+    MQ_D(AbstractChatWidget);
 
     if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
     {
@@ -610,13 +619,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     }
     TextUnit::ChatInfoUnit unit;
     d_ptr->chatInputArea->transTextToUnit(unit);
-    QByteArray msg = d_ptr->chatInputArea->WriteJSONFile(unit);
+
+    TextRequest * request = new TextRequest;
+    request->destAccountId = d->userInfo.accountId;
+    request->accountId = G_UserBaseInfo.accountId;
+    request->sendData = d_ptr->chatInputArea->WriteJSONFile(unit);
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
+
     d_ptr->chatInputArea->clear();
 
-    //TODO: 发送数据到网络
-
-    //模拟测试已经接收到数据
-    recvChatMsg(msg);
+//    //模拟测试已经接收到数据
+//    recvChatMsg(msg);
 }
 
 //判断是否Enter发送内容
