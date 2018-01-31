@@ -43,10 +43,18 @@ public:
 
     void setMenu(QMenu * menu);
 
+    bool isExpanded()const;
+
     QRect textRect()const;
+
+    QRect titleRect()const;
+
     QString toolName()const;
+
     int txtFixedHeight();
+
     const PersonGroupInfo & pageInfo();
+
     void setSortNum(const int num);
 
 public slots:
@@ -55,15 +63,11 @@ public slots:
 signals:
     void selectedPage(ToolPage *);
     void clearItemSelection(ToolItem*);
-    void currentPosChanged();
     void updateGroupActions(ToolPage *);
     void itemRemoved(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
-    void mousePressEvent(QMouseEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
 
 private:
     ToolPagePrivate * d_ptr;

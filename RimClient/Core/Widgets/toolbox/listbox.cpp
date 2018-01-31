@@ -58,6 +58,8 @@ void ListBoxPrivate::initWidget()
 
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
+
+    QObject::connect(q_ptr,SIGNAL(itemRemoved(ToolItem*)),q_ptr,SLOT(respItemRemoved(ToolItem*)));
 }
 
 ListBox::ListBox(QWidget *parent) : QWidget(parent),
@@ -180,6 +182,15 @@ void ListBox::clearItemSelection(ToolItem *item)
     }
 
     emit currentItemChanged(item);
+}
+
+void ListBox::respItemRemoved(ToolItem * removedItem)
+{
+    MQ_D(ListBox);
+    if(removedItem == d->currentItem)
+    {
+        d->currentItem = NULL;
+    }
 }
 
 bool ListBox::eventFilter(QObject *watched, QEvent *event)

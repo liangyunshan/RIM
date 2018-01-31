@@ -72,11 +72,11 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
-    for(int j = 0; j < 5;j++)
+    for(int j = 0; j < 1;j++)
     {
         ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的好友")+QString::number(j));
         d_ptr->pages.append(page);
-        for(int i = 0; i < 5;i++)
+        for(int i = 0; i < 1;i++)
         {
             ToolItem * item = new ToolItem(page);
             connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
@@ -131,6 +131,10 @@ void PanelPersonPage::addGroup()
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
     int textY = pageRec.y()+page->txtFixedHeight();
+    if(d->toolBox->penultimatePage()->isExpanded())
+    {
+        textY = pageRec.y()+pageRec.height();
+    }
 
     d->tmpNameEdit->raise();
     d->tmpNameEdit->setText(tr("untitled"));

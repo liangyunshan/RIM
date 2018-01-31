@@ -32,13 +32,12 @@ public:
     explicit ToolBox(QWidget *parent = 0);
 
     ToolPage * addPage(QString text);
+    bool removePage(ToolPage *);
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();
 
     int pageCount();
-
-    void testMe();
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
@@ -51,12 +50,18 @@ signals:
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
-    void updateLayout();
     void setGroupActions(ToolPage *);
     void itemRemoved(ToolItem*);
 
+private:
+    void indexInLayout(int,int &);
+
 protected:
     void contextMenuEvent(QContextMenuEvent *);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
 private:
     ToolBoxPrivate * d_ptr;

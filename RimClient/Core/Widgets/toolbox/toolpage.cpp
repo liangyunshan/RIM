@@ -18,6 +18,8 @@
 #include <QMenu>
 #include <QPoint>
 #include <QUuid>
+#include <QDrag>
+#include <QMimeData>
 
 #include "toolbox.h"
 
@@ -55,9 +57,6 @@ private:
     QList<ToolItem *> toolItems;
 
     bool expanded;
-    QPoint m_oldPoint;
-    bool m_bButtonPressed;
-    bool m_dragPage;
    GroupPerson::PersonGroupInfo m_pageInfo;
 };
 
@@ -149,6 +148,7 @@ ToolPage::ToolPage(ToolBox *parent):
     d_ptr->detailWidget->installEventFilter(this);
     d_ptr->simpleTextWidget->installEventFilter(this);
     d_ptr->m_pageInfo.uuid = QUuid::createUuid().toString();
+
 }
 
 ToolPage::~ToolPage()
@@ -244,6 +244,20 @@ void ToolPage::setMenu(QMenu *menu)
 }
 
 /*!
+     * @brief 获取page是否是展开状态
+     *
+     * @param 无
+     *
+     * @return page的展开状态
+     *
+     */
+bool ToolPage::isExpanded() const
+{
+    MQ_D(ToolPage);
+    return d->expanded;
+}
+
+/*!
      * @brief 获取textLabel的显示尺寸
      *
      * @param 无
@@ -255,6 +269,12 @@ QRect ToolPage::textRect() const
 {
     MQ_D(ToolPage);
     return d->textLabel->geometry();
+}
+
+QRect ToolPage::titleRect() const
+{
+    MQ_D(ToolPage);
+    return d->simpleTextWidget->geometry();
 }
 
 /*!
@@ -349,10 +369,8 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
             QMouseEvent * e = dynamic_cast<QMouseEvent *>(event);
             if(e->button() == Qt::LeftButton)
             {
-                if(!d->m_dragPage)
-                {
-                    d->setExpanded(!d->expanded);
-                }
+                d->setExpanded(!d->expanded);
+                emit selectedPage(this);//FIXME LYS
                 return true;
             }
             else if(e->button() == Qt::RightButton)
@@ -380,67 +398,4 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
     }
 
     return QWidget::eventFilter(watched,event);
-}
-
-void ToolPage::mousePressEvent(QMouseEvent *e)
-{
-    MQ_D(ToolPage);
-    if(e->button() == Qt::LeftButton)
-    {
-        d->m_oldPoint = e->pos();
-        d->m_bButtonPressed = true;
-        d->m_dragPage = false;
-    }
-}
-
-void ToolPage::mouseMoveEvent(QMouseEvent *e)
-{
-    MQ_D(ToolPage);
-    if(d->m_bButtonPressed)
-    {
-        if(d->expanded)
-        {
-            d->setExpanded(!d->expanded);
-        }
-        d->m_dragPage = true;
-        QPoint oldPoint = d->m_oldPoint;
-        QPoint moveToPoint = e->pos()-oldPoint+geometry().topLeft();
-        QRect parentRect = d->toolBox->geometry();
-
-        int moveTLX = moveToPoint.x();
-        int moveTLY = moveToPoint.y();
-        int moveBRX = moveToPoint.x()+this->width();
-        int moveBRY = moveToPoint.y()+this->height();
-        if(moveTLX<parentRect.topLeft().x())
-        {
-            moveToPoint.setX(parentRect.topLeft().x());
-        }
-        if(moveTLY<parentRect.topLeft().y())
-        {
-            moveToPoint.setY(parentRect.topLeft().y());
-        }
-        if(moveBRX>parentRect.bottomRight().x())
-        {
-            moveToPoint.setX(parentRect.topLeft().x());
-        }
-        if(moveBRY>parentRect.bottomRight().y())
-        {
-            moveToPoint.setY(parentRect.bottomRight().y()-this->height());
-        }
-        move(moveToPoint);
-        emit currentPosChanged();
-        oldPoint = moveToPoint;
-    }
-    QWidget::mouseMoveEvent(e);
-}
-
-void ToolPage::mouseReleaseEvent(QMouseEvent *e)
-{
-    MQ_D(ToolPage);
-    if(e->button() == Qt::LeftButton)
-    {
-        d->m_bButtonPressed = false;
-        d->m_dragPage = false;
-    }
-    QWidget::mouseReleaseEvent(e);
 }

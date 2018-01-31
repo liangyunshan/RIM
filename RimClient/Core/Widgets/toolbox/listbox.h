@@ -44,6 +44,7 @@ signals:
 
 private slots:
     void clearItemSelection(ToolItem*item);
+    void respItemRemoved(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

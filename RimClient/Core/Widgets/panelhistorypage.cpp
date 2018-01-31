@@ -78,9 +78,18 @@ void PanelHistoryPage::sendInstantMessage()
 
 }
 
+/*!
+     * @brief 将历史会话记录从会话列表中移除
+     *
+     * @param 无
+     *
+     * @return 无
+     *
+     */
 void PanelHistoryPage::removeSessionFromList()
 {
-
+    MQ_D(PanelHistoryPage);
+    d->listBox->removeItem(d->listBox->selectedItem());
 }
 
 void PanelHistoryPage::createAction()

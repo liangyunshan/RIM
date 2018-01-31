@@ -47,6 +47,7 @@ public slots:
     void updateGroupActions(ToolPage *);
     void movePersonTo();
 
+
 private:
     void createAction();
 
