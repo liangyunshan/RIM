@@ -54,7 +54,8 @@ public:
         Groups,
         GroupType,
         DestId,
-        Time
+        Time,
+        FromId
     };
     Q_FLAG(KeyId)
 

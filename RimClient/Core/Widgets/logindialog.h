@@ -61,6 +61,7 @@ private slots:
     void recvFriendResponse(OperateFriendResponse resp);
     void viewSystemNotify(NotifyInfo info);
     void openChatDialog(QString accountId);
+    void procRecvText(TextResponse response);
 
 private:
     void createTrayMenu();

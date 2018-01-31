@@ -70,6 +70,22 @@ UserClient *UserManager::client(ToolItem *item)
     return NULL;
 }
 
+UserClient *UserManager::client(QString accountId)
+{
+    QMutexLocker locker(&mutex);
+    QHash<QString,UserClient*>::iterator iter = clients.begin();
+    while(iter != clients.end())
+    {
+        if(iter.value()->simpleUserInfo.accountId == accountId)
+        {
+            return iter.value();
+        }
+        iter++;
+    }
+
+    return NULL;
+}
+
 //TODO 关闭窗口出现问题
 void UserManager::closeAllClientWindow()
 {

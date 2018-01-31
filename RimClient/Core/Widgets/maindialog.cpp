@@ -26,6 +26,7 @@
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "user/userclient.h"
+#include "media/mediaplayer.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"

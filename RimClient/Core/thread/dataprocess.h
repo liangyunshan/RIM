@@ -28,6 +28,8 @@ public:
     void proFriendListResponse(QJsonObject &data);
     void proGroupingOperateResponse(QJsonObject &data);
 
+    void proText(QJsonObject &data);
+
 private:
 
 };

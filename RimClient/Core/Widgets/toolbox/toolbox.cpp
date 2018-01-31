@@ -8,6 +8,11 @@
 #include <QContextMenuEvent>
 #include <QAction>
 #include <QCursor>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMouseEvent>
+#include <QDrag>
+#include <QMimeData>
 
 #include "head.h"
 #include "constants.h"
@@ -42,6 +47,8 @@ private:
     ToolItem * currentItem;
 
     QMenu * menu;
+
+    bool m_pressed;
 };
 
 void ToolBoxPrivate::initWidget()
@@ -59,6 +66,8 @@ void ToolBoxPrivate::initWidget()
 
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
+
+    m_pressed = false;//FIXME LYS
 }
 
 void ToolBoxPrivate::addPage(ToolPage *page)
@@ -82,7 +91,7 @@ ToolBox::ToolBox(QWidget *parent) :
     d_ptr(new ToolBoxPrivate(this)),
     QWidget(parent)
 {
-
+    setAcceptDrops(true);
 }
 
 ToolPage * ToolBox::addPage(QString text)
@@ -92,14 +101,58 @@ ToolPage * ToolBox::addPage(QString text)
     ToolPage * page = new ToolPage(this);
     connect(page,SIGNAL(clearItemSelection(ToolItem*)),this,SLOT(clearItemSelection(ToolItem*)));
     connect(page,SIGNAL(selectedPage(ToolPage*)),this,SLOT(setSlectedPage(ToolPage*)));
-    connect(page,SIGNAL(currentPosChanged()),this,SLOT(updateLayout()));
     connect(page,SIGNAL(updateGroupActions(ToolPage*)),this,SLOT(setGroupActions(ToolPage*)));
+    connect(page,SIGNAL(itemRemoved(ToolItem*)),this,SLOT(itemRemoved(ToolItem*)));
     page->setToolName(text);
 
     d->addPage(page);
     setSlectedPage(page);
 
     return page;
+}
+
+/*!
+     * @brief 移除targetPage
+     * @details
+     * @param[in] targetPage:ToolPage *
+     * @return 移除targetPage结果
+     */
+bool ToolBox::removePage(ToolPage *targetPage)
+{
+    MQ_D(ToolBox);
+    if(d->pages.size() > 0)
+    {
+        QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+
+        if(layout)
+        {
+            int index = -1;
+            for(int i = 0; i < layout->count();i++)
+            {
+                if(layout->itemAt(i)->widget())
+                {
+                    ToolPage * t_page = dynamic_cast<ToolPage *>(layout->itemAt(i)->widget());
+                    if(t_page == targetPage)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+
+            if(index >= 0)
+            {
+                QLayoutItem * layItem = layout->takeAt(index);
+                if(layItem->widget())
+                {
+                    bool removeResult = d->pages.removeOne(targetPage);
+                    return removeResult;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 ToolPage *ToolBox::selectedPage()
@@ -121,14 +174,6 @@ int ToolBox::pageCount()
 {
     MQ_D(ToolBox);
     return d->pages.size();
-}
-
-void ToolBox::testMe()
-{
-    for(int i = 0; i < pageCount(); i++)
-    {
-
-    }
 }
 
 void ToolBox::setContextMenu(QMenu *menu)
@@ -216,18 +261,6 @@ void ToolBox::clearItemSelection(ToolItem * item)
 }
 
 /*!
-     * @brief 处理page移动后的布局
-     * @param[in] 无
-     * @return
-     *
-     */
-//TODO LYS-20180122 在布局中移动分组进行排序
-void ToolBox::updateLayout()
-{
-
-}
-
-/*!
      * @brief 处理page的SIGNAL：updateGroupActions(ToolPage *)
      * @param[in] page:ToolPage *,信源page
      * @return
@@ -236,6 +269,53 @@ void ToolBox::updateLayout()
 void ToolBox::setGroupActions(ToolPage *page)
 {
     emit updateGroupActions(page);
+}
+
+/*!
+     * @brief 处理page的SIGNAL：itemRemoved(ToolItem*)
+     * @param[in] removedItem:ToolItem *,被删除的item
+     * @return
+     *
+     */
+void ToolBox::itemRemoved(ToolItem * removedItem)
+{
+    MQ_D(ToolBox);
+    if(removedItem == d->currentItem)
+    {
+        d->currentItem = NULL;
+    }
+}
+
+/*!
+     * @brief 根据给定鼠标拖动释放的位置判断page应该在布局中插入的位置
+     *
+     * @param[in] movedY:int,鼠标拖动释放的位置；
+     *            sortedIndex：int&，保存page应该在布局中插入的位置
+     *
+     * @details 该算法还存在缺陷，待补充完整20180131
+     *
+     * @return 无
+     *
+     */
+void ToolBox::indexInLayout(int movedY, int &sortedIndex)
+{
+    MQ_D(ToolBox);
+    QList<int> pagesTopY;
+    for(int t_index=0;t_index<d->pages.count();t_index++)
+    {
+        ToolPage * t_indexPage = d->pages.at(t_index);
+        pagesTopY.append(t_indexPage->geometry().topLeft().y());
+    }
+    int t_count = pagesTopY.count();
+    for(int t_index=t_count-1;t_index>0;t_index--)
+    {
+        int t_forward = pagesTopY.at(t_index);
+        int t_prev = pagesTopY.at(t_index-1);
+        if(t_forward>movedY && t_prev<movedY)
+        {
+            sortedIndex = t_index;
+        }
+    }
 }
 
 void ToolBox::contextMenuEvent(QContextMenuEvent *)
@@ -247,3 +327,77 @@ void ToolBox::contextMenuEvent(QContextMenuEvent *)
     }
 }
 
+void ToolBox::mousePressEvent(QMouseEvent *event)
+{
+    MQ_D(ToolBox);
+    d->m_pressed = true;
+    QWidget::mouseMoveEvent(event);
+}
+
+void ToolBox::mouseMoveEvent(QMouseEvent *event)
+{
+    MQ_D(ToolBox);
+    if(d->m_pressed)
+    {
+        ToolPage * t_movedPage = selectedPage();    //FIXME LYS
+
+        QPoint t_hotPot = event->pos() - t_movedPage->pos();
+
+        QMimeData *t_MimData = new QMimeData;
+        t_MimData->setText(t_movedPage->toolName());
+
+        QPixmap t_pixMap(t_movedPage->titleRect().size());
+        d->currentPage->render(&t_pixMap);
+
+        QDrag *t_drag = new QDrag(this);
+        t_drag->setMimeData(t_MimData);
+        t_drag->setPixmap(t_pixMap);
+        t_drag->setHotSpot(t_hotPot);
+
+        Qt::DropAction dropAction = t_drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
+        Q_UNUSED(dropAction);
+    }
+    QWidget::mouseMoveEvent(event);
+}
+
+void ToolBox::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasText())
+    {
+        if (event->source() == this)
+        {
+            event->setDropAction(Qt::MoveAction);
+            event->accept();
+        }
+        else
+        {
+            event->acceptProposedAction();
+        }
+    }
+    else
+    {
+        event->ignore();
+    }
+}
+
+void ToolBox::dropEvent(QDropEvent *event)
+{
+    MQ_D(ToolBox);
+    int t_curY = event->pos().y();
+    ToolPage * t_movedPage = d->currentPage;
+    if(t_movedPage)
+    {
+        int t_movedIndex = -1;
+        indexInLayout(t_curY,t_movedIndex);
+        if(t_movedIndex != -1)
+        {
+            removePage(t_movedPage);
+            QVBoxLayout * t_layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+            if(t_layout)
+            {
+                t_layout->insertWidget(t_movedIndex,t_movedPage);
+            }
+        }
+    }
+    d->m_pressed = false;
+}
