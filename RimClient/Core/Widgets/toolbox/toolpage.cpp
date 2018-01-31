@@ -370,7 +370,7 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
             if(e->button() == Qt::LeftButton)
             {
                 d->setExpanded(!d->expanded);
-                emit selectedPage(this);//FIXME LYS
+                emit selectedPage(this);
                 return true;
             }
             else if(e->button() == Qt::RightButton)

@@ -12,6 +12,8 @@
  *      date:20180122   content:添加获取page的文本框内容方法toolName      name:LYS
  *      date:20180129   content:添加移除page中的目标item方法removeItem   name:LYS
  *      date:20180129   content:添加page的item移除信号itemRemoved   name:LYS
+ *      date:20180131   content:添加获取page是否展开方法isExpanded   name:LYS
+ *      date:20180131   content:修改鼠标左键点击后设置page为选中状态（L373）   name:LYS
  */
 #ifndef TOOLPAGE_H
 #define TOOLPAGE_H

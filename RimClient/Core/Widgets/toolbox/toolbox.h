@@ -11,6 +11,7 @@
  *      date:20180129   content:添加获取倒数第二个page方法penultimatePage   name:LYS
  *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
  *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
+ *      date:20180131   content:添加移除分组方法removePage   name:LYS
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H
