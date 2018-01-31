@@ -50,6 +50,18 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
     return QByteArray();
 }
 
+QByteArray MsgWrap::handleText(TextResponse *response)
+{
+    QJsonObject obj;
+    obj.insert(JsonKey::key(JsonKey::AccountId),response->accountId);
+    obj.insert(JsonKey::key(JsonKey::Type),response->type);
+    obj.insert(JsonKey::key(JsonKey::Data),response->sendData);
+    obj.insert(JsonKey::key(JsonKey::Time),response->timeStamp);
+    obj.insert(JsonKey::key(JsonKey::FromId),response->fromAccountId);
+
+    return wrappedPack(response,STATUS_SUCCESS,obj);
+}
+
 /*!
      * @brief 处理简单错误信息
      * @param[in] type 信息类型
@@ -62,7 +74,6 @@ QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int er
     QJsonObject obj;
     obj.insert(JsonKey::key(JsonKey::Type),type);
     obj.insert(JsonKey::key(JsonKey::Command),command);
-
     obj.insert(JsonKey::key(JsonKey::Status),errorCode);
 
     QJsonDocument document;

@@ -232,3 +232,24 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
 
     }
 }
+
+void DataProcess::proText(QJsonObject &data)
+{
+    MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(result == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        TextResponse response;
+        response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+        response.fromAccountId = dataObj.value(JsonKey::key(JsonKey::FromId)).toString();
+        response.timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
+        response.sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
+
+        MessDiapatch::instance()->onRecvText(response);
+    }
+    else
+    {
+
+    }
+}
