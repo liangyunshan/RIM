@@ -8,8 +8,12 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @change
- *      date:20180118   content:添加获取page的文本框位置信息方法textRect()    name:LYS
- *      date:20180122   content:添加获取page的文本框内容方法toolName()      name:LYS
+ *      date:20180118   content:添加获取page的文本框位置信息方法textRect    name:LYS
+ *      date:20180122   content:添加获取page的文本框内容方法toolName      name:LYS
+ *      date:20180129   content:添加移除page中的目标item方法removeItem   name:LYS
+ *      date:20180129   content:添加page的item移除信号itemRemoved   name:LYS
+ *      date:20180131   content:添加获取page是否展开方法isExpanded   name:LYS
+ *      date:20180131   content:修改鼠标左键点击后设置page为选中状态（L373）   name:LYS
  */
 #ifndef TOOLPAGE_H
 #define TOOLPAGE_H
@@ -33,16 +37,26 @@ public:
     ~ToolPage();
 
     void setToolName(QString text);
-    void addItem(ToolItem *item);
 
+    void addItem(ToolItem *item);
     QList<ToolItem *> &items();
+
+    bool removeItem(ToolItem * item);
 
     void setMenu(QMenu * menu);
 
+    bool isExpanded()const;
+
     QRect textRect()const;
+
+    QRect titleRect()const;
+
     QString toolName()const;
+
     int txtFixedHeight();
+
     const PersonGroupInfo & pageInfo();
+
     void setSortNum(const int num);
 
 public slots:
@@ -51,14 +65,11 @@ public slots:
 signals:
     void selectedPage(ToolPage *);
     void clearItemSelection(ToolItem*);
-    void currentPosChanged();
     void updateGroupActions(ToolPage *);
+    void itemRemoved(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
-    void mousePressEvent(QMouseEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
 
 private:
     ToolPagePrivate * d_ptr;
