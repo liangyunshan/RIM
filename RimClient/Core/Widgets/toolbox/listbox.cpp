@@ -58,6 +58,8 @@ void ListBoxPrivate::initWidget()
 
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
+
+    QObject::connect(q_ptr,SIGNAL(itemRemoved(ToolItem*)),q_ptr,SLOT(respItemRemoved(ToolItem*)));
 }
 
 ListBox::ListBox(QWidget *parent) : QWidget(parent),
@@ -97,10 +99,14 @@ bool ListBox::removeItem(ToolItem *item)
             int index = -1;
             for(int i = 0; i < layout->count();i++)
             {
-                if(layout->itemAt(i)->widget() && layout->itemAt(i)->widget() == item)
+                if(layout->itemAt(i)->widget())
                 {
-                    index = i;
-                    break;
+                    ToolItem * tmpItem = dynamic_cast<ToolItem *>(layout->itemAt(i)->widget());
+                    if(tmpItem == item)
+                    {
+                        index = i;
+                        break;
+                    }
                 }
             }
             if(index >= 0)
@@ -108,8 +114,13 @@ bool ListBox::removeItem(ToolItem *item)
                 QLayoutItem * layItem = layout->takeAt(index);
                 if(layItem->widget())
                 {
-                    d->toolItems.removeOne(item);
-                    delete layItem->widget();
+                    bool removeResult = d->toolItems.removeOne(item);
+                    if(removeResult)
+                    {
+                        delete layItem->widget();
+                        emit itemRemoved(item);
+                    }
+                    return removeResult;
                 }
             }
         }
@@ -171,6 +182,15 @@ void ListBox::clearItemSelection(ToolItem *item)
     }
 
     emit currentItemChanged(item);
+}
+
+void ListBox::respItemRemoved(ToolItem * removedItem)
+{
+    MQ_D(ListBox);
+    if(removedItem == d->currentItem)
+    {
+        d->currentItem = NULL;
+    }
 }
 
 bool ListBox::eventFilter(QObject *watched, QEvent *event)

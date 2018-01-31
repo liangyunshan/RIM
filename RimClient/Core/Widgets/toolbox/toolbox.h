@@ -7,6 +7,11 @@
  *  @date      2017.12.18
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @change
+ *      date:20180129   content:添加获取倒数第二个page方法penultimatePage   name:LYS
+ *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
+ *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
+ *      date:20180131   content:添加移除分组方法removePage   name:LYS
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H
@@ -28,13 +33,12 @@ public:
     explicit ToolBox(QWidget *parent = 0);
 
     ToolPage * addPage(QString text);
+    bool removePage(ToolPage *);
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();
 
     int pageCount();
-
-    void testMe();
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
@@ -47,11 +51,18 @@ signals:
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
-    void updateLayout();
     void setGroupActions(ToolPage *);
+    void itemRemoved(ToolItem*);
+
+private:
+    void indexInLayout(int,int &);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
 private:
     ToolBoxPrivate * d_ptr;

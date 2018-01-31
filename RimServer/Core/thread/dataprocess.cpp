@@ -301,3 +301,27 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingReq
 
     SendData(responseData);
 }
+
+void DataProcess::processText(Database *db, int socketId, TextRequest * request)
+{
+    SocketOutData responseData;
+
+    TcpClient * client = TcpClientManager::instance()->getClient(request->destAccountId);
+    responseData.sockId = client->socket();
+
+    if(client && client->isOnLine())
+    {
+        TextResponse * response = new TextResponse;
+        response->accountId = request->destAccountId;
+        response->fromAccountId = request->accountId;
+        response->sendData = request->sendData;
+        response->timeStamp = request->timeStamp;
+
+        responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
+    }
+    else
+    {
+        //TODO 保存信息至历史消息数据库
+    }
+    SendData(responseData);
+}

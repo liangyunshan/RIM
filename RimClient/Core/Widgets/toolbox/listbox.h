@@ -40,9 +40,11 @@ public:
 
 signals:
     void currentItemChanged(ToolItem * item);
+    void itemRemoved(ToolItem*);
 
 private slots:
     void clearItemSelection(ToolItem*item);
+    void respItemRemoved(ToolItem*);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

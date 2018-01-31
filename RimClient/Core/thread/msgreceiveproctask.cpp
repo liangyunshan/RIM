@@ -72,10 +72,11 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
         switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
         {
             case MSG_CONTROL:
-                                handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
-                                break;
+                handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
+                break;
             case MSG_TEXT:
-                            break;
+                handleTextMsg(root);
+                break;
             case MSG_IMAGE:
                             break;
             case MSG_FILE:
@@ -121,6 +122,11 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
                             RSingleton<DataProcess>::instance()->proGroupingOperateResponse(obj);
                             break;
     };
+}
+
+void MsgReceiveProcTask::handleTextMsg(QJsonObject &obj)
+{
+    RSingleton<DataProcess>::instance()->proText(obj);
 }
 
 

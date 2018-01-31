@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
     qRegisterMetaType<FriendListResponse>("FriendListResponse");
     qRegisterMetaType<GroupingResponse>("GroupingResponse");
+    qRegisterMetaType<TextResponse>("TextResponse");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
     RSingleton<TaskManager>::instance()->addTask(new NetConnector());

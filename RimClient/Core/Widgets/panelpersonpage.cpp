@@ -131,8 +131,8 @@ void PanelPersonPage::onMessage(MessageType type)
     switch(type)
     {
         case MESS_FRIENDLIST_UPDATE:
-                                    addGroupAndUsers();
-                                    break;
+            addGroupAndUsers();
+            break;
 
         default:
             break;
@@ -167,6 +167,10 @@ void PanelPersonPage::addGroup()
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
     int textY = pageRec.y()+page->txtFixedHeight();
+    if(d->toolBox->penultimatePage()->isExpanded())
+    {
+        textY = pageRec.y()+pageRec.height();
+    }
 
     d->tmpNameEdit->raise();
     d->tmpNameEdit->setText(tr("untitled"));
@@ -323,19 +327,20 @@ void PanelPersonPage::movePersonTo()
     MQ_D(PanelPersonPage);
     QAction * target = qobject_cast<QAction *>(QObject::sender());
     QString targetUuid = target->data().toString();
-    //TODO LYS-20180123 根据触发的Action的uuid比对所有page的uuid，匹配则移动至该page
     ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
     ToolPage * sourcePage = d->pageOfMovedItem;
     ToolItem * targetItem = d->toolBox->selectedItem();
-    if(!targetPage)
+    if(!targetPage||!sourcePage)
     {
         return;
     }
     else
     {
-        //TODO 20190129-LYS 将targetItem从sourcePage中移除并添加到targetPage
-        Q_UNUSED(targetItem);
-        Q_UNUSED(sourcePage);
+        bool result = sourcePage->removeItem(targetItem);
+        if(result)
+        {
+            targetPage->addItem(targetItem);
+        }
     }
 }
 

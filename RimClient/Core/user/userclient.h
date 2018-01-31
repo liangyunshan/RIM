@@ -44,6 +44,7 @@ public:
     bool removeClient(QString accountId);
 
     UserClient * client(ToolItem * item);
+    UserClient * client(QString accountId);
 
     void closeAllClientWindow();
 

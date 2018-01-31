@@ -2,6 +2,7 @@
 
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QScopedPointer>
 #include <QDebug>
 
 #include "Util/rlog.h"
@@ -29,6 +30,8 @@ void DataParse::processData(Database *db,const SocketInData &data)
             case MSG_CONTROL:
                                         parseControlData(db,data.sockId,obj);
                                         break;
+            case MSG_TEXT:
+                                        parseTextData(db,data.sockId,obj);
 
             default:
                   break;
@@ -40,6 +43,14 @@ void DataParse::processData(Database *db,const SocketInData &data)
     }
 }
 
+/*!
+     * @brief 解析控制报文
+     * @details 处理用户登陆注册、分组操作、群组操作等
+     * @param[in] db 线程拥有的数据库
+     * @param[in] socketId 访问的socketId
+     * @param[in] obj 解析后json请求数据
+     * @return 无
+     */
 void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
     switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
@@ -73,6 +84,29 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
     }
 }
 
+/*!
+     * @brief 解析消息文本
+     * @param[in] db 线程拥有的数据库
+     * @param[in] socketId 访问的socketId
+     * @param[in] obj 解析后json请求数据
+     * @return 无
+     */
+void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
+{
+    QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
+    if(!dataObj.isEmpty())
+    {
+        TextRequest * request = new TextRequest;
+        request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+        request->destAccountId = dataObj.value(JsonKey::key(JsonKey::DestId)).toString();
+        request->type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+        request->timeStamp = (SearchType)dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
+
+        RSingleton<DataProcess>::instance()->processText(db,socketId,request);
+    }
+}
+
 void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 {
     RegistRequest * request = new RegistRequest;
@@ -81,7 +115,6 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 
     RSingleton<DataProcess>::instance()->processUserRegist(db,socketId,request);
 }
-
 
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
