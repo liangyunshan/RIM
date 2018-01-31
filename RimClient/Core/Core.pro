@@ -128,7 +128,8 @@ SOURCES += \
     Widgets/systemnotifyview.cpp \
     Widgets/textedit/chattextframe.cpp \
     sql/sqlprocess.cpp \
-    user/userclient.cpp
+    user/userclient.cpp \
+    json/jsonresolver.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -199,7 +200,8 @@ HEADERS  += \
     Widgets/textedit/chattextframe.h \
     sql/sqlprocess.h \
     sql/sqlheader.h \
-    user/userclient.h
+    user/userclient.h \
+    json/jsonresolver.h
 
 DISTFILES += \
     Widgets/Widgets.pri

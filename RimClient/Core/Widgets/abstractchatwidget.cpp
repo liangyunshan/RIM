@@ -40,6 +40,7 @@
 #include "thread/databasethread.h"
 #include "sql/databasemanager.h"
 #include "sql/sqlprocess.h"
+#include "json/jsonresolver.h"
 #include "screenshot.h"
 
 #ifdef Q_OS_WIN
@@ -416,11 +417,8 @@ QString AbstractChatWidget::widgetId()
 
 void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
-    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(msg);
+    TextUnit::ChatInfoUnit  readJson = RSingleton<JsonResolver>::instance()->ReadJSONFile(msg);
     d_ptr->chatArea->insertMeChatText(readJson);
-
-    //TODO:将记录写入到数据库
-    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),readJson);
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -621,7 +619,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     TextRequest * request = new TextRequest;
     request->destAccountId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
-    request->sendData = d_ptr->chatInputArea->WriteJSONFile(unit);
+    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
 

@@ -21,29 +21,15 @@ class BaseTextEdit : public QTextEdit
 public:
     BaseTextEdit(QWidget * parent = 0 );
 
-    TextUnit::ChatInfoUnit ReadJSONFile(QByteArray byteArray);
-    QByteArray WriteJSONFile(TextUnit::ChatInfoUnit unit);
     int transTextToUnit(TextUnit::ChatInfoUnit &unit);
-    int transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJsonDocument &doc);
 
-    QString imgStringTofilePath(QString &img);
-    QString filePathToImgString(QString &path);
     QString toChatFormaText();
     void insertChatFormatText(const QString &text);
 
-    int parseHtml(QString &out, const QString &html, TextUnit::ParseType type);
     int insertCopyImage(QImage &image);
 
 protected:
     bool eventFilter(QObject *, QEvent *);
-
-private:
-    void readHtmlindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
-    void readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
-    void skipUnknownElement(QXmlStreamReader *xml);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *e);

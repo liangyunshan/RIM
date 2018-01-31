@@ -46,6 +46,10 @@
 #include "systemnotifyview.h"
 #include "user/userclient.h"
 #include "abstractchatwidget.h"
+#include "sql/sqlprocess.h"
+#include "sql/databasemanager.h"
+#include "json/jsonresolver.h"
+using namespace TextUnit ;
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -606,6 +610,11 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 void LoginDialog::procRecvText(TextResponse response)
 {
+    //TODO:将记录写入到数据库
+    //群如何写入?
+    ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
+    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit);
+
     MQ_D(LoginDialog);
     UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
     if(client)
