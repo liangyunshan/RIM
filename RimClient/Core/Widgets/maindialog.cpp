@@ -25,6 +25,7 @@
 #include "editpersoninfowindow.h"
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
+#include "user/userclient.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
@@ -54,7 +55,6 @@ private:
     PanelContentArea * panelContentArea;
     PanelTopArea * panelTopArea;
 
-    QMap<ToolItem * ,AbstractChatWidget*> chatWidgets;
     QMap<ToolItem * ,ItemHoverInfo *> hoverInfos;
     EditPersonInfoWindow * editWindow;
 
@@ -76,25 +76,22 @@ MainDialog::MainDialog(QWidget *parent) :
     ScreenShot::instance();
     initSqlDatabase();
     initWidget();
+
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
+    connect(MessDiapatch::instance(),SIGNAL(recvGroupingOperate(GroupingResponse)),this,SLOT(recvGroupingOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
 }
 
 MainDialog::~MainDialog()
 {
     MQ_D(MainDialog);
+
     if(d->editWindow)
     {
         delete d->editWindow;
     }
 
-    if(d->chatWidgets.size() > 0)
-    {
-       QMap<ToolItem *,AbstractChatWidget*>::const_iterator iter =  d->chatWidgets.begin();
-       while(iter != d->chatWidgets.end())
-       {
-           delete iter.value();
-           iter++;
-       }
-    }
+    RSingleton<UserManager>::instance()->closeAllClientWindow();
 
     RSingleton<ShortcutSettings>::instance()->save();
     if(p_dbManager)
@@ -184,19 +181,19 @@ void MainDialog::makeWindowFront(bool flag)
 void MainDialog::showChatWindow(ToolItem * item)
 {
     MQ_D(MainDialog);
-    AbstractChatWidget * widget = NULL;
-    if(d->chatWidgets.contains(item))
+
+    UserClient * client = RSingleton<UserManager>::instance()->client(item);
+    if(client->chatWidget)
     {
-        widget = d->chatWidgets.value(item);
+        client->chatWidget->show();
     }
     else
     {
-       widget = new AbstractChatWidget();
-
-       d->chatWidgets.insert(item,widget);
+        AbstractChatWidget * widget = new AbstractChatWidget();
+        widget->setUserInfo(client->simpleUserInfo);
+        client->chatWidget = widget;
+        widget->show();
     }
-
-    widget->show();
 }
 
 void MainDialog::showHoverItem(bool flag, ToolItem * item)
@@ -241,6 +238,68 @@ void MainDialog::updateEditInstance()
 {
    MQ_D(MainDialog);
    d->editWindow = NULL;
+}
+
+void MainDialog::updateFriendList(FriendListResponse *friendList)
+{
+    QList<RGroupData *>::iterator iter = G_FriendList.begin();
+    while(iter != G_FriendList.end())
+    {
+        delete (*iter);
+        iter = G_FriendList.erase(iter);
+    }
+    G_FriendList.clear();
+
+    QList<RGroupData *>::iterator fiter = friendList->groups.begin();
+    while(fiter != friendList->groups.end())
+    {
+        RGroupData * recvData = (*fiter);
+        RGroupData * data = new RGroupData;
+        data->groupId = recvData->groupId;
+        data->groupName = recvData->groupName;
+        data->isDefault = recvData->isDefault;
+        data->users = recvData->users;
+
+        G_FriendList.append(data);
+
+        fiter = friendList->groups.erase(fiter);
+    }
+    friendList->groups.clear();
+    delete friendList;
+
+    RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
+}
+
+//TODO 根据服务器返回的信息更新本地分组信息
+void MainDialog::recvGroupingOperate(GroupingResponse response)
+{
+
+}
+
+void MainDialog::errorGroupingOperate(OperateGrouping type)
+{
+    QString errorInfo;
+    switch(type)
+    {
+        case GROUPING_CREATE:
+                            {
+                                errorInfo = QObject::tr("Create group failed!");
+                            }
+                            break;
+        case GROUPING_RENAME:
+                            {
+                                errorInfo = QObject::tr("Rename group failed!");
+                            }
+                            break;
+        case GROUPING_DELETE:
+                            {
+                                errorInfo = QObject::tr("Delete group failed!");
+                            }
+                            break;
+        default:break;
+    }
+
+    RMessageBox::warning(this,"warning",errorInfo,RMessageBox::Yes);
 }
 
 void MainDialog::initWidget()

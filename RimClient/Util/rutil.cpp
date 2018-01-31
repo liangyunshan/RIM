@@ -53,6 +53,11 @@ QString RUtil::getDate(QString format)
     return date.toString(format);
 }
 
+qint64 RUtil::timeStamp()
+{
+    return QDateTime::currentDateTime().toMSecsSinceEpoch();
+}
+
 void RUtil::setGlobalSettings(QSettings *settings)
 {
     if(gSettings)

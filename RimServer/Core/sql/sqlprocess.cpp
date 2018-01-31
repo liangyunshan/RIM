@@ -227,17 +227,82 @@ ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accou
      * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
      * @return 是否创建成功
      */
-bool SQLProcess::createGroup(Database *db, QString userId, QString groupName, bool isDefault)
+bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QString & groupId, bool isDefault)
 {
+    groupId = RUtil::UUID();
+
     DataTable::RGroup rgp;
     RPersistence rps(rgp.table);
-    rps.insert(rgp.id,RUtil::UUID());
+    rps.insert(rgp.id,groupId);
     rps.insert(rgp.name,groupName);
     rps.insert(rgp.userId,userId);
     rps.insert(rgp.defaultGroup,(int)isDefault);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/*!
+     * @brief 更新用户分组，可分别更新联系人分组和群分组信息
+     * @param[in] db 数据库
+     * @param[in] request 分组操作请求
+     * @return 是否更新成功
+     */
+bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
+{
+    QString sql;
+    if(request->gtype == GROUPING_FRIEND)
+    {
+        DataTable::RGroup rgp;
+        RUpdate rpd(rgp.table);
+        rpd.update(rgp.name,request->groupName);
+        rpd.createCriteria().add(Restrictions::eq(rgp.id,request->groupId))
+                .add(Restrictions::eq(rgp.userId,request->uuid));
+        sql = rpd.sql();
+    }
+    else if(request->gtype == GROUPING_GROUP)
+    {
+
+    }
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/*!
+     * @brief 删除用户分组，可分别删除联系人分组和群分组信息
+     * @param[in] db 数据库
+     * @param[in] request 分组操作请求
+     * @return 是否删除成功
+     */
+bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
+{
+    QString sql;
+    if(request->gtype == GROUPING_FRIEND)
+    {
+        DataTable::RGroup rgp;
+        RDelete rde(rgp.table);
+        rde.createCriteria().add(Restrictions::eq(rgp.id,request->groupId))
+                .add(Restrictions::eq(rgp.userId,request->uuid));
+        sql = rde.sql();
+    }
+    else if(request->gtype == GROUPING_GROUP)
+    {
+
+    }
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
     {
         return true;
     }
@@ -351,47 +416,40 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
     {
         QString uid = query.value(user.id).toString();
 
-        QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.face,ru.faceid,rr.remarks,rp.defaul,rp.id,rp.name  from rgroup_user rr left join  rgroup\
-                              rp on rr.gid = rp.id left join ruser ru on rr.uid = ru.id where rp.uid = '%1' ").arg(uid);
-        if(query.exec(sql))
+        RSelect selectGroup(group.table);
+        selectGroup.createCriteria().add(Restrictions::eq(group.userId,uid));
+
+        if(query.exec(selectGroup.sql()))
         {
             while(query.next())
             {
-                SimpleUserInfo simpleUserInfo;
+                RGroupData * groupData = new RGroupData;
+                groupData->groupId = query.value(group.id).toString();
+                groupData->groupName = query.value(group.name).toString();
+                groupData->isDefault = query.value(group.defaultGroup).toBool();
 
-                QString groupId = query.value(group.id).toString();
-                RGroupData * groupData = NULL;
+                QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.face,ru.faceid,rr.remarks from %1 ru left join"
+                                      " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
 
-                for(int i = 0; i < response->groups.size(); i++)
+                QSqlQuery userQuery(db->sqlDatabase());
+                if(userQuery.exec(sql))
                 {
-                    if(response->groups.at(i)->groupId == groupId)
+                    while(userQuery.next())
                     {
-                        groupData = response->groups.at(i);
-                        break;
+                        SimpleUserInfo simpleUserInfo;
+
+                        simpleUserInfo.accountId = userQuery.value(user.account).toString();
+                        simpleUserInfo.nickName = userQuery.value(user.nickName).toString();
+                        simpleUserInfo.signName = userQuery.value(user.signName).toString();
+                        simpleUserInfo.face = userQuery.value(user.face).toUInt();
+                        simpleUserInfo.customImgId = userQuery.value(user.faceId).toString();
+                        simpleUserInfo.remarks = userQuery.value(groupUser.remarks).toString();
+
+                        groupData->users.append(simpleUserInfo);
                     }
                 }
-
-                if(groupData == NULL)
-                {
-                    groupData = new RGroupData;
-                    groupData->groupId = groupId;
-                    groupData->groupName = query.value(group.name).toString();
-                    groupData->isDefault = query.value(group.defaultGroup).toBool();
-                    response->groups.append(groupData);
-                }
-
-                simpleUserInfo.accountId = query.value(user.account).toString();
-                simpleUserInfo.nickName = query.value(user.nickName).toString();
-                simpleUserInfo.signName = query.value(user.signName).toString();
-                simpleUserInfo.face = query.value(user.face).toUInt();
-                simpleUserInfo.customImgId = query.value(user.faceId).toString();
-                simpleUserInfo.remarks = query.value(groupUser.remarks).toString();
-
-                groupData->users.append(simpleUserInfo);
-
-                query.value(group.defaultGroup).toString();
+                response->groups.append(groupData);
             }
-
             return true;
         }
     }
@@ -412,6 +470,7 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
         if(query.next())
         {
             userInfo.accountId = accountId;
+            userInfo.uuid = query.value(user.id).toString();
             userInfo.nickName = query.value(user.nickName).toString();
             userInfo.signName = query.value(user.signName).toString();
             userInfo.sexual = (Sexual)query.value(user.gender).toInt();

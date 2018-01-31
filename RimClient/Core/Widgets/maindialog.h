@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
+ *      20180130:wey:
  */
 #ifndef MAINDIALOG_H
 #define MAINDIALOG_H
@@ -52,6 +53,10 @@ private slots:
 
     void showPersonalEditWindow();
     void updateEditInstance();
+
+    void updateFriendList(FriendListResponse * friendList);
+    void recvGroupingOperate(GroupingResponse response);
+    void errorGroupingOperate(OperateGrouping type);
 
 private:
     void initWidget();

@@ -97,7 +97,7 @@ SystemUserImageWindow::SystemUserImageWindow(QWidget *parent):
 
 SystemUserImageWindow::~SystemUserImageWindow()
 {
-
+    RSingleton<Subject>::instance()->detach(this);
 }
 
 void SystemUserImageWindow::onMessage(MessageType)

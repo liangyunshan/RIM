@@ -409,7 +409,7 @@ SystemSettings::SystemSettings(QWidget *parent):
 
 SystemSettings::~SystemSettings()
 {
-
+    RSingleton<Subject>::instance()->detach(this);
 }
 
 void SystemSettings::onMessage(MessageType)

@@ -32,6 +32,7 @@ private:
     QByteArray handleSearchFriendResponse(SearchFriendResponse * packet);
     QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
     QByteArray handleFriendListResponse(FriendListResponse *packet);
+    QByteArray handleGroupingResponse(GroupingResponse *packet);
 
     QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);

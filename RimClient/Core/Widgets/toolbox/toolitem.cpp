@@ -89,10 +89,11 @@ void ToolItemPrivate::initWidget()
     middleWidget->setFixedHeight(Constant::ICON_USER_SIZE);
 
     QVBoxLayout * middleLayout = new QVBoxLayout();
-    middleLayout->setContentsMargins(0,0,0,0);
+    middleLayout->setContentsMargins(5,0,0,0);
     middleLayout->setSpacing(1);
 
     QWidget * nameWidget = new QWidget(middleWidget);
+//    nameWidget->setStyleSheet("background-color:red;");
     QHBoxLayout * nameLayout = new QHBoxLayout;
     nameLayout->setContentsMargins(0,0,0,0);
     nameLayout->setSpacing(0);
@@ -128,7 +129,7 @@ void ToolItemPrivate::initWidget()
 
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSpacing(3);
-    gridLayout->setRowStretch(0,5);
+    gridLayout->setRowStretch(0,1);
     gridLayout->addWidget(iconWidget,1,0,1,1);
     gridLayout->addWidget(middleWidget,1,1,1,1);
     gridLayout->addWidget(infoLabel,1,2,1,1);

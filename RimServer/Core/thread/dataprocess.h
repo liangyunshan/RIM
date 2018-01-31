@@ -7,6 +7,8 @@
  *  @date      2018.01.16
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20180130:wey:添加分组操作
  */
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
@@ -28,6 +30,7 @@ public:
     void processAddFriend(Database * db, int socketId, AddFriendRequest *request);
     void processRelationOperate(Database * db, int socketId, OperateFriendRequest *request);
     void processFriendList(Database *db, int socketId, FriendListRequest *request);
+    void processGroupingOperate(Database *db, int socketId, GroupingRequest *request);
 };
 
 #endif // DATAPROCESS_H
