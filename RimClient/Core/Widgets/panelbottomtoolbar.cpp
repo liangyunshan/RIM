@@ -83,13 +83,13 @@ PanelBottomToolBar::PanelBottomToolBar(QWidget *parent):
     d_ptr(new PanelBottomToolBarPrivate(this)),
     QWidget(parent)
 {
-    RSingleton<Subject>::instance()->attach(this);
-
     if(!d_ptr->settingsInstance)
     {
         d_ptr->settingsInstance = new SystemSettings();
         connect(d_ptr->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstnce(QObject*)));
     }
+
+    RSingleton<Subject>::instance()->attach(this);
 }
 
 PanelBottomToolBar::~PanelBottomToolBar()

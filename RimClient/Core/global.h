@@ -12,6 +12,7 @@
 
 #include <QString>
 #include "protocoldata.h"
+
 class QAction;
 class ScreenShot;
 using namespace ProtocolType;
@@ -23,6 +24,8 @@ extern QString G_Temp_Picture_Path;                     //用户登陆成功后�
 extern QString G_ScreenShotKeySequence;                 //截屏快捷按键
 
 extern UserBaseInfo G_UserBaseInfo;                     //登陆成功后接收用户基本信息
+extern QList<RGroupData *> G_FriendList;                //保存登陆用户的好友列表信息
+
 extern QAction *G_pScreenShotAction;                    //全局截屏快捷动作
 extern ScreenShot *G_pScreenShot;                       //快捷键设置界面
 extern int G_mIsEnter;

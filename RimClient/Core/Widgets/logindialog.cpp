@@ -289,6 +289,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
 void LoginDialog::respConnect(bool flag)
 {
+    MQ_D(LoginDialog);
     if(flag)
     {
 #ifndef __NO_SERVER__

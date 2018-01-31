@@ -16,7 +16,6 @@
 
 class AbstractChatWidgetPrivate;
 class DatabaseThread;
-#include <QProcess>
 
 class AbstractChatWidget : public Widget , public Observer
 {
@@ -35,6 +34,7 @@ public:
 
     QString widgetId();
     void recvChatMsg(QByteArray);
+    void setUserInfo(SimpleUserInfo info);
 
     void onMessage(MessageType type);
 

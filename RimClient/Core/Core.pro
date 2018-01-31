@@ -11,7 +11,7 @@ QT       += multimedia
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
-//是否开启网络连接
+#是否开启网络
 DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
@@ -124,7 +124,8 @@ SOURCES += \
     application.cpp \
     media/mediaplayer.cpp \
     Widgets/notifywindow.cpp \
-    Widgets/systemnotifyview.cpp
+    Widgets/systemnotifyview.cpp \
+    user/userclient.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -191,7 +192,8 @@ HEADERS  += \
     application.h \
     media/mediaplayer.h \
     Widgets/notifywindow.h \
-    Widgets/systemnotifyview.h
+    Widgets/systemnotifyview.h \
+    user/userclient.h
 
 DISTFILES += \
     Widgets/Widgets.pri

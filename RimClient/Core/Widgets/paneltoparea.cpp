@@ -137,7 +137,20 @@ PanelTopArea::~PanelTopArea()
     delete d_ptr;
 }
 
-void PanelTopArea::onMessage(MessageType)
+void PanelTopArea::onMessage(MessageType type)
 {
+    switch(type)
+    {
+        case MESS_BASEINFO_UPDATE:
+                             updateUserInfo();
+                             break;
+        default:
+            break;
+    }
+}
 
+void PanelTopArea::updateUserInfo()
+{
+    MQ_D(PanelTopArea);
+    d->userSignNameEdit->setText(G_UserBaseInfo.signName);
 }

@@ -7,6 +7,8 @@
  *  @date      2017.12.13
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20180126:wey:增加图标根据不同的状态删除
  */
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H

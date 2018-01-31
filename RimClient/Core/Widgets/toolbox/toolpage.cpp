@@ -158,11 +158,8 @@ ToolPage::~ToolPage()
 
 /*!
      * @brief 设置工具页面内容
-     *
      * @param[in] text 待设置内容
-     *
      * @return 无
-     *
      */
 void ToolPage::setToolName(QString text)
 {
@@ -259,11 +256,8 @@ bool ToolPage::isExpanded() const
 
 /*!
      * @brief 获取textLabel的显示尺寸
-     *
      * @param 无
-     *
      * @return 无
-     *
      */
 QRect ToolPage::textRect() const
 {
@@ -279,11 +273,8 @@ QRect ToolPage::titleRect() const
 
 /*!
      * @brief 获取textLabel的显示内容
-     *
      * @param 无
-     *
      * @return 无
-     *
      */
 QString ToolPage::toolName() const
 {
@@ -293,11 +284,8 @@ QString ToolPage::toolName() const
 
 /*!
      * @brief 获取textLabel的默认固定高度
-     *
      * @param 无
-     *
      * @return textLabel的默认固定高度
-     *
      */
 int ToolPage::txtFixedHeight()
 {
@@ -307,11 +295,8 @@ int ToolPage::txtFixedHeight()
 
 /*!
      * @brief 获取page的pageInfo(分组唯一标识、分组序号、分组名称)
-     *
      * @param 无
-     *
      * @return const PersonGroupInfo &
-     *
      */
 const PersonGroupInfo & ToolPage::pageInfo()
 {
@@ -321,11 +306,8 @@ const PersonGroupInfo & ToolPage::pageInfo()
 
 /*!
      * @brief 设置page的sortNum(分组排序序号)
-     *
      * @param [in]page的sortNum(分组排序序号)
-     *
      * @return 无
-     *
      */
 void ToolPage::setSortNum(const int num)
 {
@@ -335,11 +317,8 @@ void ToolPage::setSortNum(const int num)
 
 /*!
      * @brief 处理Item的SIGNAL：updateGroupActions()
-     *
      * @param 无
-     *
      * @return 无
-     *
      */
 void ToolPage::updateGroupActions()
 {
