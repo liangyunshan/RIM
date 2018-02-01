@@ -30,6 +30,7 @@ public:
 
 private:
     void parseControlData(Database *db, int socketId, QJsonObject & obj);
+    void parseTextData(Database * db,int socketId,QJsonObject &obj);
 
     void onProcessUserRegist(Database * db,int socketId,QJsonObject &obj);
     void onProcessUserLogin(Database * db,int socketId, QJsonObject & obj);

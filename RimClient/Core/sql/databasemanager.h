@@ -29,13 +29,6 @@ public:
         return p_DB;
     }
 
-    bool createTablebUserList();
-    bool queryUser(int tgtUserId);
-    bool insertTgtUser(int tgtUserId,QString name);
-    bool createTableUser_id(int tgtUserId);
-    bool insertTableUserChatInfo(TextUnit::ChatInfoUnit unit);
-    QString querryRecords(int userid, int currRow, int rows= TextUnit::DefaultQueryRow);
-
     QStringList availableDrivers();
 
 private:

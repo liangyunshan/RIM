@@ -39,6 +39,7 @@ protected:
 private:
     void validateRecvData(const QByteArray & data);
     void handleCommandMsg(MsgCommand commandType, QJsonObject &obj);
+    void handleTextMsg(QJsonObject &obj);
 
 private:
     QJsonParseError jsonParseError;

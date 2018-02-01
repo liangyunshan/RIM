@@ -109,5 +109,10 @@ TextRequest::TextRequest()
     msgType = MSG_TEXT;
 }
 
+TextResponse::TextResponse()
+{
+    msgType = MSG_TEXT;
+}
+
 
 } //namespace Protocol

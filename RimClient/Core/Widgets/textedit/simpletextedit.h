@@ -1,6 +1,6 @@
 ﻿/*!
  *  @brief     简单文本编辑区
- *  @details   可设置输入的
+ *  @details   输入聊天内容，按快捷键Enter或Ctrl+Enter发送
  *  @file      simpletextedit.h
  *  @author    wey
  *  @version   1.0
@@ -12,6 +12,7 @@
 #define SIMPLETEXTEDIT_H
 
 #include "basetextedit.h"
+class QStyle;
 
 class SimpleTextEdit : public BaseTextEdit
 {
@@ -20,6 +21,9 @@ public:
     SimpleTextEdit(QWidget * parent = 0 );
     ~SimpleTextEdit();
 
+    void setInputColor(QColor);
+    void setInputFont(QFont);
+    void updateInputInfo();
     void clear();
 
 protected:
@@ -32,7 +36,10 @@ private slots:
     void slot_TextChanged();
 
 private:
-    QColor m_Fontcolor;
+    QColor m_fontcolor;
+    QFont  m_inputFont;
+    QStyle *p_initStyle;
+    bool b_isSendStatus;
 };
 
 #endif // SIMPLETEXTEDIT_H
