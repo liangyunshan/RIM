@@ -185,7 +185,6 @@ void NotifyWindow::addNotifyInfo(NotifyInfo info)
         if(info.type == NotifySystem)
         {
             item->setName(QObject::tr("System info"));
-            d->systemNotifyInfos.insert(item,info);
         }
         else if(info.type == NotifyUser || info.type == NotifyGroup)
         {
@@ -193,6 +192,7 @@ void NotifyWindow::addNotifyInfo(NotifyInfo info)
             item->setNickName(info.nickName);
             item->setDescInfo(info.content);
         }
+        d->systemNotifyInfos.insert(item,info);
         item->setIcon(info.pixmap);
         item->addNotifyInfo();
         d->infoList->addItem(item);

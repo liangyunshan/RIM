@@ -23,6 +23,7 @@ public:
     MsgWrap();
 
     QByteArray handleMsg(MsgPacket * packet);
+    QByteArray handleText(TextResponse * response);
     QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
 
 private:

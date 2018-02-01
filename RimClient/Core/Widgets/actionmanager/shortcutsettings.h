@@ -39,7 +39,6 @@ public:
     bool contains(QKeySequence);
     void save();
 
-
 private:
     bool loadShortcuts();
 

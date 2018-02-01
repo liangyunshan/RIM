@@ -18,6 +18,8 @@
 #include <QClipboard>
 #include <QProcess>
 #include <QMimeData>
+#include <QPalette>
+
 
 #include "head.h"
 #include "global.h"
@@ -39,6 +41,8 @@
 #include "toolbar.h"
 #include "thread/databasethread.h"
 #include "sql/databasemanager.h"
+#include "sql/sqlprocess.h"
+#include "json/jsonresolver.h"
 #include "screenshot.h"
 
 #ifdef Q_OS_WIN
@@ -376,13 +380,13 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr->windowToolBar->installEventFilter(this);
     d_ptr->chatInputArea->setFocus();
 
-    initChatRecord();
-
     d_ptr->p_shakeTimer = NULL;
     d_ptr->b_isScreeHide = false;
 
-    QTimer::singleShot(0,this,SLOT(resizeOnce()));
+    connect(d_ptr->chatArea,SIGNAL(sig_QueryRecordTask(int,int)),
+            this,SLOT(slot_QueryHistoryRecords(int,int)));
 
+    QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
 }
 
@@ -415,11 +419,8 @@ QString AbstractChatWidget::widgetId()
 
 void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
-    TextUnit::ChatInfoUnit  readJson = d_ptr->chatInputArea->ReadJSONFile(msg);
-    d_ptr->chatArea->insertMeChatText(readJson);
-
-    //TODO:将记录写入到数据库
-    DatabaseManager::Instance()->insertTableUserChatInfo(readJson);
+    TextUnit::ChatInfoUnit  readJson = RSingleton<JsonResolver>::instance()->ReadJSONFile(msg);
+    d_ptr->chatArea->insertChatText(readJson);
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -428,6 +429,8 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     d->userInfo = info;
     d->userInfo_NameLabel->setText(info.nickName);
     setWindowTitle(info.nickName);
+
+    d_ptr->chatArea->setSimpleUserInfo(info);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -448,6 +451,12 @@ void AbstractChatWidget::onMessage(MessageType type)
 void AbstractChatWidget::slot_UpdateKeySequence()
 {
 
+}
+
+//响应聊天框的历史信息查询
+void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
+{
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -494,10 +503,7 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
     QFont font = QFontDialog::getFont(
                   &ok, QFont("Helvetica [Cronyx]", 10), this);
     if (ok) {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"font:"<<font
-              <<"\n";
-        d_ptr->chatInputArea->setFont(font);
+        d_ptr->chatInputArea->setInputFont(font);
     } else {
 
     }
@@ -509,7 +515,7 @@ void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
     Q_UNUSED(flag)
 
     QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
-    d_ptr->chatInputArea->setTextColor(color);
+    d_ptr->chatInputArea->setInputColor(color);
 }
 
 //实现窗口抖动
@@ -606,6 +612,12 @@ void AbstractChatWidget::slot_ScreenTimeout()
     }
 }
 
+//判断是否Enter发送内容
+void AbstractChatWidget::slot_CheckSendEnter()
+{
+    slot_ButtClick_SendMsg(true);
+}
+
 //点击发送按钮，发送聊天编辑区域的信息
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
@@ -623,20 +635,17 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     TextRequest * request = new TextRequest;
     request->destAccountId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
-    request->sendData = d_ptr->chatInputArea->WriteJSONFile(unit);
+    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
 
+    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+
     d_ptr->chatInputArea->clear();
-
-//    //模拟测试已经接收到数据
-//    recvChatMsg(msg);
-}
-
-//判断是否Enter发送内容
-void AbstractChatWidget::slot_CheckSendEnter()
-{
-    slot_ButtClick_SendMsg(true);
 }
 
 //响应数据库线程查询结果
@@ -644,7 +653,7 @@ void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatI
 {
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
-        d_ptr->chatArea->insertMeChatText(unit);
+        d_ptr->chatArea->insertChatText(unit);
     }
 }
 
@@ -706,6 +715,7 @@ void AbstractChatWidget::switchWindowSize()
 
 void AbstractChatWidget::initChatRecord()
 {
+    MQ_D(AbstractChatWidget);
     d_ptr->p_DatabaseThread = new DatabaseThread(this);
     d_ptr->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
 
@@ -715,6 +725,8 @@ void AbstractChatWidget::initChatRecord()
             d_ptr->p_DatabaseThread,SLOT(deleteLater()));
     d_ptr->p_DatabaseThread->start();
 
-    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,DatabaseManager::Instance()->querryRecords(TestUserId,5));
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
 }
 

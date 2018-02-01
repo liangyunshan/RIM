@@ -12,9 +12,11 @@
 #define COMPLEXTEXTEDIT_H
 
 #include "basetextedit.h"
+#include "protocoldata.h"
 
 class ComplexTextEdit : public BaseTextEdit
 {
+    Q_OBJECT
 public:
     ComplexTextEdit(QWidget * parent = 0);
     ~ComplexTextEdit();
@@ -22,17 +24,24 @@ public:
     void setChatFormat(const QTextCharFormat &format, TextUnit::BaseTextEditType type);
     void setChatFont(const QFont &font, TextUnit::BaseTextEditType type);
 
-    void insertFriendChatText(const TextUnit::ChatInfoUnit record);
-    void insertMeChatText(const TextUnit::ChatInfoUnit record);
+    void insertChatText(const TextUnit::ChatInfoUnit record);
     void insertTipChatText(const QString tip);
+    void setSimpleUserInfo(SimpleUserInfo user);
 
 protected:
     void updateChatShow();
     void showTextFrame();
     void addAnimation(const QUrl& url, const QString& fileName);
+    void wheelEvent(QWheelEvent *event);
+
+signals:
+    void sig_QueryRecordTask(int user_query_id,int currStartRow);
 
 private slots:
     void animate(int anim);
+
+private:
+    void compareRowId(int rowid);
 
 private:
     TextUnit::ShowType m_ShowType;
@@ -42,6 +51,11 @@ private:
     QTextCharFormat m_Type_ChatDetail_Format;
     QTextCharFormat m_Type_RecordTime_Format;
     QTextCharFormat m_Type_Tip_Format;
+
+    int startRecordRowid;
+    int endRecordRowid;
+
+    SimpleUserInfo userInfo;               //用户基本信息
 };
 
 #endif // COMPLEXTEXTEDIT_H

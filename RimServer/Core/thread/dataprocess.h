@@ -13,6 +13,8 @@
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
 
+#include <QScopedPointer>
+
 #include "protocoldata.h"
 using namespace ProtocolType;
 
@@ -31,6 +33,8 @@ public:
     void processRelationOperate(Database * db, int socketId, OperateFriendRequest *request);
     void processFriendList(Database *db, int socketId, FriendListRequest *request);
     void processGroupingOperate(Database *db, int socketId, GroupingRequest *request);
+
+    void processText(Database *db, int socketId, TextRequest *request);
 };
 
 #endif // DATAPROCESS_H

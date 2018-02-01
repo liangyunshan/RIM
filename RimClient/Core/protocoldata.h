@@ -8,6 +8,8 @@
  *  @date      2018.01.15
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      201810131:wey:添加文本信息发送
  */
 #ifndef PROTOCOLDATA_H
 #define PROTOCOLDATA_H
@@ -450,10 +452,20 @@ class TextRequest : public MsgPacket
 {
 public:
     TextRequest();
-
     QString accountId;                      //用户自己ID
     SearchType type;                        //联系人or群消息
     QString destAccountId;                  //对方ID
+    qint64 timeStamp;                       //时间戳
+    QString sendData;                       //发送数据
+};
+
+class TextResponse : public MsgPacket
+{
+public:
+    TextResponse();
+    QString accountId;                      //用户自己ID
+    SearchType type;                        //联系人or群消息
+    QString fromAccountId;                  //对方ID
     qint64 timeStamp;                       //时间戳
     QString sendData;                       //发送数据
 };

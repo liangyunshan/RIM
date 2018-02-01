@@ -44,6 +44,12 @@
 #include "media/mediaplayer.h"
 #include "notifywindow.h"
 #include "systemnotifyview.h"
+#include "user/userclient.h"
+#include "abstractchatwidget.h"
+#include "sql/sqlprocess.h"
+#include "sql/databasemanager.h"
+#include "json/jsonresolver.h"
+using namespace TextUnit ;
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -283,7 +289,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
-
+    connect(MessDiapatch::instance(),SIGNAL(recvText(TextResponse)),this,SLOT(procRecvText(TextResponse)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -602,17 +608,78 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     d->trayIcon->notify(SystemTrayIcon::SystemNotify,info.identityId);
 }
 
+void LoginDialog::procRecvText(TextResponse response)
+{
+    MQ_D(LoginDialog);
+    UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
+    if(client)
+    {
+        //TODO:将记录写入到数据库
+        //群如何写入?
+        SimpleUserInfo userInfo;
+        userInfo.accountId = "0";
+        ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
+        SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
+
+        bool isNewWindow = false;
+        if(client->chatWidget == NULL)
+        {
+            client->chatWidget = new AbstractChatWidget();
+            client->chatWidget->setUserInfo(client->simpleUserInfo);
+            isNewWindow = true;
+        }
+
+        if(isNewWindow)
+        {
+            NotifyInfo  info;
+            info.identityId = RUtil::UUID();
+            info.accountId = response.fromAccountId;
+            info.nickName = client->simpleUserInfo.nickName;
+            info.face = client->simpleUserInfo.face;
+            info.type = NotifyUser;
+            info.stype = response.type;
+            info.pixmap = RSingleton<ImageManager>::instance()->getSystemUserIcon();
+
+            d->notifyWindow->addNotifyInfo(info);
+            d->notifyWindow->showMe();
+
+            d->trayIcon->notify(SystemTrayIcon::UserNotify,info.identityId,RSingleton<ImageManager>::instance()->getSystemUserIcon());
+        }
+        else
+        {
+            client->chatWidget->show();
+        }
+        client->chatWidget->recvChatMsg(response.sendData.toLocal8Bit());
+
+        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+    }
+}
+
 void LoginDialog::viewSystemNotify(NotifyInfo info)
 {
     MQ_D(LoginDialog);
-    ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
 
-    SystemNotifyView * view = new SystemNotifyView();
-    connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
+    qDebug()<<info.type<<info.identityId;
 
-    view->setNotifyType(reqType);
-    view->setNotifyInfo(info);
-    view->show();
+    if(info.type == NotifySystem)
+    {
+        ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
+
+        SystemNotifyView * view = new SystemNotifyView();
+        connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
+
+        view->setNotifyType(reqType);
+        view->setNotifyInfo(info);
+        view->show();
+    }
+    else if(info.type == NotifyUser)
+    {
+        UserClient * client = RSingleton<UserManager>::instance()->client(info.accountId);
+        if(client)
+        {
+            client->chatWidget->show();
+        }
+    }
 
     d->trayIcon->removeNotify(info.identityId);
 }

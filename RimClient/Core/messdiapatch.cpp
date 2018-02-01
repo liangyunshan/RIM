@@ -61,3 +61,8 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
 {
     emit errorGroupingOperate(type);
 }
+
+void MessDiapatch::onRecvText(TextResponse response)
+{
+    emit recvText(response);
+}
