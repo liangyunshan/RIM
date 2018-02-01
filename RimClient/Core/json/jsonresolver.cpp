@@ -135,16 +135,9 @@ int JsonResolver::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
         return -1;
     }
 
-    //
-//! [0]
     QXmlStreamReader xml(html);
-    QString newhtml = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n";
+    QString newhtml = "<!DOCTYPE HTML>\n";
     newhtml += "<html>";
-//    newhtml += "<head>";
-//    newhtml += "<meta name=\"qrichtext\" content=\"1\" />";
-//    newhtml += "<style type=\"text/css\">\n p, li { white-space: pre-wrap; }\n</style>";
-//    newhtml += "</head>\n";
-//! [0]
 
     if (xml.readNextStartElement()) {
         if (xml.name() == "html")
@@ -216,8 +209,9 @@ void JsonResolver::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
     //
     Q_ASSERT(xml->isStartElement() && xml->name() == "p");
 
-    QString style = xml->attributes().value("style").toString();
-    html += QString("\n<p style=\"%1\">").arg(style);
+//    QString style = xml->attributes().value("style").toString();
+//    html += QString("\n<p style=\"%1\">").arg(style);
+    html += QString("\n<p >");
 
     while (xml->readNextStartElement()) {
         if (xml->name() == "img")

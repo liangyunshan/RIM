@@ -225,6 +225,13 @@ void ComplexTextEdit::insertTipChatText(const QString tip)
 //    QTextCursor cursor  = this->textCursor();
 //    cursor.insertBlock(blockFormat_tip);
     //    cursor.insertText(tip ,m_Type_UserHead_Me_Format);
+
+    //移动滚动条到底部
+    QScrollBar *scrollbar = this->verticalScrollBar();
+    if (scrollbar)
+    {
+        scrollbar->setSliderPosition(scrollbar->maximum());
+    }
 }
 
 void ComplexTextEdit::setSimpleUserInfo(SimpleUserInfo user)
