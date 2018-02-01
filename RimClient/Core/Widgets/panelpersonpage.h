@@ -17,6 +17,7 @@
 
 #include <QWidget>
 #include "observer.h"
+#include "protocoldata.h"
 
 namespace ProtocolType
 {
@@ -55,10 +56,10 @@ public slots:
     void updateGroupActions(ToolPage *);
     void movePersonTo();
 
-
 private:
     void createAction();
     void addGroupAndUsers();
+    void clearTargetGroup(const QString id);
 
 private:
     PanelPersonPagePrivate * d_ptr;

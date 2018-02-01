@@ -13,6 +13,8 @@
 #include <QMouseEvent>
 #include <QDrag>
 #include <QMimeData>
+#include <QApplication>
+#include <QPainter>
 
 #include "head.h"
 #include "constants.h"
@@ -48,7 +50,9 @@ private:
 
     QMenu * menu;
 
-    bool m_pressed;
+    bool m_leftPressed;
+    QPoint m_startPos;
+    QList<int> m_laterExpandPages;
 };
 
 void ToolBoxPrivate::initWidget()
@@ -67,7 +71,7 @@ void ToolBoxPrivate::initWidget()
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
 
-    m_pressed = false;//FIXME LYS
+    m_leftPressed = false;//FIXME LYS
 }
 
 void ToolBoxPrivate::addPage(ToolPage *page)
@@ -115,6 +119,7 @@ ToolPage * ToolBox::addPage(QString text)
      * @brief 移除targetPage
      * @details
      * @param[in] targetPage:ToolPage *
+     * @details 仅将目标page从布局中移除但仍保留在pages列表中
      * @return 移除targetPage结果
      */
 bool ToolBox::removePage(ToolPage *targetPage)
@@ -145,8 +150,9 @@ bool ToolBox::removePage(ToolPage *targetPage)
                 QLayoutItem * layItem = layout->takeAt(index);
                 if(layItem->widget())
                 {
-                    bool removeResult = d->pages.removeOne(targetPage);
-                    return removeResult;
+//                    bool removeResult = d->pages.removeOne(targetPage);
+//                    return removeResult;
+                    return true;
                 }
             }
         }
@@ -213,6 +219,28 @@ ToolPage *ToolBox::penultimatePage()
     return d->pages.at(d->pages.count()-2);
 }
 
+
+/*!
+     * @brief 获取默认分组page
+     * @param 无
+     * @return 默认分组page
+     *
+     */
+ToolPage *ToolBox::defaultPage()
+{
+    MQ_D(ToolBox);
+    ToolPage * t_defult = NULL;
+    for(int t_index=0;t_index<pageCount();t_index++)
+    {
+        if(d->pages.at(t_index)->isDefault())
+        {
+            t_defult = d->pages.at(t_index);
+            break;
+        }
+    }
+    return t_defult;
+}
+
 /*!
      * @brief 获取目标uuid的page
      * @param[in] 无
@@ -225,8 +253,9 @@ ToolPage *ToolBox::targetPage(QString &target)
     ToolPage * targetPage= NULL;
     for(int index=0;index<d->pages.count();index++)
     {
-        QString uuid = d->pages.at(index)->pageInfo().uuid;
-        if(target == uuid)
+        QString t_uuid = d->pages.at(index)->pageInfo().uuid;
+
+        if(target == t_uuid)
         {
             targetPage = d->pages.at(index);
         }
@@ -318,6 +347,39 @@ void ToolBox::indexInLayout(int movedY, int &sortedIndex)
     }
 }
 
+/*!
+     * @brief 判断鼠标拖拽时是否是page,是则返回page，否则返回NULL
+     * @param[in] pressedPos:const QPoint &(鼠标拖拽时点击的位置)
+     * @details 将展开的page暂时闭合，结束取值后再展开
+     * @return 鼠标拖拽的是page则返回page，否则返回NULL
+     *
+     */
+ToolPage *ToolBox::dragedPage(const QPoint & pressedPos)
+{
+    MQ_D(ToolBox);
+    ToolPage * t_returnPage = NULL;
+    QList <int> t_expandedPages;
+    for(int t_index=0;t_index<pageCount();t_index++)
+    {
+        if(d->pages.at(t_index)->isExpanded())
+        {
+            t_expandedPages.append(t_index);
+            d->pages.at(t_index)->setExpand(false);
+        }
+
+        if(d->pages.at(t_index)->geometry().contains(pressedPos))
+        {
+            t_returnPage = d->pages.at(t_index);
+            break;
+        }
+    }
+    for(int t_index=0;t_index<t_expandedPages.count();t_index++)
+    {
+        d->pages.at(t_expandedPages.at(t_index))->setExpand(true);
+    }
+    return t_returnPage;
+}
+
 void ToolBox::contextMenuEvent(QContextMenuEvent *)
 {
     MQ_D(ToolBox);
@@ -330,53 +392,84 @@ void ToolBox::contextMenuEvent(QContextMenuEvent *)
 void ToolBox::mousePressEvent(QMouseEvent *event)
 {
     MQ_D(ToolBox);
-    d->m_pressed = true;
-    QWidget::mouseMoveEvent(event);
+    if(event->button()&Qt::LeftButton)
+    {
+        d->m_leftPressed = true;
+        d->m_startPos = event->pos();
+    }
+    QWidget::mousePressEvent(event);
+}
+
+void ToolBox::mouseReleaseEvent(QMouseEvent *event)
+{
+    MQ_D(ToolBox);
+    if(event->button()&Qt::LeftButton)
+    {
+        d->m_leftPressed = false;
+    }
+    QWidget::mouseReleaseEvent(event);
 }
 
 void ToolBox::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(ToolBox);
-    if(d->m_pressed)
+    if(d->m_leftPressed)
     {
-        ToolPage * t_movedPage = selectedPage();    //FIXME LYS
+        ToolPage * t_movedPage = dragedPage(d->m_startPos);    //FIXME LYS
+        if(!t_movedPage)
+        {
+            return;
+        }
+
+        for(int t_index=0;t_index<pageCount();t_index++)
+        {
+            if(d->pages.at(t_index)->isExpanded())
+            {
+                d->m_laterExpandPages.append(t_index);
+                t_movedPage->setExpand(false);
+            }
+        }
 
         QPoint t_hotPot = event->pos() - t_movedPage->pos();
 
         QMimeData *t_MimData = new QMimeData;
-        t_MimData->setText(t_movedPage->toolName());
+        t_MimData->setText(t_movedPage->id());
 
         QPixmap t_pixMap(t_movedPage->titleRect().size());
-        d->currentPage->render(&t_pixMap);
+        t_movedPage->render(&t_pixMap);
 
-        QDrag *t_drag = new QDrag(this);
-        t_drag->setMimeData(t_MimData);
-        t_drag->setPixmap(t_pixMap);
-        t_drag->setHotSpot(t_hotPot);
+        if((event->pos()-d->m_startPos).manhattanLength()<QApplication::startDragDistance())
+        {
+            QDrag *t_drag = new QDrag(this);
+            t_drag->setMimeData(t_MimData);
+            t_drag->setPixmap(t_pixMap);
+            t_drag->setHotSpot(t_hotPot);
 
-        Qt::DropAction dropAction = t_drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
-        Q_UNUSED(dropAction);
+            Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
+            Q_UNUSED(dropAction);
+        }
     }
     QWidget::mouseMoveEvent(event);
 }
 
 void ToolBox::dragEnterEvent(QDragEnterEvent *event)
 {
+    MQ_D(ToolBox);
     if (event->mimeData()->hasText())
     {
-        if (event->source() == this)
+        if(event->source() == this )
         {
             event->setDropAction(Qt::MoveAction);
             event->accept();
         }
         else
         {
-            event->acceptProposedAction();
+//                event->acceptProposedAction();
         }
     }
     else
     {
-        event->ignore();
+        QWidget::dragEnterEvent(event);
     }
 }
 
@@ -384,7 +477,7 @@ void ToolBox::dropEvent(QDropEvent *event)
 {
     MQ_D(ToolBox);
     int t_curY = event->pos().y();
-    ToolPage * t_movedPage = d->currentPage;
+    ToolPage * t_movedPage = targetPage(event->mimeData()->text());
     if(t_movedPage)
     {
         int t_movedIndex = -1;
@@ -399,5 +492,14 @@ void ToolBox::dropEvent(QDropEvent *event)
             }
         }
     }
-    d->m_pressed = false;
+
+    d->m_leftPressed = false;
+
+    for(int t_index=0;t_index<d->m_laterExpandPages.count();t_index++)
+    {
+        d->pages.at(d->m_laterExpandPages.at(t_index))->setExpand(true);
+    }
+    d->m_laterExpandPages.clear();
+
+    QWidget::dropEvent(event);
 }

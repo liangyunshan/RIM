@@ -12,6 +12,7 @@
  *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
  *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
  *      date:20180131   content:添加移除分组方法removePage   name:LYS
+ *      date:20180131   content:添加获取默认分组方法defaultPage   name:LYS
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H
@@ -43,6 +44,7 @@ public:
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
     ToolPage *penultimatePage();
+    ToolPage *defaultPage();
     ToolPage *targetPage(QString &);
 
 signals:
@@ -56,10 +58,12 @@ private slots:
 
 private:
     void indexInLayout(int,int &);
+    ToolPage *dragedPage(const QPoint &);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);
     void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);

@@ -36,7 +36,8 @@ enum MessageType
     MESS_SETTINGS,               //系统设置修改
     MESS_BASEINFO_UPDATE,        //基本信息修改
     MESS_FRIENDLIST_UPDATE,      //好友列表更新
-    MESS_GROUPLIST_UPDATE        //群列表更新
+    MESS_GROUPLIST_UPDATE,       //群列表更新
+    MESS_GROUP_DELETE            //分组删除消息
 };
 
 /*!
@@ -187,6 +188,7 @@ namespace GroupPerson {
         QString uuid;
         QString name;
         int sortNum;
+        bool isDefault;
     };//联系人分组信息
 }
 
