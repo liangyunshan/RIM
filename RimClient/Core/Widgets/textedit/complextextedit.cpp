@@ -1,11 +1,13 @@
 ﻿#include "complextextedit.h"
 #include <QDateTime>
+#include <QScrollBar>
 #include <QTextFrame>
 #include <QMovie>
 #include <QUrl>
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
 #include "global.h"
+#include <QtMath>
 
 #include <QDebug>
 
@@ -147,6 +149,7 @@ void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
     QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
 
     //TODO: 根据当前的记录类型，向前添加或向后添加
+    bool isInsertByEnd = false;
     if(record.rowid<=startRecordRowid && record.rowid != -1)
     {
         this->moveCursor(QTextCursor::Start);
@@ -154,6 +157,7 @@ void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
     else
     {
         this->moveCursor(QTextCursor::End);
+        isInsertByEnd = true;
     }
 
     //
@@ -170,6 +174,16 @@ void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
 
     cursor.insertBlock(blockFormat_contents);
     this->insertChatFormatText(record.contents);
+
+    if(isInsertByEnd)
+    {
+        //移动滚动条到底部
+        QScrollBar *scrollbar = this->verticalScrollBar();
+        if (scrollbar)
+        {
+            scrollbar->setSliderPosition(scrollbar->maximum());
+        }
+    }
 
     //
 //    this->moveCursor(QTextCursor::End);
@@ -271,13 +285,20 @@ void ComplexTextEdit::wheelEvent(QWheelEvent *event)
 {
     if(event->delta()>0)
     {
-        int user_query_id = userInfo.accountId.toInt();
-        if(startRecordRowid>1)
+        QScrollBar *scrollbar = this->verticalScrollBar();
+        if (scrollbar)
         {
-            //startRecordRowid-1,是为了返回前面的数据，不包括当前记录行
-            emit sig_QueryRecordTask(user_query_id,startRecordRowid-1);
+            //滚动条滚到顶部,才显示以前的历史纪录
+            if(qAbs(scrollbar->value() - scrollbar->minimum())<=4)
+            {
+                int user_query_id = userInfo.accountId.toInt();
+                if(startRecordRowid>1)
+                {
+                    //startRecordRowid-1,是为了返回前面的数据，不包括当前记录行
+                    emit sig_QueryRecordTask(user_query_id,startRecordRowid-1);
+                }
+            }
         }
-
     }
     BaseTextEdit::wheelEvent(event);
 }

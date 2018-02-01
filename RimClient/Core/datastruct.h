@@ -179,7 +179,7 @@ namespace TextUnit
     const QString _Sql_User_RecordTxt_ = "RecordTxt";
     const QString _Sql_User_Rowid_ = "rowid";
 
-    const unsigned short DefaultQueryRow = 10;  //默认查找的记录数
+    const unsigned short DefaultQueryRow = 5;  //默认查找的记录数
 }
 
 namespace GroupPerson {

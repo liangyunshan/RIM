@@ -45,6 +45,7 @@ QString SQLProcess::querryRecords(int userid, int currRow, int queryRows)
     if((currRow-queryRows)<0)
     {
         StartRow = 0;
+        queryRows = currRow;
     }
     else
     {

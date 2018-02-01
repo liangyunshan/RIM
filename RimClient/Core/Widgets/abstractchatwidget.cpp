@@ -18,6 +18,8 @@
 #include <QClipboard>
 #include <QProcess>
 #include <QMimeData>
+#include <QPalette>
+
 
 #include "head.h"
 #include "global.h"
@@ -454,9 +456,6 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 //响应聊天框的历史信息查询
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<"user_query_id:"<<user_query_id<<"currStartRow:"<<currStartRow
-          <<"\n";
     d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
 }
 

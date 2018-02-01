@@ -10,6 +10,8 @@ SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     setInputColor(QColor(Qt::black));
     setInputFont(QFont(tr("wryh"), 12, QFont::Bold));
 
+    b_isSendStatus = false;
+
     connect(this,SIGNAL(textChanged()),this,SLOT(slot_TextChanged()));
 }
 
@@ -34,6 +36,9 @@ void SimpleTextEdit::updateInputInfo()
 {
     this->setTextColor(m_fontcolor);
     this->setFont(m_inputFont);
+    QPalette palette = this->palette();
+    palette.setBrush(QPalette::BrightText,m_fontcolor);
+    setPalette(palette);
 }
 
 void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
@@ -46,6 +51,7 @@ void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
             {
                 if(G_mIsEnter == Qt::Key_Return)
                 {
+                    b_isSendStatus = true;
                     emit sigEnter();
                 }
             }
@@ -56,12 +62,27 @@ void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
             {
                 if(G_mIsEnter == (Qt::Key_Control+Qt::Key_Return))
                 {
+                    b_isSendStatus = true;
                     emit sigEnter();
                 }
             }
         }
+
+        if(this->toPlainText().isEmpty())
+        {
+            if(event->key() == Qt::Key_Backspace)
+            {
+                this->clear();
+            }
+        }
     }
     BaseTextEdit::keyPressEvent(event);
+
+    if(b_isSendStatus)
+    {
+        b_isSendStatus = false;
+        this->clear();
+    }
 }
 
 void SimpleTextEdit::clear()

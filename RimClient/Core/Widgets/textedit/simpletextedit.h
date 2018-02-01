@@ -12,6 +12,7 @@
 #define SIMPLETEXTEDIT_H
 
 #include "basetextedit.h"
+class QStyle;
 
 class SimpleTextEdit : public BaseTextEdit
 {
@@ -37,6 +38,8 @@ private slots:
 private:
     QColor m_fontcolor;
     QFont  m_inputFont;
+    QStyle *p_initStyle;
+    bool b_isSendStatus;
 };
 
 #endif // SIMPLETEXTEDIT_H
