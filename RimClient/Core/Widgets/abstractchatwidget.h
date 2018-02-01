@@ -35,11 +35,13 @@ public:
     QString widgetId();
     void recvChatMsg(QByteArray);
     void setUserInfo(SimpleUserInfo info);
+    void initChatRecord();
 
     void onMessage(MessageType type);
 
 public slots:
     void slot_UpdateKeySequence();
+    void slot_QueryHistoryRecords(int user_query_id,int currStartRow);
 
 private slots:
     void resizeOnce();
@@ -61,7 +63,6 @@ protected:
 
 private:
     void switchWindowSize();
-    void initChatRecord();
 
 private:
     AbstractChatWidgetPrivate * d_ptr;
