@@ -417,7 +417,9 @@ enum OperateGrouping
     GROUPING_CREATE,                //创建分组
     GROUPING_RENAME,                //重命名分组
     GROUPING_DELETE,                //删除分组
-    GROUPING_SORT                   //分组排序
+    GROUPING_SORT,                  //分组排序
+    GROUPING_REFRESH                //刷新分组
+
 };
 
 class GroupingRequest : public MsgPacket

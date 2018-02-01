@@ -3,6 +3,8 @@
 #include "head.h"
 #include "datastruct.h"
 #include "constants.h"
+#include "toolbox.h"
+#include "../actionmanager/actionmanager.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -20,8 +22,6 @@
 #include <QUuid>
 #include <QDrag>
 #include <QMimeData>
-
-#include "toolbox.h"
 
 #define TOOL_SIMPLE_HEIGHT  24
 
@@ -161,10 +161,87 @@ ToolPage::~ToolPage()
      * @param[in] text 待设置内容
      * @return 无
      */
-void ToolPage::setToolName(QString text)
+void ToolPage::setToolName(const QString &text)
 {
     MQ_D(ToolPage);
     d->setToolName(text);
+}
+
+/*!
+     * @brief 获取textLabel的显示内容
+     * @param 无
+     * @return 无
+     */
+QString ToolPage::toolName() const
+{
+    MQ_D(ToolPage);
+    return d->textLabel->text();
+}
+
+/*!
+     * @brief 设置page的sortNum(分组排序序号)
+     * @param [in]page的sortNum(分组排序序号)
+     * @return 无
+     */
+void ToolPage::setSortNum(const int num)
+{
+    MQ_D(ToolPage);
+    d->m_pageInfo.sortNum = num;
+}
+
+/*!
+     * @brief 获取page的sortNum(排位顺序)
+     * @param [in]page的sortNum(分组排序序号)
+     * @return 无
+     */
+int ToolPage::sortNum() const
+{
+    MQ_D(ToolPage);
+    return d->m_pageInfo.sortNum;
+}
+
+/*!
+     * @brief 设置page的id
+     * @param [in]page的id
+     * @return 无
+     */
+void ToolPage::setID(const QString & id)
+{
+    MQ_D(ToolPage);
+    d->m_pageInfo.uuid = id;
+}
+
+/*!
+     * @brief 获取page的id
+     * @param 无
+     * @return page的id
+     */
+QString ToolPage::id() const
+{
+    MQ_D(ToolPage);
+    return d->m_pageInfo.uuid;
+}
+
+/*!
+     * @brief 设置page是否是默认分组
+     * @param [in] isDefault:bool
+     * @return 无
+     */
+void ToolPage::setDefault(const bool isDefault)
+{
+    MQ_D(ToolPage);
+    d->m_pageInfo.isDefault = isDefault;
+}
+
+/*!
+     * @brief 获取page是否是默认分组
+     * @param 无
+     * @return page是否是默认分组
+     */
+bool ToolPage::isDefault() const
+{
+    MQ_D(ToolPage);
+    return d->m_pageInfo.isDefault;
 }
 
 void ToolPage::addItem(ToolItem * item)
@@ -241,6 +318,20 @@ void ToolPage::setMenu(QMenu *menu)
 }
 
 /*!
+     * @brief 控制分组展开或闭合
+     *
+     * @param[in] ifExpand:const bool
+     *
+     * @return page的展开状态
+     *
+     */
+void ToolPage::setExpand(bool ifExpand)
+{
+    MQ_D(ToolPage);
+    d->setExpanded(ifExpand);
+}
+
+/*!
      * @brief 获取page是否是展开状态
      *
      * @param 无
@@ -272,17 +363,6 @@ QRect ToolPage::titleRect() const
 }
 
 /*!
-     * @brief 获取textLabel的显示内容
-     * @param 无
-     * @return 无
-     */
-QString ToolPage::toolName() const
-{
-    MQ_D(ToolPage);
-    return d->textLabel->text();
-}
-
-/*!
      * @brief 获取textLabel的默认固定高度
      * @param 无
      * @return textLabel的默认固定高度
@@ -302,17 +382,6 @@ const PersonGroupInfo & ToolPage::pageInfo()
 {
     MQ_D(ToolPage);
     return d->m_pageInfo;
-}
-
-/*!
-     * @brief 设置page的sortNum(分组排序序号)
-     * @param [in]page的sortNum(分组排序序号)
-     * @return 无
-     */
-void ToolPage::setSortNum(const int num)
-{
-    MQ_D(ToolPage);
-    d->m_pageInfo.sortNum = num;
 }
 
 /*!
@@ -350,16 +419,23 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
             {
                 d->setExpanded(!d->expanded);
                 emit selectedPage(this);
-                return true;
             }
             else if(e->button() == Qt::RightButton)
             {
                 emit selectedPage(this);
-                return true;
             }
+
         }
         else if(event->type() == QEvent::ContextMenu)
         {
+            if(this->isDefault())
+            {
+                ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP)->setEnabled(false);
+            }
+            else
+            {
+                ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP)->setEnabled(true);
+            }
             if(d->contextMenu)
             {
                 d->contextMenu->exec(QCursor::pos());

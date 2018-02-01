@@ -17,7 +17,6 @@
 #include "user/userclient.h"
 
 #include "toolbox/toolbox.h"
-#include "protocoldata.h"
 using namespace ProtocolType;
 
 using namespace GroupPerson;
@@ -42,6 +41,7 @@ protected:
     QLineEdit *tmpNameEdit;                         //重命名时用edit
     ToolPage * pageOfMovedItem;                     //待移动分组的item所属的page
     bool groupIsCreate;                             //标识分组是新创建还是已存在
+    QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
@@ -96,6 +96,8 @@ void PanelPersonPage::addGroupAndUsers()
     {
         RGroupData * groupData = G_FriendList.at(i);
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
+        page->setID(groupData->groupId);
+        page->setDefault(groupData->isDefault);
         d->pages.append(page);
 
         for(int j = 0; j < groupData->users.size(); j++)
@@ -126,14 +128,49 @@ void PanelPersonPage::addGroupAndUsers()
     }
 }
 
+/*!
+     * @brief 接收到服务器删除分组成功后更新联系人分组显示
+     * @param[in] 无
+     * @return 无
+     */
+void PanelPersonPage::clearTargetGroup(const QString id)
+{
+    MQ_D(PanelPersonPage);
+    QString t_id = id;
+    ToolPage * t_delPage = d->toolBox->targetPage(t_id);
+    if(!t_delPage)
+    {
+        return;
+    }
+    for(int t_index=0;t_index<t_delPage->items().count();t_index++)
+    {
+        ToolItem * t_movedItem = t_delPage->items().at(t_index);
+        bool t_result = t_delPage->removeItem(t_movedItem);
+        if(t_result)
+        {
+            d->toolBox->defaultPage()->addItem(t_movedItem);
+        }
+        else
+        {
+            delete t_movedItem;
+        }
+    }
+    d->toolBox->removePage(t_delPage);
+    delete t_delPage;
+    d->m_deleteID = QString();
+}
+
 void PanelPersonPage::onMessage(MessageType type)
 {
+    MQ_D(PanelPersonPage);
     switch(type)
     {
         case MESS_FRIENDLIST_UPDATE:
             addGroupAndUsers();
             break;
-
+        case MESS_GROUP_DELETE:
+            clearTargetGroup(d->m_deleteID);
+            break;
         default:
             break;
     }
@@ -146,7 +183,15 @@ void PanelPersonPage::onMessage(MessageType type)
      */
 void PanelPersonPage::refreshList()
 {
+    MQ_D(PanelPersonPage);
+//    d->m_deleteID = t_page->id();
+//    GroupingRequest * request = new GroupingRequest();
+//    request->uuid = G_UserBaseInfo.uuid;
+//    request->type = GROUPING_REFRESH;
+//    request->gtype = GROUPING_FRIEND;
+//    request->groupId = t_page->id();
 
+//    RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 /*!
@@ -162,6 +207,7 @@ void PanelPersonPage::addGroup()
     MQ_D(PanelPersonPage);
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
+    page->setDefault(false);
     d->pages.append(page);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();
@@ -207,15 +253,20 @@ void PanelPersonPage::renameGroup()
     }
 }
 
-//TODO 将已删除分组的ID传至groupId
 void PanelPersonPage::delGroup()
 {
-
+    MQ_D(PanelPersonPage);
+    ToolPage *t_page = d->toolBox->selectedPage();
+    if(t_page->isDefault())
+    {
+        return;
+    }
+    d->m_deleteID = t_page->id();
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_UserBaseInfo.uuid;
     request->type = GROUPING_DELETE;
     request->gtype = GROUPING_FRIEND;
-    request->groupId = "待删除分组ID";
+    request->groupId = t_page->id();
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -271,7 +322,7 @@ void PanelPersonPage::renameEditFinished()
         request->gtype = GROUPING_FRIEND;
         request->groupName = d->tmpNameEdit->text();
         //TODO 待设置当前分组的groupid
-        request->groupId = "";
+        request->groupId = d->toolBox->selectedPage()->id();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
 
         d->groupIsCreate = true;
@@ -340,6 +391,9 @@ void PanelPersonPage::movePersonTo()
         if(result)
         {
             targetPage->addItem(targetItem);
+            //FIXME LYS-20180131
+            disconnect(targetItem,SIGNAL(updateGroupActions()),sourcePage,SLOT(updateGroupActions()));
+            connect(targetItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
         }
     }
 }
