@@ -4,6 +4,8 @@
 #include <QSqlQuery>
 #include <QVariant>
 
+#include <QDebug>
+
 using namespace TextUnit;
 
 SQLProcess *p_SQLProcess = NULL;
@@ -58,12 +60,17 @@ QString SQLProcess::querryRecords(int userid, int currRow, int queryRows)
             .arg(TextUnit::_Sql_User_RecordContents_)
             .arg(TextUnit::_Sql_User_RecordTxt_);
 
-    QString cmd = QString("select %0 from %1%2 limit %3,%4 ")
+    QString cmd_limit = QString("select %0 from %1%2 limit %3,%4 ")
                   .arg(item)
                   .arg(TextUnit::_Sql_User_TableName_)
                   .arg(userid)
                   .arg(StartRow)
                   .arg(queryRows);
+
+    QString cmd = QString("select %0 from (%1) order by %2 desc ")
+            .arg(item)
+            .arg(cmd_limit)
+            .arg(TextUnit::_Sql_User_Rowid_);
     return cmd;
 }
 
@@ -89,19 +96,32 @@ int SQLProcess::queryTotleRecord(Database *db, int id)
     return 0;
 }
 
-bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit)
+bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit, SimpleUserInfo userInfo)
 {
-    if(!queryUser(db,unit.user.id))
+    UserInfo user_insert;
+
+    if(userInfo.accountId.toInt() == 0)
     {
-        insertTgtUser(db,unit.user.id,unit.user.name);
-        createTableUser_id(db,unit.user.id);
+        user_insert = unit.user;
+    }
+    else
+    {
+        user_insert.id = userInfo.accountId.toInt();
+        user_insert.name = userInfo.nickName;
+        user_insert.head = userInfo.customImgId;
+    }
+
+    if(!queryUser(db,user_insert.id))
+    {
+        insertTgtUser(db,user_insert.id,user_insert.name);
+        createTableUser_id(db,user_insert.id);
     }
 
     QSqlQuery query(db->sqlDatabase());
 
     query.prepare(QString("insert into %1%2 values(?,?,?,?,?,?) ")
                   .arg(TextUnit::_Sql_User_TableName_)
-                  .arg(unit.user.id));
+                  .arg(user_insert.id));
     query.bindValue(0,unit.user.id);
     query.bindValue(1,unit.user.name);
     query.bindValue(2,unit.user.head);

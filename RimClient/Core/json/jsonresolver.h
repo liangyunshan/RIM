@@ -1,4 +1,13 @@
-﻿#ifndef JSONRESOLVER_H
+﻿/*!
+ *  @brief     json聊天内容数据解析打包类
+ *  @details   将聊天内容信息打包
+ *  @author    XXX
+ *  @version   1.0
+ *  @date      2018.01.30
+ *  @warning
+ *  @copyright NanJing RenGu.
+ */
+#ifndef JSONRESOLVER_H
 #define JSONRESOLVER_H
 
 #include <QObject>

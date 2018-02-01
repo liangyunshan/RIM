@@ -94,7 +94,6 @@ struct NotifyInfo
 
 };
 
-const int TestUserId = 123456;
 namespace TextUnit
 {
     enum ShowType{
@@ -138,6 +137,11 @@ namespace TextUnit
         }
     };//聊天内容字体描述
 
+    enum RecvOrSendInfoType{
+        Rim_Type_Recv = 0,
+        Rim_Type_Send = 1
+    };
+
     struct ChatInfoUnit{
         int rowid;
         UserInfo user;
@@ -147,6 +151,7 @@ namespace TextUnit
 
         ChatInfoUnit (){
             rowid = 0;
+            user.id = 0;
             user.name = "Unknown";
             user.head = "Unknown";
             time = "";

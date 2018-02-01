@@ -3,6 +3,9 @@
 #include <QTextFrame>
 #include <QMovie>
 #include <QUrl>
+#include "sql/sqlprocess.h"
+#include "sql/databasemanager.h"
+#include "global.h"
 
 #include <QDebug>
 
@@ -116,41 +119,12 @@ void ComplexTextEdit::setChatFont(const QFont &font, TextUnit::BaseTextEditType 
     updateChatShow();
 }
 
-//添加对方的聊天内容
-void ComplexTextEdit::insertFriendChatText(const TextUnit::ChatInfoUnit record)
-{
-    QTextFrameFormat frameFormat;                  //创建框架格式
-    frameFormat.setBackground(Qt::white);           //设置背景色
-    frameFormat.setMargin(3);
-    frameFormat.setBorder(1);
-
-    QTextBlockFormat blockFormat_head = QTextBlockFormat();
-    blockFormat_head.setLeftMargin(1);
-    blockFormat_head.setRightMargin(1);
-    blockFormat_head.setTopMargin(1);
-    blockFormat_head.setBottomMargin(1);
-
-    QTextBlockFormat blockFormat_contents = QTextBlockFormat();
-    blockFormat_contents.setLeftMargin(15);
-    blockFormat_contents.setRightMargin(15);
-    blockFormat_contents.setTopMargin(3);
-    blockFormat_contents.setBottomMargin(10);
-
-    //描述聊天信息的用户标识和时间标识等，目前采用固定的格式
-    //用户名+聊天信息时间戳
-    QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
-
-    this->moveCursor(QTextCursor::End);
-    QTextCursor cursor  = this->textCursor();
-    cursor.insertBlock(blockFormat_head);
-    cursor.insertText(me ,m_Type_UserHead_Friend_Format);
-    cursor.insertBlock(blockFormat_contents);
-    this->insertChatFormatText(record.contents);
-}
 
 //添加自己发送的聊天信息
-void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
+void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
 {
+    compareRowId(record.rowid);
+
     QTextFrameFormat frameFormat;                  //创建框架格式
     frameFormat.setBackground(Qt::white);           //设置背景色
     frameFormat.setMargin(3);
@@ -172,10 +146,28 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
     //用户名+聊天信息时间戳
     QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
 
-    this->moveCursor(QTextCursor::End);
+    //TODO: 根据当前的记录类型，向前添加或向后添加
+    if(record.rowid<=startRecordRowid && record.rowid != -1)
+    {
+        this->moveCursor(QTextCursor::Start);
+    }
+    else
+    {
+        this->moveCursor(QTextCursor::End);
+    }
+
+    //
     QTextCursor cursor  = this->textCursor();
     cursor.insertBlock(blockFormat_head);
-    cursor.insertText(me ,m_Type_UserHead_Me_Format);
+    if(record.user.id == G_UserBaseInfo.accountId.toInt())
+    {
+        cursor.insertText(me ,m_Type_UserHead_Me_Format);
+    }
+    else
+    {
+        cursor.insertText(me ,m_Type_UserHead_Friend_Format);
+    }
+
     cursor.insertBlock(blockFormat_contents);
     this->insertChatFormatText(record.contents);
 
@@ -186,7 +178,6 @@ void ComplexTextEdit::insertMeChatText(const TextUnit::ChatInfoUnit record)
 //    this->insertPlainText(record.contents);
     //
 
-    compareRowId(record.rowid);
 }
 
 //添加标注提示信息
@@ -204,6 +195,27 @@ void ComplexTextEdit::insertTipChatText(const QString tip)
     frameFormat.setBorder(0);                       //设置边界宽度
     this->textCursor().insertFrame(frameFormat);    //在光标处插入框架
     this->insertPlainText(tip);
+
+//    QTextFrameFormat frameFormat;                  //创建框架格式
+//    frameFormat.setBackground(Qt::white);           //设置背景色
+//    frameFormat.setMargin(3);
+//    frameFormat.setBorder(1);
+
+//    QTextBlockFormat blockFormat_tip = QTextBlockFormat();
+//    blockFormat_tip.setLeftMargin(25);
+//    blockFormat_tip.setRightMargin(1);
+//    blockFormat_tip.setTopMargin(1);
+//    blockFormat_tip.setBottomMargin(1);
+
+//    this->moveCursor(QTextCursor::End);
+//    QTextCursor cursor  = this->textCursor();
+//    cursor.insertBlock(blockFormat_tip);
+    //    cursor.insertText(tip ,m_Type_UserHead_Me_Format);
+}
+
+void ComplexTextEdit::setSimpleUserInfo(SimpleUserInfo user)
+{
+    userInfo = user;
 }
 
 void ComplexTextEdit::updateChatShow()
@@ -259,10 +271,13 @@ void ComplexTextEdit::wheelEvent(QWheelEvent *event)
 {
     if(event->delta()>0)
     {
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<""<<event
-              <<"\n";
-        //TODO: 查询是否有历史信息，并显示在聊天框
+        int user_query_id = userInfo.accountId.toInt();
+        if(startRecordRowid>1)
+        {
+            //startRecordRowid-1,是为了返回前面的数据，不包括当前记录行
+            emit sig_QueryRecordTask(user_query_id,startRecordRowid-1);
+        }
+
     }
     BaseTextEdit::wheelEvent(event);
 }

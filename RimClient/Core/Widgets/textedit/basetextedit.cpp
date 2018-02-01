@@ -80,8 +80,9 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
     QColor color = this->textColor();
     QString contents = this->toChatFormaText();
 
-    unit.user.id = TestUserId;
-    unit.user.name = "Me";  //可以根据当前用户
+    unit.rowid = -1;
+    unit.user.id = G_UserBaseInfo.accountId.toInt();
+    unit.user.name = G_UserBaseInfo.nickName;
     unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
     unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
     unit.font.fontName = font.key();

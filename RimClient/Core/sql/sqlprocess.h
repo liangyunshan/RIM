@@ -13,6 +13,7 @@
 #include <QObject>
 #include "datastruct.h"
 #include "sqlheader.h"
+#include "protocoldata.h"
 
 using namespace SQLHeader;
 
@@ -33,7 +34,7 @@ public:
     bool queryUser(Database * db, int tgtUserId);
     bool insertTgtUser(Database * db, int tgtUserId, QString name);
     bool createTableUser_id(Database * db, int tgtUserId);
-    bool insertTableUserChatInfo(Database * db, TextUnit::ChatInfoUnit unit);
+    bool insertTableUserChatInfo(Database * db, TextUnit::ChatInfoUnit unit,SimpleUserInfo userInfo);
 
 private:
     unsigned short m_port;

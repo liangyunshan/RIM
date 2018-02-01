@@ -610,15 +610,17 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 void LoginDialog::procRecvText(TextResponse response)
 {
-    //TODO:将记录写入到数据库
-    //群如何写入?
-    ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit);
-
     MQ_D(LoginDialog);
     UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
     if(client)
     {
+        //TODO:将记录写入到数据库
+        //群如何写入?
+        SimpleUserInfo userInfo;
+        userInfo.accountId = "0";
+        ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
+        SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
+
         bool isNewWindow = false;
         if(client->chatWidget == NULL)
         {

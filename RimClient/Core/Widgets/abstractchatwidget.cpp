@@ -378,13 +378,13 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
     d_ptr->windowToolBar->installEventFilter(this);
     d_ptr->chatInputArea->setFocus();
 
-    initChatRecord();
-
     d_ptr->p_shakeTimer = NULL;
     d_ptr->b_isScreeHide = false;
 
-    QTimer::singleShot(0,this,SLOT(resizeOnce()));
+    connect(d_ptr->chatArea,SIGNAL(sig_QueryRecordTask(int,int)),
+            this,SLOT(slot_QueryHistoryRecords(int,int)));
 
+    QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
 }
 
@@ -418,7 +418,7 @@ QString AbstractChatWidget::widgetId()
 void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
     TextUnit::ChatInfoUnit  readJson = RSingleton<JsonResolver>::instance()->ReadJSONFile(msg);
-    d_ptr->chatArea->insertMeChatText(readJson);
+    d_ptr->chatArea->insertChatText(readJson);
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -427,6 +427,8 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     d->userInfo = info;
     d->userInfo_NameLabel->setText(info.nickName);
     setWindowTitle(info.nickName);
+
+    d_ptr->chatArea->setSimpleUserInfo(info);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -447,6 +449,15 @@ void AbstractChatWidget::onMessage(MessageType type)
 void AbstractChatWidget::slot_UpdateKeySequence()
 {
 
+}
+
+//响应聊天框的历史信息查询
+void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
+{
+    qDebug()<<__FILE__<<__LINE__<<"\n"
+           <<"user_query_id:"<<user_query_id<<"currStartRow:"<<currStartRow
+          <<"\n";
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -602,6 +613,12 @@ void AbstractChatWidget::slot_ScreenTimeout()
     }
 }
 
+//判断是否Enter发送内容
+void AbstractChatWidget::slot_CheckSendEnter()
+{
+    slot_ButtClick_SendMsg(true);
+}
+
 //点击发送按钮，发送聊天编辑区域的信息
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
@@ -623,16 +640,13 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
 
+    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+
     d_ptr->chatInputArea->clear();
-
-//    //模拟测试已经接收到数据
-//    recvChatMsg(msg);
-}
-
-//判断是否Enter发送内容
-void AbstractChatWidget::slot_CheckSendEnter()
-{
-    slot_ButtClick_SendMsg(true);
 }
 
 //响应数据库线程查询结果
@@ -640,7 +654,7 @@ void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatI
 {
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
-        d_ptr->chatArea->insertMeChatText(unit);
+        d_ptr->chatArea->insertChatText(unit);
     }
 }
 
@@ -702,6 +716,7 @@ void AbstractChatWidget::switchWindowSize()
 
 void AbstractChatWidget::initChatRecord()
 {
+    MQ_D(AbstractChatWidget);
     d_ptr->p_DatabaseThread = new DatabaseThread(this);
     d_ptr->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
 
@@ -711,7 +726,8 @@ void AbstractChatWidget::initChatRecord()
             d_ptr->p_DatabaseThread,SLOT(deleteLater()));
     d_ptr->p_DatabaseThread->start();
 
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),TestUserId);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(TestUserId,SQLProcess::instance()->querryRecords(TestUserId,lastRow));
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
 }
 

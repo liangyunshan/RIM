@@ -13,7 +13,7 @@ contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
 
 #是否开启网络
-DEFINES += __NO_SERVER__
+#DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
 TARGET = RimClient
