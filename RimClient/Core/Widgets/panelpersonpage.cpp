@@ -44,8 +44,8 @@ protected:
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
-    QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
+    QList<ToolPage *> pages;
 };
 
 void PanelPersonPagePrivate::initWidget()
@@ -99,9 +99,9 @@ void PanelPersonPage::addGroupAndUsers()
     {
         RGroupData * groupData = G_FriendList.at(i);
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
+        d->pages.append(page);
         page->setID(groupData->groupId);
         page->setDefault(groupData->isDefault);
-        d->pages.append(page);
 
         for(int j = 0; j < groupData->users.size(); j++)
         {
@@ -145,6 +145,7 @@ void PanelPersonPage::clearTargetGroup(const QString id)
         }
     }
     d->toolBox->removePage(t_delPage);
+
     delete t_delPage;
     d->m_deleteID = QString();
 }
@@ -196,8 +197,8 @@ void PanelPersonPage::addGroup()
     MQ_D(PanelPersonPage);
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
-    page->setDefault(false);
     d->pages.append(page);
+    page->setDefault(false);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
@@ -217,9 +218,7 @@ void PanelPersonPage::addGroup()
 
 /*!
      * @brief 重命名分组
-     *
      * @param[in] 无
-     *
      * @return 无
      *
      */
@@ -333,7 +332,27 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
         }
     case G_Friend_UPDATE:
         {
+            break;
+        }
+    case G_Friend_MOVE:
+        {
+             //TODO LYS-20180202 接收正确答复后才移动好友
+            if(result == STATUS_SUCCESS)
+            {
+//                bool result = sourcePage->removeItem(targetItem);
+//                if(result)
+//                {
+//                    targetPage->addItem(targetItem);
+//                    //FIXME LYS-20180131
+//                    disconnect(targetItem,SIGNAL(updateGroupActions()),sourcePage,SLOT(updateGroupActions()));
+//                    connect(targetItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
+//                }
+            }
+            else
+            {
 
+            }
+            break;
         }
     default:
         break;
@@ -385,7 +404,6 @@ void PanelPersonPage::renameEditFinished()
         }
         request->gtype = GROUPING_FRIEND;
         request->groupName = d->tmpNameEdit->text();
-        //TODO 待设置当前分组的groupid
         request->groupId = d->toolBox->selectedPage()->getID();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
 
@@ -397,9 +415,7 @@ void PanelPersonPage::renameEditFinished()
 
 /*!
      * @brief 根据触发右键菜单的Item所属的Page来添加“移动联系人至”菜单中Action
-     *
      * @param[in] page：ToolPage *
-     *
      * @return 无
      *
      */
@@ -431,15 +447,14 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
 
 /*!
      * @brief 移动至各分组的Action响应
-     *
+     * @details 只处理移动的请求，待服务器移动成功后，再真实的移动
      * @param
-     *
      * @return 无
-     *
      */
 void PanelPersonPage::movePersonTo()
 {
     MQ_D(PanelPersonPage);
+
     QAction * target = qobject_cast<QAction *>(QObject::sender());
     QString targetUuid = target->data().toString();
     ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
@@ -451,14 +466,18 @@ void PanelPersonPage::movePersonTo()
     }
     else
     {
-        bool result = sourcePage->removeItem(targetItem);
-        if(result)
+        GroupingFriendRequest * request = new GroupingFriendRequest;
+        request->type = G_Friend_MOVE;
+        request->stype = SearchPerson;
+        request->groupId = targetPage->getID();
+        request->oldGroupId = sourcePage->getID();
+
+        UserClient * client = RSingleton<UserManager>::instance()->client(targetItem);
+        if(client)
         {
-            targetPage->addItem(targetItem);
-            //FIXME LYS-20180131
-            disconnect(targetItem,SIGNAL(updateGroupActions()),sourcePage,SLOT(updateGroupActions()));
-            connect(targetItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
+            request->user = client->simpleUserInfo;
         }
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
 }
 
