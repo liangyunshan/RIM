@@ -35,11 +35,13 @@ public:
 
     ToolPage * addPage(QString text);
     bool removePage(ToolPage *);
+    bool removeFromList(ToolPage *);
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();
 
     int pageCount();
+    QList<ToolPage *> allPages()const;
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
