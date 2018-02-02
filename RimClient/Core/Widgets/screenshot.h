@@ -33,7 +33,7 @@ public slots:
 private slots:
     void slot_ScreenTimeout();
     void slot_ScreenShot(bool flag);
-    void slot_ScreenShot_Ready(int finish, QProcess::ExitStatus exitStatus);
+    void slot_ScreenShot_Ready(int, QProcess::ExitStatus);
     void slot_ScreenShotHide(bool flag);
 
 private:

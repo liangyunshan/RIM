@@ -46,6 +46,10 @@
 #include "systemnotifyview.h"
 #include "user/userclient.h"
 #include "abstractchatwidget.h"
+#include "sql/sqlprocess.h"
+#include "sql/databasemanager.h"
+#include "json/jsonresolver.h"
+using namespace TextUnit ;
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -624,7 +628,10 @@ void LoginDialog::procRecvText(TextResponse response)
     if(client)
     {
         //【1】存储消息至数据库
-
+        SimpleUserInfo userInfo;
+        userInfo.accountId = "0";
+        ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
+        SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
 
         //【2】判断窗口是否创建或者是否可见
         if(client->chatWidget && client->chatWidget->isVisible())

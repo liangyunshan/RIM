@@ -53,6 +53,7 @@ void DatabaseThread::run()
                     while(query.next())
                     {
                         TextUnit::ChatInfoUnit unit;
+                        unit.rowid = query.value(TextUnit::_Sql_User_Rowid_).toInt();
                         unit.user.id    = query.value(TextUnit::_Sql_User_UserId_).toInt();
                         unit.user.name  = query.value(TextUnit::_Sql_User_UserName_).toString();
                         unit.user.head  = query.value(TextUnit::_Sql_User_Userhead_).toString();
@@ -76,9 +77,5 @@ void DatabaseThread::run()
                 runWaitCondition.wait(&m_Pause);
             m_Pause.unlock();
         }
-
-        qDebug()<<__FILE__<<__LINE__<<"\n"
-               <<"this->m_Pause:"<<m_Pause.isRecursive()
-              <<"\n";
     }
 }

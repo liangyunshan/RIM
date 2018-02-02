@@ -26,12 +26,14 @@
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "user/userclient.h"
+#include "panelpersonpage.h"
 #include "media/mediaplayer.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
 
 #include "sql/databasemanager.h"
+#include "sql/sqlprocess.h"
 #include "screenshot.h"
 
 #define PANEL_MARGIN 20
@@ -192,6 +194,7 @@ void MainDialog::showChatWindow(ToolItem * item)
     {
         AbstractChatWidget * widget = new AbstractChatWidget();
         widget->setUserInfo(client->simpleUserInfo);
+        widget->initChatRecord();
         client->chatWidget = widget;
         widget->show();
     }
@@ -274,7 +277,16 @@ void MainDialog::updateFriendList(FriendListResponse *friendList)
 //TODO 根据服务器返回的信息更新本地分组信息
 void MainDialog::recvGroupingOperate(GroupingResponse response)
 {
+    if(response.uuid != G_UserBaseInfo.uuid)
+        return;
+    if(response.gtype == GROUPING_FRIEND)
+    {
+        RSingleton<Subject>::instance()->notify(MESS_GROUP_DELETE);
+    }
+    else
+    {
 
+    }
 }
 
 void MainDialog::errorGroupingOperate(OperateGrouping type)
@@ -420,4 +432,6 @@ void MainDialog::initSqlDatabase()
     p_dbManager->setConnectInfo("localhost","./rimclient.db","root","rengu123456");
     p_dbManager->setDatabaseType("QSQLITE");
     p_dbManager->newDatabase("sqlite1234");
+
+    SQLProcess::instance()->createTablebUserList(p_dbManager->getLastDB());
 }

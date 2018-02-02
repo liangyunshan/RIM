@@ -141,7 +141,7 @@ void SetKeySequenceDialog::initWidget()
     rdbutt_Ctrl_Enter->setText(tr("rdbutt_Ctrl_Enter"));        //按Ctrl + Enter键
     rdbutt_Enter->setText(tr("rdbutt_Enter"));                  //按Enter键
 
-    appendTableWidgetItem(tblw_KeyList,3);
+    appendTableWidgetItem(tblw_KeyList,2);
 }
 
 //读取并显示配置信息

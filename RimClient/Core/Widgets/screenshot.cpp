@@ -112,7 +112,7 @@ void ScreenShot::slot_ScreenTimeout()
 }
 
 //截图完成
-void ScreenShot::slot_ScreenShot_Ready(int finish, QProcess::ExitStatus exitStatus)
+void ScreenShot::slot_ScreenShot_Ready(int , QProcess::ExitStatus)
 {
     QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();

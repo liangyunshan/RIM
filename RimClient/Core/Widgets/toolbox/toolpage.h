@@ -36,28 +36,33 @@ public:
     ToolPage(ToolBox * parent = 0);
     ~ToolPage();
 
-    void setToolName(QString text);
+    void setToolName(const QString &text);
+    QString toolName()const;
+
+    void setSortNum(const int num);
+    int sortNum()const;
+
+    void setID(const QString & id);
+    QString getID()const;
+
+    void setDefault(const bool isDefault);
+    bool isDefault()const;
 
     void addItem(ToolItem *item);
     QList<ToolItem *> &items();
-
     bool removeItem(ToolItem * item);
 
     void setMenu(QMenu * menu);
 
+    void setExpand(bool);
     bool isExpanded()const;
 
     QRect textRect()const;
-
     QRect titleRect()const;
-
-    QString toolName()const;
 
     int txtFixedHeight();
 
     const PersonGroupInfo & pageInfo();
-
-    void setSortNum(const int num);
 
 public slots:
     void updateGroupActions();

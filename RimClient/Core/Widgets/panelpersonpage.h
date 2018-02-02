@@ -17,6 +17,7 @@
 
 #include <QWidget>
 #include "observer.h"
+#include "protocoldata.h"
 
 namespace ProtocolType
 {
@@ -61,6 +62,7 @@ private:
     void createAction();
     void addGroupAndUsers();
     ToolItem * ceateItem(SimpleUserInfo & info, ToolPage *page);
+    void clearTargetGroup(const QString id);
 
 private:
     PanelPersonPagePrivate * d_ptr;

@@ -11,6 +11,7 @@ QT       += multimedia
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
+
 #是否开启网络
 #DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
@@ -26,7 +27,7 @@ CONFIG(debug, debug|release) {
   } else {
     DESTDIR = ../Bin
   }
-} else {
+} else {__NO_SERVER__
   contains(TEMPLATE, "lib") {
     DESTDIR = ../Lib
     DLLDESTDIR = ../Bin
@@ -125,7 +126,10 @@ SOURCES += \
     media/mediaplayer.cpp \
     Widgets/notifywindow.cpp \
     Widgets/systemnotifyview.cpp \
-    user/userclient.cpp
+    Widgets/textedit/chattextframe.cpp \
+    sql/sqlprocess.cpp \
+    user/userclient.cpp \
+    json/jsonresolver.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -193,7 +197,11 @@ HEADERS  += \
     media/mediaplayer.h \
     Widgets/notifywindow.h \
     Widgets/systemnotifyview.h \
-    user/userclient.h
+    Widgets/textedit/chattextframe.h \
+    sql/sqlprocess.h \
+    sql/sqlheader.h \
+    user/userclient.h \
+    json/jsonresolver.h
 
 DISTFILES += \
     Widgets/Widgets.pri
