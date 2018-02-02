@@ -164,7 +164,7 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
         rst.select(user.face);
         rst.select(user.faceId);
         rst.createCriteria().add(Restrictions::eq(user.account,request->accountOrNickName))
-                .orr(Restrictions::like(user.nickName,request->accountOrNickName));
+                .orr(Restrictions::like(user.nickName,"%"+request->accountOrNickName+"%"));
 
         sql = rst.sql();
     }
@@ -199,6 +199,7 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     return FIND_FRIEND_FAILED;
 }
 
+//存储好友响应结果至数据库
 ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accountId,QString operateId,int type)
 {
     DataTable::RequestCache rc;
@@ -357,8 +358,8 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
             nickNameB = query.value(user.nickName).toString();
         }
 
-        QString defaultGroupA = getDefaultGroupByUser(db,idA);
-        QString defaultGroupB = getDefaultGroupByUser(db,idB);
+        QString defaultGroupA = getDefaultGroupByUserId(db,idA);
+        QString defaultGroupB = getDefaultGroupByUserId(db,idB);
 
         if(defaultGroupA.size() <= 0 ||defaultGroupB.size() <= 0)
         {
@@ -485,8 +486,38 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
     }
 }
 
+bool SQLProcess::updateGroupFriendInfo(Database *db, GroupingFriendRequest *request)
+{
+    DataTable::RGroup_User rgu;
+    DataTable::RUser ru;
+
+    QString sql = QString("update %1 ru left join %2 rr on ru.uid = rr.id  set ru.remarks = '%3' where ru.gid = '%4' "
+                          "and rr.account = '%5'").arg(rgu.table,ru.table,request->user.remarks,request->groupId,request->user.accountId);
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
+    {
+        return true;
+    }
+    return false;
+}
+
+bool SQLProcess::updateMoveGroupFriend(Database *db, GroupingFriendRequest *request)
+{
+    DataTable::RGroup_User rgu;
+    DataTable::RUser ru;
+
+    QString sql = QString("update %1 ru left join %2 rr on ru.uid = rr.id  set ru.gid = '%3' where ru.gid = '%4' "
+                          "and rr.account = '%5'").arg(rgu.table,ru.table,request->groupId,request->oldGroupId,request->user.accountId);
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
+    {
+        return true;
+    }
+    return false;
+}
+
 //根据User表ID查找用户默认分组
-QString SQLProcess::getDefaultGroupByUser(Database *db, const QString id)
+QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
 {
     DataTable::RGroup group;
 
@@ -496,6 +527,25 @@ QString SQLProcess::getDefaultGroupByUser(Database *db, const QString id)
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
+    {
+        if(query.next())
+        {
+            return query.value(group.id).toString();
+        }
+    }
+    return QString();
+}
+
+QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString id)
+{
+    DataTable::RGroup group;
+    DataTable::RUser user;
+
+    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 ")
+            .arg(group.table,user.table,user.account,id);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(sql))
     {
         if(query.next())
         {

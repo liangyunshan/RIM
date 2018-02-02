@@ -10,6 +10,7 @@
  *  @note
  *      20180118:LYS:添加联系人分组重命名
  *      20180122:LYS:添加移动联系人至其他分组功能
+ *      20180202:wey:添加移动好友网络请求与接收处理
  *
  */
 #ifndef PANELPERSONPAGE_H
@@ -51,6 +52,8 @@ private slots:
     void modifyUserInfo();
     void deleteUser();
 
+    void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+
 public slots:
     void renameEditFinished();
     void updateGroupActions(ToolPage *);
@@ -59,6 +62,7 @@ public slots:
 private:
     void createAction();
     void addGroupAndUsers();
+    ToolItem * ceateItem(SimpleUserInfo & info, ToolPage *page);
     void clearTargetGroup(const QString id);
 
 private:

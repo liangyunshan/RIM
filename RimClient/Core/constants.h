@@ -104,6 +104,7 @@ const char TOOL_SETTING[] = "Tool_Setting_Button";
 const char TOOL_PANEL_FRONT[] = "Tool_Panel_Front";
 const char TOOL_PANEL_TOOL[] = "Tool_Panel_Tool";
 const char TOOL_PANEL_ADDPERSON[] = "Tool_Panel_AddPerson";
+const char TOOL_PANEL_NOTIFY[] = "Tool_Panel_Notify";
 
 const char Tool_Chat_Call[] = "Tool_Chat_Call";
 const char Tool_Chat_Min[] = "Tool_Chat_Min";

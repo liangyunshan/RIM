@@ -84,8 +84,8 @@ void SystemNotifyViewPrivate::initWidget()
     gridLayout->setColumnStretch(0,1);
 
     gridLayout->addWidget(iconLabel,1,1,2,2);
-    gridLayout->addWidget(nickNameLabel,2,1,1,2);
-    gridLayout->addWidget(accountLabel,3,1,1,2);
+    gridLayout->addWidget(nickNameLabel,3,1,1,2);
+    gridLayout->addWidget(accountLabel,4,1,1,2);
 
     gridLayout->setColumnStretch(3,1);
 
@@ -251,6 +251,7 @@ void SystemNotifyView::sendResponse(ResponseFriendApply result)
     MQ_D(SystemNotifyView);
     OperateFriendRequest * request = new OperateFriendRequest;
     request->type = FRIEND_APPLY;
+    request->stype = d->notifyInfo.stype;
     request->result = (int)result;
     request->accountId = G_UserBaseInfo.accountId;
     request->operateId = d->notifyInfo.accountId;

@@ -256,7 +256,7 @@ void JsonResolver::readImgindexElement(QXmlStreamReader *xml, QString &html, Tex
     xml->skipCurrentElement();
 }
 
-void JsonResolver::readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+void JsonResolver::readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType)
 {
     //
     Q_ASSERT(xml->isStartElement() && xml->name() == "span");

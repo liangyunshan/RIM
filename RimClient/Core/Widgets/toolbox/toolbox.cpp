@@ -433,7 +433,7 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
         QPoint t_hotPot = event->pos() - t_movedPage->pos();
 
         QMimeData *t_MimData = new QMimeData;
-        t_MimData->setText(t_movedPage->id());
+        t_MimData->setText(t_movedPage->getID());
 
         QPixmap t_pixMap(t_movedPage->titleRect().size());
         t_movedPage->render(&t_pixMap);

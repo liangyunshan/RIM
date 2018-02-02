@@ -17,9 +17,10 @@ MsgWrap::MsgWrap()
 /*!
      * @brief 为普通信息添加信息头
      * @param[in] packet 待发送原始数据包信息
+     * @param[in] result 自定义参数，可用于补充头部状态信息
      * @return 添加信息头后的数据信息
      */
-QByteArray MsgWrap::handleMsg(MsgPacket *packet)
+QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
 {
     if(packet == NULL)
     {
@@ -28,20 +29,22 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet)
 
     switch(packet->msgCommand)
     {
-        case MsgCommand::MSG_USER_REGISTER:
-                                            return handleRegistResponse((RegistResponse *)packet);
-        case MsgCommand::MSG_USER_LOGIN:
-                                            return handleLoginResponse((LoginResponse *)packet);
-        case MsgCommand::MSG_USER_UPDATE_INFO:
-                                            return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
-        case MsgCommand::MSG_RELATION_SEARCH:
-                                            return handleSearchFriendResponse((SearchFriendResponse *)packet);
-        case MsgCommand::MSG_RELATION_OPERATE:
-                                            return handleOperateFriendResponse((OperateFriendResponse *)packet);
-        case MsgCommand::MSG_RELATION_LIST:
-                                            return handleFriendListResponse((FriendListResponse *)packet);
-        case MsgCommand::MSG_GROUPING_OPERATE:
-                                            return handleGroupingResponse((GroupingResponse *)packet);
+    case MsgCommand::MSG_USER_REGISTER:
+        return handleRegistResponse((RegistResponse *)packet);
+    case MsgCommand::MSG_USER_LOGIN:
+        return handleLoginResponse((LoginResponse *)packet);
+    case MsgCommand::MSG_USER_UPDATE_INFO:
+        return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
+    case MsgCommand::MSG_RELATION_SEARCH:
+        return handleSearchFriendResponse((SearchFriendResponse *)packet);
+    case MsgCommand::MSG_RELATION_OPERATE:
+        return handleOperateFriendResponse((OperateFriendResponse *)packet);
+    case MsgCommand::MSG_RELATION_LIST:
+        return handleFriendListResponse((FriendListResponse *)packet);
+    case MsgCommand::MSG_GROUPING_OPERATE:
+        return handleGroupingResponse((GroupingResponse *)packet);
+    case MsgCommand::MSG_RELATION_GROUPING_FRIEND:
+        return handleGroupingFriend((GroupingFriendResponse *)packet,result);
 
         default:
                 break;
@@ -222,6 +225,27 @@ QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet)
     return wrappedPack(packet,STATUS_SUCCESS,obj);
 }
 
+QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int result)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::OldGroupId),packet->oldGroupId);
+    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+
+    QJsonObject user;
+    user.insert(JsonKey::key(JsonKey::AccountId),packet->user.accountId);
+    user.insert(JsonKey::key(JsonKey::NickName),packet->user.nickName);
+    user.insert(JsonKey::key(JsonKey::SignName),packet->user.signName);
+    user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
+    user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
+    user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+
+    data.insert(JsonKey::key(JsonKey::Users),user);
+
+    return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
 /*!
      * @brief 为正确信息添加信息头
      * @param[in] packet
@@ -239,7 +263,7 @@ QByteArray MsgWrap::wrappedPack(MsgPacket *packet, int status, QJsonObject & dat
     QJsonDocument document;
     document.setObject(obj);
 
-    qDebug()<<document.toJson(QJsonDocument::Indented);
+//    qDebug()<<document.toJson(QJsonDocument::Indented);
 
     return document.toJson(QJsonDocument::Compact);
 }
