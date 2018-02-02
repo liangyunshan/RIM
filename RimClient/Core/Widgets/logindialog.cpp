@@ -638,7 +638,7 @@ void LoginDialog::procRecvText(TextResponse response)
         {
             if(response.msgCommand == MSG_TEXT_TEXT)
             {
-                client->chatWidget->recvChatMsg(response.sendData.toLocal8Bit());
+                client->chatWidget->showRecentlyChatMsg();
             }
             else if(response.msgCommand == MSG_TEXT_SHAKE)
             {
