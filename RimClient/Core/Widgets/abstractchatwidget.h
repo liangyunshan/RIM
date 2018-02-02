@@ -34,6 +34,7 @@ public:
 
     QString widgetId();
     void recvChatMsg(QByteArray);
+    void showRecentlyChatMsg(int count);
     void setUserInfo(SimpleUserInfo info);
     void initChatRecord();
 

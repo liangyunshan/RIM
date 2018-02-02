@@ -726,6 +726,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 
             //TODO client抓取最近notifyCount记录消息
             notifyCount;
+            client->chatWidget->showRecentlyChatMsg(notifyCount);
             client->chatWidget->show();
         }
     }
