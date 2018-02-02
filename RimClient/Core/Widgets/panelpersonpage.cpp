@@ -45,6 +45,7 @@ protected:
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
     QList<ToolItem *> toolItems;
+    QList<ToolPage *> pages;
 };
 
 void PanelPersonPagePrivate::initWidget()
@@ -98,6 +99,7 @@ void PanelPersonPage::addGroupAndUsers()
     {
         RGroupData * groupData = G_FriendList.at(i);
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
+        d->pages.append(page);
         page->setID(groupData->groupId);
         page->setDefault(groupData->isDefault);
 
@@ -195,6 +197,7 @@ void PanelPersonPage::addGroup()
     MQ_D(PanelPersonPage);
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
+    d->pages.append(page);
     page->setDefault(false);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();

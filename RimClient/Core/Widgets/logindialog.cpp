@@ -638,7 +638,7 @@ void LoginDialog::procRecvText(TextResponse response)
         {
             if(response.msgCommand == MSG_TEXT_TEXT)
             {
-                client->chatWidget->recvChatMsg(response.sendData.toLocal8Bit());
+                client->chatWidget->showRecentlyChatMsg();
             }
             else if(response.msgCommand == MSG_TEXT_SHAKE)
             {
@@ -726,6 +726,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 
             //TODO client抓取最近notifyCount记录消息
             notifyCount;
+            client->chatWidget->showRecentlyChatMsg(notifyCount);
             client->chatWidget->show();
         }
     }

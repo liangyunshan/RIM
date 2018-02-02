@@ -419,8 +419,18 @@ QString AbstractChatWidget::widgetId()
 
 void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
-    TextUnit::ChatInfoUnit  readJson = RSingleton<JsonResolver>::instance()->ReadJSONFile(msg);
-    d_ptr->chatArea->insertChatText(readJson);
+    MQ_D(AbstractChatWidget);
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+}
+
+void AbstractChatWidget::showRecentlyChatMsg(int count)
+{
+    MQ_D(AbstractChatWidget);
+    int user_query_id = d->userInfo.accountId.toInt();
+    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
