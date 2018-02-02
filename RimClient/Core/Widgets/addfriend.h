@@ -7,6 +7,8 @@
  *  @date      2017.12.25
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20170201:wey:添加键盘快捷响应事件
  */
 
 #ifndef ADDFRIEND_H
@@ -28,7 +30,10 @@ public:
     AddFriend(QWidget * parent = 0);
     ~AddFriend();
 
-    void onMessage(MessageType);
+    void onMessage(MessageType type);
+
+private:
+    void keyPressEvent(QKeyEvent * event);
 
 private slots:
     void startSearch();
@@ -41,6 +46,7 @@ private slots:
 
 private:
     void enableInput(bool flag);
+    bool friendExisted(QString accountId);
 
 private:
     AddFriendPrivate * d_ptr;

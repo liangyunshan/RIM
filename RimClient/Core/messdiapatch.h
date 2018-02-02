@@ -32,6 +32,7 @@ public:
     void onRecvGroupingOperate(GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
     void onRecvText(TextResponse response);
+    void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
@@ -44,6 +45,7 @@ signals:
     void recvGroupingOperate(GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
     void recvText(TextResponse response);
+    void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
 private:
     MessDiapatch(QObject *parent = 0);

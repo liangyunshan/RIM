@@ -154,7 +154,7 @@ void ListBox::clear()
             delete item->widget();
         }
     }
-
+    d->currentItem = NULL;
     d->toolItems.clear();
     layout->addStretch(1);
 }

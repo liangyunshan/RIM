@@ -26,6 +26,7 @@
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "user/userclient.h"
+#include "panelpersonpage.h"
 #include "media/mediaplayer.h"
 
 #include "abstractchatwidget.h"
@@ -87,7 +88,7 @@ MainDialog::MainDialog(QWidget *parent) :
 MainDialog::~MainDialog()
 {
     MQ_D(MainDialog);
-
+    RSingleton<Subject>::instance()->detach(this);
     if(d->editWindow)
     {
         delete d->editWindow;
@@ -276,7 +277,16 @@ void MainDialog::updateFriendList(FriendListResponse *friendList)
 //TODO 根据服务器返回的信息更新本地分组信息
 void MainDialog::recvGroupingOperate(GroupingResponse response)
 {
+    if(response.uuid != G_UserBaseInfo.uuid)
+        return;
+    if(response.gtype == GROUPING_FRIEND)
+    {
+        RSingleton<Subject>::instance()->notify(MESS_GROUP_DELETE);
+    }
+    else
+    {
 
+    }
 }
 
 void MainDialog::errorGroupingOperate(OperateGrouping type)

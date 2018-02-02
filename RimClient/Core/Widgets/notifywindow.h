@@ -28,7 +28,7 @@ public:
     explicit NotifyWindow(QWidget * parent = 0);
     ~NotifyWindow();
 
-    void addNotifyInfo(NotifyInfo info);
+    QString addNotifyInfo(NotifyInfo info);
 
     void showMe();
     void hideMe();
@@ -41,7 +41,7 @@ protected:
 signals:
     void showWindow();
     void hideWindow();
-    void showSystemNotifyInfo(NotifyInfo info);
+    void showSystemNotifyInfo(NotifyInfo info,int notifyCount);
 
 private slots:
     void viewAll();

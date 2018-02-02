@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QTimer>
+#include <QKeyEvent>
 
 #include "head.h"
 #include "constants.h"
@@ -186,6 +187,8 @@ AddFriend::AddFriend(QWidget * parent):
     setWindowTitle(tr("Lookup"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
+    RSingleton<Subject>::instance()->attach(this);
+
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
     if(bar)
@@ -206,12 +209,47 @@ AddFriend::AddFriend(QWidget * parent):
 
 AddFriend::~AddFriend()
 {
+    RSingleton<Subject>::instance()->detach(this);
     delete d_ptr;
 }
 
-void AddFriend::onMessage(MessageType)
+void AddFriend::onMessage(MessageType type)
 {
+    MQ_D(AddFriend);
+    switch(type)
+    {
+        case MESS_RELATION_FRIEND_ADD:
+            {
+                if(d->searchList && d->searchList->selectedItem())
+                {
+                    d->enableSearch(!friendExisted(d->searchList->selectedItem()->getName()));
+                }
+                break;
+            }
+        default:
+            break;
+    }
+}
 
+void AddFriend::keyPressEvent(QKeyEvent *event)
+{
+    MQ_D(AddFriend);
+    if(event->key() == Qt::Key_Return)
+    {
+        if(d->searchButt->isEnabled())
+        {
+            startSearch();
+            return;
+        }
+    }
+    else if(event->key() == Qt::Key_Backspace)
+    {
+        if(d->stackedWidget->currentIndex() > 0)
+        {
+            reSearch();
+        }
+    }
+    return Widget::keyPressEvent(event);
 }
 
 void AddFriend::startSearch()
@@ -332,11 +370,34 @@ void AddFriend::recvAddFriendResponse(ResponseAddFriend status)
 void AddFriend::itemSelected(ToolItem * item)
 {
     MQ_D(AddFriend);
-    //TODO 判断是否已经是添加过的联系人
-    if(item && item->getName() != G_UserBaseInfo.accountId)
+
+    if(item && item->getName() != G_UserBaseInfo.accountId && !friendExisted(item->getName()))
     {
         d->enableSearch(true);
     }
+    else
+    {
+        d->enableSearch(false);
+    }
+}
+
+bool AddFriend::friendExisted(QString accountId)
+{
+    QList<RGroupData *>::iterator iter = G_FriendList.begin();
+    while(iter != G_FriendList.end())
+    {
+        QList<SimpleUserInfo>::iterator userIter = (*iter)->users.begin();
+        while(userIter != (*iter)->users.end())
+        {
+            if((*userIter).accountId == accountId)
+            {
+                return true;
+            }
+            userIter++;
+        }
+        iter++;
+    }
+    return false;
 }
 
 void AddFriend::enableInput(bool flag)
@@ -346,5 +407,4 @@ void AddFriend::enableInput(bool flag)
     d->searchButt->setEnabled(flag);
     repolish(d->searchButt);
 }
-
 

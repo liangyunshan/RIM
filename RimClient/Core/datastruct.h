@@ -36,7 +36,10 @@ enum MessageType
     MESS_SETTINGS,               //系统设置修改
     MESS_BASEINFO_UPDATE,        //基本信息修改
     MESS_FRIENDLIST_UPDATE,      //好友列表更新
-    MESS_GROUPLIST_UPDATE        //群列表更新
+    MESS_GROUPLIST_UPDATE,       //群列表更新
+    MESS_RELATION_FRIEND_ADD,    //分组中添加好友
+    MESS_NOTIFY_WINDOWS,         //显示消息通知窗口
+    MESS_GROUP_DELETE            //分组删除消息
 };
 
 /*!
@@ -84,9 +87,10 @@ struct NotifyInfo
     QString accountId;                      //对方ID
     QString nickName;
     unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
-    QString pixmap;
+    QString pixmap;                         //头像本地路径
 
     QString content;                        //type为NotifyUser或NotifyGroup时表示聊天内容
+    MsgCommand msgCommand;                  //消息类型
 
     OperateFriend ofriendType;              //type为NotifySystem时，可用
     SearchType stype;                       //当前请求的类型(人/群)
@@ -187,6 +191,7 @@ namespace GroupPerson {
         QString uuid;
         QString name;
         int sortNum;
+        bool isDefault;
     };//联系人分组信息
 }
 

@@ -233,6 +233,31 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
     }
 }
 
+void DataProcess::proGroupingFriendResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+    SearchType type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+    if(type == SearchPerson)
+    {
+        GroupingFriendResponse response;
+        response.type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+        response.oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
+        response.stype = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+
+        QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Users)).toObject();
+        response.user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+        response.user.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
+        response.user.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
+        response.user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
+        response.user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+        response.user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+
+        MessDiapatch::instance()->onRecvGroupingFriend(status,response);
+    }
+}
+
 void DataProcess::proText(QJsonObject &data)
 {
     MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -240,6 +265,7 @@ void DataProcess::proText(QJsonObject &data)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         TextResponse response;
+        response.msgCommand = (MsgCommand)data.value(JsonKey::key(JsonKey::Command)).toInt();
         response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
         response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.fromAccountId = dataObj.value(JsonKey::key(JsonKey::FromId)).toString();

@@ -83,6 +83,7 @@ void SimpleTextEdit::keyPressEvent(QKeyEvent *event)
         b_isSendStatus = false;
         this->clear();
     }
+    return BaseTextEdit::keyPressEvent(event);
 }
 
 void SimpleTextEdit::clear()

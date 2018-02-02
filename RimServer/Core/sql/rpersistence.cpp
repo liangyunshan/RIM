@@ -316,9 +316,6 @@ QString RDelete::sql()
 
     result += tableName;
 
-    result += " from ";
-    result += tableName;
-
     if(ctia.size() > 0)
     {
         result += " where ";
