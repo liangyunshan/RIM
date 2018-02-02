@@ -28,6 +28,8 @@ const char FullIp_Reg[] = "(%1\\.){3}%2";
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
 const char UserTempName[] = "temp";
+const char UserDBDirName[] = "db";
+const char UserDBFileName[] = "rimclient.db";
 const char PATH_UserPath[] = "/../users";
 
 const char PATH_ImagePath[] = "/../image";

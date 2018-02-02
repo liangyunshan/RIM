@@ -428,8 +428,12 @@ void MainDialog::writeSettings()
 
 void MainDialog::initSqlDatabase()
 {
+    QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+    QString db_path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserDBDirName);
+    RUtil::createDir(db_path);
+    db_path += QString("/%1").arg(Constant::UserDBFileName);
     p_dbManager = new DatabaseManager();
-    p_dbManager->setConnectInfo("localhost","./rimclient.db","root","rengu123456");
+    p_dbManager->setConnectInfo("localhost",db_path,"root","rengu123456");
     p_dbManager->setDatabaseType("QSQLITE");
     p_dbManager->newDatabase("sqlite1234");
 
