@@ -44,6 +44,7 @@ protected:
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
+    QList<ToolPage *> pages;
 };
 
 void PanelPersonPagePrivate::initWidget()
