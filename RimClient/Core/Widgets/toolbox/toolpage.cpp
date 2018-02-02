@@ -216,7 +216,7 @@ void ToolPage::setID(const QString & id)
      * @param 无
      * @return page的id
      */
-QString ToolPage::id() const
+QString ToolPage::getID() const
 {
     MQ_D(ToolPage);
     return d->m_pageInfo.uuid;

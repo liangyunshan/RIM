@@ -72,8 +72,13 @@ void PanelBottomToolBarPrivate::initWidget()
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     searchPerson->setToolTip(QObject::tr("Add Person"));
 
+    RToolButton * notifyButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NOTIFY,q_ptr,SLOT(showNotifyWindow()));
+    notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
+    notifyButton->setToolTip(QObject::tr("Notify windows"));
+
     contentLayout->addWidget(toolButton);
     contentLayout->addWidget(searchPerson);
+    contentLayout->addWidget(notifyButton);
     contentLayout->addStretch(1);
 
     mainWidget->setLayout(contentLayout);
@@ -143,4 +148,9 @@ void PanelBottomToolBar::updateSettingInstnce(QObject *)
     {
         d->settingsInstance = NULL;
     }
+}
+
+void PanelBottomToolBar::showNotifyWindow()
+{
+    RSingleton<Subject>::instance()->notify(MESS_NOTIFY_WINDOWS);
 }

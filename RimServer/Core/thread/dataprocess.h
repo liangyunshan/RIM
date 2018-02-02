@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180130:wey:添加分组操作
+ *      20180131:wey:添加对文本信息处理；
  */
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
@@ -33,6 +34,7 @@ public:
     void processRelationOperate(Database * db, int socketId, OperateFriendRequest *request);
     void processFriendList(Database *db, int socketId, FriendListRequest *request);
     void processGroupingOperate(Database *db, int socketId, GroupingRequest *request);
+    void processGroupingFriend(Database *db, int socketId, GroupingFriendRequest *request);
 
     void processText(Database *db, int socketId, TextRequest *request);
 };

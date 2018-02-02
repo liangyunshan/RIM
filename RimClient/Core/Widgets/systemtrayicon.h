@@ -53,6 +53,7 @@ public:
     void setModel(SystemTrayIcon::SystemTrayModel model);
 
     void notify(NotifyModel model,QString id = QString(""),QString imagePath = QString(""));
+    void frontNotify(SystemTrayIcon::NotifyModel model,QString id = QString(""));
     void removeNotify(QString id);
 
     void startBliking(int interval = 400);
@@ -72,6 +73,7 @@ private slots:
 private:
     struct NotifyDesc
     {
+        NotifyModel model;
         QString id;
         QString imagePath;
     };

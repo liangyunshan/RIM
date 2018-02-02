@@ -107,11 +107,25 @@ GroupingResponse::GroupingResponse()
 TextRequest::TextRequest()
 {
     msgType = MSG_TEXT;
+    msgCommand = MSG_TEXT_TEXT;
 }
 
 TextResponse::TextResponse()
 {
     msgType = MSG_TEXT;
+    msgCommand = MSG_TEXT_TEXT;
+}
+
+GroupingFriendRequest::GroupingFriendRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_GROUPING_FRIEND;
+}
+
+GroupingFriendResponse::GroupingFriendResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_RELATION_GROUPING_FRIEND;
 }
 
 

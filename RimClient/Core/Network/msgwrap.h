@@ -37,6 +37,7 @@ private:
     void handleOperateFriendRequest(OperateFriendRequest * packet);
     void handleFriendListRequest(FriendListRequest *packet);
     void handleGroupingOperateRequest(GroupingRequest *packet);
+    void handleGroupingFriendRequest(GroupingFriendRequest * packet);
 
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 

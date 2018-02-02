@@ -35,7 +35,7 @@ private:
     void readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
     void readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
     void readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
-    void readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
+    void readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
     void skipUnknownElement(QXmlStreamReader *xml);
 };
 

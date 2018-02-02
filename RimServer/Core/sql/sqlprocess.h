@@ -7,6 +7,8 @@
  *  @date      2018.01.16
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note
+ *      20180201:wey:添加对用户分组好友的操作(创建、移动、修改)
  */
 #ifndef SQLPROCESS_H
 #define SQLPROCESS_H
@@ -34,7 +36,12 @@ public:
     bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
     void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
 
-    QString getDefaultGroupByUser(Database * db,const QString id);
+    bool updateGroupFriendInfo(Database *db,GroupingFriendRequest * request);
+    bool updateMoveGroupFriend(Database *db,GroupingFriendRequest * request);
+
+
+    QString getDefaultGroupByUserId(Database * db,const QString id);
+    QString getDefaultGroupByUserAccountId(Database * db,const QString id);
 
 private:
 

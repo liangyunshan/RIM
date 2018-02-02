@@ -43,7 +43,7 @@ public:
     int sortNum()const;
 
     void setID(const QString & id);
-    QString id()const;
+    QString getID()const;
 
     void setDefault(const bool isDefault);
     bool isDefault()const;

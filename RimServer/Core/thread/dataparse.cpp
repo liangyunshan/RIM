@@ -56,29 +56,32 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
     switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
     {
          case MSG_USER_REGISTER:
-                                          onProcessUserRegist(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
-         case MSG_USER_LOGIN:
-                                          onProcessUserLogin(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
-         case MSG_USER_UPDATE_INFO:
-                                          onProcessUpdateUserInfo(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
-         case MSG_RELATION_SEARCH:
-                                          onProcessSearchFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
-         case MSG_REALTION_ADD:
-                                          onProcessAddFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
+              onProcessUserRegist(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_USER_LOGIN:
+              onProcessUserLogin(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_USER_UPDATE_INFO:
+              onProcessUpdateUserInfo(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_RELATION_SEARCH:
+              onProcessSearchFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_REALTION_ADD:
+              onProcessAddFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
         case MSG_RELATION_OPERATE:
-                                          onProcessRelationOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
+              onProcessRelationOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
         case MSG_RELATION_LIST:
-                                          onProcessFriendListOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
+              onProcessFriendListOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
         case MSG_GROUPING_OPERATE:
-                                          onProcessGroupingOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
-                                          break;
+              onProcessGroupingOperate(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_RELATION_GROUPING_FRIEND:
+              onProcessGroupingFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
          default:
              break;
     }
@@ -97,6 +100,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     if(!dataObj.isEmpty())
     {
         TextRequest * request = new TextRequest;
+        request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
         request->destAccountId = dataObj.value(JsonKey::key(JsonKey::DestId)).toString();
         request->type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
@@ -158,6 +162,7 @@ void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject 
     OperateFriendRequest * request = new OperateFriendRequest;
     request->type = (OperateFriend)obj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->result = (ResponseFriendApply)obj.value(JsonKey::key(JsonKey::Result)).toInt();
+    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
 
@@ -180,6 +185,25 @@ void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObjec
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
+}
+
+void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject &dataObj)
+{
+    GroupingFriendRequest * request = new GroupingFriendRequest;
+    request->type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+    request->groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+    request->oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
+    request->stype = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+
+    QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Users)).toObject();
+    request->user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->user.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
+    request->user.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
+    request->user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
+    request->user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+    request->user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+
+    RSingleton<DataProcess>::instance()->processGroupingFriend(db,socketId,request);
 }
 
 void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)

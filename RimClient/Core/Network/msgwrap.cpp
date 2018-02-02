@@ -23,29 +23,32 @@ void MsgWrap::handleMsg(MsgPacket *packet)
     switch(packet->msgCommand)
     {
         case MsgCommand::MSG_USER_REGISTER:
-                                            handleRegistRequest((RegistRequest *)packet);
-                                            break;
+                handleRegistRequest((RegistRequest *)packet);
+                break;
         case MsgCommand::MSG_USER_LOGIN:
-                                            handleLoginRequest((LoginRequest *)packet);
-                                            break;
+                handleLoginRequest((LoginRequest *)packet);
+                break;
         case MsgCommand::MSG_USER_UPDATE_INFO:
-                                            handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
-                                            break;
+                handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
+                break;
         case MsgCommand::MSG_RELATION_SEARCH:
-                                            handleSearchFriendRequest((SearchFriendRequest *)packet);
-                                            break;
+                handleSearchFriendRequest((SearchFriendRequest *)packet);
+                break;
         case MsgCommand::MSG_REALTION_ADD:
-                                            handleAddFriendRequest((AddFriendRequest *)packet);
-                                            break;
+                handleAddFriendRequest((AddFriendRequest *)packet);
+                break;
         case MsgCommand::MSG_RELATION_OPERATE:
-                                            handleOperateFriendRequest((OperateFriendRequest *)packet);
-                                            break;
+                handleOperateFriendRequest((OperateFriendRequest *)packet);
+                break;
         case MsgCommand::MSG_RELATION_LIST:
-                                            handleFriendListRequest((FriendListRequest *)packet);
-                                            break;
+                handleFriendListRequest((FriendListRequest *)packet);
+                break;
         case MsgCommand::MSG_GROUPING_OPERATE:
-                                            handleGroupingOperateRequest((GroupingRequest *)packet);
-                                            break;
+                handleGroupingOperateRequest((GroupingRequest *)packet);
+                break;
+        case MsgCommand::MSG_RELATION_GROUPING_FRIEND:
+                handleGroupingFriendRequest((GroupingFriendRequest *)packet);
+                break;
         default:
                 break;
     }
@@ -134,6 +137,7 @@ void MsgWrap::handleOperateFriendRequest(OperateFriendRequest * packet)
     data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
     data.insert(JsonKey::key(JsonKey::Result),packet->result);
     data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
 
     wrappedPack(packet,data);
 }
@@ -159,6 +163,27 @@ void MsgWrap::handleGroupingOperateRequest(GroupingRequest *packet)
     wrappedPack(packet,data);
 }
 
+void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::OldGroupId),packet->oldGroupId);
+    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+
+    QJsonObject user;
+    user.insert(JsonKey::key(JsonKey::AccountId),packet->user.accountId);
+    user.insert(JsonKey::key(JsonKey::NickName),packet->user.nickName);
+    user.insert(JsonKey::key(JsonKey::SignName),packet->user.signName);
+    user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
+    user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
+    user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+
+    data.insert(JsonKey::key(JsonKey::Users),user);
+
+    wrappedPack(packet,data);
+}
+
 void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
 {
     QJsonObject obj;
@@ -179,5 +204,5 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
 
     G_SendWaitCondition.wakeOne();
 
-    RLOG_INFO("Send msg:%s",array.data());
+//    RLOG_INFO("Send msg:%s",array.data());
 }
