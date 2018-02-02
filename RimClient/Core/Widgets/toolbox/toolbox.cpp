@@ -96,6 +96,7 @@ ToolBox::ToolBox(QWidget *parent) :
     QWidget(parent)
 {
     setAcceptDrops(true);
+    connect(this,SIGNAL(noticePageRemoved(ToolPage *)),this,SLOT(pageRemoved(ToolPage *)));
 }
 
 ToolPage * ToolBox::addPage(QString text)
@@ -152,6 +153,7 @@ bool ToolBox::removePage(ToolPage *targetPage)
                 {
 //                    bool removeResult = d->pages.removeOne(targetPage);
 //                    return removeResult;
+                    emit noticePageRemoved(targetPage);
                     return true;
                 }
             }
@@ -312,6 +314,21 @@ void ToolBox::itemRemoved(ToolItem * removedItem)
     if(removedItem == d->currentItem)
     {
         d->currentItem = NULL;
+    }
+}
+
+/*!
+     * @brief 处理page的SIGNAL：pageRemoved(ToolPage*)
+     * @param[in] removedPage:ToolPage *,被删除的page
+     * @return
+     *
+     */
+void ToolBox::pageRemoved(ToolPage * removedPage)
+{
+    MQ_D(ToolBox);
+    if(removedPage == d->currentPage)
+    {
+        d->currentPage = NULL;
     }
 }
 
