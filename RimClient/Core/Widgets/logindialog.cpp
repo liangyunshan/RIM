@@ -733,10 +733,16 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
     d->trayIcon->removeNotify(info.identityId);
 }
 
-//TODO 待打开对应的窗口
 void LoginDialog::openChatDialog(QString accountId)
 {
+   UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
+   if(client->chatWidget == NULL)
+   {
+       client->chatWidget = new AbstractChatWidget();
+       client->chatWidget->setUserInfo(client->simpleUserInfo);
+   }
 
+   client->chatWidget->show();
 }
 
 LoginDialog::~LoginDialog()
