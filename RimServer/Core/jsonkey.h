@@ -48,6 +48,7 @@ public:
         Result,
         OperateId,
         GroupId,
+        OldGroupId,
         GroupName,
         IsDefault,
         Users,

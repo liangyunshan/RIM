@@ -98,29 +98,32 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
     switch(commandType)
     {
         case MSG_USER_REGISTER:
-                            RSingleton<DataProcess>::instance()->proRegistResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proRegistResponse(obj);
+                break;
         case MSG_USER_LOGIN:
-                            RSingleton<DataProcess>::instance()->proLoginResponse(obj);
-                            break;
-        case MSG_USER_UPDATE_INFO:
-                            RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proLoginResponse(obj);
+                break;
+    case MSG_USER_UPDATE_INFO:
+                RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
+                break;
         case MSG_RELATION_SEARCH:
-                            RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);
+                break;
         case MSG_REALTION_ADD:
-                            RSingleton<DataProcess>::instance()->proAddFriendResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proAddFriendResponse(obj);
+                break;
         case MSG_RELATION_OPERATE:
-                            RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
+                break;
         case MSG_RELATION_LIST:
-                            RSingleton<DataProcess>::instance()->proFriendListResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proFriendListResponse(obj);
+                break;
         case MSG_GROUPING_OPERATE:
-                            RSingleton<DataProcess>::instance()->proGroupingOperateResponse(obj);
-                            break;
+                RSingleton<DataProcess>::instance()->proGroupingOperateResponse(obj);
+                break;
+        case MSG_RELATION_GROUPING_FRIEND:
+                RSingleton<DataProcess>::instance()->proGroupingFriendResponse(obj);
+                break;
     };
 }
 

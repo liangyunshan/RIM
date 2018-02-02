@@ -517,7 +517,19 @@ void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
 void AbstractChatWidget::slot_ShakeWidget(bool flag)
 {
     Q_UNUSED(flag)
+    MQ_D(AbstractChatWidget);
+    TextRequest * request = new TextRequest;
+    request->msgCommand = MSG_TEXT_SHAKE;
+    request->destAccountId = d->userInfo.accountId;
+    request->accountId = G_UserBaseInfo.accountId;
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
 
+    shakeWindow();
+}
+
+void AbstractChatWidget::shakeWindow()
+{
     if(d_ptr->p_shakeTimer==NULL)
     {
         d_ptr->p_shakeTimer = new QTimer();
@@ -527,8 +539,6 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     d_ptr->m_nPosition = 0;
     d_ptr->m_curPos = this->pos();
     d_ptr->p_shakeTimer->start();
-
-    //TODO:net发送给聊天对象一个窗口抖动
 }
 
 void AbstractChatWidget::slot_ShakeTimeout()

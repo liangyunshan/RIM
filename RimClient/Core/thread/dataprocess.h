@@ -27,6 +27,7 @@ public:
     void proOperateFriendResponse(QJsonObject &data);
     void proFriendListResponse(QJsonObject &data);
     void proGroupingOperateResponse(QJsonObject &data);
+    void proGroupingFriendResponse(QJsonObject &data);
 
     void proText(QJsonObject &data);
 

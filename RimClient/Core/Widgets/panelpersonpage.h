@@ -50,15 +50,17 @@ private slots:
     void modifyUserInfo();
     void deleteUser();
 
+    void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+
 public slots:
     void renameEditFinished();
     void updateGroupActions(ToolPage *);
     void movePersonTo();
 
-
 private:
     void createAction();
     void addGroupAndUsers();
+    ToolItem * ceateItem(SimpleUserInfo & info, ToolPage *page);
 
 private:
     PanelPersonPagePrivate * d_ptr;

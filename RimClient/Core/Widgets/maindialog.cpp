@@ -86,7 +86,7 @@ MainDialog::MainDialog(QWidget *parent) :
 MainDialog::~MainDialog()
 {
     MQ_D(MainDialog);
-
+    RSingleton<Subject>::instance()->detach(this);
     if(d->editWindow)
     {
         delete d->editWindow;

@@ -40,7 +40,7 @@ private:
     QTimer * blinkingTimer;
 
     QIcon blinkingIcon;
-    int notifyCount;
+    int notifyCount;                        //用于切换闪烁托盘图标信息
 
     QList<SystemTrayIcon::NotifyDesc> notifyList;
 
@@ -145,17 +145,33 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
     }
 }
 
+/*!
+     * @brief 添加一个通知，并进行提示
+     * @param[in] model 通知类型
+     * @param[in] id 通知消息id，此id和NotifyWindow中id保持一致，用于标识消息身份；若id为默认值，则此消息为系统消息或无通知
+     * @param[in] imagePath 图片路径
+     * @return 无
+     */
 void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QString imagePath)
 {
     MQ_D(SystemTrayIcon);
     d->notifyModel = model;
     d->notifyCount = 0;
 
-    if(id.length() > 0)
+    if(model != NoneNotify)
     {
         NotifyDesc notify;
+        notify.model = model;
         notify.id = id;
-        notify.imagePath = imagePath;
+        if(model == SystemNotify)
+        {
+            notify.imagePath = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_24);
+            imagePath = notify.imagePath;
+        }
+        else
+        {
+            notify.imagePath = imagePath;
+        }
         d->notifyList.append(notify);
     }
 
@@ -172,11 +188,6 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QStrin
                             break;
                         }
         case SystemNotify:
-                        {
-                            d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_24));
-                            startBliking();
-                            break;
-                        }
         case UserNotify:
                         {
                             d->blinkingIcon = QIcon(imagePath);
@@ -188,26 +199,58 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QStrin
     }
 }
 
+/*!
+     * @brief 置顶显示某个消息
+     * @details 当存在多个不同用户消息时，再次接收到某个联系人消息时，则将其置顶显示
+     * @param[in] model 消息类型
+     * @param[in] id 消息ID
+     * @return 无
+     */
+void SystemTrayIcon::frontNotify(NotifyModel model, QString id)
+{
+    MQ_D(SystemTrayIcon);
+    if(model == UserNotify)
+    {
+        QList<SystemTrayIcon::NotifyDesc>::iterator iter = d->notifyList.begin();
+        while(iter != d->notifyList.end())
+        {
+            if((*iter).id == id)
+            {
+                d->blinkingIcon = QIcon((*iter).imagePath);
+                startBliking();
+                break;
+            }
+            iter++;
+        }
+    }
+    else if(model == SystemNotify)
+    {
+        d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_24));
+        startBliking();
+    }
+}
+
 void SystemTrayIcon::removeNotify(QString id)
 {
     MQ_D(SystemTrayIcon);
 
     if(d->notifyList.size() > 0)
     {
-        int index = -1;
-        for(int i = 0; i < d->notifyList.size(); i++)
+        bool cleared = false;
+        QList<SystemTrayIcon::NotifyDesc>::iterator iter = d->notifyList.begin();
+        while(iter != d->notifyList.end())
         {
-            if(d->notifyList.at(i).id == id)
+            if((*iter).id == id)
             {
-                index = i;
+                d->notifyList.erase(iter);
+                cleared = true;
                 break;
             }
+            iter++;
         }
 
-        if(index >= 0)
+        if(cleared)
         {
-            d->notifyList.removeAt(index);
-
             if(d->notifyList.size() > 0)
             {
                 d->blinkingIcon = QIcon(d->notifyList.last().imagePath);
@@ -264,8 +307,6 @@ SystemTrayIcon::SystemTrayModel SystemTrayIcon::model()
 void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     MQ_D(SystemTrayIcon);
-
-    qDebug()<<"+++++:"<<(int)reason;
 
     switch(reason)
     {

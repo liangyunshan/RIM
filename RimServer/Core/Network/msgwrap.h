@@ -22,7 +22,7 @@ class MsgWrap
 public:
     MsgWrap();
 
-    QByteArray handleMsg(MsgPacket * packet);
+    QByteArray handleMsg(MsgPacket * packet, int result = 0);
     QByteArray handleText(TextResponse * response);
     QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
 
@@ -34,6 +34,7 @@ private:
     QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
     QByteArray handleFriendListResponse(FriendListResponse *packet);
     QByteArray handleGroupingResponse(GroupingResponse *packet);
+    QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
 
     QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);

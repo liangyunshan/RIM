@@ -66,3 +66,15 @@ void MessDiapatch::onRecvText(TextResponse response)
 {
     emit recvText(response);
 }
+
+void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFriendResponse response)
+{
+    if(response.stype == SearchPerson)
+    {
+        emit recvRelationFriend(result,response);
+    }
+    else if(response.type == SearchGroup)
+    {
+
+    }
+}

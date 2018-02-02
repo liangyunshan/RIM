@@ -5,7 +5,7 @@
  *  @author    wey
  *  @version   1.0
  *  @date      2017.12.20
- *  @warning
+ *  @warning   此窗口在关闭时，不会被销毁。只是被隐藏了。
  *  @copyright NanJing RenGu.
  */
 #ifndef ABSTRACTCHATWIDGET_H
@@ -35,6 +35,8 @@ public:
     QString widgetId();
     void recvChatMsg(QByteArray);
     void setUserInfo(SimpleUserInfo info);
+
+    void shakeWindow();
 
     void onMessage(MessageType type);
 

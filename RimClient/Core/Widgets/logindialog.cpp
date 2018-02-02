@@ -542,7 +542,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         if(!d->notifyWindow)
         {
             d->notifyWindow = new NotifyWindow;
-            connect(d->notifyWindow,SIGNAL(showSystemNotifyInfo(NotifyInfo)),this,SLOT(viewSystemNotify(NotifyInfo)));
+            connect(d->notifyWindow,SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
         }
 
         d->mainDialog->show();
@@ -557,21 +557,24 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         switch(status)
         {
             case LOGIN_UNREGISTERED:
-                                         errorInfo = QObject::tr("User not registered");
-                                         break;
+                 errorInfo = QObject::tr("User not registered");
+                 break;
             case LOGIN_PASS_ERROR:
-                                         errorInfo = QObject::tr("Incorrect password");
-                                         break;
+                 errorInfo = QObject::tr("Incorrect password");
+                 break;
             case LOGIN_SERVER_REFUSED:
-                                         errorInfo = QObject::tr("server Unreachable");
-                                         break;
+                 errorInfo = QObject::tr("Server Unreachable");
+                 break;
+            case LOGIN_USER_LOGINED:
+                errorInfo = QObject::tr("Account has sign in");
+                break;
             case LOGIN_SERVER_NOT_RESP:
-                                         errorInfo = QObject::tr("");
-                                         break;
+                 errorInfo = QObject::tr("");
+                 break;
             case LOGIN_FAILED:
             default:
-                                         errorInfo = QObject::tr("Login Failed");
-                                         break;
+                 errorInfo = QObject::tr("Login Failed");
+                 break;
         }
 
         RMessageBox::warning(this,"Warning",errorInfo,RMessageBox::Yes);
@@ -593,6 +596,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     NotifyInfo  info;
     info.identityId = RUtil::UUID();
     info.accountId = resp.requestInfo.accountId;
+    info.nickName = resp.requestInfo.nickName;
+    info.face = resp.requestInfo.face;
     info.type = NotifySystem;
     info.stype = resp.stype;
     info.pixmap = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
@@ -604,51 +609,91 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     d->trayIcon->notify(SystemTrayIcon::SystemNotify,info.identityId);
 }
 
+//TODO 考虑若未打开窗口，消息如何存储？？
+/*!
+     * @brief 接收发送的聊天消息
+     * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
+     *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+     * @param[in] response 消息体内容
+     * @return 是否插入成功
+     */
 void LoginDialog::procRecvText(TextResponse response)
 {
     MQ_D(LoginDialog);
     UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
     if(client)
     {
-        bool isNewWindow = false;
-        if(client->chatWidget == NULL)
+        //【1】存储消息至数据库
+
+
+        //【2】判断窗口是否创建或者是否可见
+        if(client->chatWidget && client->chatWidget->isVisible())
         {
-            client->chatWidget = new AbstractChatWidget();
-            client->chatWidget->setUserInfo(client->simpleUserInfo);
-            isNewWindow = true;
-        }
-
-        if(isNewWindow)
-        {
-            NotifyInfo  info;
-            info.identityId = RUtil::UUID();
-            info.accountId = response.fromAccountId;
-            info.nickName = client->simpleUserInfo.nickName;
-            info.face = client->simpleUserInfo.face;
-            info.type = NotifyUser;
-            info.stype = response.type;
-            info.pixmap = RSingleton<ImageManager>::instance()->getSystemUserIcon();
-
-            d->notifyWindow->addNotifyInfo(info);
-            d->notifyWindow->showMe();
-
-            d->trayIcon->notify(SystemTrayIcon::UserNotify,info.identityId,RSingleton<ImageManager>::instance()->getSystemUserIcon());
+            if(response.msgCommand == MSG_TEXT_TEXT)
+            {
+                client->chatWidget->recvChatMsg(response.sendData.toLocal8Bit());
+            }
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
+                client->chatWidget->shakeWindow();
+            }
         }
         else
         {
-            client->chatWidget->show();
-        }
-        client->chatWidget->recvChatMsg(response.sendData.toLocal8Bit());
+            if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
+                if(!client->chatWidget)
+                {
+                    client->chatWidget = new AbstractChatWidget();
+                    client->chatWidget->setUserInfo(client->simpleUserInfo);
+                }
+                client->chatWidget->show();
+            }
+            else if(response.msgCommand == MSG_TEXT_TEXT)
+            {
+                //TODO 未将文本消息设置到提示框中
+                NotifyInfo  info;
+                info.identityId = RUtil::UUID();
+                info.msgCommand = response.msgCommand;
+                info.accountId = response.fromAccountId;
+                info.nickName = client->simpleUserInfo.nickName;
+                info.type = NotifyUser;
+                info.stype = response.type;
+                info.face = client->simpleUserInfo.face;
+                info.pixmap = RSingleton<ImageManager>::instance()->getSystemUserIcon();
 
-        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+                QString inserInfoId = d->notifyWindow->addNotifyInfo(info);
+                d->notifyWindow->showMe();
+                if(inserInfoId == info.identityId)
+                {
+                    d->trayIcon->notify(SystemTrayIcon::UserNotify,info.identityId,RSingleton<ImageManager>::instance()->getSystemUserIcon());
+                }
+                else
+                {
+                    d->trayIcon->frontNotify(SystemTrayIcon::UserNotify,inserInfoId);
+                }
+            }
+        }
+
+        if(response.msgCommand == MSG_TEXT_TEXT)
+        {
+            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+        }
+        else if(response.msgCommand == MSG_TEXT_SHAKE)
+        {
+            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
+        }
     }
 }
 
-void LoginDialog::viewSystemNotify(NotifyInfo info)
+/*!
+     * @brief 查看系统通知消息
+     * @param[in] info 通知消息内容
+     * @return 无
+     */
+void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(LoginDialog);
-
-    qDebug()<<info.type<<info.identityId;
 
     if(info.type == NotifySystem)
     {
@@ -666,6 +711,14 @@ void LoginDialog::viewSystemNotify(NotifyInfo info)
         UserClient * client = RSingleton<UserManager>::instance()->client(info.accountId);
         if(client)
         {
+            if(client->chatWidget == NULL)
+            {
+                client->chatWidget = new AbstractChatWidget();
+                client->chatWidget->setUserInfo(client->simpleUserInfo);
+            }
+
+            //TODO client抓取最近notifyCount记录消息
+            notifyCount;
             client->chatWidget->show();
         }
     }
@@ -682,6 +735,9 @@ void LoginDialog::openChatDialog(QString accountId)
 LoginDialog::~LoginDialog()
 {
     MQ_D(LoginDialog);
+
+    RSingleton<Subject>::instance()->detach(this);
+
     if(d->toolBar)
     {
         delete d->toolBar;
@@ -707,10 +763,15 @@ void LoginDialog::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SETTINGS:
-                            {
-                                d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
-                                break;
-                            }
+            {
+                d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+                break;
+            }
+        case MESS_NOTIFY_WINDOWS:
+            {
+                d->notifyWindow->showMe();
+                break;
+            }
         default:
                 break;
     }

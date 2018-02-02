@@ -37,6 +37,7 @@ private slots:
     void showSystemSetting();
     void updateFrinedInstance(QObject *);
     void updateSettingInstnce(QObject *);
+    void showNotifyWindow();
 
 private:
     PanelBottomToolBarPrivate * d_ptr;

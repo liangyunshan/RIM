@@ -15,6 +15,7 @@
 #include "rsingleton.h"
 #include "Network/msgwrap.h"
 #include "user/userclient.h"
+#include "messdiapatch.h"
 
 #include "toolbox/toolbox.h"
 #include "protocoldata.h"
@@ -27,7 +28,7 @@ class PanelPersonPagePrivate : public GlobalData<PanelPersonPage>
     Q_DECLARE_PUBLIC(PanelPersonPage)
 protected:
     PanelPersonPagePrivate(PanelPersonPage * q):
-        q_ptr(q)
+        q_ptr(q),PageId("PageId")
     {
         groupIsCreate = false;
         initWidget();
@@ -42,6 +43,8 @@ protected:
     QLineEdit *tmpNameEdit;                         //重命名时用edit
     ToolPage * pageOfMovedItem;                     //待移动分组的item所属的page
     bool groupIsCreate;                             //标识分组是新创建还是已存在
+
+    const QString PageId;
 
     QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
@@ -80,6 +83,8 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
+    connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
+
     RSingleton<Subject>::instance()->attach(this);
 }
 
@@ -96,29 +101,17 @@ void PanelPersonPage::addGroupAndUsers()
     {
         RGroupData * groupData = G_FriendList.at(i);
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
+        page->setProperty(d->PageId.toLocal8Bit().data(),groupData->groupId);
+
         d->pages.append(page);
 
         for(int j = 0; j < groupData->users.size(); j++)
         {
-            const SimpleUserInfo userInfo = groupData->users.at(j);
+            SimpleUserInfo userInfo = groupData->users.at(j);
 
-            ToolItem * item = new ToolItem(page);
-            connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
-            connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
-            connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
-            connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
-            connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
+            ToolItem * item = ceateItem(userInfo,page);
 
-            item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
-            item->setName(userInfo.remarks);
-            item->setNickName(userInfo.nickName);
-            item->setDescInfo(userInfo.signName);
             page->addItem(item);
-
-            UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo.accountId);
-            client->simpleUserInfo = userInfo;
-            client->toolItem = item;
-
             d->toolItems.append(item);
         }
 
@@ -244,6 +237,81 @@ void PanelPersonPage::modifyUserInfo()
 void PanelPersonPage::deleteUser()
 {
 
+}
+
+/*!
+     * @brief 接收分组好友操作结果
+     * @param[in] response 结果信息
+     * @return 无
+     */
+void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFriendResponse response)
+{
+    MQ_D(PanelPersonPage);
+    switch(response.type)
+    {
+    case G_Friend_CREATE:
+        {
+            if(result == STATUS_SUCCESS)
+            {
+                QList<ToolPage *>::iterator iter = d->pages.begin();
+                while(iter != d->pages.end())
+                {
+                    if((*iter)->property(d->PageId.toLocal8Bit().data()).toString() == response.groupId)
+                    {
+                        ToolItem * item = ceateItem(response.user,(*iter));
+                        (*iter)->addItem(item);
+                        break;
+                    }
+                    iter++;
+                }
+
+                QList<RGroupData *>::iterator groupIter =  G_FriendList.begin();
+                while(groupIter != G_FriendList.end())
+                {
+                    if((*groupIter)->groupId == response.groupId)
+                    {
+                        (*groupIter)->users.append(response.user);
+                        break;
+                    }
+                    groupIter++;
+                }
+                //1.查找用户界面需要判断此用户是否已经被添加了
+                RSingleton<Subject>::instance()->notify(MESS_RELATION_FRIEND_ADD);
+            }
+            else
+            {
+
+            }
+            break;
+        }
+    case G_Friend_UPDATE:
+        {
+
+        }
+    default:
+        break;
+    }
+}
+
+ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo & userInfo,ToolPage * page)
+{
+    ToolItem * item = new ToolItem(page);
+    connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
+    connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
+    connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
+    connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
+    connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
+
+    item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
+    item->setName(userInfo.remarks);
+    item->setNickName(userInfo.nickName);
+    item->setDescInfo(userInfo.signName);
+
+    UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo.accountId);
+    client->simpleUserInfo = userInfo;
+    client->toolItem = item;
+
+    return item;
 }
 
 /*!

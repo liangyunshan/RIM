@@ -42,6 +42,7 @@ public:
     void setContentMenu(QMenu * contentMenu);
 
     void addNotifyInfo();
+    int getNotifyCount();
 
     bool isChecked();
     void setChecked(bool flag);

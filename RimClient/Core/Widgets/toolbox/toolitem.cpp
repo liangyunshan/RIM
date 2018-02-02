@@ -291,6 +291,12 @@ void ToolItem::addNotifyInfo()
     d->updateNotifyInfoCount();
 }
 
+int ToolItem::getNotifyCount()
+{
+    MQ_D(ToolItem);
+    return d->notifyCount;
+}
+
 bool ToolItem::isChecked()
 {
     MQ_D(ToolItem);

@@ -71,10 +71,11 @@ enum MsgType
 
 /*!
  *  @brief  命令类型
- *  @note   在【MsgType为Msg_Control】时有意义
+ *  @note
  */
 enum MsgCommand
 {
+/****MsgType为MSG_CONTROL时以下字段有效******/
     MSG_Command_INVALID,                               //无意义
     MSG_USER_REGISTER = 0x01,                          //用户注册[OK]
     MSG_USER_LOGIN,                                    //用户登录[OK]
@@ -85,9 +86,9 @@ enum MsgCommand
 
     MSG_RELATION_SEARCH = 0x11,                        //查找好友[OK]
     MSG_REALTION_ADD,                                  //添加好友[OK]
-    MSG_RELATION_OPERATE,                              //好友操作(参照OperateFriend)FRIEND_APPLY[OK]
+    MSG_RELATION_OPERATE,                              //好友操作[OK](参照OperateFriend)FRIEND_APPLY
+    MSG_RELATION_GROUPING_FRIEND,                      //分组联系人操作
     MSG_RELATION_VIEW_INFO,                            //查看好友信息
-    MSG_RELATION_EDIT_INFO,                            //更新好友备注
     MSG_RELATION_LIST,                                 //请好友列表/更新好友列表
 
     MSG_GROUP_SEARCH = 0x31,                           //查找群
@@ -101,13 +102,17 @@ enum MsgCommand
 
     MSG_GROUPING_OPERATE = 0x51,                       //联系人、群分组操作，操作类型见OperateGrouping
 
-    MSG_OTHER_HEAT = 0x41                              //心跳报
+    MSG_OTHER_HEAT = 0x41,                             //心跳报
+
+/****MsgType为MSG_TEXT时以下字段有效******/
+    MSG_TEXT_TEXT = 0xA1,                              //聊天信息内容
+    MSG_TEXT_SHAKE = 0xA2                              //窗口抖动
 };
 
 //通用json操作结果status
 enum MsgOperateResponse
 {
-    STATUS_SUCCESS,
+    STATUS_SUCCESS = 0x00,
     STATUS_FAILE
 };
 
@@ -142,6 +147,7 @@ enum ResponseLogin
     LOGIN_FAILED,                   //登陆失败
     LOGIN_UNREGISTERED,             //未注册
     LOGIN_PASS_ERROR,               //密码错误
+    LOGIN_USER_LOGINED,             //用户已经登陆
     LOGIN_USER_CANCEL_LOGIN,        //取消登陆
     LOGIN_SERVER_REFUSED,           //服务器拒绝响应
     LOGIN_SERVER_NOT_RESP           //服务器未响应
@@ -405,6 +411,36 @@ public:
     QList<RGroupData *> groups;
 };
 
+/***********************分组联系人操作**********************/
+enum OperateGroupingFriend
+{
+    G_Friend_CREATE,                    //创建分组联系人
+    G_Friend_UPDATE,                    //更新分组联系人(如备注信息等)
+    G_Friend_MOVE                       //移动联系人
+};
+
+class GroupingFriendRequest : public MsgPacket
+{
+public:
+    GroupingFriendRequest();
+    OperateGroupingFriend type;
+    SearchType stype;               //联系人分组/群分组
+    QString groupId;                //分组ID;type为G_Friend_Move时，表示移动后分组
+    QString oldGroupId;             //type为G_Friend_Move时，表示移动前分组
+    SimpleUserInfo user;
+};
+
+class GroupingFriendResponse : public MsgPacket
+{
+public:
+    GroupingFriendResponse();
+    OperateGroupingFriend type;
+    SearchType stype;               //联系人分组/群分组
+    QString groupId;                //分组ID
+    QString oldGroupId;             //type为G_Friend_Move时，表示移动前分组ID，groupId则表示新分组ID
+    SimpleUserInfo user;
+};
+
 /**********************分组操作**********************/
 //分组类型
 enum GroupingType
@@ -446,6 +482,10 @@ public:
 };
 
 /*********************聊天信息操作**********************/
+/*!
+    @details 为了方便存储，聊天的文字和窗口抖动均复用一个请求。默认为聊天信息，
+            但可修改msgCommand为窗口抖动
+*/
 class TextRequest : public MsgPacket
 {
 public:

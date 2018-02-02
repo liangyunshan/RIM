@@ -11,6 +11,7 @@
 #include <QState>
 #include <QSignalTransition>
 #include <QMap>
+#include <QStyle>
 
 #include "head.h"
 #include "constants.h"
@@ -41,6 +42,13 @@ public:
         toolBar = NULL;
         initWidget();
         initStateMachine();
+    }
+
+    void enableButt(RButton * butt,bool enable)
+    {
+        butt->style()->unpolish(butt);
+        butt->setEnabled(enable);
+        butt->style()->polish(butt);
     }
 
 private:
@@ -79,6 +87,9 @@ void NotifyWindowPrivate::initWidget()
 
     viewAllButt = new RButton(toolWidget);
     viewAllButt->setText(QObject::tr("View all"));
+
+    enableButt(ignoreButt,false);
+    enableButt(viewAllButt,false);
 
     QObject::connect(ignoreButt,SIGNAL(pressed()),q_ptr,SLOT(ignoreAll()));
     QObject::connect(viewAllButt,SIGNAL(pressed()),q_ptr,SLOT(viewAll()));
@@ -149,10 +160,19 @@ NotifyWindow::~NotifyWindow()
     RSingleton<Subject>::instance()->detach(this);
 }
 
-void NotifyWindow::addNotifyInfo(NotifyInfo info)
+/*!
+     * @brief 向通知栏添加一个通知消息
+     * @details 若该消息所属的accountId列表不存在，创建该消息提示；若accountId存在，根据消息的类型来进行不同处理：
+     *          若属于系统消息，已存在该accountId的消息，在未处理时，则进行忽略；
+     *          若属于联系人消息，已存在该accountId的消息，未处理时，在通知消息数量上累加。
+     * @param[in] info 通知消息
+     * @return 若为新插入，返回新插入的ID；否则返回已经存在的info的id
+     */
+QString NotifyWindow::addNotifyInfo(NotifyInfo info)
 {
     MQ_D(NotifyWindow);
 
+    QString existInfoIdeitity;
     bool existedUser = false;
 
     QList<ToolItem *> items = d->infoList->items();
@@ -168,6 +188,7 @@ void NotifyWindow::addNotifyInfo(NotifyInfo info)
             if(itemType == NotifyUser || itemType == NotifyGroup)
             {
                 curItem->addNotifyInfo();
+                existInfoIdeitity = d->systemNotifyInfos.value(curItem).identityId;
             }
             existedUser = true;
             break;
@@ -192,11 +213,20 @@ void NotifyWindow::addNotifyInfo(NotifyInfo info)
             item->setNickName(info.nickName);
             item->setDescInfo(info.content);
         }
+        existInfoIdeitity = info.identityId;
         d->systemNotifyInfos.insert(item,info);
         item->setIcon(info.pixmap);
         item->addNotifyInfo();
         d->infoList->addItem(item);
+
+        if(!d->ignoreButt->isEnabled())
+        {
+            d->enableButt(d->ignoreButt,true);
+            d->enableButt(d->viewAllButt,true);
+        }
     }
+
+    return existInfoIdeitity;
 }
 
 void NotifyWindow::showMe()
@@ -226,7 +256,16 @@ void NotifyWindow::resizeEvent(QResizeEvent *)
 
 void NotifyWindow::viewAll()
 {
-    hideMe();
+    MQ_D(NotifyWindow);
+    QList<ToolItem *> items = d->infoList->items();
+    QList<ToolItem *>::iterator iter = items.end();
+    while(iter != items.begin())
+    {
+        iter--;
+//        emit showSystemNotifyInfo(d->systemNotifyInfos.value((*iter)),(*iter)->getNotifyCount());
+        viewNotify(*iter);
+    }
+
 }
 
 void NotifyWindow::ignoreAll()
@@ -234,6 +273,10 @@ void NotifyWindow::ignoreAll()
     MQ_D(NotifyWindow);
 
     hideMe();
+    d->enableButt(d->ignoreButt,false);
+    d->enableButt(d->viewAllButt,false);
+
+    d->systemNotifyInfos.clear();
     d->infoList->clear();
 }
 
@@ -243,7 +286,8 @@ void NotifyWindow::viewNotify(ToolItem *item)
 
     if(item)
     {
-        emit showSystemNotifyInfo(d->systemNotifyInfos.value(item));
+        emit showSystemNotifyInfo(d->systemNotifyInfos.value(item),item->getNotifyCount());
+
         d->systemNotifyInfos.remove(item);
         d->infoList->removeItem(item);
 

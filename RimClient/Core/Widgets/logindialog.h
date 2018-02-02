@@ -59,7 +59,7 @@ private slots:
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
-    void viewSystemNotify(NotifyInfo info);
+    void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
     void procRecvText(TextResponse response);
 
