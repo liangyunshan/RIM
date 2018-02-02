@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note      20171212:wey:完善登录页面，增加页面移动、读取保存用户信息；
  *             20180118:wey:取消UI界面，手写实现；
+ *             20180202:wey:添加同意请求页面打开聊天页面；
  */
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
