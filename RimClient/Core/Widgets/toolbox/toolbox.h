@@ -49,12 +49,14 @@ public:
 
 signals:
     void updateGroupActions(ToolPage *);
+    void noticePageRemoved(ToolPage *);
 
 private slots:
     void setSlectedPage(ToolPage*);
     void clearItemSelection(ToolItem*item);
     void setGroupActions(ToolPage *);
-    void itemRemoved(ToolItem*);
+    void itemRemoved(ToolItem *);
+    void pageRemoved(ToolPage *);
 
 private:
     void indexInLayout(int,int &);

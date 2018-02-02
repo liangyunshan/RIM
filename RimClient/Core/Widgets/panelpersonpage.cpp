@@ -43,7 +43,6 @@ protected:
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
-    QList<ToolPage *> pages;
     QList<ToolItem *> toolItems;
 };
 
@@ -98,7 +97,6 @@ void PanelPersonPage::addGroupAndUsers()
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
         page->setID(groupData->groupId);
         page->setDefault(groupData->isDefault);
-        d->pages.append(page);
 
         for(int j = 0; j < groupData->users.size(); j++)
         {
@@ -156,6 +154,7 @@ void PanelPersonPage::clearTargetGroup(const QString id)
         }
     }
     d->toolBox->removePage(t_delPage);
+
     delete t_delPage;
     d->m_deleteID = QString();
 }
@@ -208,7 +207,6 @@ void PanelPersonPage::addGroup()
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
     page->setDefault(false);
-    d->pages.append(page);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
