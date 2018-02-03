@@ -23,7 +23,7 @@ SimpleTextEdit::~SimpleTextEdit()
 void SimpleTextEdit::setInputColor(QColor color)
 {
     m_fontcolor = color;
-    this->setTextColor(m_fontcolor);
+    this->setInputTextColor(m_fontcolor);
 }
 
 void SimpleTextEdit::setInputFont(QFont font)
