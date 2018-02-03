@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @change
  *      date:20180122 content:添加群分组重命名 name:LYS
+ *      date:20180202 content:添加增加群分组功能 name:LYS
  */
 #ifndef PANELGROUPPAGE_H
 #define PANELGROUPPAGE_H
@@ -16,6 +17,8 @@
 #include <QWidget>
 
 class PanelGroupPagePrivate;
+class ToolItem;
+class ToolPage;
 
 class PanelGroupPage : public QWidget
 {
@@ -40,6 +43,8 @@ private slots:
 
 public slots:
     void renameEditFinished();
+    void updateGroupActions(ToolPage *);
+    void moveGroupTo();
 
 private:
     void createAction();
