@@ -44,7 +44,6 @@ protected:
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
-    QList<ToolItem *> toolItems;
     QList<ToolPage *> pages;
 };
 
@@ -99,7 +98,6 @@ void PanelPersonPage::addGroupAndUsers()
     {
         RGroupData * groupData = G_FriendList.at(i);
         ToolPage * page = d->toolBox->addPage(groupData->groupName);
-        d->pages.append(page);
         page->setID(groupData->groupId);
         page->setDefault(groupData->isDefault);
 
@@ -110,7 +108,6 @@ void PanelPersonPage::addGroupAndUsers()
             ToolItem * item = ceateItem(userInfo,page);
 
             page->addItem(item);
-            d->toolItems.append(item);
         }
 
         page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
@@ -145,8 +142,7 @@ void PanelPersonPage::clearTargetGroup(const QString id)
         }
     }
     d->toolBox->removePage(t_delPage);
-
-    delete t_delPage;
+    d->toolBox->removeFromList(t_delPage);//FIXME 删除列表中的page且收回内存
     d->m_deleteID = QString();
 }
 
@@ -173,7 +169,7 @@ void PanelPersonPage::onMessage(MessageType type)
      */
 void PanelPersonPage::refreshList()
 {
-    MQ_D(PanelPersonPage);
+//    MQ_D(PanelPersonPage);
 //    d->m_deleteID = t_page->id();
 //    GroupingRequest * request = new GroupingRequest();
 //    request->uuid = G_UserBaseInfo.uuid;
@@ -197,7 +193,6 @@ void PanelPersonPage::addGroup()
     MQ_D(PanelPersonPage);
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
-    d->pages.append(page);
     page->setDefault(false);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();
@@ -209,7 +204,7 @@ void PanelPersonPage::addGroup()
     }
 
     d->tmpNameEdit->raise();
-    d->tmpNameEdit->setText(tr("untitled"));
+    d->tmpNameEdit->setText(page->toolName());
     d->tmpNameEdit->selectAll();
     d->tmpNameEdit->setGeometry(textRec.x(),textY,pageRec.width(),page->txtFixedHeight());
     d->tmpNameEdit->show();
@@ -299,8 +294,8 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
         {
             if(result == STATUS_SUCCESS)
             {
-                QList<ToolPage *>::iterator iter = d->pages.begin();
-                while(iter != d->pages.end())
+                QList<ToolPage *>::iterator iter = d->toolBox->allPages().begin();
+                while(iter != d->toolBox->allPages().end())
                 {
                     if((*iter)->getID() == response.groupId)
                     {

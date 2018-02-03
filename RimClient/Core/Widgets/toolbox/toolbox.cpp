@@ -163,6 +163,17 @@ bool ToolBox::removePage(ToolPage *targetPage)
     return false;
 }
 
+bool ToolBox::removeFromList(ToolPage *targetPage)
+{
+    MQ_D(ToolBox);
+    bool t_result = d->pages.removeOne(targetPage);
+    if(t_result)
+    {
+        delete targetPage;
+    }
+    return t_result;
+}
+
 ToolPage *ToolBox::selectedPage()
 {
     MQ_D(ToolBox);
@@ -182,6 +193,12 @@ int ToolBox::pageCount()
 {
     MQ_D(ToolBox);
     return d->pages.size();
+}
+
+QList<ToolPage *> ToolBox::allPages() const
+{
+    MQ_D(ToolBox);
+    return d->pages;
 }
 
 void ToolBox::setContextMenu(QMenu *menu)

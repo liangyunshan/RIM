@@ -129,6 +129,7 @@ const char MENU_PANEL_PERSON_TOOLBOX[] = "Menu.Panel.Person.ToolBox";
 const char MENU_PANEL_PERSON_TOOLGROUP[] = "Menu.Panel.Person.ToolGroup";
 const char MENU_PANEL_PERSON_TOOLITEM[] = "Menu.Panel.Person.ToolItem";
 const char MENU_PANEL_PERSON_TOOLITEM_GROUPS[] = "Menu.Panel.Person.ToolItem.Groups";
+const char MENU_PANEL_GROUP_TOOLITEM_GROUPS[] = "Menu.Panel.Group.ToolItem.Groups";
 
 const char ACTION_PANEL_PERSON_REFRESH[] = "Action_Panel_Person_Refresh";
 const char ACTION_PANEL_PERSON_ADDGROUP[] = "Action_Panel_Person_AddGroup";
@@ -139,7 +140,7 @@ const char ACTION_PANEL_SENDMESSAGE[] = "Action_Panel_SendPersonMessage";
 const char ACTION_PANEL_VIEWDETAIL[] = "Action_Panel_ViewDetail";
 const char ACTION_PANEL_MODIFYCOMMENTS[] = "Action_Panel_ModifyComments";
 const char ACTION_PANEL_DELPERSON[] = "Action_Panel_DeltePerson";
-const char ACTION_PANEL_MOVEPERSON[] = "Action_Panel_MOVEPERSON";
+const char ACTION_PANEL_MOVEPERSON[] = "Action_Panel_MovePerson";                               //移动联系人至
 
 const char MENU_PANEL_GROUP_TOOLBOX[] = "Menu.Panel.Group.ToolBox";
 const char MENU_PANEL_GROUP_TOOLGROUP[] = "Menu.Panel.Group.ToolGroup";
@@ -151,6 +152,7 @@ const char ACTION_PANEL_GROUP_ADDGROUPS[] = "Action_Panel_Group_AddGroups";     
 
 const char ACTION_PANEL_GROUP_RENAME[] = "Action_Panel_Group_Rename";                           //重命名分组
 const char ACTION_PANEL_GROUP_DELGROUP[] = "Action_Panel_Group_DelGroup";                       //删除分组
+const char ACTION_PANEL_GROUP_MOVEGROUPTO[] = "Action_Panel_Group_MovGroup";                       //删除分组
 
 const char ACTION_PANEL_GROUP_SENDMESS[] = "Action_Panel_Group_SenMessage";                     //发送群消息
 const char ACTION_PANEL_GROUP_VIEWDETAIL[] = "Action_Panel_Group_ViewDetail";                   //查看群资料

@@ -11,6 +11,7 @@
  *      20180118:LYS:添加联系人分组重命名
  *      20180122:LYS:添加移动联系人至其他分组功能
  *      20180202:wey:添加移动好友网络请求与接收处理
+ *      20180202:LYS:去掉pages与toolItems列表，toolBox中allPages方法与toolPage中items方法代替
  *
  */
 #ifndef PANELPERSONPAGE_H
