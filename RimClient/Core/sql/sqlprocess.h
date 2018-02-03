@@ -36,6 +36,8 @@ public:
     bool createTableUser_id(Database * db, int tgtUserId);
     bool insertTableUserChatInfo(Database * db, TextUnit::ChatInfoUnit unit,SimpleUserInfo userInfo);
 
+    bool initTableUser_id(Database * db,SimpleUserInfo userInfo);
+
 private:
     unsigned short m_port;
     unsigned short m_QueryRow;

@@ -13,6 +13,7 @@ SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     b_isSendStatus = false;
 
     connect(this,SIGNAL(textChanged()),this,SLOT(slot_TextChanged()));
+    this->clear();
 }
 
 SimpleTextEdit::~SimpleTextEdit()
