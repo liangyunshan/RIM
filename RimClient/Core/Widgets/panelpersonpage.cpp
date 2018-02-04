@@ -106,7 +106,6 @@ void PanelPersonPage::addGroupAndUsers()
             SimpleUserInfo userInfo = groupData->users.at(j);
 
             ToolItem * item = ceateItem(userInfo,page);
-
             page->addItem(item);
         }
 
@@ -295,6 +294,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
             if(result == STATUS_SUCCESS)
             {
                 QList<ToolPage *>::iterator iter = d->toolBox->allPages().begin();
+
                 while(iter != d->toolBox->allPages().end())
                 {
                     if((*iter)->getID() == response.groupId)
