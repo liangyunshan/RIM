@@ -139,6 +139,22 @@ bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit, Simple
     return true;
 }
 
+bool SQLProcess::initTableUser_id(Database *db, SimpleUserInfo userInfo)
+{
+    UserInfo user_insert ;
+    user_insert.id = userInfo.accountId.toInt();
+    user_insert.name = userInfo.nickName;
+    user_insert.head = userInfo.customImgId;
+
+    bool ret = true;
+    if(!queryUser(db,user_insert.id))
+    {
+        ret = insertTgtUser(db,user_insert.id,user_insert.name);
+        ret = createTableUser_id(db,user_insert.id);
+    }
+    return ret;
+}
+
 //查询一个用户记录是否存在
 bool SQLProcess::queryUser(Database * db,int tgtUserId)
 {
@@ -146,12 +162,13 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     {
         return false;
     }
-
     QSqlQuery query(db->sqlDatabase());
+    query.clear();
+    QString cmd = QString("select %1 from %2")
+                        .arg(tgtUserId)
+                        .arg(TextUnit::_Sql_UserList_TableName_);
 
-    query.prepare(QString("select %1 from %2")
-                  .arg(tgtUserId)
-                  .arg(TextUnit::_Sql_UserList_TableName_));
+    query.prepare(cmd);
 
     bool ret = query.exec();
     if(!ret)
@@ -161,7 +178,11 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     int count = 0;
     while (query.next())
     {
-        count++;
+        if(query.value(QString(TextUnit::_Sql_UserList_UserId_)).toInt() == tgtUserId)
+        {
+            count++;
+            break;
+        }
     }
 
     if(count>0)
