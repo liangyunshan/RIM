@@ -488,7 +488,7 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
 
 void ToolBox::dragEnterEvent(QDragEnterEvent *event)
 {
-    MQ_D(ToolBox);
+//    MQ_D(ToolBox);
     if (event->mimeData()->hasText())
     {
         if(event->source() == this )

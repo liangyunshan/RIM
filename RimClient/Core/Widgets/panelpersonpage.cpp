@@ -128,9 +128,8 @@ void PanelPersonPage::clearTargetGroup(const QString id)
     {
         return;
     }
-    for(int t_index=0;t_index<t_delPage->items().count();t_index++)
+    foreach(ToolItem *t_movedItem,t_delPage->items())
     {
-        ToolItem * t_movedItem = t_delPage->items().at(t_index);
         bool t_result = t_delPage->removeItem(t_movedItem);
         if(t_result)
         {

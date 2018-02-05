@@ -269,6 +269,15 @@ QList<ToolItem *>& ToolPage::items()
     return d->toolItems;
 }
 
+
+/*!
+     * @brief 删除目标item
+     * @param[in] item:ToolItem *待删除的目标item
+     * @return item是否从布局中删除成功
+     * @details 将item从布局中删除、从toolItems列表中移除，但不销毁内存中的数据
+     *          从布局中移除成功后发射itemRemoved(ToolItem*)信号，通知相应的
+     *          ToolBox更新currentItem：ToolItem *
+     */
 bool ToolPage::removeItem(ToolItem *item)
 {
     MQ_D(ToolPage);
