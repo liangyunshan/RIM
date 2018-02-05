@@ -95,6 +95,18 @@ PanelGroupPage::~PanelGroupPage()
 
 }
 
+void PanelGroupPage::onMessage(MessageType type)
+{
+    MQ_D(PanelGroupPage);
+    switch(type)
+    {
+        case MESS_GROUPLIST_UPDATE:
+
+        break;
+    }
+
+}
+
 void PanelGroupPage::searchGroup()
 {
 
@@ -172,6 +184,12 @@ void PanelGroupPage::renameGroup()
     }
 }
 
+/*!
+     * @brief 删除群分组
+     * @param[in] 无
+     * @return 无
+     *
+     */
 void PanelGroupPage::deleteGroup()
 {
 
@@ -369,4 +387,14 @@ void PanelGroupPage::createAction()
     itemMenu->addAction(moveGroupToAction);
     itemMenu->addSeparator();
     itemMenu->addAction(exitGroupAction);
+}
+
+/*!
+     * @brief 接收到服务器删除分组成功后更新群分组显示
+     * @param[in] id:QString，待删除的群分组id
+     * @return 无
+     */
+void PanelGroupPage::clearTargetGroup(const QString id)
+{
+    //TODO LYS-20180205 收到服务器回复的信息后，更新群组分组显示
 }

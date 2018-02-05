@@ -15,18 +15,22 @@
 #define PANELGROUPPAGE_H
 
 #include <QWidget>
+#include "observer.h"
+#include "protocoldata.h"
 
 class PanelGroupPagePrivate;
 class ToolItem;
 class ToolPage;
 
-class PanelGroupPage : public QWidget
+class PanelGroupPage : public QWidget , public Observer
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(PanelGroupPage)
 public:
     explicit PanelGroupPage(QWidget *parent = 0);
     ~PanelGroupPage();
+
+    void onMessage(MessageType type);
 
 private slots:
     void searchGroup();
@@ -48,6 +52,7 @@ public slots:
 
 private:
     void createAction();
+    void clearTargetGroup(const QString id);
 
 private:
     PanelGroupPagePrivate * d_ptr;

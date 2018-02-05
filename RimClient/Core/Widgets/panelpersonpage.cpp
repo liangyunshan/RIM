@@ -41,6 +41,7 @@ protected:
     QWidget * contentWidget;
     QLineEdit *tmpNameEdit;                         //重命名时用edit
     ToolPage * pageOfMovedItem;                     //待移动分组的item所属的page
+    ToolItem * m_movedItem;                         //待移动的联系人item
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
 
@@ -72,6 +73,7 @@ void PanelPersonPagePrivate::initWidget()
     tmpNameEdit->hide();
 
     pageOfMovedItem = NULL;
+    m_movedItem = NULL;
 }
 
 PanelPersonPage::PanelPersonPage(QWidget *parent):
@@ -116,7 +118,7 @@ void PanelPersonPage::addGroupAndUsers()
 
 /*!
      * @brief 接收到服务器删除分组成功后更新联系人分组显示
-     * @param[in] 无
+     * @param[in] id:QString，待删除的联系人分组id
      * @return 无
      */
 void PanelPersonPage::clearTargetGroup(const QString id)
@@ -333,14 +335,17 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
              //TODO LYS-20180202 接收正确答复后才移动好友
             if(result == STATUS_SUCCESS)
             {
-//                bool result = sourcePage->removeItem(targetItem);
-//                if(result)
-//                {
-//                    targetPage->addItem(targetItem);
-//                    //FIXME LYS-20180131
-//                    disconnect(targetItem,SIGNAL(updateGroupActions()),sourcePage,SLOT(updateGroupActions()));
-//                    connect(targetItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
-//                }
+                QString t_sourceID = response.oldGroupId;
+                QString t_targetID = response.groupId;
+                ToolPage * t_sourcePage = d->toolBox->targetPage(t_sourceID);
+                ToolPage * t_targetPage = d->toolBox->targetPage(t_targetID);
+                bool t_rmResult = t_sourcePage->removeItem(d->m_movedItem);
+                if(t_rmResult)
+                {
+                    d->toolBox->targetPage(t_targetID)->addItem(d->m_movedItem);
+                    disconnect(d->m_movedItem,SIGNAL(updateGroupActions()),t_sourcePage,SLOT(updateGroupActions()));
+                    connect(d->m_movedItem,SIGNAL(updateGroupActions()),t_targetPage,SLOT(updateGroupActions()));
+                }
             }
             else
             {
@@ -453,8 +458,8 @@ void PanelPersonPage::movePersonTo()
     QString targetUuid = target->data().toString();
     ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
     ToolPage * sourcePage = d->pageOfMovedItem;
-    ToolItem * targetItem = d->toolBox->selectedItem();
-    if(!targetPage||!sourcePage)
+    d->m_movedItem = d->toolBox->selectedItem();
+    if(!targetPage||!sourcePage||!d->m_movedItem)
     {
         return;
     }
@@ -466,7 +471,7 @@ void PanelPersonPage::movePersonTo()
         request->groupId = targetPage->getID();
         request->oldGroupId = sourcePage->getID();
 
-        UserClient * client = RSingleton<UserManager>::instance()->client(targetItem);
+        UserClient * client = RSingleton<UserManager>::instance()->client(d->m_movedItem);
         if(client)
         {
             request->user = client->simpleUserInfo;
