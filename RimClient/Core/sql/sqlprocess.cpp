@@ -167,9 +167,7 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     QString cmd = QString("select %1 from %2")
                         .arg(tgtUserId)
                         .arg(TextUnit::_Sql_UserList_TableName_);
-
     query.prepare(cmd);
-
     bool ret = query.exec();
     if(!ret)
     {
@@ -178,11 +176,8 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     int count = 0;
     while (query.next())
     {
-        if(query.value(QString(TextUnit::_Sql_UserList_UserId_)).toInt() == tgtUserId)
-        {
-            count++;
-            break;
-        }
+        count++;
+        break;
     }
 
     if(count>0)
