@@ -653,6 +653,7 @@ void LoginDialog::procRecvText(TextResponse response)
                 {
                     client->chatWidget = new AbstractChatWidget();
                     client->chatWidget->setUserInfo(client->simpleUserInfo);
+                    client->chatWidget->initChatRecord();
                 }
                 client->chatWidget->show();
             }
@@ -722,6 +723,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatWidget = new AbstractChatWidget();
                 client->chatWidget->setUserInfo(client->simpleUserInfo);
+                client->chatWidget->initChatRecord();
             }
 
 //            client->chatWidget->showRecentlyChatMsg(notifyCount);
@@ -739,6 +741,7 @@ void LoginDialog::openChatDialog(QString accountId)
    {
        client->chatWidget = new AbstractChatWidget();
        client->chatWidget->setUserInfo(client->simpleUserInfo);
+       client->chatWidget->initChatRecord();
    }
 
    client->chatWidget->show();
