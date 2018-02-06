@@ -31,31 +31,70 @@
 #include <QProcess>
 #include <QTimer>
 #include <QKeyEvent>
+#include "Util/rutil.h"
+
+const int UI_SETTING_WIDTH = 500 ;
+const int UI_SETTING_HEIGHT = 450 ;
 
 SetKeySequenceDialog::SetKeySequenceDialog(QWidget *parent):
-    QDialog(parent)
+    Widget(parent)
 {
-    setModal(true);
     initWidget();
     loadSetting();
+
+    setWindowFlags(windowFlags() & ~Qt::Tool);
+//    setAttribute(Qt::WA_DeleteOnClose,true);
+    setWindowTitle(tr("KeySequenceSettings"));
+//    setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+
+    ToolBar * bar = enableToolBar(true);
+    enableDefaultSignalConection(true);
+    if(bar)
+    {
+        bar->setToolFlags(ToolBar::TOOL_DIALOG);
+        bar->setWindowTitle(tr("KeySequenceSettings"));
+    }
+
+    RSingleton<Subject>::instance()->attach(this);
+
+    setFixedSize(UI_SETTING_WIDTH,UI_SETTING_HEIGHT);
+    QSize  screenSize = RUtil::screenSize();
+    setGeometry((screenSize.width() - UI_SETTING_WIDTH)/2,(screenSize.height() - UI_SETTING_HEIGHT)/2,
+                UI_SETTING_WIDTH,UI_SETTING_HEIGHT);
+
 }
 
 SetKeySequenceDialog::~SetKeySequenceDialog()
 {
-    qDebug()<<__FILE__<<__LINE__<<"\n"
-           <<""<<this
-          <<"\n";
+}
+
+void SetKeySequenceDialog::onMessage(MessageType type)
+{
+    switch(type)
+    {
+        case MESS_SHORTCUT:
+                           {
+
+                                break;
+                           }
+        default:
+            break;
+    }
 }
 
 void SetKeySequenceDialog::initWidget()
 {
-    SetKeySequenceDialog *Dialog = this;
-    if (Dialog->objectName().isEmpty())
-        Dialog->setObjectName(QString::fromUtf8("SetKeySequenceDialog"));
-    Dialog->resize(500, 450);
-    verticalLayout_4 = new QVBoxLayout(Dialog);
-    verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
-    groupBox_2 = new QGroupBox(Dialog);
+    QWidget * contentWidget = new QWidget;
+    contentWidget->setObjectName(QString::fromUtf8("SetKeySequenceDialog"));
+    contentWidget->resize(UI_SETTING_WIDTH, UI_SETTING_HEIGHT);
+
+    QVBoxLayout * contentLayout = new QVBoxLayout;
+    contentLayout->setContentsMargins(0,0,0,0);
+    contentLayout->setSpacing(0);
+
+    contentWidget->setLayout(contentLayout);
+
+    groupBox_2 = new QGroupBox(contentWidget);
     groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
     verticalLayout_3 = new QVBoxLayout(groupBox_2);
     verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
@@ -90,13 +129,12 @@ void SetKeySequenceDialog::initWidget()
 
     horizontalLayout->addItem(horizontalSpacer);
 
-
     verticalLayout_3->addLayout(horizontalLayout);
 
 
-    verticalLayout_4->addWidget(groupBox_2);
+    contentLayout->addWidget(groupBox_2);
 
-    groupBox = new QGroupBox(Dialog);
+    groupBox = new QGroupBox(contentWidget);
     groupBox->setObjectName(QString::fromUtf8("groupBox"));
     verticalLayout_2 = new QVBoxLayout(groupBox);
     verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
@@ -123,7 +161,9 @@ void SetKeySequenceDialog::initWidget()
 
     verticalLayout_2->addLayout(verticalLayout);
 
-    verticalLayout_4->addWidget(groupBox);
+    contentLayout->addWidget(groupBox);
+
+    this->setContentWidget(contentWidget);
 
     //tr翻译
     this->setWindowTitle(tr("SetKeySequenceDialog"));           //设置全局快捷键
@@ -202,7 +242,7 @@ void SetKeySequenceDialog::keyPressEvent(QKeyEvent *event)
         {
             if(RSingleton<ShortcutSettings>::instance()->contains(key))
             {
-                QDialog::keyPressEvent(event);
+                Widget::keyPressEvent(event);
                 return ;
             }
             QTableWidgetItem *item_0 = tblw_KeyList->item(0,1);
@@ -225,14 +265,14 @@ void SetKeySequenceDialog::keyPressEvent(QKeyEvent *event)
             }
             else
             {
-               QDialog::keyPressEvent(event);
+               Widget::keyPressEvent(event);
                return ;
             }
             m_tempKeyString = key.toString();
             item_selceted->setText(m_tempKeyString);
         }
     }
-    QDialog::keyPressEvent(event);
+    Widget::keyPressEvent(event);
 }
 
 void SetKeySequenceDialog::setSendMsgShortCut(int key)
