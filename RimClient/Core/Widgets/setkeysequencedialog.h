@@ -10,6 +10,9 @@
 #ifndef SETKEYSEQUENCEDIALOG_H
 #define SETKEYSEQUENCEDIALOG_H
 
+#include "widget.h"
+#include "observer.h"
+
 #include <QDialog>
 #include <QProcess>
 class QVBoxLayout;
@@ -24,12 +27,14 @@ class QToolBar;
 class QStatusBar;
 class QTimer;
 
-class SetKeySequenceDialog : public QDialog
+class SetKeySequenceDialog : public Widget , public Observer
 {
     Q_OBJECT
 public:
-    SetKeySequenceDialog(QWidget *parent);
+    SetKeySequenceDialog(QWidget *parent=0);
     ~SetKeySequenceDialog();
+
+    void onMessage(MessageType type);
 
 private:
     void initWidget();
@@ -44,7 +49,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
-    QVBoxLayout *verticalLayout_4;
+    QVBoxLayout *contentLayout;
     QGroupBox *groupBox_2;
     QVBoxLayout *verticalLayout_3;
     QLabel *label_3;
@@ -59,8 +64,9 @@ private:
     QRadioButton *rdbutt_Ctrl_Enter;
     QRadioButton *rdbutt_Enter;
     QString m_tempKeyString;
+    ToolBar * windowToolBar;
 
-    void setSendMsgShortCut(int );
+    void setSendMsgShortCut(int);
     void updateSenMsgRadioButton(QString);
 };
 

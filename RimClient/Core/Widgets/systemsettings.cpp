@@ -227,8 +227,6 @@ void SystemSettingsPrivate::initWidget()
     sessionPage->addItem(windowShaking);
 
     /****************快捷键设置********************/
-    p_setKeySequenceDialog = new SetKeySequenceDialog(basicWidget);
-
     SystemSettingsPage * shortCutPage = new SystemSettingsPage(basicWidget);
     shortCutPage->setDescInfo(QObject::tr("Shortcut"));
 
@@ -237,6 +235,9 @@ void SystemSettingsPrivate::initWidget()
     QObject::connect(shortcutButt,SIGNAL(pressed()),q_ptr,SLOT(respShortCut()));
 
     shortCutPage->addItem(shortcutButt);
+
+    //TODO:需要将界面的背景替换为统一的白色
+    p_setKeySequenceDialog = new SetKeySequenceDialog();
 
     /****************声音设置********************/
     SystemSettingsPage * soundPage = new SystemSettingsPage(basicWidget);
@@ -504,7 +505,11 @@ void SystemSettings::respAutoReply()
 
 void SystemSettings::respShortCut()
 {
-    d_ptr->p_setKeySequenceDialog->showNormal();
+    if(d_ptr->p_setKeySequenceDialog)
+    {
+        d_ptr->p_setKeySequenceDialog->showNormal();
+    }
+
 }
 
 void SystemSettings::respSoundSetting()
