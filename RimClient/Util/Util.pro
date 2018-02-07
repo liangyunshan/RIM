@@ -44,11 +44,13 @@ SOURCES += \
     fileutils.cpp \
     imagemanager.cpp \
     rlog.cpp \
-    rutil.cpp
+    rutil.cpp \
+    regexp.cpp
 
 HEADERS +=\
         util_global.h \
     fileutils.h \
     imagemanager.h \
     rlog.h \
-    rutil.h
+    rutil.h \
+    regexp.h

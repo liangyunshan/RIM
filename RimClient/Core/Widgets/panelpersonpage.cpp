@@ -16,6 +16,7 @@
 #include "Network/msgwrap.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"
+#include "maindialog.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -80,6 +81,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
+    connect(this,SIGNAL(showChatDialog(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
     connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
@@ -260,8 +262,8 @@ void PanelPersonPage::createChatWindow(ToolItem *item)
 
 void PanelPersonPage::sendInstantMessage()
 {
-     MQ_D(PanelPersonPage);
-    createChatWindow(d->toolBox->selectedItem());
+    MQ_D(PanelPersonPage);
+    emit showChatDialog(d->toolBox->selectedItem());
 }
 
 void PanelPersonPage::showUserDetail()

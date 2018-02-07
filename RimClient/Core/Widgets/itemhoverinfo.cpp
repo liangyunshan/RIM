@@ -83,6 +83,8 @@ ItemHoverInfoPrivate::~ItemHoverInfoPrivate()
 void ItemHoverInfoPrivate::initWidget()
 {
     contentWidget = new QWidget();
+    contentWidget->setObjectName("AbstractWidget_ContentWidget");
+    contentWidget->setStyleSheet("QWidget#AbstractWidget_ContentWidget{border-image:url(':/background/resource/background/item_hover.png')}");
 
     QVBoxLayout * vlayout = new QVBoxLayout();
     vlayout->setContentsMargins(15,15,0,0);
@@ -90,16 +92,17 @@ void ItemHoverInfoPrivate::initWidget()
 
     userNameLabel = new QLabel(contentWidget);
     userNameLabel->setMinimumHeight(30);
-    userNameLabel->setFont(QFont("微软雅黑",13));
-    userNameLabel->setText(QStringLiteral("一路向北"));
+    userNameLabel->setFont(QFont("微软雅黑",15,QFont::Bold));
+    userNameLabel->setStyleSheet("color:white");
 
     signNameLabel = new QLabel(contentWidget);
+    signNameLabel->setFont(QFont("微软雅黑",13,QFont::Bold));
+    signNameLabel->setStyleSheet("color:white");
     signNameLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
-    signNameLabel->setText("Say Something");
 
     accountLabel = new QLabel(contentWidget);
+    accountLabel->setStyleSheet("color:white");
     accountLabel->setMinimumHeight(Constant::ITEM_FIX_HEIGHT);
-    accountLabel->setText("407859345");
 
     vlayout->addWidget(userNameLabel);
     vlayout->addWidget(signNameLabel);
@@ -180,4 +183,12 @@ void ItemHoverInfo::fadeout()
         d->fadeoutGroup->addAnimation(d->fadeoutOpacityAnmiation);
     }
     d->fadeoutGroup->start();
+}
+
+void ItemHoverInfo::setSimpleUserInfo(SimpleUserInfo info)
+{
+    MQ_D(ItemHoverInfo);
+    d->userNameLabel->setText(info.nickName);
+    d->signNameLabel->setText(info.signName);
+    d->accountLabel->setText(info.accountId);
 }

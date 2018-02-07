@@ -53,7 +53,8 @@ struct UserInfoDesc
         isAutoLogin = false;
         isSystemPixMap = false;
     }
-    QString userName;               /*!< 用户名(暂不支持中文) */
+    QString userName;               /*!< 用户名 */
+    QString accountId;              /*!< 账号*/
     int loginState;                 /*!< 登录状态，参见OnLineState::UserState枚举*/
     QString originPassWord;         /*!< 原始密码 */
     QString password;               /*!< 加密后的密码 */

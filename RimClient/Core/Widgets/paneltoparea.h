@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180130:wey:响应用户信息更改
+ *      20180207:wey:修改签名保存至数据库
  */
 #ifndef PANELTOPAREA_H
 #define PANELTOPAREA_H
@@ -30,7 +31,9 @@ public:
 
     void onMessage(MessageType type);
 
-signals:
+private slots:
+    void respSignChanged(QString content);
+    void recvBaseInfoResponse(ResponseUpdateUser result,UpdateBaseInfoResponse response);
 
 private:
     void updateUserInfo();
