@@ -332,7 +332,6 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
         }
     case G_Friend_MOVE:
         {
-             //TODO LYS-20180202 接收正确答复后才移动好友
             if(result == STATUS_SUCCESS)
             {
                 QString t_sourceID = response.oldGroupId;
@@ -455,11 +454,11 @@ void PanelPersonPage::movePersonTo()
     MQ_D(PanelPersonPage);
 
     QAction * target = qobject_cast<QAction *>(QObject::sender());
-    QString targetUuid = target->data().toString();
-    ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
-    ToolPage * sourcePage = d->pageOfMovedItem;
+    QString t_targetUuid = target->data().toString();
+    ToolPage * t_targetPage = d->toolBox->targetPage(t_targetUuid);
+    ToolPage * t_sourcePage = d->pageOfMovedItem;
     d->m_movedItem = d->toolBox->selectedItem();
-    if(!targetPage||!sourcePage||!d->m_movedItem)
+    if(!t_targetPage||!t_sourcePage||!d->m_movedItem)
     {
         return;
     }
@@ -468,8 +467,8 @@ void PanelPersonPage::movePersonTo()
         GroupingFriendRequest * request = new GroupingFriendRequest;
         request->type = G_Friend_MOVE;
         request->stype = SearchPerson;
-        request->groupId = targetPage->getID();
-        request->oldGroupId = sourcePage->getID();
+        request->groupId = t_targetPage->getID();
+        request->oldGroupId = t_sourcePage->getID();
 
         UserClient * client = RSingleton<UserManager>::instance()->client(d->m_movedItem);
         if(client)

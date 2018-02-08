@@ -10,6 +10,8 @@
 #include "rsingleton.h"
 #include "Network/msgwrap.h"
 #include "actionmanager/actionmanager.h"
+#include "user/userclient.h"
+#include "messdiapatch.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -28,13 +30,15 @@ public:
 
     void initWidget();
 
+    PanelGroupPage * q_ptr;
     ToolBox * toolBox;
-    QList<ToolPage *> pages;
+
     QList<ToolItem *> toolItems;
     QLineEdit *tmpNameEdit;     //重命名时用edit
     ToolPage * pageOfMovedItem; //待移动群分组的item所属的page
+    ToolItem * m_movedItem;     //待移动的联系人item
     bool groupIsCreate;         //标识分组是新创建还是已存在
-    PanelGroupPage * q_ptr;
+    QString m_deleteID;         //暂时将删除的分组ID保存在内存中
 
     QWidget * contentWidget;
 };
@@ -63,6 +67,8 @@ void PanelGroupPagePrivate::initWidget()
     tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
     tmpNameEdit->hide();
 
+    pageOfMovedItem = NULL;
+    m_movedItem = NULL;
 }
 
 PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
@@ -73,7 +79,6 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
     for(int j = 0; j < 5;j++)
     {
         ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("我的群")+QString::number(j));
-        d_ptr->pages.append(page);
         for(int i = 0; i < 5;i++)
         {
             ToolItem * item = new ToolItem(page);
@@ -101,7 +106,12 @@ void PanelGroupPage::onMessage(MessageType type)
     switch(type)
     {
         case MESS_GROUPLIST_UPDATE:
-
+        addGroupAndCluster();
+        break;
+    case MESS_GROUP_DELETE:
+        clearTargetGroup(d->m_deleteID);
+        break;
+    default:
         break;
     }
 
@@ -139,7 +149,6 @@ void PanelGroupPage::addGroups()
     d->groupIsCreate = true;
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
     page->setDefault(false);
-    d->pages.append(page);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
@@ -192,7 +201,21 @@ void PanelGroupPage::renameGroup()
      */
 void PanelGroupPage::deleteGroup()
 {
+    MQ_D(PanelGroupPage);
 
+    ToolPage *t_page = d->toolBox->selectedPage();
+    if(t_page->isDefault())
+    {
+        return;
+    }
+    d->m_deleteID = t_page->getID();
+    GroupingRequest * request = new GroupingRequest();
+    request->uuid = G_UserBaseInfo.uuid;
+    request->type = GROUPING_DELETE;
+    request->gtype = GROUPING_GROUP;
+    request->groupId = t_page->getID();
+
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 void PanelGroupPage::sendMessage()
@@ -291,28 +314,29 @@ void PanelGroupPage::updateGroupActions(ToolPage * page)
 void PanelGroupPage::moveGroupTo()
 {
     MQ_D(PanelGroupPage);
+
     QAction * target = qobject_cast<QAction *>(QObject::sender());
-    QString targetUuid = target->data().toString();
-    ToolPage * targetPage = d->toolBox->targetPage(targetUuid);
-    ToolPage * sourcePage = d->pageOfMovedItem;
-    ToolItem * targetItem = d->toolBox->selectedItem();
-    if(!targetPage||!sourcePage)
+    QString t_targetUuid = target->data().toString();
+    ToolPage * t_targetPage = d->toolBox->targetPage(t_targetUuid);
+    ToolPage * t_sourcePage = d->pageOfMovedItem;
+    d->m_movedItem = d->toolBox->selectedItem();
+    if(!t_targetPage||!t_sourcePage||!d->m_movedItem)
     {
         return;
     }
     else
     {
         GroupingFriendRequest * request = new GroupingFriendRequest;
-//        request->type = G_Friend_MOVE;
-//        request->stype = SearchPerson;
-//        request->groupId = targetPage->getID();
-//        request->oldGroupId = sourcePage->getID();
+        request->type = G_Friend_MOVE;
+        request->stype = SearchGroup;
+        request->groupId = t_targetPage->getID();
+        request->oldGroupId = t_sourcePage->getID();
 
-//        UserClient * client = RSingleton<UserManager>::instance()->client(targetItem);
-//        if(client)
-//        {
-//            request->user = client->simpleUserInfo;
-//        }
+        UserClient * client = RSingleton<UserManager>::instance()->client(d->m_movedItem);
+        if(client)
+        {
+            request->user = client->simpleUserInfo;
+        }
         RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
 }
@@ -390,11 +414,62 @@ void PanelGroupPage::createAction()
 }
 
 /*!
+     * @brief 根据服务器发送的消息更新群列表
+     * @param[in] 无
+     * @return 无
+     */
+void PanelGroupPage::addGroupAndCluster()
+{
+    MQ_D(PanelGroupPage);
+
+    //TODO LYS-20180205 根据登录成功后保存的群信息列表显示群分组列表
+//    for(int j = 0; j < 5;j++)
+//    {
+//        ToolPage * page = d_ptr->toolBox->addPage(QStringLiteral("@群分组名称"));
+//        for(int i = 0; i < 5;i++)
+//        {
+//            ToolItem * item = new ToolItem(page);
+//            connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
+//            connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
+//            item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLITEM));
+//            item->setName(QStringLiteral("天地仁谷"));
+//            item->setNickName(QStringLiteral("(16人)"));
+//            page->addItem(item);
+//            d_ptr->toolItems.append(item);
+//        }
+
+//        page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_GROUP_TOOLGROUP));
+//    }
+}
+
+/*!
      * @brief 接收到服务器删除分组成功后更新群分组显示
      * @param[in] id:QString，待删除的群分组id
      * @return 无
      */
 void PanelGroupPage::clearTargetGroup(const QString id)
 {
-    //TODO LYS-20180205 收到服务器回复的信息后，更新群组分组显示
+    MQ_D(PanelGroupPage);
+
+    QString t_id = id;
+    ToolPage * t_delPage = d->toolBox->targetPage(t_id);
+    if(!t_delPage)
+    {
+        return;
+    }
+    foreach(ToolItem *t_movedItem,t_delPage->items())
+    {
+        bool t_result = t_delPage->removeItem(t_movedItem);
+        if(t_result)
+        {
+            d->toolBox->defaultPage()->addItem(t_movedItem);
+        }
+        else
+        {
+            delete t_movedItem;
+        }
+    }
+    d->toolBox->removePage(t_delPage);
+    d->toolBox->removeFromList(t_delPage);
+    d->m_deleteID = QString();
 }

@@ -11,8 +11,6 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
-#include <QDragMoveEvent>
-#include <QDropEvent>
 #include <QLabel>
 #include <QStyle>
 #include <QContextMenuEvent>
@@ -391,6 +389,32 @@ const PersonGroupInfo & ToolPage::pageInfo()
 {
     MQ_D(ToolPage);
     return d->m_pageInfo;
+}
+
+/*!
+     * @brief 高亮显示标题框
+     * @param 无
+     * @return 无
+     */
+void ToolPage::highlightShow()
+{
+    MQ_D(ToolPage);
+    d->simpleTextWidget->setProperty("enter",true);
+    style()->unpolish(d->simpleTextWidget);
+    style()->polish(d->simpleTextWidget);
+}
+
+/*!
+     * @brief 取消高亮显示标题框
+     * @param 无
+     * @return 无
+     */
+void ToolPage::unHighlightShow()
+{
+    MQ_D(ToolPage);
+    d->simpleTextWidget->setProperty("enter",false);
+    style()->unpolish(d->simpleTextWidget);
+    style()->polish(d->simpleTextWidget);
 }
 
 /*!

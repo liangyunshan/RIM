@@ -52,6 +52,7 @@ public slots:
 
 private:
     void createAction();
+    void addGroupAndCluster();
     void clearTargetGroup(const QString id);
 
 private:
