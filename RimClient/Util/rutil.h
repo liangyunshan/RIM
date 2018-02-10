@@ -7,6 +7,7 @@
  *  @date      2017.12.11
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note      20180210:LYS:添加正常图像转换为灰度图方法convertToGray
  */
 #ifndef RUTIL_H
 #define RUTIL_H
