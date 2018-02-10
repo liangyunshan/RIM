@@ -17,12 +17,17 @@
 
 #define WINDOW_ICON_SIZE 16
 
+/*!
+ * @brief 集合list是否包含t数据
+ * @details the compiler can't inspect list<tNode<T>*> (it doesn't have its definition at this point)
+            and so it doesn't know whether list<tNode<T>*>::iterator is either a static field or a type. 需要加上typename
+ * @param[in] list 数据集合
+ * @param[in] t 数据值
+ * @return 是否包含
+ */
 template<class T>
 bool contains(QList<T*> & list,const T * t)
 {
-    /*the compiler can't inspect list<tNode<T>*> (it doesn't have its definition at this point)
-    and so it doesn't know whether list<tNode<T>*>::iterator is either a static field or a type. 需要加上typename*/
-
     typename  QList<T*>::iterator iter = list.begin();
     while(iter != list.end())
     {
@@ -203,12 +208,26 @@ QString ToolBar::windowTitle() const
     return d->windowTitle->text();
 }
 
+/*!
+ * @brief 设置内容边距
+ * @param[in] left 左边距
+ * @param[in] top 上边距
+ * @param[in] right 右边距
+ * @param[in] bottom 下边距
+ * @return 是否插入成功
+ */
 void ToolBar::setContentsMargins(int left, int top, int right, int bottom)
 {
     MQ_D(ToolBar);
     d->toolBarLayout->setContentsMargins(left,top,right,bottom);
 }
 
+/*!
+ * @brief 设置工具栏属性
+ * @details 根据不同的样式类型，控制工具栏中的各个控件的显示状态。
+ * @param[in] types 工具类型
+ * @return 无
+ */
 void ToolBar::setToolFlags(ToolBar::ToolType types)
 {
     MQ_D(ToolBar);
@@ -245,10 +264,8 @@ bool ToolBar::appendToolButton(RToolButton *toolButton)
 
 /*!
  * @brief 插入工具按钮
- *
  * @param[in] toolButton 待插入的工具按钮
  * @param[in] ID 若为NULL，则从工具栏的最前面插入；不为NULL，则从指定的控件前面插入
- *
  * @return 是否插入成功
  */
 bool ToolBar::insertToolButton(RToolButton *toolButton, const char *ID)

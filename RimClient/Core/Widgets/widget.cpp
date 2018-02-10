@@ -73,6 +73,11 @@ Widget::~Widget()
 
 }
 
+/*!
+ * @brief 设置是否开启窗口阴影
+ * @param[in] flag 开启标识
+ * @return 无
+ */
 void Widget::setShadowWindow(bool flag)
 {
     MQ_D(Widget);
@@ -89,11 +94,11 @@ void Widget::setShadowWindow(bool flag)
 }
 
 /*!
-     * @brief 设置窗口是否可移动
-     * @details 默认为true可移动，整个窗口都可以响应移动事件。
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 无
-     */
+ * @brief 设置窗口是否可移动
+ * @details 默认为true可移动，整个窗口都可以响应移动事件。
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 无
+ */
 void Widget::setWindowsMoveable(bool flag)
 {
     MQ_D(Widget);
@@ -164,10 +169,10 @@ ToolBar * Widget::enableToolBar(bool flag)
 }
 
 /*!
-     * @brief 是否开启默认的信号连接；若为true，则窗口工具栏点击后，不会发送信号；
-     * @param[in] flag 状态
-     * @return 无
-     */
+ * @brief 是否开启默认的信号连接；若为true，则窗口工具栏点击后，不会发送信号；
+ * @param[in] flag 状态
+ * @return 无
+ */
 void Widget::enableDefaultSignalConection(bool flag)
 {
     MQ_D(Widget);
@@ -185,6 +190,13 @@ void Widget::enableDefaultSignalConection(bool flag)
     }
 }
 
+/*!
+ * @brief 绘图事件
+ * @details 绘制窗口四周边框阴影，绘制时采用渐变的方式逐级向外降低透明度。每边绘制的宽度使用WINDOW_MARGIN_WIDTH变量的定义。
+ * @see WINDOW_MARGIN_WIDTH
+ * @param[in] event 事件句柄
+ * @return 无
+ */
 void Widget::paintEvent(QPaintEvent *)
 {
     MQ_D(Widget);
@@ -210,6 +222,14 @@ void Widget::paintEvent(QPaintEvent *)
     }
 }
 
+/*!
+ * @brief 操作系统原生事件
+ * @details 调用Windows原生的事件，用于处理无边框窗口中鼠标移动至各个边框后调整至对应样式以及处理窗口缩放
+ * @param[in] eventType 事件类型
+ * @param[in] message 消息类型
+ * @param[in] result 操作结果
+ * @return 是否处理
+ */
 bool Widget::nativeEvent(const QByteArray &/*eventType*/, void *message, long *result)
 {
     MQ_D(Widget);
@@ -365,6 +385,12 @@ void Widget::leaveEvent(QEvent *)
 
 }
 
+/*!
+ * @brief 对控件重新应用样式
+ * @details 动态的改变控件的样式
+ * @param[in] widget 待更新样式的控件
+ * @return 无
+ */
 void Widget::repolish(QWidget *widget)
 {
     if(!widget)

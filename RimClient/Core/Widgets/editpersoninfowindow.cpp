@@ -341,10 +341,10 @@ void EditPersonInfoWindow::openLocalImage()
 }
 
 /*!
-     * @brief 保存用户基本信息
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 保存用户基本信息
+ * @param[in] 无
+ * @return 无
+ */
 void EditPersonInfoWindow::updateUserBaseInfo()
 {
     MQ_D(EditPersonInfoWindow);
