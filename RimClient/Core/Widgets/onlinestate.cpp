@@ -20,22 +20,20 @@ public:
     OnLineStatePrivate(){}
     ~OnLineStatePrivate(){}
 
-    void setState(const OnLineState::UserState state)
+    void setState(const OnlineStatus state)
     {
         this->currState = state;
     }
 
-    OnLineState::UserState state()
+    OnlineStatus state()
     {
         return this->currState;
     }
 
 private:
-    OnLineState::UserState currState;
+    OnlineStatus currState;
 
-    QStringList stateName;
-
-    QMap<OnLineState::UserState,QString> stateFilePaths;
+    QMap<OnlineStatus,QString> stateFilePaths;
 };
 
 OnLineState::OnLineState(QWidget *parent):
@@ -50,14 +48,14 @@ OnLineState::~OnLineState()
 
 }
 
-void OnLineState::setState(const OnLineState::UserState &state)
+void OnLineState::setState(const OnlineStatus &state)
 {
     MQ_D(OnLineState);
     d->setState(state);
     mainButton->setIcon(QPixmap(d->stateFilePaths[state]));
 }
 
-OnLineState::UserState OnLineState::state()
+OnlineStatus OnLineState::state()
 {
     MQ_D(OnLineState);
     return d->state();
@@ -66,9 +64,6 @@ OnLineState::UserState OnLineState::state()
 void OnLineState::initWidget()
 {
     MQ_D(OnLineState);
-
-    d->stateName<<QObject::tr("Online")<<QObject::tr("Offline")<<QObject::tr("Busy")
-               <<QObject::tr("Hide")<<QObject::tr("NoDisturb");
 
     QHBoxLayout * layout = new QHBoxLayout;
     layout->setContentsMargins(0,0,0,0);
@@ -84,53 +79,39 @@ void OnLineState::initWidget()
 
     popMenu = new QMenu();
 
-#if QT_VERSION >= 0x050500
-    QMetaEnum metaEnum = QMetaEnum::fromType<OnLineState::UserState>();
-
-    for(int i = 0; i < metaEnum.keyCount(); i++)
-    {
-        QAction * action = new QAction(d->stateName.at(i));
-
-        QString path = QString(":/state/resource/icon/state/")+metaEnum.key(i)+QString(".png");
-
-        action->setIcon(QPixmap(path));
-        action->setData(metaEnum.value(i));
-        action->setToolTip(d->stateName.at(i));
-        connect(action,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
-
-        d->stateFilePaths.insert((UserState)metaEnum.value(i),path);
-
-        if(i == 0)
-        {
-            mainButton->setIcon(QPixmap(QString(":/state/resource/icon/state/")+metaEnum.key(i)+QString(".png")));
-        }
-
-        popMenu->addAction(action);
-    }
-#else
     QAction * onlineAction = new QAction(tr("Online"));
-    onlineAction->setData(UserState::STATE_ONLINE);
-    onlineAction->setIcon(QPixmap(QString(":/state/resource/icon/state/STATE_ONLINE.png")));
+    onlineAction->setData(STATUS_ONLINE);
+    QString onlinePath = QString(":/state/resource/icon/state/STATE_ONLINE.png");
+    onlineAction->setIcon(QPixmap(onlinePath));
+    d->stateFilePaths.insert(STATUS_ONLINE,onlinePath);
     connect(onlineAction,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
 
     QAction * offlineAction = new QAction(tr("Offline"));
-    offlineAction->setData(UserState::STATE_OFFLINE);
-    offlineAction->setIcon(QPixmap(QString(":/state/resource/icon/state/STATE_OFFLINE.png")));
+    offlineAction->setData(STATUS_OFFLINE);
+    QString offlinePath = QString(":/state/resource/icon/state/STATE_OFFLINE.png");
+    offlineAction->setIcon(QPixmap(offlinePath));
+    d->stateFilePaths.insert(STATUS_OFFLINE,offlinePath);
     connect(offlineAction,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
 
     QAction *  busyAction = new QAction(tr("Busy"));
-    busyAction->setData(UserState::STATE_BUSY);
-    busyAction->setIcon(QPixmap(QString(":/state/resource/icon/state/STATE_BUSY.png")));
+    busyAction->setData(STATUS_BUSY);
+    QString busyPath = QString(":/state/resource/icon/state/STATE_BUSY.png");
+    busyAction->setIcon(QPixmap(busyPath));
+    d->stateFilePaths.insert(STATUS_BUSY,busyPath);
     connect(busyAction,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
 
     QAction * hideAction = new QAction(tr("Hide"));
-    hideAction->setData(UserState::STATE_HIDE);
-    hideAction->setIcon(QPixmap(QString(":/state/resource/icon/state/STATE_HIDE.png")));
+    hideAction->setData(STATUS_INVISIBLE);
+    QString hidePath = QString(":/state/resource/icon/state/STATE_HIDE.png");
+    hideAction->setIcon(QPixmap(hidePath));
+    d->stateFilePaths.insert(STATUS_INVISIBLE,hidePath);
     connect(hideAction,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
 
-    QAction * noDisturbAction = new QAction(tr("NoDisturb"));
-    noDisturbAction->setData(UserState::STATE_NODISTURB);
-    noDisturbAction->setIcon(QPixmap(QString(":/state/resource/icon/state/STATE_NODISTURB.png")));
+    QAction * noDisturbAction = new QAction(tr("Away"));
+    noDisturbAction->setData(STATUS_AWAY);
+    QString noDisturbPath = QString(":/state/resource/icon/state/STATE_NODISTURB.png");
+    noDisturbAction->setIcon(QPixmap(noDisturbPath));
+    d->stateFilePaths.insert(STATUS_AWAY,noDisturbPath);
     connect(noDisturbAction,SIGNAL(triggered(bool)),this,SLOT(switchState(bool)));
 
     popMenu->addAction(onlineAction);
@@ -138,7 +119,6 @@ void OnLineState::initWidget()
     popMenu->addAction(busyAction);
     popMenu->addAction(hideAction);
     popMenu->addAction(noDisturbAction);
-#endif
 
     mainButton->setMenu(popMenu);
     layout->addWidget(mainButton);
@@ -152,7 +132,7 @@ void OnLineState::switchState(bool)
     QAction * action = dynamic_cast<QAction *>(QObject::sender());
     if(action)
     {
-        d->setState((UserState)action->data().toInt());
+        d->setState((OnlineStatus)action->data().toInt());
         mainButton->setIcon(action->icon());
         emit stateChanged(d->state());
     }

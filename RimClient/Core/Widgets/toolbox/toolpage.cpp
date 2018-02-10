@@ -11,8 +11,6 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
-#include <QDragMoveEvent>
-#include <QDropEvent>
 #include <QLabel>
 #include <QStyle>
 #include <QContextMenuEvent>
@@ -269,6 +267,15 @@ QList<ToolItem *>& ToolPage::items()
     return d->toolItems;
 }
 
+
+/*!
+     * @brief 删除目标item
+     * @param[in] item:ToolItem *待删除的目标item
+     * @return item是否从布局中删除成功
+     * @details 将item从布局中删除、从toolItems列表中移除，但不销毁内存中的数据
+     *          从布局中移除成功后发射itemRemoved(ToolItem*)信号，通知相应的
+     *          ToolBox更新currentItem：ToolItem *
+     */
 bool ToolPage::removeItem(ToolItem *item)
 {
     MQ_D(ToolPage);
@@ -382,6 +389,32 @@ const PersonGroupInfo & ToolPage::pageInfo()
 {
     MQ_D(ToolPage);
     return d->m_pageInfo;
+}
+
+/*!
+     * @brief 高亮显示标题框
+     * @param 无
+     * @return 无
+     */
+void ToolPage::highlightShow()
+{
+    MQ_D(ToolPage);
+    d->simpleTextWidget->setProperty("enter",true);
+    style()->unpolish(d->simpleTextWidget);
+    style()->polish(d->simpleTextWidget);
+}
+
+/*!
+     * @brief 取消高亮显示标题框
+     * @param 无
+     * @return 无
+     */
+void ToolPage::unHighlightShow()
+{
+    MQ_D(ToolPage);
+    d->simpleTextWidget->setProperty("enter",false);
+    style()->unpolish(d->simpleTextWidget);
+    style()->polish(d->simpleTextWidget);
 }
 
 /*!

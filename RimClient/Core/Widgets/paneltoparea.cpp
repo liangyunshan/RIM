@@ -42,6 +42,7 @@ private:
     QLabel * userNikcNameLabel;
     RLineEdit * userSignNameEdit;
     QWidget * extendToolWiget;
+    OnLineState * onlineState;
 
     QLineEdit * searchLineEdit;
 };
@@ -79,10 +80,25 @@ void PanelTopAreaPrivate::initWidget()
     iconLayout->addWidget(userIconLabel);
     iconWidget->setLayout(iconLayout);
 
+    QWidget * nameStatusWidget = new QWidget(contentWidget);
+    nameStatusWidget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
+    QHBoxLayout * nameStatusLayout = new QHBoxLayout;
+    nameStatusLayout->setContentsMargins(0,0,0,0);
+    nameStatusLayout->setSpacing(1);
+
     userNikcNameLabel = new QLabel(contentWidget);
     userNikcNameLabel->setObjectName("Panel_Top_UserNikcNameLabel");
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
     userNikcNameLabel->setText(G_UserBaseInfo.nickName);
+
+    onlineState = new OnLineState(contentWidget);
+    onlineState->setStyleSheet("background-color:rgba(0,0,0,0)");
+    QObject::connect(onlineState,SIGNAL(stateChanged(OnlineStatus)),q_ptr,SLOT(stateChanged(OnlineStatus)));
+
+    nameStatusLayout->addWidget(userNikcNameLabel);
+    nameStatusLayout->addWidget(onlineState);
+    nameStatusLayout->addStretch(1);
+    nameStatusWidget->setLayout(nameStatusLayout);
 
     userSignNameEdit = new RLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
@@ -119,7 +135,7 @@ void PanelTopAreaPrivate::initWidget()
     gridLayout->setHorizontalSpacing(5);
 
     gridLayout->addWidget(iconWidget,1,0,3,1);
-    gridLayout->addWidget(userNikcNameLabel,1,1,1,1);
+    gridLayout->addWidget(nameStatusWidget,1,1,1,1);
     gridLayout->addWidget(userSignNameEdit,2,1,1,1);
     gridLayout->addWidget(extendToolWiget,3,1,1,1);
     gridLayout->setRowStretch(4,1);
@@ -156,6 +172,17 @@ void PanelTopArea::onMessage(MessageType type)
     }
 }
 
+/*!
+     * @brief 设置面板中用户的状态显示
+     * @param[in] state:OnlineStatus，用户状态枚举值
+     * @return 无
+     */
+void PanelTopArea::setState(OnlineStatus state)
+{
+    MQ_D(PanelTopArea);
+    d->onlineState->setState(state);
+}
+
 void PanelTopArea::respSignChanged(QString content)
 {
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
@@ -189,4 +216,11 @@ void PanelTopArea::updateUserInfo()
 {
     MQ_D(PanelTopArea);
     d->userSignNameEdit->setText(G_UserBaseInfo.signName);
+}
+
+void PanelTopArea::stateChanged(OnlineStatus state)
+{
+    Q_UNUSED(state);
+    //TODO LYS-通知服务器当前用户状态更新
+    //另外对于不同状态做出相应的处理
 }

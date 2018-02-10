@@ -16,6 +16,8 @@
 #include <QApplication>
 #include <QPainter>
 
+#include <QTIme>
+
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
@@ -352,33 +354,31 @@ void ToolBox::pageRemoved(ToolPage * removedPage)
 /*!
      * @brief 根据给定鼠标拖动释放的位置判断page应该在布局中插入的位置
      *
-     * @param[in] movedY:int,鼠标拖动释放的位置；
+     * @param[in] pos:QPoint,鼠标拖动释放的位置；
      *            sortedIndex：int&，保存page应该在布局中插入的位置
-     *
-     * @details 该算法还存在缺陷，待补充完整20180131
-     *
      * @return 无
-     *
      */
-void ToolBox::indexInLayout(int movedY, int &sortedIndex)
+void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
 {
     MQ_D(ToolBox);
-    QList<int> pagesTopY;
-    for(int t_index=0;t_index<d->pages.count();t_index++)
+    if(pageInPos(pos))
     {
-        ToolPage * t_indexPage = d->pages.at(t_index);
-        pagesTopY.append(t_indexPage->geometry().topLeft().y());
+       int t_pageIndex = d->pages.indexOf(pageInPos(pos));
+       int t_rowHeight = pageInPos(pos)->titleRect().height();
+       if(pos.y()-t_pageIndex*t_rowHeight >= t_rowHeight/2)
+       {
+           sortedIndex = t_pageIndex+1;
+       }
+       else
+       {
+           sortedIndex = t_pageIndex;
+       }
     }
-    int t_count = pagesTopY.count();
-    for(int t_index=t_count-1;t_index>0;t_index--)
+    else
     {
-        int t_forward = pagesTopY.at(t_index);
-        int t_prev = pagesTopY.at(t_index-1);
-        if(t_forward>movedY && t_prev<movedY)
-        {
-            sortedIndex = t_index;
-        }
+        sortedIndex = d->pages.count()-1;
     }
+
 }
 
 /*!
@@ -388,7 +388,7 @@ void ToolBox::indexInLayout(int movedY, int &sortedIndex)
      * @return 鼠标拖拽的是page则返回page，否则返回NULL
      *
      */
-ToolPage *ToolBox::dragedPage(const QPoint & pressedPos)
+ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
 {
     MQ_D(ToolBox);
     ToolPage * t_returnPage = NULL;
@@ -412,6 +412,26 @@ ToolPage *ToolBox::dragedPage(const QPoint & pressedPos)
         d->pages.at(t_expandedPages.at(t_index))->setExpand(true);
     }
     return t_returnPage;
+}
+
+/*!
+     * @brief 仅高亮显示curpos表示的当前位置的page
+     * @param[in] curpos:QPoint &,当前目标点
+     * @return 无
+     *
+     */
+void ToolBox::highLightTarget(const QPoint & curpos)
+{
+    MQ_D(ToolBox);
+    ToolPage * t_decoratePage = pageInPos(curpos);
+    for(int t_index=0;t_index<d->pages.count();t_index++)
+    {
+        d->pages.at(t_index)->unHighlightShow();
+    }
+    if(t_decoratePage)
+    {
+        t_decoratePage->highlightShow();
+    }
 }
 
 void ToolBox::contextMenuEvent(QContextMenuEvent *)
@@ -449,7 +469,7 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
     MQ_D(ToolBox);
     if(d->m_leftPressed)
     {
-        ToolPage * t_movedPage = dragedPage(d->m_startPos);    //FIXME LYS
+        ToolPage * t_movedPage = pageInPos(d->m_startPos);    //FIXME LYS
         if(!t_movedPage)
         {
             return;
@@ -460,11 +480,11 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
             if(d->pages.at(t_index)->isExpanded())
             {
                 d->m_laterExpandPages.append(t_index);
-                t_movedPage->setExpand(false);
+                d->pages.at(t_index)->setExpand(false);
             }
         }
 
-        QPoint t_hotPot = event->pos() - t_movedPage->pos();
+        QPoint t_hotPot = d->m_startPos - t_movedPage->pos();
 
         QMimeData *t_MimData = new QMimeData;
         t_MimData->setText(t_movedPage->getID());
@@ -482,13 +502,13 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
             Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
             Q_UNUSED(dropAction);
         }
+        return;
     }
     QWidget::mouseMoveEvent(event);
 }
 
 void ToolBox::dragEnterEvent(QDragEnterEvent *event)
 {
-    MQ_D(ToolBox);
     if (event->mimeData()->hasText())
     {
         if(event->source() == this )
@@ -498,7 +518,7 @@ void ToolBox::dragEnterEvent(QDragEnterEvent *event)
         }
         else
         {
-//                event->acceptProposedAction();
+                event->acceptProposedAction();
         }
     }
     else
@@ -507,15 +527,25 @@ void ToolBox::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
+void ToolBox::dragMoveEvent(QDragMoveEvent *event)
+{
+    MQ_D(ToolBox);
+    if(d->m_leftPressed)
+    {
+        highLightTarget(event->pos());
+    }
+    QWidget::dragMoveEvent(event);
+}
+
 void ToolBox::dropEvent(QDropEvent *event)
 {
     MQ_D(ToolBox);
-    int t_curY = event->pos().y();
     ToolPage * t_movedPage = targetPage(event->mimeData()->text());
     if(t_movedPage)
     {
         int t_movedIndex = -1;
-        indexInLayout(t_curY,t_movedIndex);
+        indexInLayout(event->pos(),t_movedIndex);
+        qDebug()<<"Time:"<<QTime::currentTime().toString("hh:mm:ss")<<"t_movedIndex"<<t_movedIndex;
         if(t_movedIndex != -1)
         {
             removePage(t_movedPage);
