@@ -214,7 +214,9 @@ void MainDialog::showHoverItem(bool flag, ToolItem * item)
     MQ_D(MainDialog);
     if(flag)
     {
+        UserClient * client = RSingleton<UserManager>::instance()->client(item);
         ItemHoverInfo * info = new ItemHoverInfo;
+        info->setSimpleUserInfo(client->simpleUserInfo);
         info->fadein(item->mapToGlobal(QPoint(0,0)));
         d->hoverInfos.insert(item,info);
     }
@@ -277,6 +279,7 @@ void MainDialog::updateFriendList(FriendListResponse *friendList)
 
         fiter = friendList->groups.erase(fiter);
     }
+
     friendList->groups.clear();
     delete friendList;
 
@@ -359,7 +362,7 @@ void MainDialog::initWidget()
 
     d->toolBar = new ToolBar(d->MainPanel);
     d->toolBar->setToolFlags(ToolBar::TOOL_ICON|ToolBar::TOOL_MIN|ToolBar::TOOL_CLOSE|ToolBar::TOOL_SPACER);
-    connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
+    connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(hide()));
     connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(closeWindow()));
 
     d->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));

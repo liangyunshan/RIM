@@ -3,6 +3,7 @@
         <file>resource/background/login.png</file>
         <file>resource/background/slide_hide.png</file>
         <file>resource/background/slide_show.png</file>
+        <file>resource/background/item_hover.png</file>
     </qresource>
     <qresource prefix="/style">
         <file>resource/RimClient.qss</file>
@@ -63,6 +64,8 @@
         <file>resource/icon/icon_success_32.png</file>
         <file>resource/icon/icon_star_32.png</file>
         <file>resource/icon/Tool_Panel_Notify.png</file>
+        <file>resource/icon/downrow.png</file>
+        <file>resource/icon/uprow.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_HIDE.png</file>
