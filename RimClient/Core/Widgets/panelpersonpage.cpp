@@ -16,6 +16,7 @@
 #include "Network/msgwrap.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"
+#include "maindialog.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -80,6 +81,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
+    connect(this,SIGNAL(showChatDialog(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
     connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
@@ -106,7 +108,6 @@ void PanelPersonPage::addGroupAndUsers()
             SimpleUserInfo userInfo = groupData->users.at(j);
 
             ToolItem * item = ceateItem(userInfo,page);
-
             page->addItem(item);
         }
 
@@ -261,8 +262,8 @@ void PanelPersonPage::createChatWindow(ToolItem *item)
 
 void PanelPersonPage::sendInstantMessage()
 {
-     MQ_D(PanelPersonPage);
-    createChatWindow(d->toolBox->selectedItem());
+    MQ_D(PanelPersonPage);
+    emit showChatDialog(d->toolBox->selectedItem());
 }
 
 void PanelPersonPage::showUserDetail()
@@ -295,6 +296,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
             if(result == STATUS_SUCCESS)
             {
                 QList<ToolPage *>::iterator iter = d->toolBox->allPages().begin();
+
                 while(iter != d->toolBox->allPages().end())
                 {
                     if((*iter)->getID() == response.groupId)

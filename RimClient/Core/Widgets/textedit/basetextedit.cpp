@@ -139,6 +139,20 @@ int BaseTextEdit::insertCopyImage(QImage &image)
     return 0;
 }
 
+void BaseTextEdit::setInputTextColor(QColor Color)
+{
+    if(Color.isValid())
+    {
+        this->selectAll();
+
+        QTextCharFormat tcf = this->textCursor().charFormat();
+        tcf.setForeground(Color);
+        this->textCursor().mergeCharFormat(tcf);
+
+        this->moveCursor(QTextCursor::End);
+    }
+}
+
 void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 {
     if(e->mimeData()->hasFormat("text/uri-list")) //只能打开文本文件

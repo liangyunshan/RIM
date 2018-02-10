@@ -12,6 +12,10 @@
 #include "Util/imagemanager.h"
 #include "rsingleton.h"
 #include "maindialog.h"
+#include "widget/rlineedit.h"
+#include "protocoldata.h"
+#include "Network/msgwrap.h"
+#include "messdiapatch.h"
 
 #include "widget/rlabel.h"
 
@@ -36,11 +40,10 @@ private:
 
     RIconLabel * userIconLabel;
     QLabel * userNikcNameLabel;
-    QLineEdit * userSignNameEdit;
+    RLineEdit * userSignNameEdit;
     QWidget * extendToolWiget;
 
     QLineEdit * searchLineEdit;
-
 };
 
 void PanelTopAreaPrivate::initWidget()
@@ -81,10 +84,11 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
     userNikcNameLabel->setText(G_UserBaseInfo.nickName);
 
-    userSignNameEdit = new QLineEdit(contentWidget);
+    userSignNameEdit = new RLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
     userSignNameEdit->setText(G_UserBaseInfo.signName);
+    QObject::connect(userSignNameEdit,SIGNAL(contentChanged(QString)),q_ptr,SLOT(respSignChanged(QString)));
 
     extendToolWiget = new QWidget(contentWidget);
     extendToolWiget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
@@ -129,6 +133,9 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
     QWidget(parent)
 {
     RSingleton<Subject>::instance()->attach(this);
+
+    connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
+            this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
 }
 
 PanelTopArea::~PanelTopArea()
@@ -146,6 +153,35 @@ void PanelTopArea::onMessage(MessageType type)
                              break;
         default:
             break;
+    }
+}
+
+void PanelTopArea::respSignChanged(QString content)
+{
+    UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
+
+    request->baseInfo.accountId = G_UserBaseInfo.accountId;
+    request->baseInfo.nickName = G_UserBaseInfo.nickName;
+    request->baseInfo.signName = content;
+    request->baseInfo.sexual = G_UserBaseInfo.sexual;
+    request->baseInfo.birthday = G_UserBaseInfo.birthday;
+    request->baseInfo.address = G_UserBaseInfo.address;
+    request->baseInfo.email = G_UserBaseInfo.email;
+    request->baseInfo.phoneNumber = G_UserBaseInfo.phoneNumber;
+    request->baseInfo.remark = G_UserBaseInfo.remark;
+    request->baseInfo.face = G_UserBaseInfo.face;
+    request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
+
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+}
+
+void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInfoResponse response)
+{
+    if(result == UPDATE_USER_SUCCESS)
+    {
+        G_UserBaseInfo = response.baseInfo;
+
+        RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
     }
 }
 

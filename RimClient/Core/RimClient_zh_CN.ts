@@ -55,18 +55,18 @@
 <context>
     <name>EditPersonInfoWindow</name>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="275"/>
         <location filename="Widgets/editpersoninfowindow.cpp" line="285"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="295"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="316"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="336"/>
         <source>Local image</source>
         <translation>本地图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="316"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="336"/>
         <source>Image Files (*.png)</source>
         <translation>图片文件 (*.png)</translation>
     </message>
@@ -277,54 +277,59 @@
 <context>
     <name>PanelGroupPage</name>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="119"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="167"/>
         <source>untitled</source>
         <translation>未知</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="180"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="311"/>
         <source>Search group</source>
         <translation>查找添加群</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="183"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="314"/>
         <source>New group</source>
         <translation>创建一个群</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="186"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="317"/>
         <source>Add groups</source>
         <translation>添加群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="199"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="330"/>
         <source>Rename group</source>
         <translation>重命名群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="202"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="333"/>
         <source>Delete group</source>
         <translation>删除群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="216"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="347"/>
         <source>Send message</source>
         <translation>发送群消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="219"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="350"/>
         <source>View detail</source>
         <translation>查看群资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="222"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="353"/>
         <source>Modify name</source>
         <translation>修改备注名称</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="225"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="356"/>
         <source>Exit group</source>
         <translation>退出该群</translation>
+    </message>
+    <message>
+        <location filename="Widgets/panelgrouppage.cpp" line="359"/>
+        <source>Move Group To</source>
+        <translation>移动联系人至</translation>
     </message>
 </context>
 <context>
@@ -348,52 +353,51 @@
 <context>
     <name>PanelPersonPage</name>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="211"/>
         <source>untitled</source>
-        <translation>未知</translation>
+        <translation type="vanished">未知</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="491"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="489"/>
         <source>Refresh list</source>
         <translation>刷新好友列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="494"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="492"/>
         <source>Add group</source>
         <translation>添加分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="506"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="504"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="509"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="507"/>
         <source>Delete group</source>
         <translation>删除分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="521"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="519"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="524"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="522"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="527"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="525"/>
         <source>Modify Comments</source>
         <translation>修改备注</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="530"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="528"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="533"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="531"/>
         <source>Move Friend To</source>
         <translation>将好友移动至</translation>
     </message>
@@ -448,14 +452,14 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="314"/>
+        <location filename="Widgets/logindialog.cpp" line="318"/>
         <location filename="Widgets/registdialog.cpp" line="241"/>
         <location filename="main.cpp" line="90"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="314"/>
+        <location filename="Widgets/logindialog.cpp" line="318"/>
         <location filename="Widgets/registdialog.cpp" line="241"/>
         <source>Connect to server error!</source>
         <translation>连接服务器失败!</translation>
@@ -517,33 +521,33 @@
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="517"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="527"/>
         <source>ColorDialog</source>
         <translation>颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="639"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="649"/>
         <source>Input contents is empty.</source>
         <translation>输入内容为空.</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="235"/>
+        <location filename="Widgets/logindialog.cpp" line="241"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="237"/>
-        <location filename="Widgets/logindialog.cpp" line="238"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="244"/>
+        <location filename="Widgets/logindialog.cpp" line="244"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="69"/>
+        <location filename="Widgets/paneltoparea.cpp" line="72"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
     </message>
     <message>
-        <location filename="Widgets/paneltoparea.cpp" line="101"/>
+        <location filename="Widgets/paneltoparea.cpp" line="105"/>
         <source>Search person/group</source>
         <translation>搜索联系人、群组</translation>
     </message>
@@ -564,7 +568,7 @@
     </message>
     <message>
         <location filename="Widgets/addfriend.cpp" line="98"/>
-        <location filename="Widgets/paneltoparea.cpp" line="106"/>
+        <location filename="Widgets/paneltoparea.cpp" line="110"/>
         <source>Search</source>
         <translation>搜索</translation>
     </message>
@@ -584,7 +588,7 @@
         <translation>查找失败</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="161"/>
+        <location filename="Widgets/logindialog.cpp" line="169"/>
         <source>Input number</source>
         <translation>输入账号</translation>
     </message>
@@ -614,72 +618,72 @@
         <translation>消息管理器</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="96"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="99"/>
         <source>Account</source>
         <translation>账  号</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="104"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="107"/>
         <source>Nick Name</source>
         <translation>昵称</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="109"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="112"/>
         <source>Open system image</source>
         <translation>选择系统图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="115"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="118"/>
         <source>Local Image</source>
         <translation>本地图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="140"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="143"/>
         <source>Sex</source>
         <translation>性  别</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="143"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="146"/>
         <source>Man</source>
         <translation>男</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="144"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="147"/>
         <source>Woman</source>
         <translation>女</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="150"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="153"/>
         <source>Birthday</source>
         <translation>生  日</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="158"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="161"/>
         <source>Sign Name</source>
         <translation>签  名</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="165"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="179"/>
         <source>Address</source>
         <translation>地  址</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="172"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="168"/>
         <source>Phone Number</source>
         <translation>电  话</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="179"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="186"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="186"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="193"/>
         <source>Desc</source>
         <translation>个人说明</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="232"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="239"/>
         <location filename="Widgets/netsettings.cpp" line="91"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -752,37 +756,37 @@
         <translation>允许窗口抖动</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="233"/>
+        <location filename="Widgets/systemsettings.cpp" line="231"/>
         <source>Shortcut</source>
         <translation>快捷键</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="236"/>
+        <location filename="Widgets/systemsettings.cpp" line="234"/>
         <source>Shortcut Setting</source>
         <translation>快捷键设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="243"/>
+        <location filename="Widgets/systemsettings.cpp" line="244"/>
         <source>Sound</source>
         <translation>声音</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="246"/>
+        <location filename="Widgets/systemsettings.cpp" line="247"/>
         <source>Sound Available</source>
         <translation>开启声音</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="250"/>
+        <location filename="Widgets/systemsettings.cpp" line="251"/>
         <source>Sound Setting</source>
         <translation>声音设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="258"/>
+        <location filename="Widgets/systemsettings.cpp" line="259"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="261"/>
+        <location filename="Widgets/systemsettings.cpp" line="262"/>
         <source>Change Recv Path</source>
         <translation>修改文件接收路径</translation>
     </message>
@@ -798,7 +802,7 @@
     </message>
     <message>
         <location filename="Widgets/registdialog.cpp" line="90"/>
-        <location filename="Widgets/systemsettings.cpp" line="288"/>
+        <location filename="Widgets/systemsettings.cpp" line="289"/>
         <source>Password</source>
         <translation>密码</translation>
     </message>
@@ -841,110 +845,115 @@
         <translation type="vanished">检查密码!</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="168"/>
+        <location filename="Widgets/logindialog.cpp" line="175"/>
         <location filename="Widgets/registdialog.cpp" line="95"/>
         <location filename="Widgets/registdialog.cpp" line="105"/>
         <source>Input password</source>
         <translation>输入密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="173"/>
+        <location filename="Widgets/logindialog.cpp" line="180"/>
         <source>Sin in</source>
         <translation>登 陆</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="176"/>
+        <location filename="Widgets/logindialog.cpp" line="183"/>
         <source>Forget Password</source>
         <translation>忘记密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="179"/>
+        <location filename="Widgets/logindialog.cpp" line="186"/>
         <location filename="Widgets/registdialog.cpp" line="108"/>
         <source>Sin up</source>
         <translation>注册账号</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="192"/>
+        <location filename="Widgets/logindialog.cpp" line="199"/>
         <source>Remember password</source>
         <translation>记住密码</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="195"/>
+        <location filename="Widgets/logindialog.cpp" line="202"/>
         <source>Auto login</source>
         <translation>自动登录</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="232"/>
+        <location filename="Widgets/logindialog.cpp" line="238"/>
         <source>System Setting</source>
         <translation>系统设置</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="564"/>
+        <location filename="Widgets/logindialog.cpp" line="626"/>
         <source>User not registered</source>
         <translation>用户未注册</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="567"/>
+        <location filename="Widgets/logindialog.cpp" line="629"/>
         <source>Incorrect password</source>
         <translation>密码错误</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="570"/>
+        <location filename="Widgets/logindialog.cpp" line="632"/>
         <source>Server Unreachable</source>
         <translation>服务器不可达</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="573"/>
+        <location filename="Widgets/logindialog.cpp" line="635"/>
         <source>Account has sign in</source>
         <translation>账号已经登陆</translation>
+    </message>
+    <message>
+        <location filename="Widgets/logindialog.cpp" line="921"/>
+        <source>Remove account</source>
+        <translation>删除账户</translation>
     </message>
     <message>
         <source>server Unreachable</source>
         <translation type="vanished">服务器未连接</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="580"/>
+        <location filename="Widgets/logindialog.cpp" line="642"/>
         <source>Login Failed</source>
         <translation>登陆失败</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="291"/>
+        <location filename="Widgets/systemsettings.cpp" line="292"/>
         <source>Original password</source>
         <translation>旧密码</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="300"/>
+        <location filename="Widgets/systemsettings.cpp" line="301"/>
         <source>New password</source>
         <translation>新密码</translation>
     </message>
     <message>
         <location filename="Widgets/registdialog.cpp" line="100"/>
-        <location filename="Widgets/systemsettings.cpp" line="309"/>
+        <location filename="Widgets/systemsettings.cpp" line="310"/>
         <source>Confirm password</source>
         <translation>确认密码</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="318"/>
+        <location filename="Widgets/systemsettings.cpp" line="319"/>
         <source>Confirm the changes</source>
         <translation>确认修改</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="323"/>
+        <location filename="Widgets/systemsettings.cpp" line="324"/>
         <source>Lock</source>
         <translation>锁</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="327"/>
+        <location filename="Widgets/systemsettings.cpp" line="328"/>
         <source>Turn on the device lock</source>
         <translation>打开设备锁</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="334"/>
+        <location filename="Widgets/systemsettings.cpp" line="335"/>
         <source>Message record</source>
         <translation>消息记录</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="337"/>
+        <location filename="Widgets/systemsettings.cpp" line="338"/>
         <source>Exit to delete the record</source>
         <translation>退出时删除聊天记录</translation>
     </message>
@@ -979,7 +988,7 @@
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="56"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="63"/>
         <location filename="Widgets/panelpersonpage.cpp" line="72"/>
         <source>untitled</source>
         <translation>未知</translation>
@@ -1046,17 +1055,17 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="299"/>
+        <location filename="Widgets/maindialog.cpp" line="302"/>
         <source>Create group failed!</source>
         <translation>创建分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="304"/>
+        <location filename="Widgets/maindialog.cpp" line="307"/>
         <source>Rename group failed!</source>
         <translation>重命名分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="309"/>
+        <location filename="Widgets/maindialog.cpp" line="312"/>
         <source>Delete group failed!</source>
         <translation>删除分组失败!</translation>
     </message>
@@ -1202,67 +1211,73 @@
 <context>
     <name>SetKeySequenceDialog</name>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="129"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="47"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="55"/>
+        <source>KeySequenceSettings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="169"/>
         <source>SetKeySequenceDialog</source>
         <translation>设置全局快捷键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="130"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="170"/>
         <source>set global KeySequence</source>
         <translation>全局热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="131"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="171"/>
         <source>can click to change hotkey</source>
         <translation>你可以通过点击选择需要修改的热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="133"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="173"/>
         <source>function describ</source>
         <translation>功能描述</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="135"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="175"/>
         <source>hot key</source>
         <translation>热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="137"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="177"/>
         <source>KeySequence status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="138"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="178"/>
         <source>ResetDefaultKey</source>
         <translation>恢复默认热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="139"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="179"/>
         <source>quik hotkey set</source>
         <translation>加速键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="140"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="180"/>
         <source>chat dialog send msg</source>
         <translation>会话窗口中发送消息</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="141"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="181"/>
         <source>rdbutt_Ctrl_Enter</source>
         <translation>按Ctrl + Enter键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="142"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="182"/>
         <source>rdbutt_Enter</source>
         <translation>按Enter键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="154"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="194"/>
         <source>normal</source>
         <translation>正常</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="155"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="195"/>
         <source>error</source>
         <translation>失准</translation>
     </message>
@@ -1271,12 +1286,12 @@
         <translation type="vanished">屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="158"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="198"/>
         <source>Chat_Close_Window</source>
         <translation>关闭窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="170"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="210"/>
         <source>key_Button_Chat_Shot</source>
         <translation>截屏</translation>
     </message>
@@ -1317,28 +1332,28 @@
 <context>
     <name>SystemSettings</name>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="392"/>
-        <location filename="Widgets/systemsettings.cpp" line="400"/>
+        <location filename="Widgets/systemsettings.cpp" line="393"/>
+        <location filename="Widgets/systemsettings.cpp" line="401"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="476"/>
+        <location filename="Widgets/systemsettings.cpp" line="477"/>
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="476"/>
+        <location filename="Widgets/systemsettings.cpp" line="477"/>
         <source>Use account password to unlock!</source>
         <translation>使用账户密码解锁!</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="486"/>
+        <location filename="Widgets/systemsettings.cpp" line="487"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="486"/>
+        <location filename="Widgets/systemsettings.cpp" line="487"/>
         <source>After setting the chat history will not be retained, whether to continue setting?</source>
         <translation>设置后不会保留聊天记录，是否继续设置？</translation>
     </message>

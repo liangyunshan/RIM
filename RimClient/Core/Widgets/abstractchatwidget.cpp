@@ -746,7 +746,9 @@ void AbstractChatWidget::initChatRecord()
     d_ptr->p_DatabaseThread->start();
 
     int user_query_id = d->userInfo.accountId.toInt();
+    bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
     d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+
 }
 

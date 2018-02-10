@@ -195,7 +195,7 @@ int ToolBox::pageCount()
     return d->pages.size();
 }
 
-QList<ToolPage *> ToolBox::allPages() const
+QList<ToolPage *>& ToolBox::allPages() const
 {
     MQ_D(ToolBox);
     return d->pages;

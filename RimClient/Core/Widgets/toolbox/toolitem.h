@@ -49,9 +49,12 @@ public:
 
     enum ItemState
     {
+       Item_Normal,
        Mouse_Enter,
        Mouse_Leave,
-       Mouse_Checked
+       Mouse_Checked,
+       Item_FocusIn,
+       Item_FocusOut
     };
     Q_FLAG(ItemState)
 

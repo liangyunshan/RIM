@@ -41,7 +41,7 @@ public:
     ToolItem * selectedItem();
 
     int pageCount();
-    QList<ToolPage *> allPages()const;
+    QList<ToolPage *> & allPages()const;
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();

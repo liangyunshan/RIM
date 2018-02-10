@@ -27,23 +27,25 @@ protected:
 };
 
 /*!
- *  @brief  消息种类
+ *  @brief  系统通知消息的类型
+ *  @details 程序内部提供了系统级别的通知-订阅模式，此数据类型用于区分广播的类型。订阅者一句类型进行对应的处理。
  */
 enum MessageType
 {
-    MESS_STYLE,                  //样式更新
-    MESS_SHORTCUT,               //快捷键更新
-    MESS_SETTINGS,               //系统设置修改
-    MESS_BASEINFO_UPDATE,        //基本信息修改
-    MESS_FRIENDLIST_UPDATE,      //好友列表更新
-    MESS_GROUPLIST_UPDATE,       //群列表更新
-    MESS_RELATION_FRIEND_ADD,    //分组中添加好友
-    MESS_NOTIFY_WINDOWS,         //显示消息通知窗口
-    MESS_GROUP_DELETE            //分组删除消息
+    MESS_STYLE,                  /*!< 样式更新 */
+    MESS_SHORTCUT,               /*!< 快捷键更新 */
+    MESS_SETTINGS,               /*!< 系统设置修改 */
+    MESS_BASEINFO_UPDATE,        /*!< 基本信息修改 */
+    MESS_FRIENDLIST_UPDATE,      /*!< 好友列表更新 */
+    MESS_GROUPLIST_UPDATE,       /*!< 群列表更新 */
+    MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
+    MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
+    MESS_GROUP_DELETE            /*!< 分组删除消息 */
 };
 
 /*!
-  @brief 用户描述信息
+  @brief 登陆用户描述信息
+  @details 用于登陆时从本地文件读取并保存登陆用户的基本信息，在登陆成功后，将登陆信息保存至本地配置文件。
 */
 struct UserInfoDesc
 {
@@ -53,7 +55,8 @@ struct UserInfoDesc
         isAutoLogin = false;
         isSystemPixMap = false;
     }
-    QString userName;               /*!< 用户名(暂不支持中文) */
+    QString userName;               /*!< 用户名 */
+    QString accountId;              /*!< 账号*/
     int loginState;                 /*!< 登录状态，参见OnLineState::UserState枚举*/
     QString originPassWord;         /*!< 原始密码 */
     QString password;               /*!< 加密后的密码 */
@@ -68,12 +71,13 @@ struct UserInfoDesc
 
 /*!
  *  @brief 通知消息类型
+ *  @details 划分消息通知窗口消息类型
  */
 enum NotifyType
 {
-    NotifySystem,
-    NotifyUser,
-    NotifyGroup
+    NotifySystem,       /*!< 系统级通知消息 */
+    NotifyUser,         /*!< 普通用户通知消息 */
+    NotifyGroup         /*!< 群组用户通知消息 */
 };
 
 /*!
@@ -82,19 +86,19 @@ enum NotifyType
  */
 struct NotifyInfo
 {
-    QString identityId;                     //消息唯一标识
-    NotifyType type;
-    QString accountId;                      //对方ID
-    QString nickName;
-    unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
-    QString pixmap;                         //头像本地路径
+    QString identityId;                     /*!< 消息唯一标识 */
+    NotifyType type;                        /*!< 消息类型 */
+    QString accountId;                      /*!< 通知消息所属发放用户ID */
+    QString nickName;                       /*!< 用户昵称 */
+    unsigned short face;                    /*!< 头像信息(0表示为自定义，大于0表示系统头像) */
+    QString pixmap;                         /*!< 头像本地路径 */
 
-    QString content;                        //type为NotifyUser或NotifyGroup时表示聊天内容
-    MsgCommand msgCommand;                  //消息类型
+    QString content;                        /*!< 若type为NotifyUser或NotifyGroup时表示聊天内容 */
+    MsgCommand msgCommand;                  /*!< 命令类型 */
 
-    OperateFriend ofriendType;              //type为NotifySystem时，可用
-    SearchType stype;                       //当前请求的类型(人/群)
-    int ofriendResult;                      //ResponseFriendApply
+    OperateFriend ofriendType;              /*!< type为NotifySystem时有效 */
+    SearchType stype;                       /*!< 当前请求的类型(人/群) */
+    int ofriendResult;                      /*!< 若type为NotifySystem，此结果对应ResponseFriendApply的含义 */
 
 };
 

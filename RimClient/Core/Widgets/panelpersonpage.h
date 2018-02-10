@@ -40,6 +40,9 @@ public:
 
     void onMessage(MessageType type);
 
+signals:
+    void showChatDialog(ToolItem * item);
+
 private slots:
     void refreshList();
     void addGroup();

@@ -13,6 +13,7 @@ SimpleTextEdit::SimpleTextEdit(QWidget *parent):
     b_isSendStatus = false;
 
     connect(this,SIGNAL(textChanged()),this,SLOT(slot_TextChanged()));
+    this->clear();
 }
 
 SimpleTextEdit::~SimpleTextEdit()
@@ -23,7 +24,7 @@ SimpleTextEdit::~SimpleTextEdit()
 void SimpleTextEdit::setInputColor(QColor color)
 {
     m_fontcolor = color;
-    this->setTextColor(m_fontcolor);
+    this->setInputTextColor(m_fontcolor);
 }
 
 void SimpleTextEdit::setInputFont(QFont font)

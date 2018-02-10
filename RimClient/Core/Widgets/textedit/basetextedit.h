@@ -27,6 +27,7 @@ public:
     void insertChatFormatText(const QString &text);
 
     int insertCopyImage(QImage &image);
+    void setInputTextColor(QColor Color);
 
 protected:
     bool eventFilter(QObject *, QEvent *);
