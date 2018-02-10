@@ -379,7 +379,7 @@ void LoginDialog::switchUser(int index)
             }
         }
 
-        d->onlineState->setState((OnLineState::UserState)userInfo->loginState);
+        d->onlineState->setState((ProtocolType::OnlineStatus)userInfo->loginState);
         d->isNewUser = false;
 
         validateInput("");
@@ -426,7 +426,7 @@ void LoginDialog::resetDefaultInput()
     d->autoLogin->setChecked(false);
     d->rememberPassord->setChecked(false);
 
-    d->onlineState->setState(OnLineState::STATE_ONLINE);
+    d->onlineState->setState(ProtocolType::STATUS_ONLINE);
     d->userIcon->setPixmap(fullPath);
 
     d->login->setEnabled(false);
@@ -550,6 +550,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         }
 
         d->mainDialog->show();
+        d->mainDialog->setLogInState(d->onlineState->state());
 
         FriendListRequest * request = new FriendListRequest;
         request->accountId = G_UserBaseInfo.accountId;

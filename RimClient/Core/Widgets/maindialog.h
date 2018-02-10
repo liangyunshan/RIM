@@ -39,6 +39,8 @@ public:
 
     void onMessage(MessageType type);
 
+    void setLogInState(OnlineStatus state);
+
 protected:
     void resizeEvent(QResizeEvent * );
     void closeEvent(QCloseEvent * event);

@@ -324,6 +324,7 @@ struct SimpleUserInfo
     unsigned short face;                    //头像信息(0表示为自定义，大于0表示系统头像)
     QString customImgId;                    //头像信息(face为0时有效)
     QString remarks;                        //备注名
+    OnlineStatus status;                    //在线状态
 };
 
 enum SearchType

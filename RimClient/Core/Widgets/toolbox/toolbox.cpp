@@ -16,6 +16,8 @@
 #include <QApplication>
 #include <QPainter>
 
+#include <QTIme>
+
 #include "head.h"
 #include "constants.h"
 #include "datastruct.h"
@@ -500,6 +502,7 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
             Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
             Q_UNUSED(dropAction);
         }
+        return;
     }
     QWidget::mouseMoveEvent(event);
 }
@@ -542,6 +545,7 @@ void ToolBox::dropEvent(QDropEvent *event)
     {
         int t_movedIndex = -1;
         indexInLayout(event->pos(),t_movedIndex);
+        qDebug()<<"Time:"<<QTime::currentTime().toString("hh:mm:ss")<<"t_movedIndex"<<t_movedIndex;
         if(t_movedIndex != -1)
         {
             removePage(t_movedPage);

@@ -15,10 +15,14 @@
 
 #include <QWidget>
 #include "observer.h"
+#include "onlinestate.h"
+#include "../protocoldata.h"
 
 class QLabel;
 class QLineEdit;
 class PanelTopAreaPrivate;
+
+using namespace ProtocolType;
 
 class PanelTopArea : public QWidget,public Observer
 {
@@ -29,8 +33,12 @@ public:
     ~PanelTopArea();
 
     void onMessage(MessageType type);
+    void setState(OnlineStatus state);
 
 signals:
+
+public slots:
+    void stateChanged(OnlineStatus state);
 
 private:
     void updateUserInfo();

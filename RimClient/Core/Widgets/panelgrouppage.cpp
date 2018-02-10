@@ -421,6 +421,7 @@ void PanelGroupPage::createAction()
 void PanelGroupPage::addGroupAndCluster()
 {
     MQ_D(PanelGroupPage);
+    Q_UNUSED(d);
 
     //TODO LYS-20180205 根据登录成功后保存的群信息列表显示群分组列表
 //    for(int j = 0; j < 5;j++)
@@ -450,7 +451,6 @@ void PanelGroupPage::addGroupAndCluster()
 void PanelGroupPage::clearTargetGroup(const QString id)
 {
     MQ_D(PanelGroupPage);
-
     QString t_id = id;
     ToolPage * t_delPage = d->toolBox->targetPage(t_id);
     if(!t_delPage)

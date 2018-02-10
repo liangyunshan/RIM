@@ -19,6 +19,7 @@
 
 class QMenu;
 class QLabel;
+class QImage;
 class ToolItemPrivate;
 class ToolPage;
 
@@ -46,6 +47,8 @@ public:
 
     bool isChecked();
     void setChecked(bool flag);
+
+    void setStatus(OnlineStatus);
 
     enum ItemState
     {

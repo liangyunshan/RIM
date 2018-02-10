@@ -103,3 +103,48 @@ bool RUtil::validateIpFormat(QString dest)
 
     return rx.exactMatch(dest);
 }
+
+/*!
+     * @brief 将图片转换成灰度图
+     * @param[in] image：const QImage &，转换前的图片
+     * @return 无 t_grayImage：QImage，转换后的灰度图
+     */
+QImage RUtil::convertToGray(const QImage & t_image)
+{
+    int t_height = t_image.height();
+    int t_width = t_image.width();
+    QImage t_grayImage(t_width, t_height, QImage::Format_Indexed8);
+    t_grayImage.setColorCount(256);
+    for(int i = 0; i < 256; i++)
+    {
+        t_grayImage.setColor(i, qRgb(i, i, i));
+    }
+    switch(t_image.format())
+    {
+    case QImage::Format_Indexed8:
+        for(int i = 0; i < t_height; i ++)
+        {
+            const unsigned char *pSrc = (unsigned char *)t_image.constScanLine(i);
+            unsigned char *pDest = (unsigned char *)t_grayImage.scanLine(i);
+            memcpy(pDest, pSrc, t_width);
+        }
+        break;
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+    case QImage::Format_ARGB32_Premultiplied:
+        for(int i = 0; i < t_height; i ++)
+        {
+            const QRgb *pSrc = (QRgb *)t_image.constScanLine(i);
+            unsigned char *pDest = (unsigned char *)t_grayImage.scanLine(i);
+
+            for( int j = 0; j < t_width; j ++)
+            {
+                 pDest[j] = qGray(pSrc[j]);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+    return t_grayImage;
+}

@@ -41,6 +41,8 @@ public:
 
     static bool validateIpFormat(QString dest);
 
+    static QImage convertToGray(const QImage &);
+
 private:
     static QSettings * gSettings;
 };

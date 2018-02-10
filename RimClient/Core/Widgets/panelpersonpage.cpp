@@ -147,6 +147,24 @@ void PanelPersonPage::clearTargetGroup(const QString id)
     d->m_deleteID = QString();
 }
 
+/*!
+     * @brief 接收服务器的消息更新联系人分组在线联系人数目
+     * @param[in] info:SimpleUserInfo &，待更新的联系人分组id
+     * @return 无
+     */
+void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
+{
+    ToolItem * t_item = RSingleton<UserManager>::instance()->client(info.accountId)->toolItem;
+    if(!t_item)
+    {
+        return;
+    }
+    t_item->setName(info.remarks);
+    t_item->setNickName(info.nickName);
+    t_item->setDescInfo(info.signName);
+    t_item->setStatus(info.status);
+}
+
 void PanelPersonPage::onMessage(MessageType type)
 {
     MQ_D(PanelPersonPage);
