@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QToolButton>
+#include <QPropertyAnimation>
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
@@ -37,14 +38,28 @@
 #include "screenshot.h"
 
 #define PANEL_MARGIN 20
+#define PANEL_HIDEMARGIN 1
+#define Panel_ANDURATION 200
 
 class MainDialogPrivate : public GlobalData<MainDialog>
 {
     Q_DECLARE_PUBLIC(MainDialog)
 
+    enum Direction
+    {
+        None,
+        Up,
+        Right,
+        Down,
+        Left
+    };
+
     MainDialogPrivate(MainDialog *q):q_ptr(q)
     {
         editWindow = NULL;
+        m_bIsAutoHide = false;
+        m_enDriection = None;
+        m_desktopWidth = QApplication::desktop()->width();
     }
 
 private:
@@ -60,6 +75,11 @@ private:
 
     QMap<ToolItem * ,ItemHoverInfo *> hoverInfos;
     EditPersonInfoWindow * editWindow;
+
+    bool m_bIsAutoHide;
+    Direction m_enDriection;
+    int m_desktopWidth;
+
 
     MainDialog * q_ptr;
 };
@@ -143,6 +163,29 @@ void MainDialog::closeEvent(QCloseEvent *)
     writeSettings();
     //Yang 延时退出，否则ini文件无法被更新至本地
     QTimer::singleShot(50,qApp,SLOT(quit()));
+}
+
+
+void MainDialog::leaveEvent(QEvent *event)
+{
+    MQ_D(MainDialog);
+    isAutoHide();
+    if(d->m_bIsAutoHide)
+    {
+        hidePanel();
+    }
+    QWidget::leaveEvent(event);
+}
+
+void MainDialog::enterEvent(QEvent *event)
+{
+    MQ_D(MainDialog);
+    isAutoHide();
+    if(d->m_bIsAutoHide)
+    {
+        showPanel();
+    }
+    QWidget::enterEvent(event);
 }
 
 void MainDialog::updateWidgetGeometry()
@@ -450,4 +493,125 @@ void MainDialog::initSqlDatabase()
     p_dbManager->newDatabase("sqlite1234");
 
     SQLProcess::instance()->createTablebUserList(p_dbManager->getLastDB());
+}
+
+/*!
+     * @brief 判断面板贴边隐藏的方向
+     * @param[in] 无
+     * @return 无
+     */
+void MainDialog::isAutoHide()
+{
+    MQ_D(MainDialog);
+    QPoint t_pos = this->pos();
+    d->m_bIsAutoHide = true;
+    if(t_pos.x()< PANEL_HIDEMARGIN + shadowWidth())
+    {
+        d->m_enDriection = d->Left;
+    }
+    else if(t_pos.y() < PANEL_HIDEMARGIN + shadowWidth())
+    {
+        d->m_enDriection = d->Up;
+    }
+    else if(this->pos().x() + this->width() > d->m_desktopWidth - PANEL_HIDEMARGIN + shadowWidth())
+    {
+        d->m_enDriection = d->Right;
+    }
+    else
+    {
+        d->m_enDriection = d->None;
+        d->m_bIsAutoHide = false;
+    }
+
+}
+
+/*!
+     * @brief 动画隐藏面板
+     * @param[in] 无
+     * @return 无
+     */
+void MainDialog::hidePanel()
+{
+    MQ_D(MainDialog);
+    int t_xValue,t_yValue,t_width,t_height;
+    t_xValue = 0;
+    t_yValue = 0;
+    t_width = this->width();
+    t_height = this->height();
+
+    QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
+    t_animation->setDuration(Panel_ANDURATION);
+    t_animation->setStartValue(QRect(this->pos(), this->size()));
+
+    QRect t_endRect;
+    if(d->m_enDriection & d->Up)
+    {
+        t_xValue = this->x();
+        t_yValue = -this->height() + PANEL_HIDEMARGIN + shadowWidth();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else if(d->m_enDriection & d->Left)
+    {
+        t_xValue = -this->width() + PANEL_HIDEMARGIN + shadowWidth();
+        t_yValue = this->y();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else if(d->m_enDriection & d->Right)
+    {
+        t_xValue = d->m_desktopWidth - PANEL_HIDEMARGIN - shadowWidth();
+        t_yValue = this->y();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else
+    {
+        t_endRect = this->rect();
+    }
+    t_animation->setEndValue(t_endRect);
+    t_animation->start();
+
+}
+
+/*!
+     * @brief 动画显示面板
+     * @param[in] 无
+     * @return 无
+     */
+void MainDialog::showPanel()
+{
+    MQ_D(MainDialog);
+    int t_xValue,t_yValue,t_width,t_height;
+    t_xValue = 0;
+    t_yValue = 0;
+    t_width = this->width();
+    t_height = this->height();
+
+    QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
+    t_animation->setDuration(Panel_ANDURATION);
+    t_animation->setStartValue(QRect(this->pos(), this->size()));
+
+    QRect t_endRect;
+    if (d->m_enDriection & d->Up)
+    {
+        t_xValue = this->x();
+        t_yValue = -shadowWidth();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else if (d->m_enDriection & d->Left)
+    {
+        t_xValue = -shadowWidth();
+        t_yValue = this->y();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else if (d->m_enDriection & d->Right)
+    {
+        t_xValue = d->m_desktopWidth - this->width()+shadowWidth();
+        t_yValue = this->y();
+        t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
+    }
+    else
+    {
+        t_endRect = this->rect();
+    }
+    t_animation->setEndValue(t_endRect);
+    t_animation->start();
 }
