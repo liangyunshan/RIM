@@ -401,6 +401,27 @@ void Widget::repolish(QWidget *widget)
     style()->polish(widget);
 }
 
+/*!
+ * @brief 获取窗口阴影宽度
+ * @details 当阴影可见时返回WINDOW_MARGIN_SIZE否则返回0
+ * @param[in] 无
+ * @return WINDOW_MARGIN_SIZE或者0
+ */
+int Widget::shadowWidth()
+{
+    MQ_D(Widget);
+    int t_width = 0;
+    if(d->isShadowVisible)
+    {
+        t_width = WINDOW_MARGIN_SIZE;
+    }
+    else
+    {
+        t_width= 0;
+    }
+    return t_width;
+}
+
 void Widget::setLayoutMargin()
 {
     dynamic_cast<QHBoxLayout *>(layout())->setContentsMargins(WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE,WINDOW_MARGIN_SIZE);

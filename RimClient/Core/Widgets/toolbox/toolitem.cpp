@@ -9,12 +9,14 @@
 #include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QMetaEnum>
+#include <QImage>
 
 #include "head.h"
 #include "constants.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Widgets/widget/rlabel.h"
+#include "Util/rutil.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
 #define TOOL_ITEM_INFOLABEL_WIDTH 25
@@ -314,6 +316,29 @@ void ToolItem::setChecked(bool flag)
     else
     {
         setItemState(Mouse_Leave);
+    }
+}
+
+/*!
+     * @brief 根据在线状态设置状态显示
+     * @param[in] status:OnlineStatus,联系人的在线状态枚举值
+     * @return 无
+     */
+void ToolItem::setStatus(OnlineStatus status)
+{
+    MQ_D(ToolItem);
+    if(status==STATUS_OFFLINE || status==STATUS_INVISIBLE)
+    {
+        //TODO LYS-20180209 Item中头像变为灰色
+        QImage t_normal = d->iconLabel->pixmap()->toImage();
+        QImage t_grayPic = RUtil::convertToGray(t_normal);
+        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
+    }
+    else
+    {
+        //TODO LYS-20180209 Item中头像变为高亮
+        QString t_filePath = d->iconLabel->getPixmapFileInfo().absoluteFilePath();
+        d->iconLabel->setPixmap(QPixmap(t_filePath));
     }
 }
 

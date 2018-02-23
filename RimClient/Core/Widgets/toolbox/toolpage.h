@@ -64,6 +64,9 @@ public:
 
     const PersonGroupInfo & pageInfo();
 
+    void highlightShow();
+    void unHighlightShow();
+
 public slots:
     void updateGroupActions();
 

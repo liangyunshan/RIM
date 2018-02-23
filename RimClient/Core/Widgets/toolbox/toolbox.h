@@ -13,6 +13,7 @@
  *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
  *      date:20180131   content:添加移除分组方法removePage   name:LYS
  *      date:20180131   content:添加获取默认分组方法defaultPage   name:LYS
+ *      date:20180208   content:修复移动排序算法问题   name:LYS
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H
@@ -61,8 +62,9 @@ private slots:
     void pageRemoved(ToolPage *);
 
 private:
-    void indexInLayout(int,int &);
-    ToolPage *dragedPage(const QPoint &);
+    void indexInLayout(QPoint,int &);
+    ToolPage *pageInPos(const QPoint &);
+    void highLightTarget(const QPoint &);
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);
@@ -70,6 +72,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
     void dropEvent(QDropEvent *event);
 
 private:

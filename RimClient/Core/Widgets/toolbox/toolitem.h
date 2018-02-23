@@ -9,6 +9,7 @@
  *  @date      2017.12.19
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note      20180209:LYS:添加置联系人item中头像为灰色或正常状态方法setStatus
  */
 #ifndef TOOLITEM_H
 #define TOOLITEM_H
@@ -19,6 +20,7 @@
 
 class QMenu;
 class QLabel;
+class QImage;
 class ToolItemPrivate;
 class ToolPage;
 
@@ -46,6 +48,8 @@ public:
 
     bool isChecked();
     void setChecked(bool flag);
+
+    void setStatus(OnlineStatus);
 
     enum ItemState
     {

@@ -46,7 +46,9 @@ public:
     void setEnterHighlight(bool flag = false);
     void setEnterHighlightColor(QColor color);
 
-    void setPixmap(const QString &fileName);
+    void setPixmap(const QString &fileName);    
+    void setPixmap(const QPixmap &);
+
     QFileInfo getPixmapFileInfo();
 
     void resizeByPixmap(bool flag = true);

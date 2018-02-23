@@ -12,12 +12,15 @@
 #define ONLINESTATE_H
 
 #include <QWidget>
+#include "../protocoldata.h"
 
 class QToolButton;
 class QAction;
 class QMenu;
 
 class OnLineStatePrivate;
+
+using namespace ProtocolType;
 
 class OnLineState : public QWidget
 {
@@ -29,24 +32,11 @@ public:
     ~OnLineState();
 
 public:
-    /*!
-     * @brief 用户在线状态
-     */
-    enum UserState
-    {
-        STATE_ONLINE,       /*!< 在线 */
-        STATE_OFFLINE,      /*!< 离线 */
-        STATE_BUSY,         /*!< 忙碌 */
-        STATE_HIDE,         /*!< 隐身 */
-        STATE_NODISTURB     /*!< 请勿打扰 */
-    };
-    Q_FLAG(UserState)
-
-    void setState(const UserState & state);
-    UserState state();
+    void setState(const OnlineStatus & state);
+    OnlineStatus state();
 
 signals:
-    void stateChanged(UserState state);
+    void stateChanged(OnlineStatus state);
 
 private slots:
     void switchState(bool);
