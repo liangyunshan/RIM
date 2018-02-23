@@ -14,7 +14,7 @@ TcpClient *TcpClient::create()
     client->cSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if(client->cSocket == INVALID_SOCKET)
     {
-        RLOG_ERROR("Create socket erro,ErrorCode:%d",WSAGetLastError());
+        RLOG_ERROR("Create socket error,ErrorCode:%d",WSAGetLastError());
         delete client;
         return NULL;
     }
