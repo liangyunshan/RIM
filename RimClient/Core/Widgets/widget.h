@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note      此窗口设置了一定的边距，用于绘制渐变的背景。
+ *      20180222:LYS:添加获取窗口中阴影边框宽度方法shadowWidth
  */
 
 #ifndef WIDGET_H
@@ -51,6 +52,7 @@ protected:
     virtual void leaveEvent(QEvent *);
 
     void repolish(QWidget * widget);
+    virtual int shadowWidth();
 
 signals:
     void minimumWindow();
