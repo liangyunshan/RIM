@@ -258,6 +258,10 @@ void MainDialog::showHoverItem(bool flag, ToolItem * item)
     if(flag)
     {
         UserClient * client = RSingleton<UserManager>::instance()->client(item);
+        if(!client)
+        {
+            return;
+        }
         ItemHoverInfo * info = new ItemHoverInfo;
         info->setSimpleUserInfo(client->simpleUserInfo);
         info->fadein(item->mapToGlobal(QPoint(0,0)));
