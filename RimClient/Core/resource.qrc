@@ -68,10 +68,11 @@
         <file>resource/icon/uprow.png</file>
     </qresource>
     <qresource prefix="/state">
-        <file>resource/icon/state/STATE_HIDE.png</file>
-        <file>resource/icon/state/STATE_ONLINE.png</file>
+        <file>resource/icon/state/STATE_AWAY.png</file>
         <file>resource/icon/state/STATE_BUSY.png</file>
+        <file>resource/icon/state/STATE_HIDE.png</file>
         <file>resource/icon/state/STATE_NODISTURB.png</file>
         <file>resource/icon/state/STATE_OFFLINE.png</file>
+        <file>resource/icon/state/STATE_ONLINE.png</file>
     </qresource>
 </RCC>

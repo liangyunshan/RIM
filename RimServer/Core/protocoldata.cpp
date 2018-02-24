@@ -8,6 +8,11 @@ MsgPacket::MsgPacket()
     msgCommand = MSG_Command_INVALID;
 }
 
+MsgPacket::~MsgPacket()
+{
+
+}
+
 LoginRequest::LoginRequest()
 {
     msgType = MSG_CONTROL;
@@ -92,6 +97,16 @@ FriendListResponse::FriendListResponse()
     msgCommand = MSG_RELATION_LIST;
 }
 
+FriendListResponse::~FriendListResponse()
+{
+    QList<RGroupData *>::iterator iter = groups.begin();
+    while((iter != groups.end()))
+    {
+        delete (*iter);
+        iter = groups.erase(iter);
+    }
+}
+
 GroupingRequest::GroupingRequest()
 {
     msgType = MSG_CONTROL;
@@ -126,6 +141,28 @@ GroupingFriendResponse::GroupingFriendResponse()
 {
     msgType = MSG_CONTROL;
     msgCommand = MSG_RELATION_GROUPING_FRIEND;
+}
+
+UserStateRequest::UserStateRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_STATE;
+}
+
+UserStateResponse::UserStateResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_STATE;
+}
+
+RGroupData::~RGroupData()
+{
+    QList<SimpleUserInfo *>::iterator iter = users.begin();
+    while(iter != users.end())
+    {
+        delete (*iter);
+        iter = users.erase(iter);
+    }
 }
 
 

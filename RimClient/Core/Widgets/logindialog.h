@@ -99,6 +99,7 @@ private slots:
     void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
     void procRecvText(TextResponse response);
+    void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
 
 private:
     void createTrayMenu();

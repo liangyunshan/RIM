@@ -103,8 +103,11 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_USER_LOGIN:
                 RSingleton<DataProcess>::instance()->proLoginResponse(obj);
                 break;
-    case MSG_USER_UPDATE_INFO:
+        case MSG_USER_UPDATE_INFO:
                 RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
+                break;
+        case MSG_USER_STATE:
+                RSingleton<DataProcess>::instance()->proUserStateChanged(obj);
                 break;
         case MSG_RELATION_SEARCH:
                 RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);

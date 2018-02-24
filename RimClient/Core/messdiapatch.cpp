@@ -32,6 +32,11 @@ void MessDiapatch::onRecvUpdateBaseInfoResponse(ResponseUpdateUser status,Update
     emit recvUpdateBaseInfoResponse(status,response);
 }
 
+void MessDiapatch::onRecvUserStateChangedResponse(MsgOperateResponse result, UserStateResponse response)
+{
+    emit recvUserStateChangedResponse(result,response);
+}
+
 void MessDiapatch::onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response)
 {
     emit recvSearchFriendResponse(status,response);

@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<FriendListResponse>("FriendListResponse");
     qRegisterMetaType<GroupingResponse>("GroupingResponse");
     qRegisterMetaType<TextResponse>("TextResponse");
+    qRegisterMetaType<UserStateResponse>("UserStateResponse");
     qRegisterMetaType<GroupingFriendResponse>("GroupingFriendResponse");
     qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");

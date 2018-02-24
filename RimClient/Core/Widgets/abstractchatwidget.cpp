@@ -653,6 +653,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     d_ptr->chatInputArea->transTextToUnit(unit);
 
     TextRequest * request = new TextRequest;
+    request->type = SearchPerson;
     request->destAccountId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
     request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);

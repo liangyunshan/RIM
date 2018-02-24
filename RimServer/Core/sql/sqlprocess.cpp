@@ -199,7 +199,14 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     return FIND_FRIEND_FAILED;
 }
 
-//存储好友响应结果至数据库
+/*!
+ * @brief 存储好友响应结果至数据库
+ * @param[in] db 数据库
+ * @param[in] accountId 用户ID
+ * @param[in] operateId 待操作用户ID
+ * @param[in] type 操作类型 @link ResponseFriendApply @endlink
+ * @return 是否插入成功
+ */
 ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accountId,QString operateId,int type)
 {
     DataTable::RequestCache rc;
@@ -437,14 +444,14 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
                 {
                     while(userQuery.next())
                     {
-                        SimpleUserInfo simpleUserInfo;
+                        SimpleUserInfo * simpleUserInfo = new SimpleUserInfo;
 
-                        simpleUserInfo.accountId = userQuery.value(user.account).toString();
-                        simpleUserInfo.nickName = userQuery.value(user.nickName).toString();
-                        simpleUserInfo.signName = userQuery.value(user.signName).toString();
-                        simpleUserInfo.face = userQuery.value(user.face).toUInt();
-                        simpleUserInfo.customImgId = userQuery.value(user.faceId).toString();
-                        simpleUserInfo.remarks = userQuery.value(groupUser.remarks).toString();
+                        simpleUserInfo->accountId = userQuery.value(user.account).toString();
+                        simpleUserInfo->nickName = userQuery.value(user.nickName).toString();
+                        simpleUserInfo->signName = userQuery.value(user.signName).toString();
+                        simpleUserInfo->face = userQuery.value(user.face).toUInt();
+                        simpleUserInfo->customImgId = userQuery.value(user.faceId).toString();
+                        simpleUserInfo->remarks = userQuery.value(groupUser.remarks).toString();
 
                         groupData->users.append(simpleUserInfo);
                     }
@@ -486,6 +493,48 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
     }
 }
 
+void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList)
+{
+    DataTable::RUser user;
+    DataTable::RGroup group;
+    DataTable::RGroup_User groupUser;
+    RSelect rst(user.table);
+    rst.select(user.id);
+    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next())
+    {
+        QString uid = query.value(user.id).toString();
+
+        RSelect selectGroup(group.table);
+        selectGroup.createCriteria().add(Restrictions::eq(group.userId,uid));
+
+        if(query.exec(selectGroup.sql()))
+        {
+            while(query.next())
+            {
+                RGroupData * groupData = new RGroupData;
+                groupData->groupId = query.value(group.id).toString();
+                groupData->groupName = query.value(group.name).toString();
+                groupData->isDefault = query.value(group.defaultGroup).toBool();
+
+                QString sql = QString("select ru.account from %1 ru left join"
+                                      " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
+
+                QSqlQuery userQuery(db->sqlDatabase());
+                if(userQuery.exec(sql))
+                {
+                    while(userQuery.next())
+                    {
+                        friendList.append(userQuery.value(user.account).toString());
+                    }
+                }
+            }
+        }
+    }
+}
+
 bool SQLProcess::updateGroupFriendInfo(Database *db, GroupingFriendRequest *request)
 {
     DataTable::RGroup_User rgu;
@@ -513,6 +562,124 @@ bool SQLProcess::updateMoveGroupFriend(Database *db, GroupingFriendRequest *requ
     {
         return true;
     }
+    return false;
+}
+
+/*!
+ * @brief 加载缓存的系统通知消息
+ * @param[in] db 数据库
+ * @param[in] accountdId 账户ID
+ * @param[in] requests 缓存请求容器
+ * @return 是否加载成功
+ * @attention 离线消息数量大于0时，认为加载成功
+ */
+bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFriendRequest> &requests)
+{
+    DataTable::RequestCache requestCache;
+    RSelect rst(requestCache.table);
+    rst.select(requestCache.account);
+    rst.select(requestCache.operateId);
+    rst.select(requestCache.type);
+    rst.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            AddFriendRequest cacheRequest;
+            cacheRequest.accountId = query.value(requestCache.account).toString();
+            cacheRequest.operateId = query.value(requestCache.operateId).toString();
+            cacheRequest.stype = (SearchType)query.value(requestCache.type).toInt();
+            requests.append(cacheRequest);
+        }
+
+        if(requests.size() > 0)
+        {
+            RDelete rde(requestCache.table);
+            rde.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+            if(query.exec(rde.sql()))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 加载缓存的联系人消息
+ * @param[in] db 数据库
+ * @param[in] accountdId 账户ID
+ * @param[in] textResponse 离线消息存储
+ * @return 是否加载成功
+ * @attention [1]离线消息数量大于0时，认为加载成功 @n
+ *            [2]加载用户A消息时，需要将A的ID作为目的消息ID查询 @n
+ */
+bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextResponse>& textResponse)
+{
+    DataTable::RUserChatCache userchatcache;
+    RSelect rst(userchatcache.table);
+    rst.select(userchatcache.account);
+    rst.select(userchatcache.destAccount);
+    rst.select(userchatcache.data);
+    rst.select(userchatcache.time);
+    rst.select(userchatcache.msgType);
+    rst.createCriteria().add(Restrictions::eq(userchatcache.destAccount,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    qDebug()<<rst.sql();
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            TextResponse textCache;
+            textCache.accountId = query.value(userchatcache.account).toString();
+            textCache.type = SearchPerson;
+            textCache.fromAccountId = query.value(userchatcache.destAccount).toString();
+            textCache.sendData = query.value(userchatcache.data).toString();
+            textCache.timeStamp = query.value(userchatcache.time).toLongLong();
+            textCache.msgCommand = (MsgCommand)query.value(userchatcache.msgType).toInt();
+            textResponse.append(textCache);
+        }
+
+        if(textResponse.size() > 0)
+        {
+            RDelete rde(userchatcache.table);
+            rde.createCriteria().add(Restrictions::eq(userchatcache.destAccount,accountId));
+//            if(query.exec(rde.sql()))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 保存用户间对话信息
+ * @param[in] db 数据库
+ * @param[in] request 文本请求
+ * @return 是否保存成功
+ */
+bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
+{
+    DataTable::RUserChatCache userchatcache;
+    RPersistence rps(userchatcache.table);
+    rps.insert(userchatcache.account,request->accountId);
+    rps.insert(userchatcache.destAccount,request->destAccountId);
+    rps.insert(userchatcache.data,request->sendData);
+    rps.insert(userchatcache.time,request->timeStamp);
+    rps.insert(userchatcache.msgType,request->msgCommand);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rps.sql()))
+    {
+        return true;
+    }
+
     return false;
 }
 

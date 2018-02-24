@@ -107,7 +107,7 @@ void PanelPersonPage::addGroupAndUsers()
 
         for(int j = 0; j < groupData->users.size(); j++)
         {
-            SimpleUserInfo userInfo = groupData->users.at(j);
+            SimpleUserInfo * userInfo = groupData->users.at(j);
 
             ToolItem * item = ceateItem(userInfo,page);
             page->addItem(item);
@@ -118,10 +118,10 @@ void PanelPersonPage::addGroupAndUsers()
 }
 
 /*!
-     * @brief 接收到服务器删除分组成功后更新联系人分组显示
-     * @param[in] id:QString，待删除的联系人分组id
-     * @return 无
-     */
+ * @brief 接收到服务器删除分组成功后更新联系人分组显示
+ * @param[in] id:QString，待删除的联系人分组id
+ * @return 无
+ */
 void PanelPersonPage::clearTargetGroup(const QString id)
 {
     MQ_D(PanelPersonPage);
@@ -149,10 +149,10 @@ void PanelPersonPage::clearTargetGroup(const QString id)
 }
 
 /*!
-     * @brief 接收服务器的消息更新联系人分组在线联系人数目
-     * @param[in] info:SimpleUserInfo &，待更新的联系人分组id
-     * @return 无
-     */
+ * @brief 接收服务器的消息更新联系人分组在线联系人数目
+ * @param[in] info:SimpleUserInfo &，待更新的联系人分组id
+ * @return 无
+ */
 void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
 {
     ToolItem * t_item = RSingleton<UserManager>::instance()->client(info.accountId)->toolItem;
@@ -201,13 +201,10 @@ void PanelPersonPage::refreshList()
 }
 
 /*!
-     * @brief 添加新分组
-     *
-     * @param[in] 无
-     *
-     * @return 无
-     *
-     */
+ * @brief 添加新分组
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::addGroup()
 {
     MQ_D(PanelPersonPage);
@@ -232,11 +229,10 @@ void PanelPersonPage::addGroup()
 }
 
 /*!
-     * @brief 重命名分组
-     * @param[in] 无
-     * @return 无
-     *
-     */
+ * @brief 重命名分组
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::renameGroup()
 {
     MQ_D(PanelPersonPage);
@@ -301,10 +297,10 @@ void PanelPersonPage::deleteUser()
 }
 
 /*!
-     * @brief 接收分组好友操作结果
-     * @param[in] response 结果信息
-     * @return 无
-     */
+ * @brief 接收分组好友操作结果
+ * @param[in] response 结果信息
+ * @return 无
+ */
 void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFriendResponse response)
 {
     MQ_D(PanelPersonPage);
@@ -320,7 +316,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                 {
                     if((*iter)->getID() == response.groupId)
                     {
-                        ToolItem * item = ceateItem(response.user,(*iter));
+                        ToolItem * item = ceateItem(&(response.user),(*iter));
                         (*iter)->addItem(item);
                         break;
                     }
@@ -332,7 +328,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                 {
                     if((*groupIter)->groupId == response.groupId)
                     {
-                        (*groupIter)->users.append(response.user);
+                        (*groupIter)->users.append(&(response.user));
                         break;
                     }
                     groupIter++;
@@ -377,7 +373,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
     }
 }
 
-ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo & userInfo,ToolPage * page)
+ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 {
     ToolItem * item = new ToolItem(page);
     connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
@@ -387,22 +383,23 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo & userInfo,ToolPage * page)
     connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
 
     item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM));
-    item->setName(userInfo.remarks);
-    item->setNickName(userInfo.nickName);
-    item->setDescInfo(userInfo.signName);
+    item->setName(userInfo->remarks);
+    item->setNickName(userInfo->nickName);
+    item->setDescInfo(userInfo->signName);
+    item->setStatus(userInfo->status);
 
-    UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo.accountId);
-    client->simpleUserInfo = userInfo;
+    UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
+    client->simpleUserInfo = *userInfo;
     client->toolItem = item;
 
     return item;
 }
 
 /*!
-     * @brief LineEdit中命名完成后将内容设置为page的name
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief LineEdit中命名完成后将内容设置为page的name
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::renameEditFinished()
 {
     MQ_D(PanelPersonPage);
@@ -432,11 +429,10 @@ void PanelPersonPage::renameEditFinished()
 }
 
 /*!
-     * @brief 根据触发右键菜单的Item所属的Page来添加“移动联系人至”菜单中Action
-     * @param[in] page：ToolPage *
-     * @return 无
-     *
-     */
+ * @brief 根据触发右键菜单的Item所属的Page来添加“移动联系人至”菜单中Action
+ * @param[in] page：ToolPage *
+ * @return 无
+ */
 void PanelPersonPage::updateGroupActions(ToolPage * page)
 {
     MQ_D(PanelPersonPage);
@@ -464,11 +460,11 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
 }
 
 /*!
-     * @brief 移动至各分组的Action响应
-     * @details 只处理移动的请求，待服务器移动成功后，再真实的移动
-     * @param
-     * @return 无
-     */
+ * @brief 移动至各分组的Action响应
+ * @details 只处理移动的请求，待服务器移动成功后，再真实的移动
+ * @param
+ * @return 无
+ */
 void PanelPersonPage::movePersonTo()
 {
     MQ_D(PanelPersonPage);

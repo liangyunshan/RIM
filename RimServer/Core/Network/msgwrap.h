@@ -30,6 +30,8 @@ private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
     QByteArray handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet);
+    QByteArray handleUserStateChanged(UserStateResponse * packet);
+
     QByteArray handleSearchFriendResponse(SearchFriendResponse * packet);
     QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
     QByteArray handleFriendListResponse(FriendListResponse *packet);

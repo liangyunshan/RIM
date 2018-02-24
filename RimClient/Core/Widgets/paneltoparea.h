@@ -39,6 +39,7 @@ public:
 private slots:
     void respSignChanged(QString content);
     void recvBaseInfoResponse(ResponseUpdateUser result,UpdateBaseInfoResponse response);
+    void recvUserStateChanged(MsgOperateResponse result,UserStateResponse response);
 
 public slots:
     void stateChanged(OnlineStatus state);

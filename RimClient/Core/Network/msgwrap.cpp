@@ -31,6 +31,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_USER_UPDATE_INFO:
                 handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
                 break;
+        case MsgCommand::MSG_USER_STATE:
+                handleUserStateRequest((UserStateRequest*)packet);
+                break;
         case MsgCommand::MSG_RELATION_SEARCH:
                 handleSearchFriendRequest((SearchFriendRequest *)packet);
                 break;
@@ -90,7 +93,11 @@ void MsgWrap::handleRegistRequest(RegistRequest *packet)
     wrappedPack(packet,data);
 }
 
-//处理用户更新个人基本信息
+/*!
+ * @brief 处理用户更新个人基本信息
+ * @param[in] packet 用户基本信息请求
+ * @return 无
+ */
 void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
 {
     QJsonObject data;
@@ -108,7 +115,25 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
     wrappedPack(packet,data);
 }
 
-//处理查找好友信息
+/*!
+ * @brief 处理用户状态变更
+ * @param[in] request 状态变更请求
+ * @return 无
+ */
+void MsgWrap::handleUserStateRequest(UserStateRequest * request)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AccountId),request->accountId);
+    data.insert(JsonKey::key(JsonKey::Status),(int)request->onStatus);
+
+    wrappedPack(request,data);
+}
+
+/*!
+ * @brief 处理查找好友信息
+ * @param[in] packet 查询好友请求
+ * @return 无
+ */
 void MsgWrap::handleSearchFriendRequest(SearchFriendRequest * packet)
 {
     QJsonObject data;

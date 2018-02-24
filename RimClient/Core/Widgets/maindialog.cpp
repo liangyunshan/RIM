@@ -302,6 +302,12 @@ void MainDialog::updateEditInstance()
    d->editWindow = NULL;
 }
 
+/*!
+ * @brief 设置好友列表
+ * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
+ * @param[in] friendList 好友列表
+ * @return 无
+ */
 void MainDialog::updateFriendList(FriendListResponse *friendList)
 {
     QList<RGroupData *>::iterator iter = G_FriendList.begin();
@@ -312,23 +318,7 @@ void MainDialog::updateFriendList(FriendListResponse *friendList)
     }
     G_FriendList.clear();
 
-    QList<RGroupData *>::iterator fiter = friendList->groups.begin();
-    while(fiter != friendList->groups.end())
-    {
-        RGroupData * recvData = (*fiter);
-        RGroupData * data = new RGroupData;
-        data->groupId = recvData->groupId;
-        data->groupName = recvData->groupName;
-        data->isDefault = recvData->isDefault;
-        data->users = recvData->users;
-
-        G_FriendList.append(data);
-
-        fiter = friendList->groups.erase(fiter);
-    }
-
-    friendList->groups.clear();
-    delete friendList;
+    G_FriendList = friendList->groups;
 
     RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
 }
@@ -534,7 +524,7 @@ void MainDialog::isAutoHide()
      * @param[in] 无
      * @return 无
      */
-void MainDialog::hidePanel()
+void MainDialog:: hidePanel()
 {
     MQ_D(MainDialog);
     int t_xValue,t_yValue,t_width,t_height;
@@ -571,7 +561,7 @@ void MainDialog::hidePanel()
         t_endRect = this->rect();
     }
     t_animation->setEndValue(t_endRect);
-    t_animation->start();
+    t_animation->start(QAbstractAnimation::DeleteWhenStopped);
 
 }
 
@@ -617,5 +607,5 @@ void MainDialog::showPanel()
         t_endRect = this->rect();
     }
     t_animation->setEndValue(t_endRect);
-    t_animation->start();
+    t_animation->start(QAbstractAnimation::DeleteWhenStopped);
 }

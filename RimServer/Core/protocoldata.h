@@ -148,9 +148,10 @@ enum OnlineStatus
 {
     STATUS_OFFLINE,          /*!< 离线状态 */
     STATUS_ONLINE,           /*!< 在线状态 */
-    STATUS_INVISIBLE,        /*!< 隐身状态 */
+    STATUS_HIDE,             /*!< 隐身状态 */
     STATUS_BUSY,             /*!< 忙碌状态 */
-    STATUS_AWAY              /*!< 离开状态 */
+    STATUS_AWAY,             /*!< 离开状态 */
+    STATUS_NoDisturb         /*!< 勿扰状态 */
 };
 
 /*!
@@ -280,6 +281,7 @@ class MsgPacket
 {
 public:
     MsgPacket();
+    virtual ~MsgPacket();
 
     MsgType msgType;            /*!< 数据类型 @link MSG_TYPE @endlink */
     MsgCommand msgCommand;      /*!< 命令类型 @link MSG_COMMAND @endlink */
@@ -390,6 +392,7 @@ struct SimpleUserInfo
     unsigned short face;         /*!< 头像信息(0表示为自定义，大于0表示系统头像) */
     QString customImgId;         /*!< 头像信息(face为0时有效) */
     QString remarks;             /*!< 备注名称 */
+    OnlineStatus status;         /*!< 在线状态 */
 };
 
 /*!
@@ -491,10 +494,11 @@ public:
  */
 struct RGroupData
 {
+    ~RGroupData();
     QString groupId;                /*!< 分组ID，可用于判断唯一标识  */
     QString groupName;              /*!< 分组名称  */
     bool isDefault;                 /*!< 是否为默认分组  */
-    QList<SimpleUserInfo> users;    /*!< 分组中联系人或群的描述信息  */
+    QList<SimpleUserInfo *> users;    /*!< 分组中联系人或群的描述信息  */
 };
 
 /*!
@@ -514,6 +518,7 @@ class FriendListResponse : public MsgPacket
 {
 public:
     FriendListResponse();
+    ~FriendListResponse();
     QString accountId;              /*!< 用户账号  */
     QList<RGroupData *> groups;     /*!< 分组信息  */
 };
@@ -606,6 +611,32 @@ public:
     GroupingType gtype;       /*!< 分组类型，参见 @link GroupingType @endlink */
     QString groupId;          /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
     OperateGrouping type;     /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
+};
+
+/**********************用户状态变更**********************/
+/*!
+ *  @brief  用户状态变更
+ *  @details 向服务器更新自己的在线状态
+ */
+class UserStateRequest : public MsgPacket
+{
+public:
+    UserStateRequest();
+    QString accountId;              /*!< 用户账号 */
+    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
+};
+
+/*!
+ *  @brief  用户变更响应
+ *  @details 1.用于接收本身更新成功与否的状态 @n
+ *           2.用于接收朋友状态变更通知 @n
+ */
+class UserStateResponse : public MsgPacket
+{
+public:
+    UserStateResponse();
+    QString accountId;              /*!< 用户账号，若账号等于自身则用于响应自己的操作；若账户为联系人列表中，则表示接收好友状态 */
+    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
 };
 
 /*********************聊天信息和窗口抖动操作**********************/
