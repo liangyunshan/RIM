@@ -95,7 +95,6 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
         {
             client->setAccount(request->accountId);
             client->setNickName(response->baseInfo.nickName);
-            client->setOnLine(true);
             client->setOnLineState((int)request->status);
         }
         delete response;
@@ -246,7 +245,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
     ResponseAddFriend result = ADD_FRIEND_SENDED;
 
     TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
-    if(client && client->isOnLine())
+    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
     {
         SocketOutData reqeuestData;
         reqeuestData.sockId = client->socket();
@@ -321,6 +320,16 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         responseA->user.customImgId = baseInfo.customImgId;
         responseA->user.remarks = baseInfo.nickName;
 
+        TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
+        if(operateClient)
+        {
+            responseA->user.status = (OnlineStatus)operateClient->getOnLineState();
+        }
+        else
+        {
+            responseA->user.status = STATUS_OFFLINE;
+        }
+
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA);
         delete responseA;
         SendData(responseData);
@@ -328,9 +337,9 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
 
     TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
 
-    if(client && client->isOnLine())
+    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
     {
-        //【2】向对方发送自己基本信息
+        //【2】向对方发送此次好友请求的处理结果信息
         int operateSock = client->socket();
         SocketOutData reqeuestData;
         reqeuestData.sockId = operateSock;
@@ -353,6 +362,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         delete ofresponse;
         SendData(reqeuestData);
 
+        //【3】若同意请求，则再次向对方发送自己的基本信息
         if(result == FRIEND_AGREE && flag)
         {
             SocketOutData responseData;
@@ -363,14 +373,22 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             responseB->stype = request->stype;
             responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
 
-            UserBaseInfo baseInfo;
-            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
             responseB->user.accountId = baseInfo.accountId;
             responseB->user.nickName = baseInfo.nickName;
             responseB->user.signName = baseInfo.signName;
             responseB->user.face = baseInfo.face;
             responseB->user.customImgId = baseInfo.customImgId;
             responseB->user.remarks = baseInfo.nickName;
+
+            TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
+            if(operateClient)
+            {
+                responseB->user.status = (OnlineStatus)operateClient->getOnLineState();
+            }
+            else
+            {
+                responseB->user.status = STATUS_OFFLINE;
+            }
 
             responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB);
             delete responseB;
@@ -615,7 +633,7 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
     if(request->type == SearchPerson)
     {
         TcpClient * client = TcpClientManager::instance()->getClient(request->destAccountId);
-        if(client && client->isOnLine())
+        if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
         {
             responseData.sockId = client->socket();
 

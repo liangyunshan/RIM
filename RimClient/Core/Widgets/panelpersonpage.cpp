@@ -328,7 +328,15 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                 {
                     if((*groupIter)->groupId == response.groupId)
                     {
-                        (*groupIter)->users.append(&(response.user));
+                        SimpleUserInfo * info = new SimpleUserInfo;
+                        info->accountId = response.user.accountId;
+                        info->nickName = response.user.nickName;
+                        info->signName = response.user.signName;
+                        info->face = response.user.face;
+                        info->customImgId = response.user.customImgId;
+                        info->remarks = response.user.remarks;
+                        info->status = response.user.status;
+                        (*groupIter)->users.append(info);
                         break;
                     }
                     groupIter++;

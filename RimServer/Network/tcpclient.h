@@ -67,9 +67,6 @@ public:
     QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}
     QByteArray & getHalfPacketBuff(){return halfPackBufff;}
 
-    void setOnLine(bool flag = true);
-    bool isOnLine(){return onLine;}
-
     void setOnLineState(int val){onlineState = val;}
     int getOnLineState(){return onlineState;}
 
@@ -102,7 +99,6 @@ private:
     QMutex packIdMutex;
     int sendPackId;                                 /*!< 每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。 */
 
-    bool onLine;                       /*!< 是否在线 */
     int onlineState;                   /*!< 在线状态(与OnlineStatus保持一致) */
     QString accountId;                 /*!< 用户ID */
     QString nickName;                  /*!< 用户昵称 */

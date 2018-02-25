@@ -261,6 +261,7 @@ QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int resu
     user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
     user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+    user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 
     data.insert(JsonKey::key(JsonKey::Users),user);
 

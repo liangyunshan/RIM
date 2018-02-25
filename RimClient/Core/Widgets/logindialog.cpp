@@ -526,6 +526,8 @@ void LoginDialog::respItemChanged(QString id)
                 }
             }
 
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<userInfo->loginState;
+
             d->onlineState->setState((OnlineStatus)userInfo->loginState);
             d->isNewUser = false;
 
@@ -573,6 +575,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
                 d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
                 d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }

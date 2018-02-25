@@ -274,6 +274,7 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
         response.user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
         response.user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
         response.user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+        response.user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
         MessDiapatch::instance()->onRecvGroupingFriend(status,response);
     }

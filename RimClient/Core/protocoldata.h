@@ -146,7 +146,7 @@ enum Sexual
  */
 enum OnlineStatus
 {
-    STATUS_OFFLINE,          /*!< 离线状态 */
+    STATUS_OFFLINE = 0,      /*!< 离线状态 */
     STATUS_ONLINE,           /*!< 在线状态 */
     STATUS_HIDE,             /*!< 隐身状态 */
     STATUS_BUSY,             /*!< 忙碌状态 */
@@ -154,9 +154,6 @@ enum OnlineStatus
     STATUS_NoDisturb         /*!< 勿扰状态 */
 };
 
-/*!
-
-*/
 /*!
  *  @brief 登陆结果
  *  @details 接收用户登陆请求操作结果
