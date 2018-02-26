@@ -3,6 +3,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QDebug>
 
 #include <QApplication>
 #include <QDateTime>
@@ -28,8 +29,8 @@ TextUnit::ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
 
     QJsonParseError jsonError;
     QJsonDocument doucment = QJsonDocument::fromJson(byteArray, &jsonError);
-    if((!doucment.isNull())
-            && (jsonError.error == QJsonParseError::NoError))
+    qDebug()<<jsonError.errorString();
+    if((!doucment.isNull()) && (jsonError.error == QJsonParseError::NoError))
     {
         if(doucment.isObject())
         {

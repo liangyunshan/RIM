@@ -92,6 +92,7 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel->setText(G_UserBaseInfo.nickName);
 
     onlineState = new OnLineState(contentWidget);
+    onlineState->setState(G_OnlineStatus);
     onlineState->setStyleSheet("background-color:rgba(0,0,0,0)");
     QObject::connect(onlineState,SIGNAL(stateChanged(OnlineStatus)),q_ptr,SLOT(stateChanged(OnlineStatus)));
 
@@ -152,6 +153,9 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
 
     connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
             this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
+
+    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
+            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
 }
 
 PanelTopArea::~PanelTopArea()
@@ -220,7 +224,13 @@ void PanelTopArea::updateUserInfo()
 
 void PanelTopArea::stateChanged(OnlineStatus state)
 {
-    Q_UNUSED(state);
-    //TODO LYS-通知服务器当前用户状态更新
-    //另外对于不同状态做出相应的处理
+    UserStateRequest * request = new UserStateRequest();
+    request->accountId = G_UserBaseInfo.accountId;
+    request->onStatus = state;
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+}
+
+void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
+{
+
 }

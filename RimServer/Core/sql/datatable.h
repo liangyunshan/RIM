@@ -119,99 +119,147 @@ public:
     const QString time;                     //时间戳
 };
 
+class RUserChatCache
+{
+public:
+    RUserChatCache();
+    const QString table;
+    const QString id;                       //int
+    const QString account;                  //用户ID(user Id)
+    const QString destAccount;              //接收方用户ID
+    const QString data;                     //消息主体内容
+    const QString time;                     //时间戳
+    const QString msgType;                  //消息类型
+};
+
 }
 
 /*!
 
-Navicat MySQL Data Transfer
+  @code
+    SET FOREIGN_KEY_CHECKS=0;
 
-Source Server         : localhost_3306
-Source Server Version : 50721
-Source Host           : localhost:3306
-Source Database       : rimserver
+    -- ----------------------------
+    -- Table structure for `rchatroom`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `rchatroom`;
+    CREATE TABLE `rchatroom` (
+      `ID` varchar(50) NOT NULL,
+      `NAME` varchar(255) DEFAULT NULL,
+      `DESC` varchar(255) DEFAULT NULL,
+      `LABEL` varchar(255) DEFAULT NULL,
+      `UID` varchar(50) NOT NULL,
+      PRIMARY KEY (`ID`),
+      KEY `UID` (`UID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-Target Server Type    : MYSQL
-Target Server Version : 50721
-File Encoding         : 65001
+    -- ----------------------------
+    -- Records of rchatroom
+    -- ----------------------------
 
-Date: 2018-01-16 15:34:57
-SET FOREIGN_KEY_CHECKS=0;
+    -- ----------------------------
+    -- Table structure for `rchatroom_user`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `rchatroom_user`;
+    CREATE TABLE `rchatroom_user` (
+      `ID` varchar(50) NOT NULL,
+      `CID` varchar(50) NOT NULL,
+      `UID` varchar(50) NOT NULL,
+      PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for `chatroom`
--- ----------------------------
-DROP TABLE IF EXISTS `chatroom`;
-CREATE TABLE `chatroom` (
-  `ID` varchar(50) NOT NULL,
-  `NAME` varchar(255) DEFAULT NULL,
-  `DESC` varchar(255) DEFAULT NULL,
-  `LABEL` varchar(255) DEFAULT NULL,
-  `UID` varchar(50) NOT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `UID` (`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    -- ----------------------------
+    -- Records of rchatroom_user
+    -- ----------------------------
 
--- ----------------------------
--- Records of chatroom
--- ----------------------------
+    -- ----------------------------
+    -- Table structure for `requestcache`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `requestcache`;
+    CREATE TABLE `requestcache` (
+      `ID` varchar(50) NOT NULL,
+      `ACCOUNT` varchar(11) NOT NULL,
+      `OPERATEID` varchar(11) NOT NULL,
+      `TYPE` int(4) NOT NULL,
+      `TIME` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for `user`
--- ----------------------------
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `ID` varchar(50) NOT NULL,
-  `ACCOUNT` int(11) NOT NULL,
-  `NAME` varchar(50) NOT NULL,
-  `PASSWORD` varchar(255) NOT NULL,
-  `NICKNAME` varchar(255) DEFAULT NULL,
-  `SIGNNAME` varchar(255) DEFAULT NULL,
-  `GENDER` tinyint(4) DEFAULT NULL,
-  `BIRTHDAY` date DEFAULT NULL,
-  `PHONE` varchar(29) DEFAULT NULL,
-  `ADDRESS` varchar(255) DEFAULT NULL,
-  `EMAIL` varchar(50) DEFAULT NULL,
-  `DESC` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    -- ----------------------------
+    -- Records of requestcache
+    -- ----------------------------
 
--- ----------------------------
--- Records of user
--- ----------------------------
+    -- ----------------------------
+    -- Table structure for `rgroup`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `rgroup`;
+    CREATE TABLE `rgroup` (
+      `ID` varchar(50) NOT NULL,
+      `NAME` varchar(50) NOT NULL,
+      `USER_COUNT` int(4) DEFAULT NULL,
+      `UID` varchar(50) NOT NULL,
+      `DEFAUL` tinyint(2) NOT NULL,
+      PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for `user_chatroom`
--- ----------------------------
-DROP TABLE IF EXISTS `user_chatroom`;
-CREATE TABLE `user_chatroom` (
-  `ID` varchar(50) NOT NULL,
-  `CID` varchar(50) NOT NULL,
-  `UID` varchar(50) NOT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    -- ----------------------------
+    -- Table structure for `rgroup_user`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `rgroup_user`;
+    CREATE TABLE `rgroup_user` (
+      `ID` varchar(50) NOT NULL,
+      `GID` varchar(50) NOT NULL,
+      `UID` varchar(50) NOT NULL,
+      `REMARKS` varchar(255) DEFAULT NULL,
+      `VISIBLE` tinyint(4) DEFAULT NULL,
+      PRIMARY KEY (`ID`),
+      KEY `GID` (`GID`),
+      KEY `UID` (`UID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of user_chatroom
--- ----------------------------
+    -- ----------------------------
+    -- Table structure for `rimconfig`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `rimconfig`;
+    CREATE TABLE `rimconfig` (
+      `NAME` varchar(50) NOT NULL,
+      `VALUE` varchar(50) DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for `user_group`
--- ----------------------------
-DROP TABLE IF EXISTS `user_group`;
-CREATE TABLE `user_group` (
-  `ID` varchar(50) NOT NULL,
-  `GID` varchar(50) NOT NULL,
-  `UID` varchar(50) NOT NULL,
-  `REMARKS` varchar(255) DEFAULT NULL,
-  `VISIBLE` tinyint(4) DEFAULT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `GID` (`GID`),
-  KEY `UID` (`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    -- ----------------------------
+    -- Table structure for `ruser`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `ruser`;
+    CREATE TABLE `ruser` (
+      `ID` varchar(50) NOT NULL,
+      `ACCOUNT` varchar(11) NOT NULL,
+      `PASSWORD` varchar(255) NOT NULL,
+      `NICKNAME` varchar(255) NOT NULL,
+      `SIGNNAME` varchar(255) DEFAULT NULL,
+      `GENDER` tinyint(4) DEFAULT NULL,
+      `BIRTHDAY` date DEFAULT NULL,
+      `PHONE` varchar(29) DEFAULT NULL,
+      `ADDRESS` varchar(255) DEFAULT NULL,
+      `EMAIL` varchar(50) DEFAULT NULL,
+      `REMARK` varchar(255) DEFAULT NULL,
+      `FACE` tinyint(4) DEFAULT NULL,
+      `FACEID` varchar(50) DEFAULT NULL,
+      PRIMARY KEY (`ID`)
 
--- ----------------------------
--- Records of user_group
--- ----------------------------
+    -- ----------------------------
+    -- Table structure for `ruserchatcache`
+    -- ----------------------------
+    DROP TABLE IF EXISTS `ruserchatcache`;
+    CREATE TABLE `ruserchatcache` (
+      `ID` int(10) NOT NULL AUTO_INCREMENT,
+      `ACCOUNT` varchar(11) NOT NULL,
+      `DESTACCOUNT` varchar(11) NOT NULL,
+      `DATA` varchar(2000) NOT NULL,
+      `TTSTAMP` bigint(20) DEFAULT NULL,
+      `MSGTYPE` smallint(2) DEFAULT NULL,
+      PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+    @endcode
 
 */
 

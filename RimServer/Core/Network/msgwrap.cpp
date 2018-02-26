@@ -31,18 +31,28 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
     {
     case MsgCommand::MSG_USER_REGISTER:
         return handleRegistResponse((RegistResponse *)packet);
+
     case MsgCommand::MSG_USER_LOGIN:
         return handleLoginResponse((LoginResponse *)packet);
+
     case MsgCommand::MSG_USER_UPDATE_INFO:
         return handleUpdateBaseInfoResponse((UpdateBaseInfoResponse *)packet);
+
+    case MsgCommand::MSG_USER_STATE:
+        return handleUserStateChanged((UserStateResponse * )packet);
+
     case MsgCommand::MSG_RELATION_SEARCH:
         return handleSearchFriendResponse((SearchFriendResponse *)packet);
+
     case MsgCommand::MSG_RELATION_OPERATE:
         return handleOperateFriendResponse((OperateFriendResponse *)packet);
+
     case MsgCommand::MSG_RELATION_LIST:
         return handleFriendListResponse((FriendListResponse *)packet);
+
     case MsgCommand::MSG_GROUPING_OPERATE:
         return handleGroupingResponse((GroupingResponse *)packet);
+
     case MsgCommand::MSG_RELATION_GROUPING_FRIEND:
         return handleGroupingFriend((GroupingFriendResponse *)packet,result);
 
@@ -134,6 +144,16 @@ QByteArray MsgWrap::handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet
     return wrappedPack(packet,UPDATE_USER_SUCCESS,data);
 }
 
+QByteArray MsgWrap::handleUserStateChanged(UserStateResponse *packet)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::Status),(int)packet->onStatus);
+
+    return wrappedPack(packet,STATUS_SUCCESS,data);
+}
+
 QByteArray MsgWrap::handleSearchFriendResponse(SearchFriendResponse * packet)
 {
     QJsonArray data;
@@ -193,15 +213,16 @@ QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
         QJsonArray users;
         for(int j = 0; j < gdata->users.size(); j++)
         {
-            SimpleUserInfo userInfo = gdata->users.at(j);
+            SimpleUserInfo * userInfo = gdata->users.at(j);
 
             QJsonObject user;
-            user.insert(JsonKey::key(JsonKey::AccountId),userInfo.accountId);
-            user.insert(JsonKey::key(JsonKey::NickName),userInfo.nickName);
-            user.insert(JsonKey::key(JsonKey::SignName),userInfo.signName);
-            user.insert(JsonKey::key(JsonKey::Face),userInfo.face);
-            user.insert(JsonKey::key(JsonKey::FaceId),userInfo.customImgId);
-            user.insert(JsonKey::key(JsonKey::Remark),userInfo.remarks);
+            user.insert(JsonKey::key(JsonKey::AccountId),userInfo->accountId);
+            user.insert(JsonKey::key(JsonKey::NickName),userInfo->nickName);
+            user.insert(JsonKey::key(JsonKey::SignName),userInfo->signName);
+            user.insert(JsonKey::key(JsonKey::Face),userInfo->face);
+            user.insert(JsonKey::key(JsonKey::FaceId),userInfo->customImgId);
+            user.insert(JsonKey::key(JsonKey::Remark),userInfo->remarks);
+            user.insert(JsonKey::key(JsonKey::Status),userInfo->status);
 
             users.append(user);
         }
@@ -240,6 +261,7 @@ QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int resu
     user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
     user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+    user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 
     data.insert(JsonKey::key(JsonKey::Users),user);
 
@@ -247,10 +269,10 @@ QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int resu
 }
 
 /*!
-     * @brief 为正确信息添加信息头
-     * @param[in] packet
-     * @return 是否插入成功
-     */
+ * @brief 为正确信息添加信息头
+ * @param[in] packet
+ * @return 是否插入成功
+ */
 QByteArray MsgWrap::wrappedPack(MsgPacket *packet, int status, QJsonObject & data)
 {
     QJsonObject obj;

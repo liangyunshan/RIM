@@ -184,7 +184,7 @@ int RSocket::recv(char *buff, int length)
 }
 
 /*!
-     * @brief 发送一定长度多少护具
+     * @brief 发送一定长度数据
      * @param[in] buff 待发送数据的缓冲区
      * @param[in] length 待发送的长度
      * @return 是否发送成功

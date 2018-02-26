@@ -66,7 +66,7 @@ public slots:
 private:
     void createAction();
     void addGroupAndUsers();
-    ToolItem * ceateItem(SimpleUserInfo & info, ToolPage *page);
+    ToolItem * ceateItem(SimpleUserInfo *info, ToolPage *page);
     void clearTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);
 

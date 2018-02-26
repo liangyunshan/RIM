@@ -14,18 +14,12 @@ TcpClient *TcpClient::create()
     client->cSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if(client->cSocket == INVALID_SOCKET)
     {
-        RLOG_ERROR("Create socket erro,ErrorCode:%d",WSAGetLastError());
+        RLOG_ERROR("Create socket error,ErrorCode:%d",WSAGetLastError());
         delete client;
         return NULL;
     }
 
     return client;
-}
-
-void TcpClient::setOnLine(bool flag)
-{
-    onLine = flag;
-    onlineState = 0;
 }
 
 int TcpClient::getPackId()
@@ -44,8 +38,6 @@ TcpClient::TcpClient()
 
     cSocket = 0;
     cPort = 0;
-
-    onLine = false;
 }
 
 TcpClient::~TcpClient()
@@ -119,10 +111,11 @@ TcpClient *TcpClientManager::getClient(int sock)
 TcpClient *TcpClientManager::getClient(QString accountId)
 {
     QMutexLocker locker(&mutex);
-    qDebug()<<clientList.size();
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<clientList.size();
     QList<TcpClient *>::iterator iter = clientList.begin();
     while(iter != clientList.end())
     {
+        qDebug()<<(*iter)->getAccount();
         if((*iter)->getAccount() == accountId)
         {
             return (*iter);

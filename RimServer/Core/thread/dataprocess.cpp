@@ -22,11 +22,11 @@ DataProcess::DataProcess()
 }
 
 /*!
-     * @brief 提供用户注册，返回注册的ID
-     * @details  注册成功后，自动为用户创建一个默认的分组，并且名称命名为【我的好友】
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
+ * @brief 提供用户注册，返回注册的ID
+ * @details  注册成功后，自动为用户创建一个默认的分组，并且名称命名为【我的好友】
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *request)
 {
     SocketOutData data;
@@ -55,6 +55,17 @@ void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *r
     SendData(data);
 }
 
+/*!
+ * @brief 响应用户登陆，并返回登陆结果
+ * @param[in] db 数据库
+ * @param[in] socketId 网络标识
+ * @param[in] request 登陆请求
+ * @return 无
+ * @note 具体的处理流程: @n
+ *      1.响应用户登陆状态结果; @n
+ *      2.向用户的在线好友推送用户的登陆状态; @n
+ *
+ */
 void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *request)
 {
     SocketOutData data;
@@ -84,7 +95,6 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
         {
             client->setAccount(request->accountId);
             client->setNickName(response->baseInfo.nickName);
-            client->setOnLine(true);
             client->setOnLineState((int)request->status);
         }
         delete response;
@@ -94,9 +104,12 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,loginResult);
     }
 
-    delete request;
-
     SendData(data);
+
+    //[1]向用户对应的好友推送上线通知。
+    pushFriendMyStatus(db,socketId,request->accountId,request->status);
+
+    delete request;
 }
 
 void DataProcess::processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request)
@@ -126,6 +139,72 @@ void DataProcess::processUpdateUserInfo(Database * db,int socketId, UpdateBaseIn
     SendData(data);
 }
 
+void DataProcess::processUserStateChanged(Database *db, int socketId, UserStateRequest *request)
+{
+    SocketOutData data;
+    data.sockId = socketId;
+
+    TcpClient * client = TcpClientManager::instance()->getClient(request->accountId);
+    if(client)
+    {
+        client->setOnLineState((int)request->onStatus);
+
+        UserStateResponse * response = new UserStateResponse;
+        response->accountId = request->accountId;
+        response->onStatus = request->onStatus;
+
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+
+        delete response;
+    }
+    else
+    {
+        data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,STATUS_FAILE);
+    }
+
+    SendData(data);
+
+    pushFriendMyStatus(db,socketId,request->accountId,request->onStatus);
+
+    delete request;
+}
+
+/*!
+ * @brief 向好友推送当前自己的状态信息
+ * @param[in] db 数据库
+ * @param[in] socketId 网络标识
+ * @param[in] accountId 用户自己ID
+ * @param[in] onStatus 用户登陆状态
+ * @return 无
+ */
+void DataProcess::pushFriendMyStatus(Database *db, int socketId, QString accountId,OnlineStatus onStatus)
+{
+    QList<QString> friendList;
+    RSingleton<SQLProcess>::instance()->getFriendAccountList(db,accountId,friendList);
+
+    QList<QString>::iterator iter = friendList.begin();
+    while(iter != friendList.end())
+    {
+        TcpClient * friendClient = TcpClientManager::instance()->getClient((*iter));
+        if(friendClient)
+        {
+            SocketOutData tmpData;
+            tmpData.sockId = friendClient->socket();
+
+            UserStateResponse * response = new UserStateResponse;
+            response->accountId = accountId;
+            response->onStatus = onStatus;
+
+            tmpData.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+
+            delete response;
+
+            SendData(tmpData);
+        }
+        iter++;
+    }
+}
+
 void DataProcess::processSearchFriend(Database * db,int socketId, SearchFriendRequest *request)
 {
     SocketOutData data;
@@ -151,13 +230,13 @@ void DataProcess::processSearchFriend(Database * db,int socketId, SearchFriendRe
 
 //TODO 找群时，先查找群主信息，查看是否在线
 /*!
-     * @brief 处理用户响应好友请求操作
-     * @details A请求B，B向A回复结果。
-     *          根据B的回复结果，若同意请求，则将对方的信息发送给对方，即发送A至B，发送B至A；
-     *          若B拒绝请求，则直接将结果发送至A
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
+ * @brief 处理用户响应好友请求操作
+ * @details A请求B，B向A回复结果。
+ *          根据B的回复结果，若同意请求，则将对方的信息发送给对方，即发送A至B，发送B至A；
+ *          若B拒绝请求，则直接将结果发送至A
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest *request)
 {
     SocketOutData responseData;
@@ -166,7 +245,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
     ResponseAddFriend result = ADD_FRIEND_SENDED;
 
     TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
-    if(client && client->isOnLine())
+    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
     {
         SocketOutData reqeuestData;
         reqeuestData.sockId = client->socket();
@@ -203,14 +282,14 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
 }
 
 /*!
-     * @brief 处理好友请求结果回复
-     * @details A向B发出请求，B给A回复确认添加；
-     *          1.在数据库中建立A、B两者之间的关系，即分别将对方加入己方的默认分组；
-     *          2.若同意，则通知B，发送有关A的信息；若A在线，则将B的信息推送至A，若A离线，则将B确认的信息缓存；
-     *          3.若不同意，则向A发送拒绝的结果；
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
+ * @brief 处理好友请求结果回复
+ * @details A向B发出请求，B给A回复确认添加；
+ *          1.在数据库中建立A、B两者之间的关系，即分别将对方加入己方的默认分组；
+ *          2.若同意，则通知B，发送有关A的信息；若A在线，则将B的信息推送至A，若A离线，则将B确认的信息缓存；
+ *          3.若不同意，则向A发送拒绝的结果；
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void DataProcess::processRelationOperate(Database *db, int socketId, OperateFriendRequest *request)
 {
     bool flag = false;
@@ -241,6 +320,16 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         responseA->user.customImgId = baseInfo.customImgId;
         responseA->user.remarks = baseInfo.nickName;
 
+        TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
+        if(operateClient)
+        {
+            responseA->user.status = (OnlineStatus)operateClient->getOnLineState();
+        }
+        else
+        {
+            responseA->user.status = STATUS_OFFLINE;
+        }
+
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA);
         delete responseA;
         SendData(responseData);
@@ -248,9 +337,9 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
 
     TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
 
-    if(client && client->isOnLine())
+    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
     {
-        //【2】向对方发送自己基本信息
+        //【2】向对方发送此次好友请求的处理结果信息
         int operateSock = client->socket();
         SocketOutData reqeuestData;
         reqeuestData.sockId = operateSock;
@@ -273,6 +362,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         delete ofresponse;
         SendData(reqeuestData);
 
+        //【3】若同意请求，则再次向对方发送自己的基本信息
         if(result == FRIEND_AGREE && flag)
         {
             SocketOutData responseData;
@@ -283,14 +373,22 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             responseB->stype = request->stype;
             responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
 
-            UserBaseInfo baseInfo;
-            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
             responseB->user.accountId = baseInfo.accountId;
             responseB->user.nickName = baseInfo.nickName;
             responseB->user.signName = baseInfo.signName;
             responseB->user.face = baseInfo.face;
             responseB->user.customImgId = baseInfo.customImgId;
             responseB->user.remarks = baseInfo.nickName;
+
+            TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
+            if(operateClient)
+            {
+                responseB->user.status = (OnlineStatus)operateClient->getOnLineState();
+            }
+            else
+            {
+                responseB->user.status = STATUS_OFFLINE;
+            }
 
             responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB);
             delete responseB;
@@ -305,6 +403,20 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
     delete request;
 }
 
+/*!
+ * @brief 获取好友用户列表
+ * @details 按照当前用户分组，将好友组装成对应的列表存储。同时拉取对应的历史消息，一并推送至用户。
+ * @param[in] db 数据库ID
+ * @param[in] socketId 网络访问标识
+ * @param[in] socketId 列表请求
+ * @return 无
+ * @note 具体的处理流程: @n
+ *      1.获取用户对应的好友信息，并按照分组排列组装好; @n
+ *      2.抓取当前好友登陆状态; @n
+ *      3.推送当前用户历史系统消息; @n
+ *      4.推送当前用户离线消息; @n
+ * @attention 若可以查到好友在线状态，则将当前状态作为好友状态；若查找不到，默认使用离线状态表示。
+ */
 void DataProcess::processFriendList(Database *db, int socketId, FriendListRequest *request)
 {
     SocketOutData responseData;
@@ -315,6 +427,24 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
     bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response);
     if(flag)
     {
+        for(int i = 0; i < response->groups.size(); i++)
+        {
+            QList<SimpleUserInfo *>::iterator iter = response->groups.at(i)->users.begin();
+            while(iter != response->groups.at(i)->users.end())
+            {
+                TcpClient * client = TcpClientManager::instance()->getClient((*iter)->accountId);
+                if(client)
+                {
+                    (*iter)->status = (OnlineStatus)client->getOnLineState();
+                }
+                else
+                {
+                    (*iter)->status = STATUS_OFFLINE;
+                }
+                iter++;
+            }
+        }
+
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response);
     }
     else
@@ -322,10 +452,72 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
         responseData.data = RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,(int)STATUS_FAILE);
     }
 
+    SendData(responseData);
+
+    //推送历史消息
+    {
+        //[1]查找该用户对应的系统消息
+        QList<AddFriendRequest> systemRequest;
+        if(RSingleton<SQLProcess>::instance()->loadSystemCache(db,request->accountId,systemRequest))
+        {
+            QList<AddFriendRequest>::iterator iter = systemRequest.begin();
+            while(iter != systemRequest.end())
+            {
+                SocketOutData reqeuestData;
+                reqeuestData.sockId = socketId;
+
+                OperateFriendResponse * ofresponse = new OperateFriendResponse();
+                ofresponse->type = FRIEND_APPLY;
+                ofresponse->result = (int)FRIEND_REQUEST;
+                ofresponse->stype = (*iter).stype;
+                ofresponse->accountId = request->accountId;
+
+                UserBaseInfo baseInfo;
+                RSingleton<SQLProcess>::instance()->getUserInfo(db,(*iter).accountId,baseInfo);
+                ofresponse->requestInfo.accountId = baseInfo.accountId;
+                ofresponse->requestInfo.nickName = baseInfo.nickName;
+                ofresponse->requestInfo.signName = baseInfo.signName;
+                ofresponse->requestInfo.face = baseInfo.face;
+                ofresponse->requestInfo.customImgId = baseInfo.customImgId;
+
+                reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse);
+
+                delete ofresponse;
+                SendData(reqeuestData);
+
+                iter++;
+            }
+        }
+
+        //[2]查找该用户对应的聊天历史消息
+        QList<TextResponse> textResponse;
+        if(RSingleton<SQLProcess>::instance()->loadChatCache(db,request->accountId,textResponse))
+        {
+            QList<TextResponse>::iterator iter = textResponse.begin();
+            while(iter != textResponse.end())
+            {
+                SocketOutData responseData;
+                responseData.sockId = socketId;
+
+                TextResponse * response = new TextResponse;
+                response->msgCommand = (*iter).msgCommand;
+                response->accountId = (*iter).fromAccountId;
+                response->fromAccountId = (*iter).accountId;
+                response->sendData = (*iter).sendData;
+                response->timeStamp = (*iter).timeStamp;
+
+                responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
+
+                SendData(responseData);
+                delete response;
+
+                iter++;
+            }
+        }
+    }
+
     delete request;
     delete response;
-
-    SendData(responseData);
 }
 
 void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingRequest *request)
@@ -427,30 +619,51 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
     SendData(responseData);
 }
 
+/*!
+ * @brief 聊天消息处理
+ * @param[in] db 数据库
+ * @param[in] socketId 发送方SOCKET标识
+ * @param[in] request 聊天信息主体
+ * @return 是否插入成功
+ */
 void DataProcess::processText(Database *db, int socketId, TextRequest * request)
 {
     SocketOutData responseData;
 
-    TcpClient * client = TcpClientManager::instance()->getClient(request->destAccountId);
-    if(client && client->isOnLine())
+    if(request->type == SearchPerson)
     {
-        responseData.sockId = client->socket();
+        TcpClient * client = TcpClientManager::instance()->getClient(request->destAccountId);
+        if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
+        {
+            responseData.sockId = client->socket();
 
-        TextResponse * response = new TextResponse;
-        response->msgCommand = request->msgCommand;
-        response->accountId = request->destAccountId;
-        response->fromAccountId = request->accountId;
-        response->sendData = request->sendData;
-        response->timeStamp = request->timeStamp;
+            TextResponse * response = new TextResponse;
+            response->msgCommand = request->msgCommand;
+            response->accountId = request->destAccountId;
+            response->fromAccountId = request->accountId;
+            response->sendData = request->sendData;
+            response->timeStamp = request->timeStamp;
 
-        responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
+            responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
 
-        SendData(responseData);
-        delete response;
+            SendData(responseData);
+            delete response;
+        }
+        else
+        {
+            if(request->type == SearchPerson)
+            {
+                //FIXME 存储消息时，会因存在'和"导致sql执行失败
+                RSingleton<SQLProcess>::instance()->saveUserChat2Cache(db,request);
+            }
+            else if(request->type == SearchGroup)
+            {
+
+            }
+        }
     }
-    else
-    {
-        //TODO 保存信息至历史消息数据库
-    }
+
+    //TODO 加入对该条消息的回复确认
+
     delete request;
 }

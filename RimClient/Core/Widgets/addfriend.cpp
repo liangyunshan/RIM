@@ -386,10 +386,10 @@ bool AddFriend::friendExisted(QString accountId)
     QList<RGroupData *>::iterator iter = G_FriendList.begin();
     while(iter != G_FriendList.end())
     {
-        QList<SimpleUserInfo>::iterator userIter = (*iter)->users.begin();
+        QList<SimpleUserInfo *>::iterator userIter = (*iter)->users.begin();
         while(userIter != (*iter)->users.end())
         {
-            if((*userIter).accountId == accountId)
+            if((*userIter)->accountId == accountId)
             {
                 return true;
             }

@@ -17,6 +17,7 @@
 #include "Util/imagemanager.h"
 #include "Widgets/widget/rlabel.h"
 #include "Util/rutil.h"
+#include "Widgets/onlinestate.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
 #define TOOL_ITEM_INFOLABEL_WIDTH 25
@@ -52,6 +53,7 @@ protected:
     QLabel * nickLabel;                 //个人昵称、群组成员数量
     QLabel * descLabel;                 //个人签名、群组和历史聊天的聊天记录信息
     QLabel * infoLabel;                 //群组和历史聊天的日期或作为通知时的条数信息
+    QLabel * onLineStateLabel;          //联系人在线状态、群消息状态(屏蔽等).
 
     int notifyCount;                    //作为通知消息时，显示通知消息的数量
 
@@ -86,6 +88,11 @@ void ToolItemPrivate::initWidget()
     iconLayout->addStretch(1);
     iconLayout->addWidget(iconLabel);
     iconWidget->setLayout(iconLayout);
+
+    int tmpWidth = 18;
+    onLineStateLabel = new QLabel(iconWidget);
+    onLineStateLabel->setFixedSize(tmpWidth,tmpWidth);
+    onLineStateLabel->move(iconWidget->width() - tmpWidth,iconWidget->height() - tmpWidth);
 
     QWidget * middleWidget = new QWidget(contentWidget);
     middleWidget->setFixedHeight(Constant::ICON_USER_SIZE);
@@ -320,25 +327,26 @@ void ToolItem::setChecked(bool flag)
 }
 
 /*!
-     * @brief 根据在线状态设置状态显示
-     * @param[in] status:OnlineStatus,联系人的在线状态枚举值
-     * @return 无
-     */
+ * @brief 根据在线状态设置状态显示
+ * @param[in] status:OnlineStatus,联系人的在线状态枚举值
+ * @return 无
+ */
 void ToolItem::setStatus(OnlineStatus status)
 {
     MQ_D(ToolItem);
-    if(status==STATUS_OFFLINE || status==STATUS_INVISIBLE)
+    if(status == STATUS_OFFLINE || status == STATUS_HIDE)
     {
-        //TODO LYS-20180209 Item中头像变为灰色
         QImage t_normal = d->iconLabel->pixmap()->toImage();
         QImage t_grayPic = RUtil::convertToGray(t_normal);
         d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
+        d->onLineStateLabel->setPixmap(QPixmap(""));
     }
     else
     {
-        //TODO LYS-20180209 Item中头像变为高亮
         QString t_filePath = d->iconLabel->getPixmapFileInfo().absoluteFilePath();
         d->iconLabel->setPixmap(QPixmap(t_filePath));
+        d->onLineStateLabel->setPixmap(QPixmap(OnLineState::getStatePixmap(status)).scaled(d->onLineStateLabel->width(),
+                                                                                           d->onLineStateLabel->height()));
     }
 }
 
