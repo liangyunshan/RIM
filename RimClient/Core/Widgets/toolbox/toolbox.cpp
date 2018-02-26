@@ -545,7 +545,6 @@ void ToolBox::dropEvent(QDropEvent *event)
     {
         int t_movedIndex = -1;
         indexInLayout(event->pos(),t_movedIndex);
-        qDebug()<<"Time:"<<QTime::currentTime().toString("hh:mm:ss")<<"t_movedIndex"<<t_movedIndex;
         if(t_movedIndex != -1)
         {
             removePage(t_movedPage);
