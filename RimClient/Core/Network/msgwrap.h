@@ -32,6 +32,7 @@ private:
     void handleRegistRequest(RegistRequest *packet);
     void handleLoginRequest(LoginRequest *packet);
     void handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet);
+    void handleUserStateRequest(UserStateRequest * request);
     void handleSearchFriendRequest(SearchFriendRequest * packet);
     void handleAddFriendRequest(AddFriendRequest * packet);
     void handleOperateFriendRequest(OperateFriendRequest * packet);

@@ -93,8 +93,6 @@ QString Criteria::toSql()
         result += ctypes.at(i).toSql();
     }
 
-    qDebug()<<result;
-
     return result;
 }
 

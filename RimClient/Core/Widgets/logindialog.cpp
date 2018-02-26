@@ -294,6 +294,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextResponse)),this,SLOT(procRecvText(TextResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
+            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -306,7 +308,8 @@ void LoginDialog::respConnect(bool flag)
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
-        request->status = STATUS_ONLINE;
+        request->status = d->onlineState->state();
+        G_OnlineStatus = d->onlineState->state();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
 #else
         recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
@@ -523,6 +526,8 @@ void LoginDialog::respItemChanged(QString id)
                 }
             }
 
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<userInfo->loginState;
+
             d->onlineState->setState((OnlineStatus)userInfo->loginState);
             d->isNewUser = false;
 
@@ -570,6 +575,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
                 d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
                 d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }
@@ -649,11 +655,11 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 }
 
 /*!
-     * @brief 接收好友操作响应信息
-     * @details 可操作好友请求、同意请求、拒绝请求
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
+ * @brief 接收好友操作响应信息
+ * @details 可操作好友请求、同意请求、拒绝请求
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
     MQ_D(LoginDialog);
@@ -692,6 +698,7 @@ void LoginDialog::procRecvText(TextResponse response)
     {
         //【1】存储消息至数据库
         SimpleUserInfo userInfo;
+        qDebug()<<response.sendData;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
         SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
@@ -757,11 +764,27 @@ void LoginDialog::procRecvText(TextResponse response)
     }
 }
 
+void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
+{
+    if(result == STATUS_SUCCESS && response.accountId != G_UserBaseInfo.accountId)
+    {
+        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+        if(client)
+        {
+            client->toolItem->setStatus(response.onStatus);
+            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+            {
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+            }
+        }
+    }
+}
+
 /*!
-     * @brief 查看系统通知消息
-     * @param[in] info 通知消息内容
-     * @return 无
-     */
+ * @brief 查看系统通知消息
+ * @param[in] info 通知消息内容
+ * @return 无
+ */
 void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(LoginDialog);

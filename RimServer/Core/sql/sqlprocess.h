@@ -34,11 +34,16 @@ public:
     bool deleteGroup(Database *db,GroupingRequest* request);
     bool establishRelation(Database *db,OperateFriendRequest *request);
     bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
+    void getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList);
     void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
 
     bool updateGroupFriendInfo(Database *db,GroupingFriendRequest * request);
     bool updateMoveGroupFriend(Database *db,GroupingFriendRequest * request);
 
+    bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
+    bool loadChatCache(Database * db, QString accountId, QList<TextResponse> &textResponse);
+
+    bool saveUserChat2Cache(Database * db, TextRequest * request);
 
     QString getDefaultGroupByUserId(Database * db,const QString id);
     QString getDefaultGroupByUserAccountId(Database * db,const QString id);

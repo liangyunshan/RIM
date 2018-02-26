@@ -25,6 +25,8 @@ public:
     void onRecvRegistResponse(ResponseRegister status,RegistResponse response);
     void onRecvLoginResponse(ResponseLogin status, LoginResponse response);
     void onRecvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
+    void onRecvUserStateChangedResponse(MsgOperateResponse result,UserStateResponse response);
+
     void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
@@ -38,6 +40,7 @@ signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response);
+    void recvUserStateChangedResponse(MsgOperateResponse result,UserStateResponse response);
     void recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);

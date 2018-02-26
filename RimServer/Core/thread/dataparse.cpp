@@ -55,7 +55,7 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
     switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
     {
-         case MSG_USER_REGISTER:
+        case MSG_USER_REGISTER:
               onProcessUserRegist(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
         case MSG_USER_LOGIN:
@@ -63,6 +63,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
               break;
         case MSG_USER_UPDATE_INFO:
               onProcessUpdateUserInfo(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_USER_STATE:
+              onProcessUserStateChanged(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
         case MSG_RELATION_SEARCH:
               onProcessSearchFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
@@ -146,6 +149,15 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
 
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
+}
+
+void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
+{
+    UserStateRequest * request = new UserStateRequest();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->onStatus = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
+
+    RSingleton<DataProcess>::instance()->processUserStateChanged(db,socketId,request);
 }
 
 void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)

@@ -26,11 +26,11 @@ public:
 
     void crateIocpContext();
 
-    IocpContext * m_iocpContext;                //服务器端I/O重叠结构
+    IocpContext * m_iocpContext;                /*!< 服务器端I/O重叠结构 */
 
-    RSocket m_listenSock;                       //服务端接听端口
-    HANDLE m_ioCompletionPort;                  //iocp端口
-    TcpClientManager * m_clientManager;         //客户端管理
+    RSocket m_listenSock;                       /*!< 服务端接听端口 */
+    HANDLE m_ioCompletionPort;                  /*!< iocp端口 */
+    TcpClientManager * m_clientManager;         /*!< 客户端管理 */
 };
 
 }//namespace ServerNetwork

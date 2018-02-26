@@ -47,6 +47,12 @@ RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
 
 }
 
+RUserChatCache::RUserChatCache():table("ruserchatcache"),id("ID"),account("ACCOUNT"),
+destAccount("DESTACCOUNT"),data("DATA"),time("TTSTAMP"),msgType("MSGTYPE")
+{
+
+}
+
 }
 
 

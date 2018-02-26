@@ -97,6 +97,26 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
     }
 }
 
+void DataProcess::proUserStateChanged(QJsonObject &data)
+{
+    UserStateResponse response;
+    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        if(!dataObj.isEmpty())
+        {
+            response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+            response.onStatus = (OnlineStatus)dataObj.value(JsonKey::key(JsonKey::Status)).toInt();
+
+            MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_SUCCESS,response);
+        }
+    }
+    else
+    {
+        MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_FAILE,response);
+    }
+}
+
 void DataProcess::proSearchFriendResponse(QJsonObject &data)
 {
     SearchFriendResponse response;
@@ -192,13 +212,14 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
             {
                 QJsonObject user = users.at(j).toObject();
 
-                SimpleUserInfo userInfo;
-                userInfo.accountId = user.value(JsonKey::key(JsonKey::AccountId)).toString();
-                userInfo.nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
-                userInfo.signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
-                userInfo.remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
-                userInfo.face = user.value(JsonKey::key(JsonKey::Face)).toInt();
-                userInfo.customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+                SimpleUserInfo * userInfo = new SimpleUserInfo();
+                userInfo->accountId = user.value(JsonKey::key(JsonKey::AccountId)).toString();
+                userInfo->nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
+                userInfo->signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
+                userInfo->remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
+                userInfo->face = user.value(JsonKey::key(JsonKey::Face)).toInt();
+                userInfo->customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+                userInfo->status = (OnlineStatus)user.value(JsonKey::key(JsonKey::Status)).toInt();
 
                 groupData->users.append(userInfo);
             }
@@ -253,6 +274,7 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
         response.user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
         response.user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
         response.user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+        response.user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
         MessDiapatch::instance()->onRecvGroupingFriend(status,response);
     }

@@ -12,6 +12,7 @@
  *             20180202:wey:添加同意请求页面打开聊天页面；
  *             20180210:LYS:登录成功后将登录状态传递给面板；
  *             20180207:wey:调整用户登陆列表
+ *             20180225:wey:修复切换用户其登陆状态未同步切换问题
  */
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
@@ -99,6 +100,7 @@ private slots:
     void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
     void procRecvText(TextResponse response);
+    void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
 
 private:
     void createTrayMenu();

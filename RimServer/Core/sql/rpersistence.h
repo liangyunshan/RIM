@@ -95,6 +95,8 @@ public:
         return ctia;
     }
 
+    virtual QString sql() = 0;
+
     Criteria ctia;
 };
 
