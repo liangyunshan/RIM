@@ -286,12 +286,18 @@ void DataProcess::proText(QJsonObject &data)
     if(result == STATUS_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
-        TextResponse response;
+        TextRequest response;
+
         response.msgCommand = (MsgCommand)data.value(JsonKey::key(JsonKey::Command)).toInt();
+
         response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
-        response.fromAccountId = dataObj.value(JsonKey::key(JsonKey::FromId)).toString();
+        response.textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+        response.otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
+        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
         response.timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
+        response.isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
+        response.isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
+        response.textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
 
         MessDiapatch::instance()->onRecvText(response);
@@ -300,4 +306,14 @@ void DataProcess::proText(QJsonObject &data)
     {
 
     }
+}
+
+void DataProcess::proTextApply(QJsonObject &data)
+{
+    QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+    TextReply textReply;
+    textReply.textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+    textReply.applyType = (TextReplyType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+
+    MessDiapatch::instance()->onRecvTextReply(textReply);
 }

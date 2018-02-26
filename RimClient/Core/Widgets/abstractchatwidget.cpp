@@ -36,6 +36,7 @@
 #include "slidebar.h"
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
+#include "others/msgqueuemanager.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -101,7 +102,7 @@ protected:
     bool isMaxSize;
     QRect originRect;                      //原始位置及尺寸
 
-    QString windowId;
+    QString windowId;                       /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
     DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
@@ -536,7 +537,7 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     MQ_D(AbstractChatWidget);
     TextRequest * request = new TextRequest;
     request->msgCommand = MSG_TEXT_SHAKE;
-    request->destAccountId = d->userInfo.accountId;
+    request->otherSideId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
@@ -638,7 +639,12 @@ void AbstractChatWidget::slot_CheckSendEnter()
     slot_ButtClick_SendMsg(true);
 }
 
-//点击发送按钮，发送聊天编辑区域的信息
+/*!
+ * @brief 发送信息
+ * @details 将用户信息输入区的内容封装成消息请求加入发送队列，同时将信息保存至消息队列用于后期的管理
+ * @param[in] flag 未使用
+ * @return 无
+ */
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
@@ -652,13 +658,19 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     TextUnit::ChatInfoUnit unit;
     d_ptr->chatInputArea->transTextToUnit(unit);
 
+    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
     TextRequest * request = new TextRequest;
     request->type = SearchPerson;
-    request->destAccountId = d->userInfo.accountId;
+    request->textId = RUtil::UUID();
+    request->isEncryption = false;
+    request->isCompress = false;
+    request->textType = TEXT_NORAML;
+    request->otherSideId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
     request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
 
