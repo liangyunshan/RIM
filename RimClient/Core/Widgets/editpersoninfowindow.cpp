@@ -137,6 +137,7 @@ void EditPersonInfoWindowPrivate::initWidget()
 
     m_nickName_edit = new QLineEdit(bodyWidget);
     m_nickName_edit->setFixedSize(Edit_Width,Label_Height);
+    QObject::connect(m_nickName_edit,SIGNAL(editingFinished()),q_ptr,SLOT(singleBaseInfoFinished()));
 
     m_sexual_label = new QLabel(bodyWidget);
     m_sexual_label->setAlignment(Qt::AlignCenter);
@@ -169,10 +170,7 @@ void EditPersonInfoWindowPrivate::initWidget()
 
     m_phone_edit = new QLineEdit(bodyWidget);
     m_phone_edit->setFixedHeight(Constant::ITEM_FIX_HEIGHT);
-
-    QRegExpValidator * phoneValidator = new QRegExpValidator;
-    phoneValidator->setRegExp(QRegExp(RSingleton<RegExp>::instance()->regexp(RegExp::PHONE_NUM)));
-    m_phone_edit->setValidator(phoneValidator);
+    QObject::connect(m_phone_edit,SIGNAL(editingFinished()),q_ptr,SLOT(singleBaseInfoFinished()));
 
     m_address_label = new QLabel(bodyWidget);
     m_address_label->setAlignment(Qt::AlignCenter);
@@ -187,6 +185,7 @@ void EditPersonInfoWindowPrivate::initWidget()
 
     m_mail_edit = new QLineEdit(bodyWidget);
     m_mail_edit->setFixedHeight(Constant::ITEM_FIX_HEIGHT);
+    QObject::connect(m_mail_edit,SIGNAL(editingFinished()),q_ptr,SLOT(singleBaseInfoFinished()));
 
     m_desc_label = new QLabel(bodyWidget);
     m_desc_label->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
@@ -270,8 +269,14 @@ void EditPersonInfoWindowPrivate::initContent()
     m_sexual_box->setCurrentIndex((int)G_UserBaseInfo.sexual);
     m_birth_dateEdit->setDate(QDate::fromString(G_UserBaseInfo.birthday,Constant::Date_Simple));
     m_address_edit->setText(G_UserBaseInfo.address);
-    m_mail_edit->setText(G_UserBaseInfo.email);
-    m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_UserBaseInfo.email))
+    {
+        m_mail_edit->setText(G_UserBaseInfo.email);
+    }
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,G_UserBaseInfo.phoneNumber))
+    {
+        m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
+    }
     m_desc_plainEdit->clear();
     m_desc_plainEdit->appendPlainText(G_UserBaseInfo.remark);
 }
@@ -372,7 +377,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.email = d->m_mail_edit->text();
     request->baseInfo.phoneNumber = d->m_phone_edit->text();
     request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
-    request->baseInfo.face = 0;
+    request->baseInfo.face = 0;     //FIXME LYS-根据实际情况进行处理
     request->baseInfo.customImgId = "456";
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -394,6 +399,36 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
         default:
                                     RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
                                     break;
+    }
+}
+
+/*!
+     * @brief 任意基本信息完成输入后立即验证并提示
+     * @param[in] 无
+     * @return 无
+     */
+void EditPersonInfoWindow::singleBaseInfoFinished()
+{
+    MQ_D(EditPersonInfoWindow);
+    if(QObject::sender() == d->m_phone_edit)
+    {
+        if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))
+        {
+            RMessageBox::warning(this,"warning","The phone number is malformed.",RMessageBox::Yes);
+            return;
+        }
+    }
+    else if(QObject::sender() == d->m_mail_edit)
+    {
+        if(d->m_mail_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,d->m_mail_edit->text()))
+        {
+            RMessageBox::warning(this,"warning","The mail number is malformed.",RMessageBox::Yes);
+            return;
+        }
+    }
+    else if(QObject::sender() == d->m_nickName_edit)
+    {
+        //TODO 验证昵称输入是否符合要求
     }
 }
 

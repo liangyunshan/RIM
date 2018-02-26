@@ -215,7 +215,29 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
 void PanelTopArea::updateUserInfo()
 {
     MQ_D(PanelTopArea);
+    UserBaseInfo tmp = G_UserBaseInfo;
     d->userSignNameEdit->setText(G_UserBaseInfo.signName);
+
+    QString t_iconPath;
+    if(G_UserBaseInfo.face>0)
+    {
+        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face);
+    }
+    else
+    {
+        //TODO 获取自定义头像文件路径
+    }
+    if(!t_iconPath.isEmpty())
+    {
+        QFileInfo t_iconFile(t_iconPath);
+        if(!t_iconFile.exists())
+        {
+            return;
+        }
+    }
+
+    d->userIconLabel->setPixmap(t_iconPath);
+
 }
 
 void PanelTopArea::stateChanged(OnlineStatus state)
@@ -224,3 +246,9 @@ void PanelTopArea::stateChanged(OnlineStatus state)
     //TODO LYS-通知服务器当前用户状态更新
     //另外对于不同状态做出相应的处理
 }
+
+
+
+
+
+
