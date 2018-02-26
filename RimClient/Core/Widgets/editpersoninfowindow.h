@@ -37,6 +37,7 @@ private slots:
     void updateUserBaseInfo();
     void updateSystemIconInfo(QString filename);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
+    void singleBaseInfoFinished();
 
 private:
     EditPersonInfoWindowPrivate * d_ptr;

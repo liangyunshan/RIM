@@ -281,16 +281,31 @@ void PanelPersonPage::sendInstantMessage()
     emit showChatDialog(d->toolBox->selectedItem());
 }
 
+/*!
+     * @brief 显示好友资料
+     * @param[in]
+     * @return 无
+     */
 void PanelPersonPage::showUserDetail()
 {
 
 }
 
+/*!
+     * @brief 修改好友备注信息
+     * @param[in]
+     * @return 无
+     */
 void PanelPersonPage::modifyUserInfo()
 {
 
 }
 
+/*!
+     * @brief 请求服务器删除好友
+     * @param[in]
+     * @return 无
+     */
 void PanelPersonPage::deleteUser()
 {
 
