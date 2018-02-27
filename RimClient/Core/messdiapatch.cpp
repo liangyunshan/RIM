@@ -88,3 +88,8 @@ void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFrien
 
     }
 }
+
+void MessDiapatch::onScreenChanged()
+{
+    emit screenChange();
+}

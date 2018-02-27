@@ -2,7 +2,7 @@
 
 #include <QDebug>
 
-#include "Widgets/systemtrayicon.h"
+#include "messdiapatch.h"
 
 Application::Application(int &argc, char **argv):
     QApplication(argc,argv)
@@ -12,8 +12,9 @@ Application::Application(int &argc, char **argv):
 
 bool Application::notify(QObject *obj, QEvent *event)
 {
-    if(SystemTrayIcon::instance() == obj)
+    if(event->type() == QEvent::ScreenChangeInternal || event->type() == QEvent::OrientationChange)
     {
+        MessDiapatch::instance()->onScreenChanged();
     }
 
     return QApplication::notify(obj,event);

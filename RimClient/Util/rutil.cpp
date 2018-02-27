@@ -90,6 +90,38 @@ QSize RUtil::screenSize(int num)
     return qApp->desktop()->screen()->size();
 }
 
+/*!
+ * @brief 获取屏幕坐标尺寸范围
+ * @details 在多窗口下，主屏和副屏有顺序关系。顺序不同，其坐标的范围存在差异 @n
+ *          若A为主屏、B为辅屏，那么AB排列时，坐标范围为[0,2W][0,H] @n
+ *          若BA排列时，坐标范围是[-W,W][0,H] @n
+ * @warning AB、BA排列时在获取控件的位置时有较大的影响。
+ * @param[in] 无
+ * @return 屏幕坐标
+ */
+QRect RUtil::screenGeometry()
+{
+    int screenSize = qApp->desktop()->screenCount();
+
+    int minX = 0,maxX = 0 ,minY = 0,maxY = 0;
+    for(int i = 0; i < screenSize; i++)
+    {
+        QRect tmpRect = qApp->desktop()->screenGeometry(i);
+        minX = tmpRect.x() < minX ? tmpRect.x() : minX;
+        maxX = tmpRect.x() + tmpRect.width() > maxX ? tmpRect.x() + tmpRect.width() : maxX;
+        minY = tmpRect.y() < minY ? tmpRect.y() : minY;
+        maxY = tmpRect.y() + tmpRect.height() > maxY ? tmpRect.y() + tmpRect.height() : maxY;
+    }
+
+    QRect rect;
+    rect.setLeft(minX);
+    rect.setRight(maxX);
+    rect.setTop(minY);
+    rect.setBottom(maxY);
+
+    return rect;
+}
+
 qint64 RUtil::currentMSecsSinceEpoch()
 {
     return QDateTime::currentDateTime().currentMSecsSinceEpoch();

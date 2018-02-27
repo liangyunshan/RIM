@@ -352,20 +352,20 @@ void Widget::mouseReleaseEvent(QMouseEvent *)
 
     if(d->windowMoveable)
     {
-        if(pos().y() <= 0)
-        {
-            move(pos().x(),-WINDOW_MARGIN_SIZE);
-        }
+//        if(pos().y() <= 0)
+//        {
+//            move(pos().x(),-WINDOW_MARGIN_SIZE);
+//        }
 
-        if(pos().x() < 0)
-        {
-            move(0,pos().y());
-        }
+//        if(pos().x() < 0)
+//        {
+//            move(0,pos().y());
+//        }
 
-        if(pos().x() > qApp->desktop()->geometry().width()  - width() )
-        {
-            move(qApp->desktop()->geometry().width() - width(),pos().y());
-        }
+//        if(pos().x() > qApp->desktop()->geometry().width()  - width() )
+//        {
+//            move(qApp->desktop()->geometry().width() - width(),pos().y());
+//        }
     }
 
 

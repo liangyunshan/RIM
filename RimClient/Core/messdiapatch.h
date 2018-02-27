@@ -37,6 +37,8 @@ public:
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
+    void onScreenChanged();
+
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
@@ -51,6 +53,8 @@ signals:
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+
+    void screenChange();
 
 private:
     MessDiapatch(QObject *parent = 0);
