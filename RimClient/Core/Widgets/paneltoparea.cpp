@@ -202,6 +202,7 @@ void PanelTopArea::respSignChanged(QString content)
     request->baseInfo.remark = G_UserBaseInfo.remark;
     request->baseInfo.face = G_UserBaseInfo.face;
     request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
+    request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -254,7 +255,8 @@ void PanelTopArea::stateChanged(OnlineStatus state)
 
 void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
 {
-
+    Q_UNUSED(result);
+    Q_UNUSED(response);
 }
 
 

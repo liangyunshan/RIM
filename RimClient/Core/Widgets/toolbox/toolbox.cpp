@@ -284,6 +284,26 @@ ToolPage *ToolBox::targetPage(QString &target)
     return targetPage;
 }
 
+/*!
+     * @brief 获取包含item的page
+     * @param[in] 无
+     * @return 包含目标item的page
+     *
+     */
+ToolPage *ToolBox::targetPage(ToolItem * item)
+{
+    MQ_D(ToolBox);
+    ToolPage * targetPage= NULL;
+    for(int index=0;index<d->pages.count();index++)
+    {
+        if(d->pages.at(index)->items().contains(item))
+        {
+            targetPage = d->pages.at(index);
+        }
+    }
+    return targetPage;
+}
+
 void ToolBox::setSlectedPage(ToolPage *item)
 {
     MQ_D(ToolBox);

@@ -57,6 +57,10 @@ private slots:
     void deleteUser();
 
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+    void updateModifyInstance(QObject *);
+    void requestModifyRemark(QString remark);
+
+    void updateDetailInstance(QObject *);
 
 public slots:
     void renameEditFinished();
@@ -69,6 +73,7 @@ private:
     ToolItem * ceateItem(SimpleUserInfo *info, ToolPage *page);
     void clearTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);
+    void removeContact(const SimpleUserInfo &);
 
 private:
     PanelPersonPagePrivate * d_ptr;

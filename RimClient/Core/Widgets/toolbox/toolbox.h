@@ -7,13 +7,15 @@
  *  @date      2017.12.18
  *  @warning
  *  @copyright NanJing RenGu.
- *  @change
+ *  @note
  *      date:20180129   content:添加获取倒数第二个page方法penultimatePage   name:LYS
  *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
  *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
  *      date:20180131   content:添加移除分组方法removePage   name:LYS
  *      date:20180131   content:添加获取默认分组方法defaultPage   name:LYS
  *      date:20180208   content:修复移动排序算法问题   name:LYS
+ *      date:20180227   content:添加根据Item找到Page的重载方法targetPage(ToolItem *)   name:LYS
+ *
  */
 #ifndef TOOLBOX_H
 #define TOOLBOX_H
@@ -49,6 +51,7 @@ public:
     ToolPage *penultimatePage();
     ToolPage *defaultPage();
     ToolPage *targetPage(QString &);
+    ToolPage *targetPage(ToolItem *);
 
 signals:
     void updateGroupActions(ToolPage *);
