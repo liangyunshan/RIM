@@ -1,4 +1,4 @@
-#include "modifyremarkwindow.h"
+﻿#include "modifyremarkwindow.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -132,10 +132,10 @@ void ModifyRemarkWindow::onMessage(MessageType type)
 }
 
 /*!
-     * @brief 设置修改备注名窗口显示内容
-     * @param[in] remarkName：QString，窗口中待显示的内容
-     * @return 无
-     */
+ * @brief 设置修改备注名窗口显示内容
+ * @param[in] remarkName：QString，窗口中待显示的内容
+ * @return 无
+ */
 void ModifyRemarkWindow::setOldRemarkName(QString remarkName)
 {
     MQ_D(ModifyRemarkWindow);

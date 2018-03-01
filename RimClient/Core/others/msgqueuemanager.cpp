@@ -1,4 +1,4 @@
-#include "msgqueuemanager.h"
+﻿#include "msgqueuemanager.h"
 
 #include <QMutexLocker>
 #include <QDebug>

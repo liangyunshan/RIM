@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180201:wey:添加对用户分组好友的操作(创建、移动、修改)
+ *      20180301:wey:修复查询默认分组时未加入默认分组条件bug
  */
 #ifndef SQLPROCESS_H
 #define SQLPROCESS_H
@@ -35,21 +36,23 @@ public:
     bool establishRelation(Database *db,OperateFriendRequest *request);
     bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
     void getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList);
-    void getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
+    bool getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
 
     bool updateGroupFriendInfo(Database *db,GroupingFriendRequest * request);
     bool updateMoveGroupFriend(Database *db,GroupingFriendRequest * request);
+    bool deleteFriend(Database *db, GroupingFriendRequest * request, QString &accountId, QString &otherUserGroupId);
 
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);
 
     bool saveUserChat2Cache(Database * db, TextRequest * request);
 
+
     QString getDefaultGroupByUserId(Database * db,const QString id);
     QString getDefaultGroupByUserAccountId(Database * db,const QString id);
 
 private:
-
+    QStringList getGroupsById(Database * db,const QString id);
 };
 
 #endif // SQLPROCESS_H

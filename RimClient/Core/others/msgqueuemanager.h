@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     消息队列管理
  *  @details   保存发送的消息
  *  @file      msgqueuemanager.h

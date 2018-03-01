@@ -13,7 +13,6 @@
 
 #include "Network/rtask.h"
 #include "protocoldata.h"
-
 using namespace ProtocolType;
 
 #include <QJsonObject>

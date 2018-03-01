@@ -166,7 +166,7 @@ RegistDialog::RegistDialog(QWidget *parent):
         bar->setWindowTitle(windowTitle());
     }
 
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvRegistResponse(ResponseRegister,RegistResponse)),this,SLOT(recvResponse(ResponseRegister,RegistResponse)));
 }
 
@@ -220,7 +220,7 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
-    NetConnector::instance()->connect();
+    TextNetConnector::instance()->connect();
 }
 
 void RegistDialog::respConnect(bool flag)
@@ -244,7 +244,7 @@ void RegistDialog::respConnect(bool flag)
 
 void RegistDialog::closeEvent(QCloseEvent *event)
 {
-    disconnect(NetConnector::instance());
+    disconnect(TextNetConnector::instance());
     Widget::closeEvent(event);
 }
 

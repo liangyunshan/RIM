@@ -12,7 +12,7 @@ QT       += multimedia
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
 
-#是否开启网�DEFINES += __NO_SERVER__
+#是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
 TARGET = RimClient
@@ -131,6 +131,7 @@ SOURCES += \
     json/jsonresolver.cpp \
     Widgets/widget/rcombobox.cpp \
     Widgets/widget/rlineedit.cpp \
+    thread/imagetask.cpp \
     Widgets/modifyremarkwindow.cpp \
     Widgets/contactdetailwindow.cpp \
     others/msgqueuemanager.cpp
@@ -208,9 +209,10 @@ HEADERS  += \
     json/jsonresolver.h \
     Widgets/widget/rcombobox.h \
     Widgets/widget/rlineedit.h \
+    others/msgqueuemanager.h \
+    thread/imagetask.h \
     Widgets/modifyremarkwindow.h \
-    Widgets/contactdetailwindow.h \
-    others/msgqueuemanager.h
+    Widgets/contactdetailwindow.h 
 
 DISTFILES += \
     Widgets/Widgets.pri

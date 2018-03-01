@@ -45,7 +45,7 @@ protected:
 
     QWidget * contentWidget;
     QLineEdit *tmpNameEdit;                         //重命名时用edit
-    ToolPage * pageOfTriggeredItem;                     //待移动分组的item所属的page
+    ToolPage * pageOfTriggeredItem;                 //待移动分组的item所属的page
     ToolItem * m_movedItem;                         //待移动的联系人item
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
@@ -101,7 +101,12 @@ PanelPersonPage::~PanelPersonPage()
     RSingleton<Subject>::instance()->detach(this);
 }
 
-//更新好友列表
+/*!
+ * @brief 更新好友列表
+ * @details 接收数据后，1.创建对应的ToolItem；2.更新对应Client的基本信息。
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::addGroupAndUsers()
 {
     MQ_D(PanelPersonPage);
@@ -181,21 +186,25 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
 void PanelPersonPage::removeContact(const SimpleUserInfo & info)
 {
     MQ_D(PanelPersonPage);
-    ToolItem * t_item = RSingleton<UserManager>::instance()->client(info.accountId)->toolItem;
-    if(!t_item)
+    UserClient * userClient = RSingleton<UserManager>::instance()->client(info.accountId);
+    if(userClient)
     {
-        return;
-    }
-    ToolPage *t_pageOfItem = d->toolBox->targetPage(t_item);
-    if(t_pageOfItem)
-    {
-        bool t_removeResult = t_pageOfItem->removeItem(t_item);
-        if(t_removeResult)
+        ToolItem * t_item = userClient->toolItem;
+        if(!t_item)
         {
-            bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
-            if(t_result)
+            return;
+        }
+        ToolPage *t_pageOfItem = d->toolBox->targetPage(t_item);
+        if(t_pageOfItem)
+        {
+            bool t_removeResult = t_pageOfItem->removeItem(t_item);
+            if(t_removeResult)
             {
-                delete t_item;
+                bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
+                if(t_result)
+                {
+                    delete t_item;
+                }
             }
         }
     }
@@ -388,10 +397,10 @@ void PanelPersonPage::modifyUserInfo()
 }
 
 /*!
-     * @brief 请求服务器删除好友
-     * @param[in]
-     * @return 无
-     */
+ * @brief 请求服务器删除好友
+ * @param[in]
+ * @return 无
+ */
 void PanelPersonPage::deleteUser()
 {
     MQ_D(PanelPersonPage);
@@ -523,6 +532,11 @@ void PanelPersonPage::updateModifyInstance(QObject *)
     }
 }
 
+/*!
+ * @brief 发送备注更新请求
+ * @param[in] remark 备注信息
+ * @return 无
+ */
 void PanelPersonPage::requestModifyRemark(QString remark)
 {
     MQ_D(PanelPersonPage);
@@ -540,6 +554,8 @@ void PanelPersonPage::requestModifyRemark(QString remark)
         {
             SimpleUserInfo t_changedInfo = client->simpleUserInfo;
             t_changedInfo.remarks = remark;
+
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<t_changedInfo.status;
             t_request->user = t_changedInfo;
         }
         else
@@ -559,6 +575,12 @@ void PanelPersonPage::updateDetailInstance(QObject *)
     }
 }
 
+/*!
+ * @brief 创建单元Item
+ * @param[in] userInfo 用户基本信息
+ * @param[in] page 所属页面
+ * @return ToolItem * 创建后Item
+ */
 ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 {
     ToolItem * item = new ToolItem(page);
@@ -577,7 +599,6 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
     client->simpleUserInfo = *userInfo;
     client->toolItem = item;
-
     return item;
 }
 

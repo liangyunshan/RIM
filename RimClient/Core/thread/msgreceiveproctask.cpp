@@ -23,6 +23,8 @@ void MsgReceiveProcTask::startMe()
 {
     RTask::startMe();
 
+    runningFlag = true;
+
     if(!isRunning())
     {
         start();
@@ -35,8 +37,6 @@ void MsgReceiveProcTask::startMe()
 
 void MsgReceiveProcTask::run()
 {
-    runningFlag = true;
-
     while(runningFlag)
     {
         while(G_RecvButts.isEmpty())
@@ -77,8 +77,6 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
             case MSG_TEXT:
                 handleTextMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                 break;
-            case MSG_IMAGE:
-                            break;
             case MSG_FILE:
                             break;
             default:

@@ -169,5 +169,10 @@ TextReply::TextReply()
     msgCommand = MSG_TEXT_APPLY;
 }
 
+FileItemRequest::FileItemRequest()
+{
+    msgType = MSG_FILE;
+}
+
 
 } //namespace Protocol
