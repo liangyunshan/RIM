@@ -192,7 +192,11 @@ void PanelPersonPage::removeContact(const SimpleUserInfo & info)
         bool t_removeResult = t_pageOfItem->removeItem(t_item);
         if(t_removeResult)
         {
-            delete t_item;
+            bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
+            if(t_result)
+            {
+                delete t_item;
+            }
         }
     }
 }
