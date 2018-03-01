@@ -572,24 +572,31 @@ void MainDialog::moveToDesktop(int direction)
 {
     MQ_D(MainDialog);
     QRect t_rect = this->geometry();
+    QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
+    t_animation->setDuration(Panel_ANDURATION);
+    t_animation->setStartValue(t_rect);
+    QRect t_endRect;
+
     switch (direction)
     {
         case d->Left:
-            this->setGeometry(t_rect.x()+t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
+            t_endRect = QRect(t_rect.x()+t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
             break;
 
         case d->Up:
-            this->setGeometry(t_rect.x(),t_rect.y()+t_rect.height(),t_rect.width(),t_rect.height());
+            t_endRect = QRect(t_rect.x(),t_rect.y()+t_rect.height(),t_rect.width(),t_rect.height());
             break;
 
         case d->Right:
-            this->setGeometry(t_rect.x()-t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
+            t_endRect = QRect(t_rect.x()-t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
             break;
 
         default:
-            Q_UNUSED(t_rect);
+            t_endRect = t_rect;
             break;
     }
+    t_animation->setEndValue(t_endRect);
+    t_animation->start(QAbstractAnimation::DeleteWhenStopped);
     Q_UNUSED(d);
 }
 
