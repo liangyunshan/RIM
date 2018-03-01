@@ -40,7 +40,8 @@ enum MessageType
     MESS_GROUPLIST_UPDATE,       /*!< 群列表更新 */
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
-    MESS_GROUP_DELETE            /*!< 分组删除消息 */
+    MESS_GROUP_DELETE,           /*!< 分组删除消息 */
+    MESS_SCREEN_CHANGE           /*!< 屏幕改变 */
 };
 
 /*!

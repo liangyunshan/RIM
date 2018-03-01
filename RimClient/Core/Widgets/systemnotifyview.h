@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     查看系统通知消息
  *  @details   可查看系统发送的好友请求以及请求结果，并提供相应的功能操作；
  *  @file      systemnotifyview.h

@@ -36,6 +36,7 @@
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
+#include "others/msgqueuemanager.h"
 #include "registdialog.h"
 #include "netsettings.h"
 #include "global.h"
@@ -293,9 +294,10 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
-    connect(MessDiapatch::instance(),SIGNAL(recvText(TextResponse)),this,SLOT(procRecvText(TextResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -684,21 +686,20 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 //TODO 考虑若未打开窗口，消息如何存储？？
 /*!
-     * @brief 接收发送的聊天消息
-     * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
-     *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
-     * @param[in] response 消息体内容
-     * @return 是否插入成功
-     */
-void LoginDialog::procRecvText(TextResponse response)
+ * @brief 接收发送的聊天消息
+ * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
+ *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+ * @param[in] response 消息体内容
+ * @return 是否插入成功
+ */
+void LoginDialog::procRecvText(TextRequest response)
 {
     MQ_D(LoginDialog);
-    UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
+    UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
     if(client)
     {
         //【1】存储消息至数据库
         SimpleUserInfo userInfo;
-        qDebug()<<response.sendData;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
         SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
@@ -729,11 +730,11 @@ void LoginDialog::procRecvText(TextResponse response)
             }
             else if(response.msgCommand == MSG_TEXT_TEXT)
             {
-                //TODO 未将文本消息设置到提示框中
+                //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();
                 info.msgCommand = response.msgCommand;
-                info.accountId = response.fromAccountId;
+                info.accountId = response.otherSideId;
                 info.nickName = client->simpleUserInfo.nickName;
                 info.type = NotifyUser;
                 info.stype = response.type;
@@ -761,6 +762,40 @@ void LoginDialog::procRecvText(TextResponse response)
         {
             RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
         }
+    }
+}
+
+/*!
+ * @brief 接收系统消息反馈
+ * @param[in] reply 消息回复
+ * @return 无
+ * @note 接收系统推送的消息反馈后，根据反馈的类型不同，执行相应的操作: @n
+ *      1.APPLY_SYSTEM:将聊天信息存入对应用户的db; @n
+ *      2.APPLY_CONFIRM:显示接收提示(弹窗或其它方式显示); @n
+ *      3.APPLY_RECEIPT:更新回执状态(已读/未读);
+ */
+void LoginDialog::processTextReply(TextReply reply)
+{
+    AbstractChatWidget * chatWidget = NULL;
+    TextRequest * msgDesc = RSingleton<MsgQueueManager>::instance()->dequeue(reply.textId);
+    if(msgDesc != NULL)
+    {
+         UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
+         if(client && client->chatWidget != NULL)
+         {
+             chatWidget = client->chatWidget;
+         }
+    }
+
+    switch(reply.applyType)
+    {
+        case APPLY_SYSTEM:
+             {
+
+             }
+             break;
+        default:
+            break;
     }
 }
 

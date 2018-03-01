@@ -6,6 +6,8 @@ MsgPacket::MsgPacket()
 {
     msgType = MSG_TYPE_INVALID;
     msgCommand = MSG_Command_INVALID;
+
+    isAutoDelete = true;
 }
 
 MsgPacket::~MsgPacket()
@@ -123,12 +125,8 @@ TextRequest::TextRequest()
 {
     msgType = MSG_TEXT;
     msgCommand = MSG_TEXT_TEXT;
-}
 
-TextResponse::TextResponse()
-{
-    msgType = MSG_TEXT;
-    msgCommand = MSG_TEXT_TEXT;
+    isAutoDelete = false;
 }
 
 GroupingFriendRequest::GroupingFriendRequest()
@@ -163,6 +161,12 @@ RGroupData::~RGroupData()
         delete (*iter);
         iter = users.erase(iter);
     }
+}
+
+TextReply::TextReply()
+{
+    msgType = MSG_TEXT;
+    msgCommand = MSG_TEXT_APPLY;
 }
 
 

@@ -91,12 +91,12 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 }
 
 /*!
-     * @brief 解析消息文本
-     * @param[in] db 线程拥有的数据库
-     * @param[in] socketId 访问的socketId
-     * @param[in] obj 解析后json请求数据
-     * @return 无
-     */
+ * @brief 解析消息文本
+ * @param[in] db 线程拥有的数据库
+ * @param[in] socketId 访问的socketId
+ * @param[in] obj 解析后json请求数据
+ * @return 无
+ */
 void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
 {
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
@@ -104,10 +104,16 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     {
         TextRequest * request = new TextRequest;
         request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
+
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-        request->destAccountId = dataObj.value(JsonKey::key(JsonKey::DestId)).toString();
+        request->textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+        request->otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
         request->type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
         request->timeStamp = (SearchType)dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
+        request->isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
+        request->textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+
         request->sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
 
         RSingleton<DataProcess>::instance()->processText(db,socketId,request);

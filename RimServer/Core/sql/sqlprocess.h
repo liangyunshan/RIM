@@ -41,7 +41,7 @@ public:
     bool updateMoveGroupFriend(Database *db,GroupingFriendRequest * request);
 
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
-    bool loadChatCache(Database * db, QString accountId, QList<TextResponse> &textResponse);
+    bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);
 
     bool saveUserChat2Cache(Database * db, TextRequest * request);
 

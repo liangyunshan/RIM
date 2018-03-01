@@ -29,7 +29,7 @@ TextUnit::ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
 
     QJsonParseError jsonError;
     QJsonDocument doucment = QJsonDocument::fromJson(byteArray, &jsonError);
-    qDebug()<<jsonError.errorString();
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<jsonError.errorString();
     if((!doucment.isNull()) && (jsonError.error == QJsonParseError::NoError))
     {
         if(doucment.isObject())

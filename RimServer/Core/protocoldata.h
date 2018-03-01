@@ -116,7 +116,8 @@ enum MsgCommand
 
 /****MsgType为MSG_TEXT时以下字段有效******/
     MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天信息内容 */
-    MSG_TEXT_SHAKE = 0xA2                              /*!< 窗口抖动 */
+    MSG_TEXT_SHAKE = 0xA2,                             /*!< 窗口抖动 */
+    MSG_TEXT_APPLY = 0xA3                              /*!< 文本确认消息 */
 };
 
 /*!
@@ -279,6 +280,8 @@ class MsgPacket
 public:
     MsgPacket();
     virtual ~MsgPacket();
+
+    bool isAutoDelete;          /*!< 是否将数据转换成json后自动删除，默认为true。 */
 
     MsgType msgType;            /*!< 数据类型 @link MSG_TYPE @endlink */
     MsgCommand msgCommand;      /*!< 命令类型 @link MSG_COMMAND @endlink */
@@ -638,33 +641,61 @@ public:
 
 /*********************聊天信息和窗口抖动操作**********************/
 /*!
+ *  @brief 文本信息类型
+ *  @details 消息可分为普通消息、需确认消息、需回执消息等，可进行扩展
+ */
+enum TextType
+{
+    TEXT_NORAML,            /*!< 普通消息 */
+    TEXT_NEED_CONFIRM,      /*!< 需确认消息，消息到达发送方后弹窗显示，接收者需点击确认按钮才可关闭显示 */
+    TEXT_NEED_RECEIPT       /*!< 需发送回执，已读或未读 */
+};
+
+/*!
     @brief 文本信息发送
     @details 为了方便存储，聊天的文字和窗口抖动均复用一个请求。默认为聊天信息，
             但可修改msgCommand为窗口抖动
+    @note:在ClientA-Server-ClientB交互过程中，为了确保消息的可靠投递，需要使用消息确认机制。 @n
+          1.ClientA向Server发送TextRequest,并将消息压入发送消息队列。 @n
+          2.Server向ClientA发送TextApply，检查消息队列，将对应的消息从队列中移除。 @n
+          3.Server向ClientB发送TextRequest @n
+          4.ClientB向Server发送TextApply @n
 */
 class TextRequest : public MsgPacket
 {
 public:
     TextRequest();
-    QString accountId;          /*!< 用户自己ID */
-    SearchType type;            /*!< 联系人or群消息 */
-    QString destAccountId;      /*!< 对方账户ID */
+    QString textId;             /*!< 消息唯一标识 */
     qint64 timeStamp;           /*!< 发送时间戳 */
+    TextType textType;          /*!< 消息类型 @link TextType @endlink */
+    bool isEncryption;          /*!< 是否已经加密,暂时只对发送的数据加密 */
+    bool isCompress;            /*!< 是否对数据压缩 */
+    SearchType type;            /*!< 联系人or群消息 @link SearchType @endlink */
+    QString accountId;          /*!< 用户自己ID */
+    QString otherSideId;        /*!< 对方账户ID */
     QString sendData;           /*!< 发送数据, @note 可配置是否需要加密以及压缩 */
 };
 
 /*!
-    @brief 消息接收
-*/
-class TextResponse : public MsgPacket
+ *  @brief 消息回执类型
+ *  @details 消息发送出去后，用户可能需要根据其状态，如已读、未读、需要确认。
+ */
+enum TextReplyType
+{
+    APPLY_SYSTEM,               /*!< 服务器确认接收 */
+    APPLY_CONFIRM,              /*!< 确认信息 */
+    APPLY_RECEIPT               /*!< 回执消息 */
+};
+
+/*!
+ *  @brief 消息确认
+ */
+class TextReply : public MsgPacket
 {
 public:
-    TextResponse();
-    QString accountId;          /*!< 用户自己ID */
-    SearchType type;            /*!< 联系人or群消息 */
-    QString fromAccountId;      /*!< 对方账户ID */
-    qint64 timeStamp;           /*!< 发送时间戳 */
-    QString sendData;           /*!< 发送数据, @note 可配置是否需要加密以及压缩 */
+    TextReply();
+    QString textId;             /*!< 消息唯一标识 */
+    TextReplyType applyType;    /*!< 消息回执类型 @link TextApplyType @endlink */
 };
 
 }

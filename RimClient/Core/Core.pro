@@ -132,7 +132,8 @@ SOURCES += \
     Widgets/widget/rcombobox.cpp \
     Widgets/widget/rlineedit.cpp \
     Widgets/modifyremarkwindow.cpp \
-    Widgets/contactdetailwindow.cpp
+    Widgets/contactdetailwindow.cpp \
+    others/msgqueuemanager.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -208,7 +209,8 @@ HEADERS  += \
     Widgets/widget/rcombobox.h \
     Widgets/widget/rlineedit.h \
     Widgets/modifyremarkwindow.h \
-    Widgets/contactdetailwindow.h
+    Widgets/contactdetailwindow.h \
+    others/msgqueuemanager.h
 
 DISTFILES += \
     Widgets/Widgets.pri

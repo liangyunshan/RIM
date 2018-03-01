@@ -55,7 +55,6 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         default:
                 break;
     }
-
 }
 
 void MsgWrap::hanleText(TextRequest *packet)
@@ -63,9 +62,13 @@ void MsgWrap::hanleText(TextRequest *packet)
     QJsonObject data;
 
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
-    data.insert(JsonKey::key(JsonKey::DestId),packet->destAccountId);
+    data.insert(JsonKey::key(JsonKey::TextId),packet->textId);
+    data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
     data.insert(JsonKey::key(JsonKey::SearchType),packet->type);
     data.insert(JsonKey::key(JsonKey::Time),packet->timeStamp);
+    data.insert(JsonKey::key(JsonKey::Encryption),packet->isEncryption);
+    data.insert(JsonKey::key(JsonKey::Compress),packet->isCompress);
+    data.insert(JsonKey::key(JsonKey::Type),packet->textType);
     //TODO 数据压缩
     data.insert(JsonKey::key(JsonKey::Data),packet->sendData);
 
@@ -231,7 +234,10 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     document.setObject(obj);
     QByteArray array = document.toJson(QJsonDocument::Compact);
 
-    delete packet;
+    if(packet->isAutoDelete)
+    {
+        delete packet;
+    }
 
     G_SendMutex.lock();
     G_SendBuff.enqueue(array);

@@ -99,7 +99,8 @@ private slots:
     void recvFriendResponse(OperateFriendResponse resp);
     void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
-    void procRecvText(TextResponse response);
+    void procRecvText(TextRequest response);
+    void processTextReply(TextReply reply);
     void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
 
 private:

@@ -63,17 +63,32 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
     return QByteArray();
 }
 
-QByteArray MsgWrap::handleText(TextResponse *response)
+QByteArray MsgWrap::handleText(TextRequest *request)
 {
     QJsonObject obj;
-    obj.insert(JsonKey::key(JsonKey::AccountId),response->accountId);
-    obj.insert(JsonKey::key(JsonKey::Type),response->type);
-    obj.insert(JsonKey::key(JsonKey::Data),response->sendData);
-    obj.insert(JsonKey::key(JsonKey::Time),response->timeStamp);
-    obj.insert(JsonKey::key(JsonKey::FromId),response->fromAccountId);
+    obj.insert(JsonKey::key(JsonKey::AccountId),request->otherSideId);
+    obj.insert(JsonKey::key(JsonKey::TextId),request->textId);
+    obj.insert(JsonKey::key(JsonKey::OtherSideId),request->accountId);
+    obj.insert(JsonKey::key(JsonKey::SearchType),request->type);
+    obj.insert(JsonKey::key(JsonKey::Time),request->timeStamp);
+    obj.insert(JsonKey::key(JsonKey::Encryption),request->isEncryption);
+    obj.insert(JsonKey::key(JsonKey::Compress),request->isCompress);
+    obj.insert(JsonKey::key(JsonKey::Type),request->textType);
+
+    obj.insert(JsonKey::key(JsonKey::Data),request->sendData);
+
+    return wrappedPack(request,STATUS_SUCCESS,obj);
+}
+
+QByteArray MsgWrap::handleTextReply(TextReply * response)
+{
+    QJsonObject obj;
+    obj.insert(JsonKey::key(JsonKey::TextId),response->textId);
+    obj.insert(JsonKey::key(JsonKey::Type),response->applyType);
 
     return wrappedPack(response,STATUS_SUCCESS,obj);
 }
+
 
 /*!
      * @brief 处理简单错误信息

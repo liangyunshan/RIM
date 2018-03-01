@@ -67,9 +67,14 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
     emit errorGroupingOperate(type);
 }
 
-void MessDiapatch::onRecvText(TextResponse response)
+void MessDiapatch::onRecvText(TextRequest response)
 {
     emit recvText(response);
+}
+
+void MessDiapatch::onRecvTextReply(TextReply reply)
+{
+    emit recvTextReply(reply);
 }
 
 void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFriendResponse response)
@@ -82,4 +87,9 @@ void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFrien
     {
 
     }
+}
+
+void MessDiapatch::onScreenChanged()
+{
+    emit screenChange();
 }

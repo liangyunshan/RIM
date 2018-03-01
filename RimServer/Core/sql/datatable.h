@@ -119,17 +119,22 @@ public:
     const QString time;                     //时间戳
 };
 
+//用户聊天信息表
 class RUserChatCache
 {
 public:
     RUserChatCache();
     const QString table;
-    const QString id;                       //int
-    const QString account;                  //用户ID(user Id)
-    const QString destAccount;              //接收方用户ID
-    const QString data;                     //消息主体内容
-    const QString time;                     //时间戳
-    const QString msgType;                  //消息类型
+    const QString id;
+    const QString textId;                   /*!< 消息ID */
+    const QString textType;                 /*!< 消息类型 */
+    const QString encryption;               /*!< 是否加密 */
+    const QString compress;                 /*!< 是否压缩 */
+    const QString account;                  /*!< 用户ID(user Id) */
+    const QString otherSideId;              /*!< 接收方用户ID */
+    const QString data;                     /*!< 消息主体内容 */
+    const QString time;                     /*!< 时间戳 */
+    const QString msgType;                  /*!< 消息类型 */
 };
 
 }
