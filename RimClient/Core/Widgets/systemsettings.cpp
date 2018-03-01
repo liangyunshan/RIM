@@ -123,6 +123,7 @@ private:
     QCheckBox * keepFront;
     QCheckBox * exitSystem;
     QCheckBox * systemTrayIcon;
+    QCheckBox * hidePanel;
 
     QCheckBox * windowShaking;
 
@@ -202,9 +203,14 @@ void SystemSettingsPrivate::initWidget()
     systemTrayIcon->setText(QObject::tr("Display taskbar icon"));
     QObject::connect(systemTrayIcon,SIGNAL(clicked(bool)),q_ptr,SLOT(respSystemTrayIcon(bool)));
 
+    hidePanel = new QCheckBox;
+    hidePanel->setText(QObject::tr("Automatically hides panel attached to edge"));
+    QObject::connect(hidePanel,SIGNAL(clicked(bool)),q_ptr,SLOT(respHidePanel(bool)));
+
     mainPanelPage->addItem(keepFront);
     mainPanelPage->addItem(exitSystem);
     mainPanelPage->addItem(systemTrayIcon);
+    mainPanelPage->addItem(hidePanel);
 
     /****************状态设置********************/
     SystemSettingsPage * statePage = new SystemSettingsPage(basicWidget);
@@ -371,6 +377,7 @@ void SystemSettingsPrivate::localSettings()
     keepFront->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT,false).toBool());
     exitSystem->setChecked(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM,false).toBool());
     systemTrayIcon->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,false).toBool());
+    hidePanel->setChecked(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
 
     windowShaking->setChecked(RUtil::globalSettings()->value(Constant::SETTING_WINDOW_SHAKE,false).toBool());
 
@@ -456,6 +463,12 @@ void SystemSettings::respExitSystem(bool flag)
 void SystemSettings::respSystemTrayIcon(bool flag)
 {
     RUtil::globalSettings()->setValue(Constant::SETTING_TRAYICON,flag);
+    RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
+}
+
+void SystemSettings::respHidePanel(bool flag)
+{
+    RUtil::globalSettings()->setValue(Constant::SETTING_HIDEPANEL,flag);
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 

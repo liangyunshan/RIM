@@ -64,6 +64,7 @@ private slots:
     void respKeepFront(bool flag);
     void respExitSystem(bool flag);
     void respSystemTrayIcon(bool flag);
+    void respHidePanel(bool flag);
     void respWindowShake(bool flag);
     void respSoundAvailable(bool flag);
     void respSystemLock(bool flag);
