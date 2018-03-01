@@ -53,20 +53,29 @@
     </message>
 </context>
 <context>
+    <name>ContactDetailWindow</name>
+    <message>
+        <location filename="Widgets/contactdetailwindow.cpp" line="255"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="265"/>
+        <source>Contact Person Detail</source>
+        <translation>联系人资料</translation>
+    </message>
+</context>
+<context>
     <name>EditPersonInfoWindow</name>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="285"/>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="295"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="290"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="300"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="336"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="341"/>
         <source>Local image</source>
         <translation>本地图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="336"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="341"/>
         <source>Image Files (*.png)</source>
         <translation>图片文件 (*.png)</translation>
     </message>
@@ -178,6 +187,15 @@
     </message>
 </context>
 <context>
+    <name>ModifyRemarkWindow</name>
+    <message>
+        <location filename="Widgets/modifyremarkwindow.cpp" line="102"/>
+        <location filename="Widgets/modifyremarkwindow.cpp" line="114"/>
+        <source>Modify remark name</source>
+        <translation>修改备注</translation>
+    </message>
+</context>
+<context>
     <name>NetSettings</name>
     <message>
         <location filename="Widgets/netsettings.cpp" line="133"/>
@@ -208,37 +226,37 @@
 <context>
     <name>OnLineState</name>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="75"/>
+        <location filename="Widgets/onlinestate.cpp" line="89"/>
         <source>Online State</source>
         <translation>在线状态</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="84"/>
+        <location filename="Widgets/onlinestate.cpp" line="109"/>
         <source>Online</source>
         <translation>在线</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="92"/>
+        <location filename="Widgets/onlinestate.cpp" line="116"/>
         <source>Away</source>
         <translation>离开</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="100"/>
+        <location filename="Widgets/onlinestate.cpp" line="123"/>
         <source>Offline</source>
         <translation>离线</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="108"/>
+        <location filename="Widgets/onlinestate.cpp" line="130"/>
         <source>Busy</source>
         <translation>忙碌</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="116"/>
+        <location filename="Widgets/onlinestate.cpp" line="137"/>
         <source>Hide</source>
         <translation>隐身</translation>
     </message>
     <message>
-        <location filename="Widgets/onlinestate.cpp" line="124"/>
+        <location filename="Widgets/onlinestate.cpp" line="144"/>
         <source>NoDisturb</source>
         <translation>请勿打扰</translation>
     </message>
@@ -362,47 +380,47 @@
         <translation type="vanished">未知</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="506"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="688"/>
         <source>Refresh list</source>
         <translation>刷新好友列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="509"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="691"/>
         <source>Add group</source>
         <translation>添加分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="521"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="703"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="524"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="706"/>
         <source>Delete group</source>
         <translation>删除分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="536"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="718"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="539"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="721"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="542"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="724"/>
         <source>Modify Comments</source>
         <translation>修改备注</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="545"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="727"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="548"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="730"/>
         <source>Move Friend To</source>
         <translation>将好友移动至</translation>
     </message>
@@ -536,7 +554,7 @@
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="244"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="243"/>
         <location filename="Widgets/logindialog.cpp" line="244"/>
         <source>Close</source>
         <translation>关闭</translation>
@@ -623,6 +641,7 @@
         <translation>账  号</translation>
     </message>
     <message>
+        <location filename="Widgets/contactdetailwindow.cpp" line="96"/>
         <location filename="Widgets/editpersoninfowindow.cpp" line="107"/>
         <source>Nick Name</source>
         <translation>昵称</translation>
@@ -638,52 +657,70 @@
         <translation>本地图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="143"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="144"/>
         <source>Sex</source>
         <translation>性  别</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="146"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="113"/>
+        <source>Remark Name</source>
+        <translation>备注</translation>
+    </message>
+    <message>
+        <location filename="Widgets/contactdetailwindow.cpp" line="127"/>
+        <source>Clicked To See Head</source>
+        <translation>点击查看头像</translation>
+    </message>
+    <message>
+        <location filename="Widgets/contactdetailwindow.cpp" line="144"/>
+        <source>Group</source>
+        <translation>分组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/contactdetailwindow.cpp" line="375"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="147"/>
         <source>Man</source>
         <translation>男</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="147"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="379"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="148"/>
         <source>Woman</source>
         <translation>女</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="153"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="154"/>
         <source>Birthday</source>
         <translation>生  日</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="161"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="162"/>
         <source>Sign Name</source>
         <translation>签  名</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="179"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="174"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="177"/>
         <source>Address</source>
         <translation>地  址</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="168"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="169"/>
         <source>Phone Number</source>
         <translation>电  话</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="186"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="184"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="193"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="192"/>
         <source>Desc</source>
         <translation>个人说明</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="239"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="238"/>
         <location filename="Widgets/netsettings.cpp" line="91"/>
         <source>Save</source>
         <translation>保存</translation>
@@ -883,27 +920,27 @@
         <translation>系统设置</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="630"/>
+        <location filename="Widgets/logindialog.cpp" line="633"/>
         <source>User not registered</source>
         <translation>用户未注册</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="633"/>
+        <location filename="Widgets/logindialog.cpp" line="636"/>
         <source>Incorrect password</source>
         <translation>密码错误</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="636"/>
+        <location filename="Widgets/logindialog.cpp" line="639"/>
         <source>Server Unreachable</source>
         <translation>服务器不可达</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="639"/>
+        <location filename="Widgets/logindialog.cpp" line="642"/>
         <source>Account has sign in</source>
         <translation>账号已经登陆</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="942"/>
+        <location filename="Widgets/logindialog.cpp" line="945"/>
         <source>Remove account</source>
         <translation>删除账户</translation>
     </message>
@@ -912,7 +949,7 @@
         <translation type="vanished">服务器未连接</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="646"/>
+        <location filename="Widgets/logindialog.cpp" line="649"/>
         <source>Login Failed</source>
         <translation>登陆失败</translation>
     </message>
@@ -983,13 +1020,24 @@
         <translation>端口</translation>
     </message>
     <message>
+        <location filename="Widgets/modifyremarkwindow.cpp" line="56"/>
+        <source>Please input remark name:</source>
+        <translation>请输入备注名称：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/modifyremarkwindow.cpp" line="71"/>
+        <source>Sure</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
         <location filename="Widgets/netsettings.cpp" line="96"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
         <location filename="Widgets/panelgrouppage.cpp" line="67"/>
-        <location filename="Widgets/panelpersonpage.cpp" line="73"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="80"/>
         <source>untitled</source>
         <translation>未知</translation>
     </message>

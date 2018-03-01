@@ -104,16 +104,26 @@ void MsgWrap::handleRegistRequest(RegistRequest *packet)
 void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
 {
     QJsonObject data;
-    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
-    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
-    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
-    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
-    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
-    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
-    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
-    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
-    data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+    if(packet->requestType == UPDATE_USER_DETAIL)
+    {
+        data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+        data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+        data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+        data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+        data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+        data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+        data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+        data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+        data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
+        data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+        data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
+    }
+    else
+    {
+        data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+        data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
+    }
+
 
     wrappedPack(packet,data);
 }
@@ -206,6 +216,7 @@ void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
     user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
     user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+    user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 
     data.insert(JsonKey::key(JsonKey::Users),user);
 

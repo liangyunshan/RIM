@@ -17,6 +17,8 @@
 #include "user/userclient.h"
 #include "messdiapatch.h"
 #include "maindialog.h"
+#include "modifyremarkwindow.h"
+#include "contactdetailwindow.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -30,6 +32,8 @@ protected:
     PanelPersonPagePrivate(PanelPersonPage * q):
         q_ptr(q)
     {
+        m_modifyWindow = NULL;
+        m_detailWindow = NULL;
         groupIsCreate = false;
         initWidget();
     }
@@ -41,10 +45,13 @@ protected:
 
     QWidget * contentWidget;
     QLineEdit *tmpNameEdit;                         //重命名时用edit
-    ToolPage * pageOfMovedItem;                     //待移动分组的item所属的page
+    ToolPage * pageOfTriggeredItem;                 //待移动分组的item所属的page
     ToolItem * m_movedItem;                         //待移动的联系人item
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
+
+    ModifyRemarkWindow *m_modifyWindow;
+    ContactDetailWindow *m_detailWindow;
 
     QList<ToolPage *> pages;
 };
@@ -73,7 +80,7 @@ void PanelPersonPagePrivate::initWidget()
     tmpNameEdit->setPlaceholderText(QObject::tr("untitled"));
     tmpNameEdit->hide();
 
-    pageOfMovedItem = NULL;
+    pageOfTriggeredItem = NULL;
     m_movedItem = NULL;
 }
 
@@ -94,7 +101,12 @@ PanelPersonPage::~PanelPersonPage()
     RSingleton<Subject>::instance()->detach(this);
 }
 
-//更新好友列表
+/*!
+ * @brief 更新好友列表
+ * @details 接收数据后，1.创建对应的ToolItem；2.更新对应Client的基本信息。
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::addGroupAndUsers()
 {
     MQ_D(PanelPersonPage);
@@ -150,7 +162,7 @@ void PanelPersonPage::clearTargetGroup(const QString id)
 
 /*!
  * @brief 接收服务器的消息更新联系人分组在线联系人数目
- * @param[in] info:SimpleUserInfo &，待更新的联系人分组id
+ * @param[in] info:SimpleUserInfo &，待更新的联系人信息
  * @return 无
  */
 void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
@@ -164,6 +176,36 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
     t_item->setNickName(info.nickName);
     t_item->setDescInfo(info.signName);
     t_item->setStatus(info.status);
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<info.status;
+}
+
+/*!
+ * @brief 接收服务器的消息删除某个分组中的联系人
+ * @param[in] info:SimpleUserInfo &，待更新的联系人信息
+ * @return 无
+ */
+void PanelPersonPage::removeContact(const SimpleUserInfo & info)
+{
+    MQ_D(PanelPersonPage);
+    UserClient * userClient = RSingleton<UserManager>::instance()->client(info.accountId);
+    if(userClient)
+    {
+        ToolItem * t_item = userClient->toolItem;
+        if(!t_item)
+        {
+            return;
+        }
+        ToolPage *t_pageOfItem = d->toolBox->targetPage(t_item);
+        if(t_pageOfItem)
+        {
+            bool t_removeResult = t_pageOfItem->removeItem(t_item);
+            if(t_removeResult)
+            {
+                delete t_item;
+            }
+        }
+    }
 }
 
 void PanelPersonPage::onMessage(MessageType type)
@@ -288,7 +330,38 @@ void PanelPersonPage::sendInstantMessage()
      */
 void PanelPersonPage::showUserDetail()
 {
+    MQ_D(PanelPersonPage);
+    if(!d->m_detailWindow)
+    {
+        d->m_detailWindow = new ContactDetailWindow();
+        connect(d->m_detailWindow,SIGNAL(destroyed(QObject*)),this,SLOT(updateDetailInstance(QObject*)));
+    }
 
+    if(d->m_detailWindow->isMinimized())
+    {
+        d->m_detailWindow->showNormal();
+    }
+    else
+    {
+        d->m_detailWindow->show();
+    }
+    UserClient * client = RSingleton<UserManager>::instance()->client(d->toolBox->selectedItem());
+    if(client)
+    {
+        d->m_detailWindow->setContactDetail(client->simpleUserInfo);
+    }
+
+    QStringList t_groupNames;
+    int t_currentGroup = -1;
+    for(int t_index = 0;t_index<d->toolBox->pageCount();t_index++)
+    {
+        t_groupNames.append(d->toolBox->allPages().at(t_index)->toolName());
+        if(d->pageOfTriggeredItem->toolName() == d->toolBox->allPages().at(t_index)->toolName())
+        {
+            t_currentGroup = t_index;
+        }
+    }
+    d->m_detailWindow->setGroups(t_groupNames,t_currentGroup);
 }
 
 /*!
@@ -298,16 +371,53 @@ void PanelPersonPage::showUserDetail()
      */
 void PanelPersonPage::modifyUserInfo()
 {
+    MQ_D(PanelPersonPage);
+    ToolItem *t_modifyItem = d->toolBox->selectedItem();
+    if(t_modifyItem && d->pageOfTriggeredItem)
+    {
+        if(!d->m_modifyWindow)
+        {
+            d->m_modifyWindow = new ModifyRemarkWindow();
+            connect(d->m_modifyWindow,SIGNAL(setNewRemark(QString)),this,SLOT(requestModifyRemark(QString)));
+            connect(d->m_modifyWindow,SIGNAL(destroyed(QObject*)),this,SLOT(updateModifyInstance(QObject*)));
+        }
 
+        if(d->m_modifyWindow->isMinimized())
+        {
+            d->m_modifyWindow->showNormal();
+        }
+        else
+        {
+            d->m_modifyWindow->show();
+        }
+        d->m_modifyWindow->setOldRemarkName(t_modifyItem->getName());
+    }
 }
 
 /*!
-     * @brief 请求服务器删除好友
-     * @param[in]
-     * @return 无
-     */
+ * @brief 请求服务器删除好友
+ * @param[in]
+ * @return 无
+ */
 void PanelPersonPage::deleteUser()
 {
+    MQ_D(PanelPersonPage);
+
+    ToolItem *t_toRemovedItem = d->toolBox->selectedItem();
+    if(t_toRemovedItem && d->pageOfTriggeredItem)
+    {
+        GroupingFriendRequest * t_request = new GroupingFriendRequest();
+        t_request->type = G_Friend_Delete;
+        t_request->stype = SearchPerson;
+        t_request->groupId = d->pageOfTriggeredItem->getID();
+        t_request->oldGroupId = d->pageOfTriggeredItem->getID();
+        UserClient * client = RSingleton<UserManager>::instance()->client(t_toRemovedItem);
+        if(client)
+        {
+            t_request->user = client->simpleUserInfo;
+        }
+        RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+    }
 
 }
 
@@ -367,6 +477,14 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
         }
     case G_Friend_UPDATE:
         {
+            if(result == STATUS_SUCCESS)
+            {
+               updateContactShow(response.user);
+            }
+            else
+            {
+
+            }
             break;
         }
     case G_Friend_MOVE:
@@ -391,11 +509,76 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
             }
             break;
         }
+    case G_Friend_Delete:
+        {
+             if(result == STATUS_SUCCESS)
+             {
+                 removeContact(response.user);
+             }
+        }
     default:
         break;
     }
 }
 
+void PanelPersonPage::updateModifyInstance(QObject *)
+{
+    MQ_D(PanelPersonPage);
+    if(d->m_modifyWindow)
+    {
+        d->m_modifyWindow = NULL;
+    }
+}
+
+/*!
+ * @brief 发送备注更新请求
+ * @param[in] remark 备注信息
+ * @return 无
+ */
+void PanelPersonPage::requestModifyRemark(QString remark)
+{
+    MQ_D(PanelPersonPage);
+
+    ToolItem *t_modifyItem = d->toolBox->selectedItem();
+    if(t_modifyItem && d->pageOfTriggeredItem && remark != t_modifyItem->getName())
+    {
+        GroupingFriendRequest * t_request = new GroupingFriendRequest();
+        t_request->type = G_Friend_UPDATE;
+        t_request->stype = SearchPerson;
+        t_request->groupId = d->pageOfTriggeredItem->getID();
+        t_request->oldGroupId = d->pageOfTriggeredItem->getID();
+        UserClient * client = RSingleton<UserManager>::instance()->client(t_modifyItem);
+        if(client)
+        {
+            SimpleUserInfo t_changedInfo = client->simpleUserInfo;
+            t_changedInfo.remarks = remark;
+
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<t_changedInfo.status;
+            t_request->user = t_changedInfo;
+        }
+        else
+        {
+            t_request->user = client->simpleUserInfo;
+        }
+        RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+    }
+}
+
+void PanelPersonPage::updateDetailInstance(QObject *)
+{
+    MQ_D(PanelPersonPage);
+    if(d->m_detailWindow)
+    {
+        d->m_detailWindow = NULL;
+    }
+}
+
+/*!
+ * @brief 创建单元Item
+ * @param[in] userInfo 用户基本信息
+ * @param[in] page 所属页面
+ * @return ToolItem * 创建后Item
+ */
 ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 {
     ToolItem * item = new ToolItem(page);
@@ -414,7 +597,6 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
     client->simpleUserInfo = *userInfo;
     client->toolItem = item;
-
     return item;
 }
 
@@ -459,7 +641,7 @@ void PanelPersonPage::renameEditFinished()
 void PanelPersonPage::updateGroupActions(ToolPage * page)
 {
     MQ_D(PanelPersonPage);
-    d->pageOfMovedItem = page;
+    d->pageOfTriggeredItem = page;
     QList <PersonGroupInfo> infoList = d->toolBox->toolPagesinfos();
     QMenu * movePersonTo  = ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
     if(!movePersonTo->isEmpty())
@@ -495,7 +677,7 @@ void PanelPersonPage::movePersonTo()
     QAction * target = qobject_cast<QAction *>(QObject::sender());
     QString t_targetUuid = target->data().toString();
     ToolPage * t_targetPage = d->toolBox->targetPage(t_targetUuid);
-    ToolPage * t_sourcePage = d->pageOfMovedItem;
+    ToolPage * t_sourcePage = d->pageOfTriggeredItem;
     d->m_movedItem = d->toolBox->selectedItem();
     if(!t_targetPage||!t_sourcePage||!d->m_movedItem)
     {

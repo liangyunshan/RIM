@@ -371,6 +371,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             GroupingFriendResponse * responseB = new GroupingFriendResponse;
             responseB->type = G_Friend_CREATE;
             responseB->stype = request->stype;
+
             responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
 
             responseB->user.accountId = baseInfo.accountId;
@@ -567,12 +568,22 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingReq
     SendData(responseData);
 }
 
+/*!
+ * @brief 用户分组操作
+ * @details 用于处理用户的信息更新、好友移动、好友删除操作
+ * @param[in] db 数据库
+ * @param[in] socketId 网络标识
+ * @param[in] request 数据请求
+ * @return 无
+ */
 void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFriendRequest *request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
 
     bool flag = false;
+    QString otherUserGroupId;
+    QString accountId;
 
     switch(request->type)
     {
@@ -584,6 +595,11 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
         case G_Friend_MOVE:
             {
                 flag = RSingleton<SQLProcess>::instance()->updateMoveGroupFriend(db,request);
+            }
+            break;
+        case G_Friend_Delete:
+            {
+                flag = RSingleton<SQLProcess>::instance()->deleteFriend(db,request,accountId,otherUserGroupId);
             }
             break;
         default:
@@ -605,10 +621,35 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
     {
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response,STATUS_FAILE);
     }
+    SendData(responseData);
+
+    //删除时，若对方在线，向对方推送消息
+    if(flag && request->type == G_Friend_Delete)
+    {
+        TcpClient * client = TcpClientManager::instance()->getClient(request->user.accountId);
+        if(client)
+        {
+            SocketOutData pushData;
+            pushData.sockId = client->socket();
+
+            GroupingFriendResponse * pushResponse = new GroupingFriendResponse();
+            pushResponse->type = request->type;
+            pushResponse->stype = request->stype;
+            pushResponse->groupId = otherUserGroupId;
+            pushResponse->oldGroupId = otherUserGroupId;
+
+            //客户端只需要对方ID来查找对应的ToolItem
+            pushResponse->user.accountId = accountId;
+
+            pushData.data = RSingleton<MsgWrap>::instance()->handleMsg(pushResponse,STATUS_SUCCESS);
+            SendData(pushData);
+
+            delete pushResponse;
+        }
+    }
+
     delete response;
     delete request;
-
-    SendData(responseData);
 }
 
 /*!

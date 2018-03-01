@@ -220,6 +220,7 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
     request->user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
     request->user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
     request->user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+    request->user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
     RSingleton<DataProcess>::instance()->processGroupingFriend(db,socketId,request);
 }

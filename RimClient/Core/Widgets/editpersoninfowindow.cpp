@@ -379,6 +379,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
     request->baseInfo.face = 0;     //FIXME LYS-根据实际情况进行处理
     request->baseInfo.customImgId = "456";
+    request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -389,15 +390,21 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
     {
         case UPDATE_USER_SUCCESS:
                                     {
-                                        G_UserBaseInfo = response.baseInfo;
-                                        RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
-                                        RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
+                                        if(response.reponseType == UPDATE_USER_DETAIL)
+                                        {
+                                            G_UserBaseInfo = response.baseInfo;
+                                            RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
+                                            RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
+                                        }
                                     }
                                     break;
 
         case UPDATE_USER_FAILED:
         default:
-                                    RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
+                                    if(response.reponseType == UPDATE_USER_DETAIL)
+                                    {
+                                        RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
+                                    }
                                     break;
     }
 }

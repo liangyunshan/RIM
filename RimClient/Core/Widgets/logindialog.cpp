@@ -799,6 +799,13 @@ void LoginDialog::processTextReply(TextReply reply)
     }
 }
 
+/*!
+ * @brief 响应好友状态更新
+ * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @param[in] result 操作结果
+ * @param[in] response 好友状态信息
+ * @return 无
+ */
 void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
 {
     if(result == STATUS_SUCCESS && response.accountId != G_UserBaseInfo.accountId)
@@ -807,6 +814,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
         if(client)
         {
             client->toolItem->setStatus(response.onStatus);
+            client->simpleUserInfo.status = response.onStatus;
             if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
@@ -823,7 +831,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
 void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(LoginDialog);
-
+    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;

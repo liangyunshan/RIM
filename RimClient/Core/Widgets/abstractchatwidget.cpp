@@ -696,6 +696,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //响应数据库线程查询结果
 void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
 {
+    Q_UNUSED(id);
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
         d_ptr->chatArea->insertChatText(unit);
@@ -774,6 +775,6 @@ void AbstractChatWidget::initChatRecord()
     bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
     d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
-
+    Q_UNUSED(ret);
 }
 

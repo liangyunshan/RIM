@@ -66,6 +66,13 @@
         <file>resource/icon/Tool_Panel_Notify.png</file>
         <file>resource/icon/downrow.png</file>
         <file>resource/icon/uprow.png</file>
+        <file>resource/icon/Detail_Address.png</file>
+        <file>resource/icon/Detail_BaseInfo.png</file>
+        <file>resource/icon/Detail_EditRemarkl.png</file>
+        <file>resource/icon/Detail_Group.png</file>
+        <file>resource/icon/Detail_Nick.png</file>
+        <file>resource/icon/Detail_Remark.png</file>
+        <file>resource/icon/Detail_Account.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>
