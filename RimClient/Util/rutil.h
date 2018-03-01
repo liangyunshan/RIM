@@ -26,6 +26,7 @@ public:
     static bool isFileExist(QString filePath);
 
     static QString MD5(QString text);
+    static QString MD5File(QString fileName);
 
     static QString getTimeStamp(QString format = "yyyy-MM-dd hh:mm:ss:zzz");
     static QString getDate(QString format = "yyyy-MM-dd");

@@ -73,6 +73,8 @@ public:
 
     int size(){return restricitinons.size();}
 
+    void clear(){restricitinons.clear();}
+
     QString toSql();
 
 private:
@@ -93,6 +95,11 @@ public:
     Criteria& createCriteria()
     {
         return ctia;
+    }
+
+    void clearRestrictions()
+    {
+        ctia.clear();
     }
 
     virtual QString sql() = 0;

@@ -68,7 +68,6 @@ enum MsgType
     MSG_TYPE_INVALID,  /*!< 无意义 */
     MSG_CONTROL,       /*!< 控制命令, */
     MSG_TEXT,          /*!< 文本信息 */
-    MSG_IMAGE,         /*!< 图片信息 */
     MSG_FILE           /*!< 文件信息 */
 };
 
@@ -273,6 +272,15 @@ enum ResponseUpdateUser
 };
 
 /*!
+ *  @brief  联系人信息操作
+ */
+enum OperateContact
+{
+    UPDATE_USER_DETAIL,        /*!< 更新用户信息 */
+    REQUEST_CONTACT_DETAIL      /*!< 请求联系人详细信息 */
+};
+
+/*!
  *  @brief 网络协议头
  */
 class MsgPacket
@@ -364,8 +372,8 @@ class UpdateBaseInfoRequest : public MsgPacket
 {
 public:
     UpdateBaseInfoRequest();
-
-    UserBaseInfo baseInfo;  /*!< 请求更新的基本信息 */
+    OperateContact requestType;          /*!< 请求操作类型 */
+    UserBaseInfo baseInfo;               /*!< 请求更新的基本信息 */
 };
 
 /*!
@@ -375,8 +383,8 @@ class UpdateBaseInfoResponse : public MsgPacket
 {
 public:
     UpdateBaseInfoResponse();
-
-    UserBaseInfo baseInfo;  /*!< 更新后的基本信息 */
+    OperateContact reponseType;         /*!< 回复操作类型 */
+    UserBaseInfo baseInfo;              /*!< 更新后的基本信息 */
 };
 
 /***********************查询好友**********************/
@@ -531,7 +539,8 @@ enum OperateGroupingFriend
 {
     G_Friend_CREATE,          /*!< 创建分组联系人  */
     G_Friend_UPDATE,          /*!< 更新分组联系人(如备注信息等)  */
-    G_Friend_MOVE             /*!< 移动联系人  */
+    G_Friend_MOVE,            /*!< 移动联系人  */
+    G_Friend_Delete           /*!< 删除联系人  */
 };
 
 /*!
@@ -545,7 +554,7 @@ public:
     SearchType stype;               /*!< 联系人分组/群分组  */
     QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
     QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
-    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
+    SimpleUserInfo user;            /*!< 联系人基本信息, type 为 G_Friend_Delete 时表示待删除联系人的基本信息 @link SimpleUserInfo @endlink  */
 };
 
 /*!
@@ -696,6 +705,74 @@ public:
     TextReply();
     QString textId;             /*!< 消息唯一标识 */
     TextReplyType applyType;    /*!< 消息回执类型 @link TextApplyType @endlink */
+};
+
+
+/*********************文件操作**********************/
+/*!
+ *  @brief  文件操作的类型
+ *  @details 主要包含聊天过程中图片的收、发，用户头像信息的上传、接收，文件传输的收、发。
+ */
+enum FileItemType
+{
+    FILE_ITEM_UNKNOWN,           /*!< 文件类型未知 */
+    FILE_ITEM_CHAT_UP,           /*!< 聊天中文件 */
+    FILE_ITEM_USER_UP,           /*!< 上传用户头像 */
+    FILE_ITEM_CHAT_DOWN,         /*!< 聊天中下载文件 */
+    FILE_ITEM_USER_DOWN          /*!< 下载用户头像 */
+};
+
+/*!
+ *  @brief  文件下载结果
+ */
+enum FileDownResult
+{
+    FILE_DOWN_SUCCESS,                /*!< 文件下载成功 */
+    FILE_DOWN_FAILED,                 /*!< 文件下载失败 */
+    FILE_DOWN_CANCEL                  /*!< 取消下载 */
+};
+
+/*!
+ *  @brief  文件上传结果
+ */
+enum FileUpResult
+{
+    FILE_Up_SUCCESS,                /*!< 文件上传成功 */
+    FILE_Up_FAILED,                 /*!< 文件上传失败 */
+    FILE_Up_CANCEL                  /*!< 取消上传 */
+};
+
+/*!
+ * @brief 文件发送描述
+ * @details 用于本地建立待发送或接收请求项，由ImageTask或FileTask进行处理 @n
+ */
+struct FileItemDesc
+{
+public:
+    FileItemDesc(){}
+    QString id;                     /*!< 当前文件唯一标识 */
+    QString fullPath;               /*!< 文件全路径 */
+    qint64 fileSize;                /*!< 文件尺寸，用于在接收时开辟对应大小的控件 */
+    QString md5;                    /*!< 文件对应的MD5值，用于校验接收数据的正确与否 */
+    QString otherSideId;            /*!< 对方用户ID */
+    FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
+};
+
+/*!
+ * @brief 文件操作请求
+ */
+class FileItemRequest : public MsgPacket
+{
+public:
+    FileItemRequest();
+    QString id;                     /*!< 当前文件唯一标识 @attention 服务器以此文件名作为在磁盘中保存的索引 */
+    FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
+    QString fileName;               /*!< 文件名称 @attention 维护文件真实的信息 */
+    qint64 size;                    /*!< 文件大小 */
+    QString localFileName;          /*!< 接收时，维护本地的文件名 */
+    QString md5;                    /*!< 文件MD5 */
+    QString accountId;              /*!< 发送方的ID */
+    QString otherId;                /*!< 接收方ID */
 };
 
 }

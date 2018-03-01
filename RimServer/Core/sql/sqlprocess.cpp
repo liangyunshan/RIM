@@ -20,6 +20,13 @@ int G_BaseAccountId = 0;
 
 #define SQL_ERROR -1
 
+/*!
+ *  @brief  开启事务宏
+ *  @details 在对某些数据库操作时，可能不支持事务，需要动态设置。 @n
+ *           当Qt的版本和Mysql的驱动版本不一致时，存在Qt不支持Mysql事务的情况。 @n
+ */
+//#define ENABLE_SQL_TRANSACTION
+
 SQLProcess::SQLProcess()
 {
 
@@ -465,7 +472,14 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
     return false;
 }
 
-void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
+/*!
+ * @brief 根据用户账户ID获取用户基本信息
+ * @param[in] db 数据库
+ * @param[in] accountId 用户账户ID
+ * @param[out] userInfo  用户基本信息
+ * @return 无
+ */
+bool SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
 {
     DataTable::RUser user;
 
@@ -489,8 +503,11 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             userInfo.remark = query.value(user.remark).toString();
             userInfo.face = query.value(user.face).toInt();
             userInfo.customImgId = query.value(user.faceId).toString();
+
+            return true;
         }
     }
+    return false;
 }
 
 void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList)
@@ -563,6 +580,113 @@ bool SQLProcess::updateMoveGroupFriend(Database *db, GroupingFriendRequest *requ
         return true;
     }
     return false;
+}
+
+/*!
+ * @brief 删除用户好友
+ * @details 1.先解除双方的好友关系；2.若好友在线，则向好友推送删除的结果信息，确保将好友列表中的自己移除。
+ * @param[in] db 数据库
+ * @param[in] requests 缓存请求容器
+ * @param[out] otherUserGroupId 自己在对方用户分组中的ID
+ * @return 是否删除成功
+ */
+bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QString & accountId,QString & otherUserGroupId)
+{
+    try
+    {
+        QSqlQuery query(db->sqlDatabase());
+
+        //TODO 将处理放入事务中处理，当前mysql的版本与qt的库存在不一致，暂不支持事务，因此需要重新编译mysql驱动
+#if defined(ENABLE_SQL_TRANSACTION)
+        if(db->sqlDatabase().transaction())
+#endif
+        {
+            //1.从己方列表中删除对方
+            UserBaseInfo otherSideUserInfo;
+            if(!getUserInfo(db,request->user.accountId,otherSideUserInfo))
+            {
+                throw "get other userbaseinfo errror";
+            }
+
+            DataTable::RGroup_User rgu;
+            RDelete rde(rgu.table);
+            rde.createCriteria().add(Restrictions::eq(rgu.groupId,request->groupId))
+                    .add(Restrictions::eq(rgu.userId,otherSideUserInfo.uuid));
+
+            if(!query.exec(rde.sql()))
+            {
+                throw "delete other friend from my group error!";
+            }
+
+            //2.获取自己的ID信息
+            DataTable::RGroup rgp;
+            DataTable::RUser rus;
+            QString sql = QString("select u.id,u.account from %1 u left join  %2 g on u.id = g.uid where g.id = '%3'")
+                    .arg(rus.table,rgp.table,request->groupId);
+
+            QString userId;
+            if(query.exec(sql) && query.next())
+            {
+               userId = query.value(rus.id).toString();
+               accountId = query.value(rus.account).toString();
+            }
+            else
+            {
+                throw "get userbaseinfo error!";
+            }
+
+            //3.获取对方分组ID
+            QStringList groups = getGroupsById(db,otherSideUserInfo.uuid);
+            if(groups.size() > 0)
+            {
+               QStringList::iterator iter =  groups.begin();
+               while(iter != groups.end())
+               {
+                   RSelect rsg(rgu.table);
+                   rsg.select(rgu.id);
+                   rsg.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
+                           .add(Restrictions::eq(rgu.userId,userId));
+
+                   if(query.exec(rsg.sql()) && query.next())
+                   {
+                       query.clear();
+                       rde.clearRestrictions();
+                       rde.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
+                               .add(Restrictions::eq(rgu.userId,userId));
+
+                       otherUserGroupId = *iter;
+                       if(!query.exec(rde.sql()))
+                       {
+                           throw "delete me from other group error!";
+                       }
+
+                       break;
+                   }
+                   iter++;
+               }
+            }
+
+#if defined(ENABLE_SQL_TRANSACTION)
+            db->sqlDatabase().commit();
+#endif
+        }
+#if defined(ENABLE_SQL_TRANSACTION)
+        else
+        {
+            throw "Current database can't support transaction!";
+        }
+#endif
+    }
+    catch(const char * p)
+    {
+#if defined(ENABLE_SQL_TRANSACTION)
+        db->sqlDatabase().rollback();
+#endif
+        RLOG_ERROR(p);
+        return false;
+    }
+
+    return true;
 }
 
 /*!
@@ -716,13 +840,19 @@ QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
     return QString();
 }
 
+/*!
+ * @brief 获取用户默认分组ID
+ * @param[in] db 数据库
+ * @param[in] id 用户账户ID
+ * @return 默认分组ID
+ */
 QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString id)
 {
     DataTable::RGroup group;
     DataTable::RUser user;
 
-    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 ")
-            .arg(group.table,user.table,user.account,id);
+    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 and %5 = 1 ")
+            .arg(group.table,user.table,user.account,id,group.defaultGroup);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(sql))
@@ -733,5 +863,31 @@ QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString i
         }
     }
     return QString();
+}
+
+/*!
+ * @brief 根据ID获取用户所有的分组
+ * @param[in] db 数据库
+ * @param[in] id User表中的ID
+ * @return 用户所有分组ID
+ * @warning id不是登陆ID，此id是数据库中主键，由随机产生。
+ */
+QStringList SQLProcess::getGroupsById(Database *db, const QString id)
+{
+    DataTable::RGroup group;
+    RSelect rst(group.table);
+    rst.select(group.id);
+    rst.createCriteria().add(Restrictions::eq(group.userId,id));
+
+    QStringList list;
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            list.append(query.value(group.id).toString());
+        }
+    }
+    return list;
 }
 

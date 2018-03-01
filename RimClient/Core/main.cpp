@@ -23,6 +23,7 @@ using namespace ProtocolType;
 
 #include "thread/msgreceiveproctask.h"
 #include "thread/taskmanager.h"
+#include "thread/imagetask.h"
 
 #include "Network/rsocket.h"
 #include "Network/msgsender.h"
@@ -142,8 +143,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TextReply>("TextReply");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
 
-    RSingleton<TaskManager>::instance()->addTask(new NetConnector());
+    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
+    RSingleton<TaskManager>::instance()->addTask(new ImageTask());
 
     LoginDialog dialog;
     dialog.show();

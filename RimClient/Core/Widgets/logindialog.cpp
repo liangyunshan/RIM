@@ -291,7 +291,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
@@ -327,7 +327,7 @@ void LoginDialog::respConnect(bool flag)
 void LoginDialog::login()
 {
 #ifndef __NO_SERVER__
-    NetConnector::instance()->connect();
+    TextNetConnector::instance()->connect();
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -549,7 +549,7 @@ void LoginDialog::respItemChanged(QString id)
 
 void LoginDialog::showRegistDialog()
 {
-    disconnect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 
     RegistDialog * dialog = new RegistDialog(this);
     connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
@@ -558,7 +558,7 @@ void LoginDialog::showRegistDialog()
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 }
 
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
@@ -799,6 +799,13 @@ void LoginDialog::processTextReply(TextReply reply)
     }
 }
 
+/*!
+ * @brief 响应好友状态更新
+ * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @param[in] result 操作结果
+ * @param[in] response 好友状态信息
+ * @return 无
+ */
 void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
 {
     if(result == STATUS_SUCCESS && response.accountId != G_UserBaseInfo.accountId)
@@ -807,6 +814,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
         if(client)
         {
             client->toolItem->setStatus(response.onStatus);
+            client->simpleUserInfo.status = response.onStatus;
             if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
