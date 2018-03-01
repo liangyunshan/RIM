@@ -53,6 +53,7 @@ const char SETTING_AUTO_LOGIN[] = "Main/AutoLogin";
 const char SETTING_TOPHINT[] = "Main/TopHint";
 const char SETTING_EXIT_SYSTEM[] = "Main/ExitSystem";
 const char SETTING_TRAYICON[] = "Main/TrayIcon";
+const char SETTING_HIDEPANEL[] = "Main/HidePanel";
 
 const char SETTING_WINDOW_SHAKE[] = "Main/WindowShake";
 const char SETTING_SOUND_AVAILABLE[] = "Main/Sounds";

@@ -59,6 +59,7 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
+        m_autoHideSetting = RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool();
     }
 
 private:
@@ -76,6 +77,7 @@ private:
     EditPersonInfoWindow * editWindow;
 
     bool m_bIsAutoHide;
+    bool m_autoHideSetting;
     Direction m_enDriection;
 
     MainDialog * q_ptr;
@@ -134,6 +136,7 @@ void MainDialog::onMessage(MessageType type)
         case MESS_SETTINGS:
         {
             makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
+            blockAutoHidePanel(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
         }
         break;
         case MESS_SCREEN_CHANGE:
@@ -173,7 +176,7 @@ void MainDialog::leaveEvent(QEvent *event)
 {
     MQ_D(MainDialog);
     isAutoHide();
-    if(d->m_bIsAutoHide)
+    if(d->m_bIsAutoHide && d->m_autoHideSetting)
     {
         hidePanel();
     }
@@ -183,7 +186,7 @@ void MainDialog::leaveEvent(QEvent *event)
 void MainDialog::enterEvent(QEvent *event)
 {
     MQ_D(MainDialog);
-    if(d->m_bIsAutoHide)
+    if(d->m_bIsAutoHide && d->m_autoHideSetting)
     {
         showPanel();
     }
@@ -235,6 +238,27 @@ void MainDialog::makeWindowFront(bool flag)
     RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
 
     show();
+}
+
+void MainDialog::blockAutoHidePanel(bool flag)
+{
+    MQ_D(MainDialog);
+    d->m_autoHideSetting = flag;
+    isAutoHide();
+    if(!d->m_autoHideSetting)
+    {
+        if(d->m_bIsAutoHide)
+        {
+            moveToDesktop(d->m_enDriection);
+        }
+    }
+    else
+    {
+        if(d->m_bIsAutoHide)
+        {
+            hidePanel();
+        }
+    }
 }
 
 void MainDialog::showChatWindow(ToolItem * item)
@@ -542,6 +566,38 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
 void MainDialog::changeGeometry(QRect rect)
 {
     changeGeometry(rect.x(),rect.y(),rect.width(),rect.height());
+}
+
+void MainDialog::moveToDesktop(int direction)
+{
+    MQ_D(MainDialog);
+    QRect t_rect = this->geometry();
+    QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
+    t_animation->setDuration(Panel_ANDURATION);
+    t_animation->setStartValue(t_rect);
+    QRect t_endRect;
+
+    switch (direction)
+    {
+        case d->Left:
+            t_endRect = QRect(t_rect.x()+t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
+            break;
+
+        case d->Up:
+            t_endRect = QRect(t_rect.x(),t_rect.y()+t_rect.height(),t_rect.width(),t_rect.height());
+            break;
+
+        case d->Right:
+            t_endRect = QRect(t_rect.x()-t_rect.width(),t_rect.y(),t_rect.width(),t_rect.height());
+            break;
+
+        default:
+            t_endRect = t_rect;
+            break;
+    }
+    t_animation->setEndValue(t_endRect);
+    t_animation->start(QAbstractAnimation::DeleteWhenStopped);
+    Q_UNUSED(d);
 }
 
 void MainDialog::writeSettings()

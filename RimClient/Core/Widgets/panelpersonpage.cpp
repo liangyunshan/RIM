@@ -176,8 +176,6 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
     t_item->setNickName(info.nickName);
     t_item->setDescInfo(info.signName);
     t_item->setStatus(info.status);
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<info.status;
 }
 
 /*!
@@ -202,7 +200,11 @@ void PanelPersonPage::removeContact(const SimpleUserInfo & info)
             bool t_removeResult = t_pageOfItem->removeItem(t_item);
             if(t_removeResult)
             {
-                delete t_item;
+                bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
+                if(t_result)
+                {
+                    delete t_item;
+                }
             }
         }
     }

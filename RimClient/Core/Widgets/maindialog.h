@@ -52,6 +52,7 @@ private slots:
     void updateWidgetGeometry();
     void closeWindow();
     void makeWindowFront(bool flag);
+    void blockAutoHidePanel(bool flag);
 
     void showChatWindow(ToolItem*item);
     void showHoverItem(bool,ToolItem*);
@@ -76,6 +77,7 @@ private:
 
     void changeGeometry(int x,int y,int w,int h);
     void changeGeometry(QRect rect);
+    void moveToDesktop(int direction);
 
 private:
     static MainDialog * dialog;
