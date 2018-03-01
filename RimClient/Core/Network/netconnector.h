@@ -28,15 +28,12 @@ namespace ClientNetwork {
 class RTask;
 }
 
-class NetConnector : public ClientNetwork::RTask
+
+class SuperConnector : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
-    explicit NetConnector(QObject * parent = 0);
-    ~NetConnector();
-
-    static NetConnector * instance();
-
+    explicit SuperConnector(QObject * parent = 0);
     enum NetCommand
     {
         Net_None,
@@ -58,23 +55,17 @@ public:
     void startMe();
     void stopMe();
 
+protected:
+    virtual void doConnect()=0;
+    virtual void doReconnect()=0;
+    virtual void doDisconnect()=0;
+
+    void run();
+
 signals:
     void connected(bool flag);
 
-private slots:
-    void respSocketError(int errorCode);
-
 protected:
-    void run();
-
-private:
-    void doConnect();
-    void doReconnect();
-    void doDisconnect();
-
-private:
-    static NetConnector * netConnector;
-
     ClientNetwork::RSocket * rsocket;
 
     NetCommand command;
@@ -82,8 +73,31 @@ private:
 
     int delayTime;
 
+private:
     QMutex mutex;
     QWaitCondition condition;
+
+};
+
+class TextNetConnector : public SuperConnector
+{
+    Q_OBJECT
+public:
+    explicit TextNetConnector();
+    ~TextNetConnector();
+
+    static TextNetConnector * instance();
+
+private slots:
+    void respSocketError(int errorCode);
+
+private:
+    void doConnect();
+    void doReconnect();
+    void doDisconnect();
+
+private:
+    static TextNetConnector * netConnector;
 
     ClientNetwork::MsgSender * msgSender;
     ClientNetwork::MsgReceive * msgReceive;

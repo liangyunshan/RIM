@@ -20,7 +20,6 @@
 #include <QMimeData>
 #include <QPalette>
 
-
 #include "head.h"
 #include "global.h"
 #include "datastruct.h"
@@ -37,6 +36,7 @@
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
+#include "thread/imagetask.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -671,6 +671,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
     RSingleton<MsgQueueManager>::instance()->enqueue(request);
+
+    //TODO 对图片进行测试
+    QString fileName = "e:/2.ISO";
+    FileItemDesc * desc = new FileItemDesc;
+    desc->id = RUtil::UUID();
+    desc->fullPath = fileName;
+    desc->fileSize = QFileInfo(fileName).size();
+    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢
+    desc->otherSideId = d->userInfo.accountId;
+    desc->itemType = FILE_ITEM_CHAT_UP;
+
+    ImageTask::instance()->addItem(desc);
 
     SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
 

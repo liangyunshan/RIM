@@ -131,7 +131,8 @@ SOURCES += \
     json/jsonresolver.cpp \
     Widgets/widget/rcombobox.cpp \
     Widgets/widget/rlineedit.cpp \
-    others/msgqueuemanager.cpp
+    others/msgqueuemanager.cpp \
+    thread/imagetask.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -206,7 +207,8 @@ HEADERS  += \
     json/jsonresolver.h \
     Widgets/widget/rcombobox.h \
     Widgets/widget/rlineedit.h \
-    others/msgqueuemanager.h
+    others/msgqueuemanager.h \
+    thread/imagetask.h
 
 DISTFILES += \
     Widgets/Widgets.pri

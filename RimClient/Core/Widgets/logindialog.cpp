@@ -291,7 +291,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
@@ -327,7 +327,7 @@ void LoginDialog::respConnect(bool flag)
 void LoginDialog::login()
 {
 #ifndef __NO_SERVER__
-    NetConnector::instance()->connect();
+    TextNetConnector::instance()->connect();
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -549,7 +549,7 @@ void LoginDialog::respItemChanged(QString id)
 
 void LoginDialog::showRegistDialog()
 {
-    disconnect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 
     RegistDialog * dialog = new RegistDialog(this);
     connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
@@ -558,7 +558,7 @@ void LoginDialog::showRegistDialog()
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 }
 
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)

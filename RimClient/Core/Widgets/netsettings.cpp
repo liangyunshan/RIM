@@ -180,7 +180,7 @@ void NetSettings::updateSettings()
         G_ServerIp = d->tcpTextServerIpEdit->text();
         G_ServerPort = d->tcpTextServerPortEdit->text().toUShort();
 
-        NetConnector::instance()->disConnect();
+        TextNetConnector::instance()->disConnect();
     }
 
     RMessageBox::information(this,tr("Information"),tr("Save changes successfully!"),RMessageBox::Yes);

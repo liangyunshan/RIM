@@ -34,11 +34,31 @@ bool RUtil::isFileExist(QString filePath)
     return fileInfo.exists();
 }
 
+/*!
+ * @brief 对字符串进行MD5加密
+ * @param[in] text 待加密的字符串
+ * @return 加密后的字符串
+ */
 QString RUtil::MD5(QString text)
 {
     QByteArray bb;
     bb = QCryptographicHash::hash (text.toLocal8Bit(), QCryptographicHash::Md5 );
     return QString().append(bb.toHex());
+}
+
+/*!
+ * @brief 获取文件的MD5信息
+ * @details 对文件进行MD5计算，用于网络传输后对接收的文件数据进行正确性校验，防止传输过程中错误或者被篡改；
+ * @param[in] fileName 文件名信息
+ * @return 计算后的MD5值信息
+ */
+QString RUtil::MD5File(QString fileName)
+{
+    QFile theFile(fileName);
+    theFile.open(QIODevice::ReadOnly);
+    QByteArray ba = QCryptographicHash::hash(theFile.readAll(), QCryptographicHash::Md5).toHex();
+    theFile.close();
+    return QString(ba);
 }
 
 QString RUtil::getTimeStamp(QString format)
