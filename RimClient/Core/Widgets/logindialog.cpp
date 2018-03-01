@@ -823,7 +823,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
 void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(LoginDialog);
-
+    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;

@@ -86,7 +86,7 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
             response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
             response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
             response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
-
+            response.reponseType = (OperateContact)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
             MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(UPDATE_USER_SUCCESS,response);
         }
     }

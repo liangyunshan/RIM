@@ -273,6 +273,15 @@ enum ResponseUpdateUser
 };
 
 /*!
+ *  @brief  联系人信息操作
+ */
+enum OperateContact
+{
+    UPDATE_USER_DETAIL,        /*!< 更新用户信息 */
+    REQUEST_CONTACT_DETAIL      /*!< 请求联系人详细信息 */
+};
+
+/*!
  *  @brief 网络协议头
  */
 class MsgPacket
@@ -364,7 +373,7 @@ class UpdateBaseInfoRequest : public MsgPacket
 {
 public:
     UpdateBaseInfoRequest();
-
+    OperateContact requestType; /*!< 请求操作类型 */
     UserBaseInfo baseInfo;  /*!< 请求更新的基本信息 */
 };
 
@@ -375,7 +384,7 @@ class UpdateBaseInfoResponse : public MsgPacket
 {
 public:
     UpdateBaseInfoResponse();
-
+    OperateContact reponseType; /*!< 回复操作类型 */
     UserBaseInfo baseInfo;  /*!< 更新后的基本信息 */
 };
 
@@ -531,7 +540,8 @@ enum OperateGroupingFriend
 {
     G_Friend_CREATE,          /*!< 创建分组联系人  */
     G_Friend_UPDATE,          /*!< 更新分组联系人(如备注信息等)  */
-    G_Friend_MOVE             /*!< 移动联系人  */
+    G_Friend_MOVE,            /*!< 移动联系人  */
+    G_Friend_Delete           /*!< 删除联系人  */
 };
 
 /*!
