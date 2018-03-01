@@ -7,6 +7,7 @@
  *  @date      2018.01.26
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note   20180227:wey:增加对屏幕状态监听；
  */
 #ifndef APPLICATION_H
 #define APPLICATION_H

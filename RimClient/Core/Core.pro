@@ -130,7 +130,8 @@ SOURCES += \
     user/userclient.cpp \
     json/jsonresolver.cpp \
     Widgets/widget/rcombobox.cpp \
-    Widgets/widget/rlineedit.cpp
+    Widgets/widget/rlineedit.cpp \
+    others/msgqueuemanager.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -204,7 +205,8 @@ HEADERS  += \
     user/userclient.h \
     json/jsonresolver.h \
     Widgets/widget/rcombobox.h \
-    Widgets/widget/rlineedit.h
+    Widgets/widget/rlineedit.h \
+    others/msgqueuemanager.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -1,4 +1,4 @@
-#include "systemnotifyview.h"
+﻿#include "systemnotifyview.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>

@@ -32,6 +32,7 @@ public:
     void proGroupingFriendResponse(QJsonObject &data);
 
     void proText(QJsonObject &data);
+    void proTextApply(QJsonObject &data);
 
 private:
 

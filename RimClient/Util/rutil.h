@@ -38,6 +38,8 @@ public:
 
     static QSize screenSize(int num = -1);
 
+    static QRect screenGeometry();
+
     static qint64 currentMSecsSinceEpoch();
 
     static bool validateIpFormat(QString dest);

@@ -617,16 +617,20 @@ bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFrien
  * @attention [1]离线消息数量大于0时，认为加载成功 @n
  *            [2]加载用户A消息时，需要将A的ID作为目的消息ID查询 @n
  */
-bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextResponse>& textResponse)
+bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextRequest>& textResponse)
 {
     DataTable::RUserChatCache userchatcache;
     RSelect rst(userchatcache.table);
     rst.select(userchatcache.account);
-    rst.select(userchatcache.destAccount);
+    rst.select(userchatcache.otherSideId);
     rst.select(userchatcache.data);
     rst.select(userchatcache.time);
     rst.select(userchatcache.msgType);
-    rst.createCriteria().add(Restrictions::eq(userchatcache.destAccount,accountId));
+    rst.select(userchatcache.textId);
+    rst.select(userchatcache.textType);
+    rst.select(userchatcache.encryption);
+    rst.select(userchatcache.compress);
+    rst.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     qDebug()<<rst.sql();
@@ -634,20 +638,25 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextRespon
     {
         while(query.next())
         {
-            TextResponse textCache;
+            TextRequest textCache;
             textCache.accountId = query.value(userchatcache.account).toString();
             textCache.type = SearchPerson;
-            textCache.fromAccountId = query.value(userchatcache.destAccount).toString();
+            //NOTE 注意
+            textCache.otherSideId = query.value(userchatcache.otherSideId).toString();
             textCache.sendData = query.value(userchatcache.data).toString();
             textCache.timeStamp = query.value(userchatcache.time).toLongLong();
             textCache.msgCommand = (MsgCommand)query.value(userchatcache.msgType).toInt();
+            textCache.textId = query.value(userchatcache.textId).toString();
+            textCache.textType = (TextType)query.value(userchatcache.textType).toInt();
+            textCache.isEncryption = query.value(userchatcache.encryption).toBool();
+            textCache.isCompress = query.value(userchatcache.compress).toBool();
             textResponse.append(textCache);
         }
 
         if(textResponse.size() > 0)
         {
             RDelete rde(userchatcache.table);
-            rde.createCriteria().add(Restrictions::eq(userchatcache.destAccount,accountId));
+            rde.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
 //            if(query.exec(rde.sql()))
             {
                 return true;
@@ -669,10 +678,14 @@ bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
     DataTable::RUserChatCache userchatcache;
     RPersistence rps(userchatcache.table);
     rps.insert(userchatcache.account,request->accountId);
-    rps.insert(userchatcache.destAccount,request->destAccountId);
+    rps.insert(userchatcache.otherSideId,request->otherSideId);
     rps.insert(userchatcache.data,request->sendData);
     rps.insert(userchatcache.time,request->timeStamp);
     rps.insert(userchatcache.msgType,request->msgCommand);
+    rps.insert(userchatcache.textId,request->textId);
+    rps.insert(userchatcache.textType,request->textType);
+    rps.insert(userchatcache.encryption,request->isEncryption);
+    rps.insert(userchatcache.compress,request->isCompress);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))

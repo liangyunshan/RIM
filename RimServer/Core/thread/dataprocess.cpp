@@ -490,26 +490,18 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
         }
 
         //[2]查找该用户对应的聊天历史消息
-        QList<TextResponse> textResponse;
+        QList<TextRequest> textResponse;
         if(RSingleton<SQLProcess>::instance()->loadChatCache(db,request->accountId,textResponse))
         {
-            QList<TextResponse>::iterator iter = textResponse.begin();
+            QList<TextRequest>::iterator iter = textResponse.begin();
             while(iter != textResponse.end())
             {
                 SocketOutData responseData;
                 responseData.sockId = socketId;
 
-                TextResponse * response = new TextResponse;
-                response->msgCommand = (*iter).msgCommand;
-                response->accountId = (*iter).fromAccountId;
-                response->fromAccountId = (*iter).accountId;
-                response->sendData = (*iter).sendData;
-                response->timeStamp = (*iter).timeStamp;
-
-                responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
+                responseData.data = RSingleton<MsgWrap>::instance()->handleText(&(*iter));
 
                 SendData(responseData);
-                delete response;
 
                 iter++;
             }
@@ -632,28 +624,20 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
 
     if(request->type == SearchPerson)
     {
-        TcpClient * client = TcpClientManager::instance()->getClient(request->destAccountId);
+        TcpClient * client = TcpClientManager::instance()->getClient(request->otherSideId);
         if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
         {
             responseData.sockId = client->socket();
-
-            TextResponse * response = new TextResponse;
-            response->msgCommand = request->msgCommand;
-            response->accountId = request->destAccountId;
-            response->fromAccountId = request->accountId;
-            response->sendData = request->sendData;
-            response->timeStamp = request->timeStamp;
-
-            responseData.data = RSingleton<MsgWrap>::instance()->handleText(response);
+            responseData.data = RSingleton<MsgWrap>::instance()->handleText(request);
 
             SendData(responseData);
-            delete response;
         }
         else
         {
             if(request->type == SearchPerson)
             {
                 //FIXME 存储消息时，会因存在'和"导致sql执行失败
+                //TODO 扩充数据库表
                 RSingleton<SQLProcess>::instance()->saveUserChat2Cache(db,request);
             }
             else if(request->type == SearchGroup)
@@ -663,7 +647,17 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
         }
     }
 
-    //TODO 加入对该条消息的回复确认
+    SocketOutData replyData;
+
+    TextReply * reply = new TextReply;
+    reply->applyType = APPLY_SYSTEM;
+    reply->textId = request->textId;
+
+    replyData.sockId = socketId;
+    replyData.data = RSingleton<MsgWrap>::instance()->handleTextReply(reply);
+
+    SendData(replyData);
+    delete reply;
 
     delete request;
 }

@@ -59,7 +59,6 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
-        m_desktopWidth = QApplication::desktop()->width();
     }
 
 private:
@@ -78,8 +77,6 @@ private:
 
     bool m_bIsAutoHide;
     Direction m_enDriection;
-    int m_desktopWidth;
-
 
     MainDialog * q_ptr;
 };
@@ -103,6 +100,7 @@ MainDialog::MainDialog(QWidget *parent) :
     connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
     connect(MessDiapatch::instance(),SIGNAL(recvGroupingOperate(GroupingResponse)),this,SLOT(recvGroupingOperate(GroupingResponse)));
     connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
+    connect(MessDiapatch::instance(),SIGNAL(screenChange()),this,SLOT(screenChanged()));
 }
 
 MainDialog::~MainDialog()
@@ -134,10 +132,15 @@ void MainDialog::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SETTINGS:
-                           {
-                                 makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
-                           }
-                            break;
+        {
+            makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
+        }
+        break;
+        case MESS_SCREEN_CHANGE:
+        {
+            changeGeometry(geometry());
+            break;
+        }
         default:break;
     }
 }
@@ -180,7 +183,6 @@ void MainDialog::leaveEvent(QEvent *event)
 void MainDialog::enterEvent(QEvent *event)
 {
     MQ_D(MainDialog);
-    isAutoHide();
     if(d->m_bIsAutoHide)
     {
         showPanel();
@@ -439,6 +441,17 @@ void MainDialog::initWidget()
 #define SCALE_ZOOMIN_FACTOR 1.2
 #define SCALE_ZOOMOUT_FACTOR 0.75
 
+/*!
+ * @brief 解析配置文件，根据配置文件中的尺寸设置窗口位置
+ * @param[in] 无
+ * @return 无
+ * @note 在设置屏幕尺寸时需考虑在多屏与单屏之间的切换显示，假设存在主屏A，和扩展屏B； @n
+ *      1.在复制模式中，不会受影响； @n
+ *      2.在扩展模式中，a.程序运行在A上，动态加入B，此时不受影响； @n
+ *                   b.有A、B两屏，程序运行在B上，移除B，程序需动态切换至A @n
+ *                   c.有A、B两屏，程序运行在B上，重新调整显示器排列顺序，如将水平排列改为垂直排列，程序需动态切换 @n
+ *      3.仅在A或仅在B模式：程序不受影响 @n
+ */
 void MainDialog::readSettings()
 {
     QSettings * settings = RUtil::globalSettings();
@@ -463,7 +476,72 @@ void MainDialog::readSettings()
     int w = RUtil::globalSettings()->value(Constant::SETTING_WIDTH).toInt();
     int h = RUtil::globalSettings()->value(Constant::SETTING_HEIGHT).toInt();
 
-    this->setGeometry(x,y,w,h);
+    changeGeometry(x,y,w,h);
+}
+
+/*!
+ * @brief 响应屏幕尺寸改变事件
+ * @param[in] 无
+ * @return 无
+ * @warning 目前不能正确响应多屏幕排序而产生的事件。
+ */
+void MainDialog::screenChanged()
+{
+    RSingleton<Subject>::instance()->notify(MESS_SCREEN_CHANGE);
+}
+
+/*!
+ * @brief 调整程序显示位置
+ * @param[in] x 原始屏幕坐标X
+ * @param[in] y 原始屏幕坐标Y
+ * @param[in] w 原始程序宽度
+ * @param[in] h 原始程序高度
+ * @return 无
+ * @note 获取当前外接的显示器数量，获取每块显示器的显示范围。将原始的尺寸与每块显示的显示范围进行比较，@n
+ *       若在显示器的显示范围之内，则将程序设置在此屏幕上；若不在此显示范围内，则将程序设置在默认的屏幕上。 @n
+ *       若A为主屏，B为辅屏，两者的尺寸均为W,H，在排列上有以下几种情况: @n
+ *       1.AB排列：水平范围：[0,2W]、竖直范围：[0,H] @n
+ *       2.BA排列：水平范围：[-W,W]、竖直范围：[0,H] @n
+ *       3.A/B排列：水平范围：[0,W]、竖直范围：[0,2H] @n
+ *       4.B/A排列：水平范围：[0,W]、竖直范围：[-H,H] @n
+ */
+void MainDialog::changeGeometry(int x, int y, int w, int h)
+{
+    MQ_D(MainDialog);
+    bool foundScreen = false;
+
+    //【1】查找上一次的位置是否在当前显示中可用，若可用，则可直接设置
+    int screenSize = qApp->desktop()->screenCount();
+    for(int i = 0; i < screenSize; i++)
+    {
+        QRect screenRect = qApp->desktop()->screenGeometry(i);
+        int minX = screenRect.x();
+        int maxX = screenRect.x() + screenRect.width();
+        int minY = screenRect.y();
+        int maxY = screenRect.y() + screenRect.height();
+
+        if(x >= minX && x <= maxX && y >= minY && y <= maxY)
+        {
+            this->setGeometry(x,y,w,h);
+            foundScreen = true;
+            break;
+        }
+    }
+
+    //【2】若不可用，则将位置置为默认窗口显示
+    if(!foundScreen)
+    {
+        QRect defaultRect = qApp->desktop()->screen()->rect();
+        setGeometry(defaultRect.width() - w - 10,20,w,h);
+
+        d->m_enDriection = d->None;
+        d->m_bIsAutoHide = false;
+    }
+}
+
+void MainDialog::changeGeometry(QRect rect)
+{
+    changeGeometry(rect.x(),rect.y(),rect.width(),rect.height());
 }
 
 void MainDialog::writeSettings()
@@ -490,24 +568,28 @@ void MainDialog::initSqlDatabase()
 }
 
 /*!
-     * @brief 判断面板贴边隐藏的方向
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 判断面板贴边隐藏的方向
+ * @param[in] 无
+ * @return 无
+ * @note 在检测时，需考虑当前显示屏幕的数量。根据屏幕的组合不同，动态的调整
+ */
 void MainDialog::isAutoHide()
 {
     MQ_D(MainDialog);
     QPoint t_pos = this->pos();
     d->m_bIsAutoHide = true;
-    if(t_pos.x()< PANEL_HIDEMARGIN + shadowWidth())
+
+    QRect screenGeometry = RUtil::screenGeometry();
+
+    if(t_pos.x()< screenGeometry.left() + PANEL_HIDEMARGIN + shadowWidth())
     {
         d->m_enDriection = d->Left;
     }
-    else if(t_pos.y() < PANEL_HIDEMARGIN + shadowWidth())
+    else if(t_pos.y() < screenGeometry.top() + PANEL_HIDEMARGIN + shadowWidth())
     {
         d->m_enDriection = d->Up;
     }
-    else if(this->pos().x() + this->width() > d->m_desktopWidth - PANEL_HIDEMARGIN + shadowWidth())
+    else if(this->pos().x() + this->width() > (screenGeometry.left() + screenGeometry.width()) - PANEL_HIDEMARGIN - shadowWidth())
     {
         d->m_enDriection = d->Right;
     }
@@ -516,14 +598,14 @@ void MainDialog::isAutoHide()
         d->m_enDriection = d->None;
         d->m_bIsAutoHide = false;
     }
-
 }
 
 /*!
-     * @brief 动画隐藏面板
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 动画隐藏面板
+ * @param[in] 无
+ * @return 无
+ * @note 目前直接获取width()其宽度是不准确的，因包含了两个的shadowWidth.
+ */
 void MainDialog:: hidePanel()
 {
     MQ_D(MainDialog);
@@ -533,6 +615,8 @@ void MainDialog:: hidePanel()
     t_width = this->width();
     t_height = this->height();
 
+    QRect screenGeometry = RUtil::screenGeometry();
+
     QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
     t_animation->setDuration(Panel_ANDURATION);
     t_animation->setStartValue(QRect(this->pos(), this->size()));
@@ -541,18 +625,18 @@ void MainDialog:: hidePanel()
     if(d->m_enDriection & d->Up)
     {
         t_xValue = this->x();
-        t_yValue = -this->height() + PANEL_HIDEMARGIN + shadowWidth();
+        t_yValue = screenGeometry.top() - this->height() + PANEL_HIDEMARGIN + shadowWidth();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
     else if(d->m_enDriection & d->Left)
     {
-        t_xValue = -this->width() + PANEL_HIDEMARGIN + shadowWidth();
+        t_xValue = screenGeometry.left() - this->width() + PANEL_HIDEMARGIN + shadowWidth();
         t_yValue = this->y();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
     else if(d->m_enDriection & d->Right)
     {
-        t_xValue = d->m_desktopWidth - PANEL_HIDEMARGIN - shadowWidth();
+        t_xValue = (screenGeometry.left() + screenGeometry.width()) - 2*PANEL_HIDEMARGIN - shadowWidth();
         t_yValue = this->y();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
@@ -560,16 +644,16 @@ void MainDialog:: hidePanel()
     {
         t_endRect = this->rect();
     }
+
     t_animation->setEndValue(t_endRect);
     t_animation->start(QAbstractAnimation::DeleteWhenStopped);
-
 }
 
 /*!
-     * @brief 动画显示面板
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 动画显示面板
+ * @param[in] 无
+ * @return 无
+ */
 void MainDialog::showPanel()
 {
     MQ_D(MainDialog);
@@ -579,6 +663,8 @@ void MainDialog::showPanel()
     t_width = this->width();
     t_height = this->height();
 
+    QRect screenGeometry = RUtil::screenGeometry();
+
     QPropertyAnimation *t_animation = new QPropertyAnimation(this, "geometry");
     t_animation->setDuration(Panel_ANDURATION);
     t_animation->setStartValue(QRect(this->pos(), this->size()));
@@ -587,18 +673,18 @@ void MainDialog::showPanel()
     if (d->m_enDriection & d->Up)
     {
         t_xValue = this->x();
-        t_yValue = -shadowWidth();
+        t_yValue = screenGeometry.top() - shadowWidth();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
     else if (d->m_enDriection & d->Left)
     {
-        t_xValue = -shadowWidth();
+        t_xValue = screenGeometry.left() - shadowWidth();
         t_yValue = this->y();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
     else if (d->m_enDriection & d->Right)
     {
-        t_xValue = d->m_desktopWidth - this->width()+shadowWidth();
+        t_xValue = (screenGeometry.left() + screenGeometry.width()) - this->width() + shadowWidth() - PANEL_HIDEMARGIN;
         t_yValue = this->y();
         t_endRect = QRect(t_xValue, t_yValue, t_width, t_height);
     }
@@ -606,6 +692,7 @@ void MainDialog::showPanel()
     {
         t_endRect = this->rect();
     }
+
     t_animation->setEndValue(t_endRect);
     t_animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
