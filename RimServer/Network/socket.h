@@ -44,6 +44,9 @@ public:
     int getSocket()const {return tcpSocket;}
 
 private:
+    int getErrorCode();
+
+private:
     char socketIp[20];
     unsigned short socketPort;
 

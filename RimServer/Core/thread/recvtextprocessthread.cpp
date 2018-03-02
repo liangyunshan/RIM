@@ -1,7 +1,7 @@
 ﻿#include "recvtextprocessthread.h"
 
 #include "Network/netglobal.h"
-#include "Network/netutils.h"
+#include "Network/win32net/netutils.h"
 #include "Network/tcpclient.h"
 #include "Util/rlog.h"
 #include "dataparse.h"
