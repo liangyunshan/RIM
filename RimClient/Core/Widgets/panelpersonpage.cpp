@@ -35,6 +35,7 @@ protected:
         m_modifyWindow = NULL;
         m_detailWindow = NULL;
         groupIsCreate = false;
+        m_listIsCreated = false;
         initWidget();
     }
 
@@ -49,6 +50,7 @@ protected:
     ToolItem * m_movedItem;                         //待移动的联系人item
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
+    bool m_listIsCreated;                           //标识好友列表是第一次创建还是刷新显示
 
     ModifyRemarkWindow *m_modifyWindow;
     ContactDetailWindow *m_detailWindow;
@@ -127,6 +129,8 @@ void PanelPersonPage::addGroupAndUsers()
 
         page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     }
+
+    d->m_listIsCreated = true;
 }
 
 /*!
@@ -210,13 +214,110 @@ void PanelPersonPage::removeContact(const SimpleUserInfo & info)
     }
 }
 
+/*!
+ * @brief 清除本地存在但数据库中不存在的分组与联系人信息（可能有这种情况存在）
+ * @param[in] 无
+ * @return 无
+ */
+void PanelPersonPage::clearUnrealGroupAndUser()
+{
+    MQ_D(PanelPersonPage);
+    QList<int>t_unrealPages;
+
+    for(int t_pageIndex = 0;t_pageIndex < d->toolBox->allPages().count();t_pageIndex++)
+    {
+        ToolPage * t_tempPage = d->toolBox->allPages().at(t_pageIndex);
+        QList<int>t_unrealItems;//保存本地存在但数据库中已经不存在的联系人索引值
+        int t_alikeGroup = -1;  //记录G_FriendList中与t_tempPage的id相同的分组索引值
+        bool t_groupMatchResult = false;   //标记是否有匹配的分组
+
+        for(int t_groupIndex = 0;t_groupIndex < G_FriendList.count();t_groupIndex++)
+        {
+            if(t_tempPage->getID() == G_FriendList.at(t_groupIndex)->groupId)
+            {
+                t_groupMatchResult = true;  //有匹配的分组立即跳出当前循环
+                t_alikeGroup = t_groupIndex;
+                break;
+            }
+        }
+        if(t_alikeGroup != -1)  //比对分组中是否有本地存在但数据库中不存在的联系人
+        {
+            QList<SimpleUserInfo *> t_users = G_FriendList.at(t_alikeGroup)->users;
+            for(int t_itemIndex = 0;t_itemIndex<t_tempPage->items().count();t_tempPage++)
+            {
+                bool t_userMatchResult = false;
+                for(int t_userIndex = 0;t_userIndex < t_users.count();t_userIndex++)
+                {
+                    ToolItem * t_curItem = t_tempPage->items().at(t_itemIndex);
+                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_curItem);
+                    if(t_client->simpleUserInfo.accountId == t_users.at(t_userIndex)->accountId)
+                    {
+                        t_userMatchResult = true;
+                    }
+                }
+                if(!t_userMatchResult)
+                {
+                    t_unrealItems.append(t_itemIndex);
+                }
+            }
+            for(int index = 0;index<t_unrealItems.count();index++)
+            {
+                ToolItem * temp = t_tempPage->items().at(t_unrealItems.at(index));
+                bool t_removeResult = t_tempPage->removeItem(temp);
+                if(t_removeResult)
+                {
+                    UserClient * userClient = RSingleton<UserManager>::instance()->client(temp);
+                    bool t_result = RSingleton<UserManager>::instance()->removeClient(userClient->simpleUserInfo.accountId);
+                    if(t_result)
+                    {
+                        delete temp;
+                    }
+                }
+            }
+        }
+        if(!t_groupMatchResult)
+        {
+            t_unrealPages.append(t_pageIndex);
+        }
+    }
+    for(int t_index = 0;t_index < t_unrealPages.count();t_index++)
+    {
+        ToolPage * t_targetPage = d->toolBox->allPages().at(t_unrealPages.at(t_index));
+        if(t_targetPage)
+        {
+            foreach(ToolItem *t_removedItem,t_targetPage->items())
+            {
+                bool t_itemResult = t_targetPage->removeItem(t_removedItem);
+                if(t_itemResult)
+                {
+                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_removedItem);
+                    bool t_clientResult = RSingleton<UserManager>::instance()->removeClient(t_client->simpleUserInfo.accountId);
+                    if(t_clientResult)
+                    {
+                        delete t_removedItem;
+                    }
+                }
+            }
+            d->toolBox->removePage(t_targetPage);
+            d->toolBox->removeFromList(t_targetPage);
+        }
+    }
+}
+
 void PanelPersonPage::onMessage(MessageType type)
 {
     MQ_D(PanelPersonPage);
     switch(type)
     {
         case MESS_FRIENDLIST_UPDATE:
-            addGroupAndUsers();
+            if(!d->m_listIsCreated)
+            {
+                addGroupAndUsers();
+            }
+            else
+            {
+                updateContactList();
+            }
             break;
         case MESS_GROUP_DELETE:
             clearTargetGroup(d->m_deleteID);
@@ -233,15 +334,13 @@ void PanelPersonPage::onMessage(MessageType type)
      */
 void PanelPersonPage::refreshList()
 {
-//    MQ_D(PanelPersonPage);
-//    d->m_deleteID = t_page->id();
-//    GroupingRequest * request = new GroupingRequest();
-//    request->uuid = G_UserBaseInfo.uuid;
-//    request->type = GROUPING_REFRESH;
-//    request->gtype = GROUPING_FRIEND;
-//    request->groupId = t_page->id();
+    GroupingRequest * request = new GroupingRequest();
+    request->uuid = G_UserBaseInfo.uuid;
+    request->type = GROUPING_REFRESH;
+    request->gtype = GROUPING_FRIEND;
 
-//    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    //TODO 服务器添加代码处理客户端刷新联系人列表请求
 }
 
 /*!
@@ -573,6 +672,87 @@ void PanelPersonPage::updateDetailInstance(QObject *)
     {
         d->m_detailWindow = NULL;
     }
+}
+
+/*!
+ * @brief 在更新G_FriendList并收到数据更新通知后，刷新联系人列表
+ * @param[in] 无
+ * @return 无
+ */
+void PanelPersonPage::updateContactList()
+{
+    MQ_D(PanelPersonPage);
+    for(int t_groupIndex = 0;t_groupIndex < G_FriendList.count();t_groupIndex++)
+    {
+        //更新列表中page
+        QString t_groupId = G_FriendList.at(t_groupIndex)->groupId;
+        bool t_matchGroupResult = false;
+        for(int t_pageIndex = 0;t_pageIndex < d->toolBox->allPages().count();t_pageIndex++)
+        {
+            ToolPage * t_tempPage = d->toolBox->allPages().at(t_pageIndex);
+            if(t_tempPage->getID() == t_groupId)
+            {
+                t_matchGroupResult = true;
+                break;
+            }
+        }
+        ToolPage * t_targetPage = d->toolBox->targetPage(t_groupId);
+        if(t_matchGroupResult)
+        {
+            //本地有与回复信息中匹配的分组
+            t_targetPage->setToolName(G_FriendList.at(t_groupIndex)->groupName);
+            //更新分组中item
+            QList<SimpleUserInfo *> t_users = G_FriendList.at(t_groupIndex)->users;
+            for(int t_userIndex = 0;t_userIndex < t_users.count();t_userIndex++)
+            {
+                QString t_userId = t_users.at(t_userIndex)->accountId;
+                bool t_matchUserResult = false;
+                for(int t_itemIndex = 0;t_itemIndex < t_targetPage->items().count();t_targetPage++)
+                {
+                    ToolItem * t_tempItem = t_targetPage->items().at(t_itemIndex);
+                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_tempItem);
+                    if(t_client->baseInfo.accountId == t_userId)
+                    {
+                        t_matchUserResult = true;
+                        break;
+                    }
+                }
+
+                if(t_matchUserResult)       //数据库分组中有，且相同id的本地分组中也有目标联系人
+                {
+                    ToolItem * t_matchedItem = RSingleton<UserManager>::instance()->client(t_userId)->toolItem;
+                    t_matchedItem->setName(t_users.at(t_userIndex)->remarks);
+                    t_matchedItem->setNickName(t_users.at(t_userIndex)->nickName);
+                    t_matchedItem->setDescInfo(t_users.at(t_userIndex)->signName);
+                    t_matchedItem->setStatus(t_users.at(t_userIndex)->status);
+                }
+                else                        //数据库分组中有但相同id的本地分组中没有目标联系人
+                {
+                    ToolItem * t_newItem = ceateItem(t_users.at(t_userIndex),t_targetPage);
+                    t_targetPage->addItem(t_newItem);
+                }
+            }
+        }
+        else
+        {
+            //数据库中存在但本地不存在的分组，则在本地新增分组
+            RGroupData * t_groupData = G_FriendList.at(t_groupIndex);
+            ToolPage * t_newPage = d->toolBox->addPage(t_groupData->groupName);
+            t_newPage->setID(t_groupData->groupId);
+            t_newPage->setDefault(t_groupData->isDefault);
+
+            for(int j = 0; j < t_groupData->users.size(); j++)
+            {
+                SimpleUserInfo * t_userInfo = t_groupData->users.at(j);
+
+                ToolItem * t_item = ceateItem(t_userInfo,t_newPage);
+                t_newPage->addItem(t_item);
+            }
+            t_newPage->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
+        }
+    }
+    //清除本地存在但数据库中已经不存在的page和item
+    clearUnrealGroupAndUser();
 }
 
 /*!

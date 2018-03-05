@@ -316,6 +316,7 @@ void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 void ContactDetailWindow::setGroups(QStringList groups, int current)
 {
     MQ_D(ContactDetailWindow);
+    d->m_group_box->clear();
     d->m_group_box->addItems(groups);
     if(current<d->m_group_box->count())
     {
