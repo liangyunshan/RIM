@@ -107,8 +107,8 @@ protected:
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
     QTimer *p_shakeTimer;
-    int     m_nPosition;
-    QPoint  m_curPos;
+    int m_nPosition;
+    QPoint m_curPos;
     bool b_isScreeHide;
 };
 
@@ -547,53 +547,55 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
 
 void AbstractChatWidget::shakeWindow()
 {
-    if(d_ptr->p_shakeTimer==NULL)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shakeTimer == NULL)
     {
-        d_ptr->p_shakeTimer = new QTimer();
-        QObject::connect(d_ptr->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
-        d_ptr->p_shakeTimer->setInterval(40);
+        d->p_shakeTimer = new QTimer();
+        connect(d->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
+        d->p_shakeTimer->setInterval(40);
     }
-    d_ptr->m_nPosition = 0;
-    d_ptr->m_curPos = this->pos();
-    d_ptr->p_shakeTimer->start();
+    d->m_nPosition = 0;
+    d->m_curPos = this->pos();
+    d->p_shakeTimer->start();
 }
 
 void AbstractChatWidget::slot_ShakeTimeout()
 {
-    if(d_ptr->p_shakeTimer==NULL)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shakeTimer==NULL)
     {
         return ;
     }
-    d_ptr->p_shakeTimer->stop();
-    if(d_ptr->m_nPosition < MaxLimitTimes)
+    d->p_shakeTimer->stop();
+    if(d->m_nPosition < MaxLimitTimes)
     {
-        ++d_ptr->m_nPosition;
-        switch(d_ptr->m_nPosition%4)
+        ++d->m_nPosition;
+        switch(d->m_nPosition%4)
         {
-        case 1:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x(),d_ptr->m_curPos.y()-MaxLimitSpace);
-            this->move(tmpPos);
+            case 1:
+            {
+                QPoint tmpPos(d->m_curPos.x(),d->m_curPos.y()-MaxLimitSpace);
+                this->move(tmpPos);
+            }
+                break;
+            case 2:
+            {
+                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y()-MaxLimitSpace);
+                this->move(tmpPos);
+            }
+                break;
+            case 3:
+            {
+                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y());
+                this->move(tmpPos);
+            }
+                break;
+            default:
+            case 0:
+                this->move(d->m_curPos);
+                break;
         }
-            break;
-        case 2:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x()-MaxLimitSpace,d_ptr->m_curPos.y()-MaxLimitSpace);
-            this->move(tmpPos);
-        }
-            break;
-        case 3:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x()-MaxLimitSpace,d_ptr->m_curPos.y());
-            this->move(tmpPos);
-        }
-            break;
-        default:
-        case 0:
-            this->move(d_ptr->m_curPos);
-            break;
-        }
-        d_ptr->p_shakeTimer->start();
+            d->p_shakeTimer->start();
     }
 }
 

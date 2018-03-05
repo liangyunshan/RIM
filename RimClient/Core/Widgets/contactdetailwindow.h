@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
+ *      20180302:LYS:修复连续查看联系人资料时显示分组问题
  *
  */
 #ifndef CONTACTDETAILWINDOW_H

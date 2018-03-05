@@ -306,9 +306,10 @@ void RIconLabel::mousePressEvent(QMouseEvent *)
     emit mousePressed();
 }
 
-void RIconLabel::mouseReleaseEvent(QMouseEvent *)
+void RIconLabel::mouseReleaseEvent(QMouseEvent *e)
 {
     emit mouseReleased();
+    QLabel::mouseReleaseEvent(e);
 }
 
 void RIconLabel::timeOut()

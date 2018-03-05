@@ -13,6 +13,7 @@
  *      20180202:wey:添加移动好友网络请求与接收处理
  *      20180202:LYS:去掉pages与toolItems列表，toolBox中allPages方法与toolPage中items方法代替
  *      20180205:LYS:修复删除分组bug
+ *      20180305:LYS:添加创建好友列表或者刷新好友列表标志m_listIsCreated:bool
  */
 #ifndef PANELPERSONPAGE_H
 #define PANELPERSONPAGE_H
@@ -61,6 +62,7 @@ private slots:
     void requestModifyRemark(QString remark);
 
     void updateDetailInstance(QObject *);
+    void updateContactList();
 
 public slots:
     void renameEditFinished();
@@ -74,6 +76,7 @@ private:
     void clearTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);
     void removeContact(const SimpleUserInfo &);
+    void clearUnrealGroupAndUser();
 
 private:
     PanelPersonPagePrivate * d_ptr;
