@@ -13,12 +13,14 @@
 
 #include <QString>
 #include <QSqlDatabase>
+#include "datastruct.h"
 
 class Database
 {
 public:
-    Database(const QString& type, QString connectionName = "");
+    Database(Datastruct::DatabaseType type, QString connectionName = "");
 
+    bool init();
     void setDatabaseName(const QString& name);
     void setUserName(const QString& name);
     void setPassword(const QString& password);
@@ -28,13 +30,17 @@ public:
     QSqlDatabase& sqlDatabase(){return database;}
 
     QString connectionName() const;
+    QString errorInfo()const;
 
     bool open();
+    bool isError()const;
 
 private:
     QSqlDatabase database;
-    bool m_open;
-
+    Datastruct::DatabaseType dbType;
+    QString dbId;           /*!< 数据库连接标识 */
+    bool m_error;           /*!< 是否存在错误 */
+    bool m_open;            /*!< 数据库是否开启 */
 };
 
 #endif // DATABASE_H

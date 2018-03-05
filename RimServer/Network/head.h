@@ -13,8 +13,10 @@
 
 #include <QByteArray>
 
+#ifdef Q_OS_WIN
 #include <WinSock2.h>
 #include <Windows.h>
+#endif
 
 #define IO_BUFF_SIZE  1024
 #define MAX_RECV_SIZE 1024*8

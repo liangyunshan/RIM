@@ -11,19 +11,21 @@
 #ifndef IOEVENT_H
 #define IOEVENT_H
 
-#include "head.h"
+#include "../head.h"
+#include "../network_global.h"
+#include "../tcpclient.h"
 #include "iopacket.h"
-#include "network_global.h"
-
-#include "tcpclient.h"
 
 namespace ServerNetwork {
 
-//ICOP请求类型
-enum IocpType{
-    IOCP_ACCPET = 0,
-    IOCP_RECV,
-    IOCP_SEND,
+/*!
+ *  @brief ICOP请求类型
+ */
+enum IocpType
+{
+    IOCP_ACCPET = 0,        /*!< Socket连接请求*/
+    IOCP_RECV,              /*!< Socket信息接收*/
+    IOCP_SEND,              /*!< Socket信息发送*/
 };
 
 class NETWORKSHARED_EXPORT IocpContext

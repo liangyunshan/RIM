@@ -111,11 +111,10 @@ TcpClient *TcpClientManager::getClient(int sock)
 TcpClient *TcpClientManager::getClient(QString accountId)
 {
     QMutexLocker locker(&mutex);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<clientList.size();
+
     QList<TcpClient *>::iterator iter = clientList.begin();
     while(iter != clientList.end())
     {
-        qDebug()<<(*iter)->getAccount();
         if((*iter)->getAccount() == accountId)
         {
             return (*iter);

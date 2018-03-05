@@ -14,12 +14,13 @@
 #include <QString>
 
 #include "database.h"
+#include "datastruct.h"
 
 class DatabaseManager
 {
 public:
     DatabaseManager();
-    void setDatabaseType(const QString dtype);
+    void setDatabaseType(Datastruct::DatabaseType type);
     void setConnectInfo(const QString host,const QString dbName,const QString user,const QString pass,const int port = 0);
 
     Database * newDatabase(QString connectionName = "");
@@ -32,7 +33,7 @@ private:
     QString m_dbUser;
     QString m_dbPass;
 
-    QString m_dbType;
+    Datastruct::DatabaseType m_dbType;
 
     unsigned short m_port;
 };
