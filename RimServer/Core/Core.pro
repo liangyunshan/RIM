@@ -7,6 +7,8 @@
 QT       += core gui
 QT       += sql
 
+CONFIG+= console
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = RimServer
@@ -46,7 +48,8 @@ SOURCES += main.cpp\
     Network/msgwrap.cpp \
     thread/sendtextprocessthread.cpp \
     jsonkey.cpp \
-    sql/rpersistence.cpp
+    sql/rpersistence.cpp \
+    datastruct.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -62,7 +65,8 @@ HEADERS  += widget.h \
     Network/msgwrap.h \
     thread/sendtextprocessthread.h \
     jsonkey.h \
-    sql/rpersistence.h
+    sql/rpersistence.h \
+    datastruct.h
 
 FORMS    += widget.ui
 

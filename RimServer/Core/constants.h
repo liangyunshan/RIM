@@ -18,6 +18,7 @@ const char Date_Simple[] = "yyyy-MM-dd";
 /*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimServer";
+const char Version[] = "1.0.0";
 const char PATH_UserPath[] = "/../users";
 const char PATH_ImagePath[] = "/../image";
 const char PATH_ConfigPath[] = "/../config";

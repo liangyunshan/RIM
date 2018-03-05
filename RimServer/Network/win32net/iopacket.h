@@ -11,8 +11,8 @@
 #ifndef IOPACKET_H
 #define IOPACKET_H
 
-#include "head.h"
-#include "network_global.h"
+#include "../head.h"
+#include "../network_global.h"
 
 namespace ServerNetwork {
 

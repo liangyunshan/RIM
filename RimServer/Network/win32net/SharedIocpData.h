@@ -11,9 +11,9 @@
 #ifndef SHAREDIOCPDATA_H
 #define SHAREDIOCPDATA_H
 
-#include "head.h"
+#include "../head.h"
 #include "iocpcontext.h"
-#include "socket.h"
+#include "../socket.h"
 
 namespace ServerNetwork {
 

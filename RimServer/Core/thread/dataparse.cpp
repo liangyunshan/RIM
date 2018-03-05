@@ -18,6 +18,11 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
 
 }
 
+/*!
+ * @brief 分发数据类型
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void DataParse::processData(Database *db,const SocketInData &data)
 {
     QJsonParseError errorInfo;
@@ -28,11 +33,11 @@ void DataParse::processData(Database *db,const SocketInData &data)
         switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
         {
             case MSG_CONTROL:
-                                        parseControlData(db,data.sockId,obj);
-                                        break;
+                parseControlData(db,data.sockId,obj);
+                break;
             case MSG_TEXT:
-                                        parseTextData(db,data.sockId,obj);
-
+                parseTextData(db,data.sockId,obj);
+                break;
             default:
                   break;
         }

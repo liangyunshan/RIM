@@ -7,6 +7,7 @@
  *  @date      2018.01.09
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note   20180302:wey:增加对windows、linux平台的区分
  */
 
 #ifndef TCPSERVER_H
@@ -14,10 +15,11 @@
 
 #include <QList>
 
-#include "head.h"
-#include "netglobal.h"
-#include "tcpclient.h"
+#include "../head.h"
+#include "../netglobal.h"
+#include "../tcpclient.h"
 #include "iocpcontext.h"
+#include "../abstractserver.h"
 
 namespace ServerNetwork {
 
@@ -26,7 +28,7 @@ class TcpClient;
 class SharedIocpData;
 class TcpClientManager;
 
-class NETWORKSHARED_EXPORT TcpServer
+class NETWORKSHARED_EXPORT TcpServer : public AbstractServer
 {
 public:
     explicit TcpServer();

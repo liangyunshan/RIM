@@ -31,26 +31,28 @@ CONFIG(debug, debug|release) {
 HEADERS += \
     netglobal.h \
     network_global.h \
-    tcpserver.h \
+    win32net/tcpserver.h \
     tcpclient.h \
-    SharedIocpData.h \
+    win32net/SharedIocpData.h \
     head.h \
-    workthread.h \
-    netutils.h \
-    iopacket.h \
-    iocpcontext.h \
-    socket.h
+    win32net/workthread.h \
+    win32net/netutils.h \
+    win32net/iopacket.h \
+    win32net/iocpcontext.h \
+    socket.h \
+    abstractserver.h
 
 SOURCES += \
     netglobal.cpp \
     tcpclient.cpp \
-    SharedIocpData.cpp \
-    workthread.cpp \
-    netutils.cpp \
-    tcpserver.cpp \
-    iopacket.cpp \
-    iocpcontext.cpp \
-    socket.cpp
+    win32net/SharedIocpData.cpp \
+    win32net/workthread.cpp \
+    win32net/netutils.cpp \
+    win32net/tcpserver.cpp \
+    win32net/iopacket.cpp \
+    win32net/iocpcontext.cpp \
+    socket.cpp \
+    abstractserver.cpp
 
 INCLUDEPATH += $$PWD/../../RimClient/
 

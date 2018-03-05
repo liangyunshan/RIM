@@ -5,14 +5,14 @@
 #if defined(Q_OS_WIN)
 
 #include "netglobal.h"
-#include "workthread.h"
-#include "SharedIocpData.h"
+#include "win32net/workthread.h"
+#include "win32net/SharedIocpData.h"
 
 #include <process.h>
 
 #include "Util/rlog.h"
 #include "tcpclient.h"
-#include "netutils.h"
+#include "win32net/netutils.h"
 
 #pragma comment(lib,"Mswsock.lib")
 #pragma comment(lib, "odbc32.lib")
@@ -51,6 +51,7 @@ bool TcpServer::startMe(const char *ip, unsigned short port)
        return false;
    }
 
+#ifdef Q_OS_WIN
    if(createListenSocket(ip,port))
    {
         if(createIocpPort())
@@ -65,6 +66,7 @@ bool TcpServer::startMe(const char *ip, unsigned short port)
             }
         }
    }
+#endif
    return false;
 }
 

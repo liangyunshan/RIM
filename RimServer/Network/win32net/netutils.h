@@ -12,7 +12,7 @@
 #define NETUTILS_H
 
 #include "SharedIocpData.h"
-#include "netglobal.h"
+#include "../netglobal.h"
 
 namespace ServerNetwork {
 namespace NetUtil {
