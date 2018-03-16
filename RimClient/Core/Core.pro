@@ -134,7 +134,8 @@ SOURCES += \
     thread/imagetask.cpp \
     Widgets/modifyremarkwindow.cpp \
     Widgets/contactdetailwindow.cpp \
-    others/msgqueuemanager.cpp
+    others/msgqueuemanager.cpp \
+    thread/filereceiveproctask.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -212,7 +213,8 @@ HEADERS  += \
     others/msgqueuemanager.h \
     thread/imagetask.h \
     Widgets/modifyremarkwindow.h \
-    Widgets/contactdetailwindow.h 
+    Widgets/contactdetailwindow.h \ 
+    thread/filereceiveproctask.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -7,6 +7,7 @@
 
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
+#include "Util/rbuffer.h"
 #include "jsonkey.h"
 
 MsgWrap::MsgWrap()
@@ -108,6 +109,20 @@ QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int er
     document.setObject(obj);
 
     return document.toJson(QJsonDocument::Compact);
+}
+
+QByteArray MsgWrap::handleFile(MsgPacket *response)
+{
+    switch(response->msgCommand)
+    {
+        case MSG_FILE_CONTROL:
+            return handleFileControl((SimpleFileItemRequest *)response);
+        break;
+        case MSG_FILE_REQUEST:
+        break;
+        case MSG_FILE_DATA:
+        break;
+    }
 }
 
 QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
@@ -281,6 +296,18 @@ QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int resu
     data.insert(JsonKey::key(JsonKey::Users),user);
 
     return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
+QByteArray MsgWrap::handleFileControl(SimpleFileItemRequest *packet)
+{
+    RBuffer buffer;
+    buffer.append((int)packet->msgType);
+    buffer.append((int)packet->msgCommand);
+    buffer.append((int)STATUS_SUCCESS);
+    buffer.append((int)packet->control);
+    buffer.append(packet->md5);
+
+    return buffer.byteArray();
 }
 
 /*!

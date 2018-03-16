@@ -30,6 +30,40 @@ int TcpClient::getPackId()
     return sendPackId;
 }
 
+bool TcpClient::addFile(QString fileId, FileRecvDesc *desc)
+{
+    if(desc == NULL)
+    {
+        return false;
+    }
+    QMutexLocker fileLocker(&fileMutex);
+    fileRecvList.insert(fileId,desc);
+    return true;
+}
+
+bool TcpClient::removeFile(QString fileId)
+{
+    QMutexLocker fileLocker(&fileMutex);
+    if(fileRecvList.contains(fileId))
+    {
+        FileRecvDesc * desc = fileRecvList.value(fileId);
+        delete desc;
+        fileRecvList.remove(fileId);
+        return true;
+    }
+    return false;
+}
+
+FileRecvDesc *TcpClient::getFile(QString fileId)
+{
+    QMutexLocker fileLocker(&fileMutex);
+    if(fileRecvList.contains(fileId))
+    {
+        return fileRecvList.value(fileId);
+    }
+    return NULL;
+}
+
 TcpClient::TcpClient()
 {
     memset(cIp,0,32);

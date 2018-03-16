@@ -37,6 +37,7 @@
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
 #include "thread/imagetask.h"
+#include "Network/netconnector.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -650,45 +651,46 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
 
-    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
-    {
-        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
-        return ;
-    }
-    TextUnit::ChatInfoUnit unit;
-    d_ptr->chatInputArea->transTextToUnit(unit);
+//    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+//    {
+//        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
+//        return ;
+//    }
+//    TextUnit::ChatInfoUnit unit;
+//    d_ptr->chatInputArea->transTextToUnit(unit);
 
-    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
-    TextRequest * request = new TextRequest;
-    request->type = SearchPerson;
-    request->textId = RUtil::UUID();
-    request->isEncryption = false;
-    request->isCompress = false;
-    request->textType = TEXT_NORAML;
-    request->otherSideId = d->userInfo.accountId;
-    request->accountId = G_UserBaseInfo.accountId;
-    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
-    request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
-    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+    FileNetConnector::instance()->connect();
+
+//    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
+//    TextRequest * request = new TextRequest;
+//    request->type = SearchPerson;
+//    request->textId = RUtil::UUID();
+//    request->isEncryption = false;
+//    request->isCompress = false;
+//    request->textType = TEXT_NORAML;
+//    request->otherSideId = d->userInfo.accountId;
+//    request->accountId = G_UserBaseInfo.accountId;
+//    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
+//    request->timeStamp = RUtil::timeStamp();
+//    RSingleton<MsgWrap>::instance()->hanleText(request);
+//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //TODO 对图片进行测试
-    QString fileName = "e:/2.ISO";
+    QString fileName = "e:/33.ISO";
     FileItemDesc * desc = new FileItemDesc;
     desc->id = RUtil::UUID();
     desc->fullPath = fileName;
     desc->fileSize = QFileInfo(fileName).size();
-    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢
+//    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢，在真正传输时计算MD5信息
     desc->otherSideId = d->userInfo.accountId;
     desc->itemType = FILE_ITEM_CHAT_UP;
-
     ImageTask::instance()->addItem(desc);
 
-    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+//    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
 
-    int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+//    int user_query_id = d->userInfo.accountId.toInt();
+//    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 
     d_ptr->chatInputArea->clear();
 }

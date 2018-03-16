@@ -10,6 +10,7 @@
 #include "dataprocess.h"
 #include "protocoldata.h"
 #include "jsonkey.h"
+#include "global.h"
 
 using namespace ProtocolType;
 
@@ -25,26 +26,40 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
  */
 void DataParse::processData(Database *db,const SocketInData &data)
 {
-    QJsonParseError errorInfo;
-    QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
-    if(errorInfo.error == QJsonParseError::NoError)
+    if(G_SERVICE_TYPE == SERVICE_TEXT)
     {
-        QJsonObject obj = document.object();
-        switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
+        QJsonParseError errorInfo;
+        QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
+        if(errorInfo.error == QJsonParseError::NoError)
         {
-            case MSG_CONTROL:
-                parseControlData(db,data.sockId,obj);
-                break;
-            case MSG_TEXT:
-                parseTextData(db,data.sockId,obj);
-                break;
-            default:
-                  break;
+            QJsonObject obj = document.object();
+            switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
+            {
+                case MSG_CONTROL:
+                    parseControlData(db,data.sockId,obj);
+                    break;
+                case MSG_TEXT:
+                    parseTextData(db,data.sockId,obj);
+                    break;
+                default:
+                      break;
+            }
+        }
+        else
+        {
+            RLOG_ERROR("recv a error data,skip!");
         }
     }
-    else
+    else if(G_SERVICE_TYPE == SERVICE_FILE)
     {
-        RLOG_ERROR("recv a error data,skip!");
+        RBuffer buffer(data.data);
+        int msgType,msgCommand;
+        if(!buffer.read(msgType) || !buffer.read(msgCommand))
+            return;
+        if((MsgType)msgType == MSG_FILE)
+        {
+            parseFileData(db,data.sockId,buffer);
+        }
     }
 }
 
@@ -122,6 +137,35 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
         request->sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
 
         RSingleton<DataProcess>::instance()->processText(db,socketId,request);
+    }
+}
+
+/*!
+ * @brief 解析文件传输过程中各种消息
+ * @param[in] db 线程拥有的数据库
+ * @param[in] socketId 访问的socketId
+ * @param[in] obj 解析后json请求数据
+ * @return 无
+ */
+void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
+{
+    if(buffer.seek(0) && buffer.skipInt())
+    {
+        int commandType;
+        if(buffer.read(commandType))
+        {
+            switch((MsgCommand)commandType)
+            {
+                case MSG_FILE_REQUEST:
+                    onProcessFileRequest(db,socketId,buffer);
+                    break;
+                case MSG_FILE_CONTROL:
+                    break;
+                case MSG_FILE_DATA:
+                    onProcessFileData(db,socketId,buffer);
+                    break;
+            }
+        }
     }
 }
 
@@ -240,4 +284,62 @@ void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject 
     request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
 
     RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
+}
+
+void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
+{
+    FileItemRequest * request = new FileItemRequest();
+
+    int control,itemType;
+    if(!obj.read(control))
+        return;
+    request->control = (FileTransferControl)control;
+
+    if(!obj.read(itemType))
+        return;
+    request->itemType = (FileItemType)itemType;
+
+    if(!obj.read(request->fileName))
+        return;
+
+    if(!obj.read(request->size))
+        return;
+
+    if(!obj.read(request->localFileName))
+        return;
+
+    if(!obj.read(request->md5))
+        return;
+
+    if(!obj.read(request->accountId))
+        return;
+
+    if(!obj.read(request->otherId))
+        return;
+
+    RSingleton<DataProcess>::instance()->processFileRequest(db,socketId,request);
+}
+
+void DataParse::onProcessFileControl(Database *db, int socketId, QJsonObject &obj)
+{
+
+}
+
+void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
+{
+    FileDataRequest * request = new FileDataRequest();
+    request->control =  T_DATA;
+
+    if(!obj.read(request->md5))
+        return;
+    if(!obj.read(request->index))
+        return;
+
+    const char * data = NULL;
+    size_t dataLen = 0;
+    if(!obj.read(&data,BUFFER_DEFAULT_SIZE,dataLen))
+        return;
+    request->array.append(data,dataLen);
+
+    RSingleton<DataProcess>::instance()->processFileData(db,socketId,request);
 }

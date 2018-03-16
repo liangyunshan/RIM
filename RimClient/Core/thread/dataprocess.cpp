@@ -317,3 +317,27 @@ void DataProcess::proTextApply(QJsonObject &data)
 
     MessDiapatch::instance()->onRecvTextReply(textReply);
 }
+
+/*!
+ * @attention 注意RBuffer中数据的开始指针已经不是指向0的位置
+ */
+void DataProcess::proFileControl(RBuffer &data)
+{
+    SimpleFileItemRequest simpleControl;
+
+    int status;
+    if(!data.read(status))
+        return;
+    if((MsgOperateResponse)status == STATUS_SUCCESS)
+    {
+        int control;
+        if(!data.read(control))
+            return;
+        simpleControl.control = (FileTransferControl)control;
+
+        if(!data.read(simpleControl.md5))
+            return;
+
+        MessDiapatch::instance()->onRecvFileControl(simpleControl);
+    }
+}

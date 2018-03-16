@@ -33,6 +33,7 @@
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
+#include "thread/imagetask.h"
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
@@ -291,19 +292,22 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
-void LoginDialog::respConnect(bool flag)
+void LoginDialog::respTextConnect(bool flag)
 {
     MQ_D(LoginDialog);
+
     if(flag)
     {
 #ifndef __NO_SERVER__
@@ -319,8 +323,18 @@ void LoginDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+    }
+}
+
+void LoginDialog::respFileConnect(bool flag)
+{
+    if(flag)
+    {
+#ifndef __NO_SERVER__
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
+#endif
     }
 }
 
@@ -377,14 +391,16 @@ void LoginDialog::createTrayMenu()
 
 void LoginDialog::loadLocalSettings()
 {
-    G_ServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_IP,Constant::DEFAULT_NETWORK_IP).toString();
-    G_ServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_PORT,Constant::DEFAULT_NETWORK_PORT).toUInt();
+    G_TextServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_TextServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+
+    G_FileServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_FileServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
 }
 
 int LoginDialog::isContainUser()
 {
     MQ_D(LoginDialog);
-    qDebug()<<d->userList->currentText()<<"===hha";
     return d->userIndex(d->userList->currentText());
 }
 
@@ -564,6 +580,7 @@ void LoginDialog::respRegistDialogDestory(QObject *)
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
 {
     MQ_D(LoginDialog);
+
     if(status == LOGIN_SUCCESS)
     {
         int index = -1;
@@ -819,6 +836,22 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
             }
+        }
+    }
+}
+
+/*!
+ * @brief 处理服务器端的传输控制
+ * @param[in] request 控制命令
+ * @return 无
+ */
+void LoginDialog::procFileControl(SimpleFileItemRequest request)
+{
+    if(ImageTask::instance()->containsTask(request.md5))
+    {
+        if(request.control == T_ABLE_SEND)
+        {
+            ImageTask::instance()->transfer(request.md5);
         }
     }
 }

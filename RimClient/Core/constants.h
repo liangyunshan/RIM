@@ -61,13 +61,19 @@ const char SETTING_SOUND_AVAILABLE[] = "Main/Sounds";
 const char SETTING_SYSTEM_LOCK[] = "Main/SystemLock";
 const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
 
-const char SETTING_NETWORK_IP[] = "Network/LoginIp";
-const char SETTING_NETWORK_PORT[] = "Network/LoginPort";
+const char SETTING_NETWORK_TEXT_IP[] = "Network/TextIp";
+const char SETTING_NETWORK_TEXT_PORT[] = "Network/TextPort";
+
+const char SETTING_NETWORK_FILE_IP[] = "Network/FileIp";
+const char SETTING_NETWORK_FILE_PORT[] = "Network/FilePort";
 
 const char SETTING_SOUND_GROUP[] = "Sound";
 
-const QString DEFAULT_NETWORK_IP = "127.0.0.1";
-const QString DEFAULT_NETWORK_PORT = "8023";
+const QString DEFAULT_NETWORK_TEXT_IP = "127.0.0.1";
+const QString DEFAULT_NETWORK_TEXT_PORT = "8023";
+
+const QString DEFAULT_NETWORK_FILE_IP = "127.0.0.1";
+const QString DEFAULT_NETWORK_FILE_PORT = "8024";
 
 /*图片*/
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";

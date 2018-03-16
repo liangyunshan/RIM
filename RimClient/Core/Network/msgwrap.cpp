@@ -7,6 +7,7 @@
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
 #include "jsonkey.h"
+#include "Util/rbuffer.h"
 
 MsgWrap::MsgWrap()
 {
@@ -240,11 +241,50 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
         delete packet;
     }
 
-    G_SendMutex.lock();
-    G_SendBuff.enqueue(array);
-    G_SendMutex.unlock();
+    G_TextSendMutex.lock();
+    G_TextSendBuffs.enqueue(array);
+    G_TextSendMutex.unlock();
 
-    G_SendWaitCondition.wakeOne();
+    G_TextSendWaitCondition.wakeOne();
+}
 
-//    RLOG_INFO("Send msg:%s",array.data());
+void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
+{
+    RBuffer rbuffer;
+    fileRequest->control = T_ABLE_SEND;
+    rbuffer.append((int)fileRequest->msgType);
+    rbuffer.append((int)fileRequest->msgCommand);
+    rbuffer.append((int)fileRequest->control);
+    rbuffer.append((int)fileRequest->itemType);
+    rbuffer.append(fileRequest->fileName);
+    rbuffer.append(fileRequest->size);
+    rbuffer.append(fileRequest->localFileName);
+    rbuffer.append(fileRequest->md5);
+    rbuffer.append(fileRequest->accountId);
+    rbuffer.append(fileRequest->otherId);
+
+    if(fileRequest->isAutoDelete)
+        delete fileRequest;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+void MsgWrap::handleFileData(QString fileMd5,size_t currIndex,QByteArray array)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)MSG_FILE);
+    rbuffer.append((int)MSG_FILE_DATA);
+    rbuffer.append(fileMd5);
+    rbuffer.append(currIndex);
+    rbuffer.append(array.data(),array.size());
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
 }

@@ -26,6 +26,12 @@ class ImageTask : public ClientNetwork::RTask
 public:
     ImageTask();
 
+    enum WorkMode
+    {
+        FileRequestMode,
+        FileTransMode
+    };
+
     static ImageTask * instance();
 
     bool addItem(FileItemDesc * item);
@@ -33,15 +39,22 @@ public:
     void startMe();
     void stopMe();
 
+    bool containsTask(QString md5);
+    void transfer(QString fileId);
+
 protected:
     void run();
 
 private:
-    void handleItem(FileItemDesc * request);
+    void handleItem();
+    void transferFile();
 
 private:
     static ImageTask * imageTask;
 
+    WorkMode workMode;
+    QString currTransFileId;
+    FileItemDesc *  currTransFile;
     QQueue<FileItemDesc *> processItems;
     QWaitCondition waitCondition;
     QMutex mutex;

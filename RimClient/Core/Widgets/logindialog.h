@@ -94,7 +94,8 @@ private slots:
     void removeUserItem(QString accountId);
     void respItemChanged(QString id);
     void showRegistDialog();
-    void respConnect(bool flag);
+    void respTextConnect(bool flag);
+    void respFileConnect(bool flag);
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
@@ -103,6 +104,7 @@ private slots:
     void procRecvText(TextRequest response);
     void processTextReply(TextReply reply);
     void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
+    void procFileControl(SimpleFileItemRequest request);
 
 private:
     void createTrayMenu();

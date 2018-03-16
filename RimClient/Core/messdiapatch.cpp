@@ -89,6 +89,11 @@ void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFrien
     }
 }
 
+void MessDiapatch::onRecvFileControl(SimpleFileItemRequest request)
+{
+    emit recvFileControl(request);
+}
+
 void MessDiapatch::onScreenChanged()
 {
     emit screenChange();

@@ -17,6 +17,8 @@
 #include <QMutex>
 #include <QLinkedList>
 #include <QHash>
+#include <QFile>
+#include <QDataStream>
 #include "network_global.h"
 
 namespace ServerNetwork {
@@ -56,6 +58,57 @@ struct PacketBuff
     QLinkedList<QByteArray> buff;               /*!< 存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1 */
 };
 
+/*!
+ *  @brief  单个接收文本描述
+ */
+struct FileRecvDesc
+{
+    FileRecvDesc():file(NULL){}
+
+    bool create()
+    {
+        file = new QFile(fileName);
+        if(file->open(QFile::WriteOnly) )
+        {
+            if(file->resize(size))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void lock(){mutex.lock();}
+    void unlock(){mutex.unlock();}
+
+    void destory()
+    {
+        if(file)
+        {
+            if(file->isOpen())
+            {
+                file->close();
+            }
+            delete file;
+        }
+    }
+
+    ~FileRecvDesc()
+    {
+        destory();
+    }
+
+    int itemType;                        /*!< 文件操作类型 @line FileItemType @endlink */
+    qint64 size;                         /*!< 文件大小 */
+    qint64 writeLen;                     /*!< 文件已经写入的大小 */
+    QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
+    QString md5;                         /*!< 文件MD5 */
+    QString accountId;                   /*!< 自己ID */
+    QString otherId;                     /*!< 接收方ID */
+    QFile * file;                        /*!< 文件缓冲 */
+    QMutex mutex;                        /*!< 文件读写锁 */
+};
+
 class NETWORKSHARED_EXPORT TcpClient
 {
 public:
@@ -81,6 +134,10 @@ public:
 
     int getPackId();
 
+    bool addFile(QString fileId,FileRecvDesc * desc);
+    bool removeFile(QString fileId);
+    FileRecvDesc * getFile(QString fileId);
+
 private:
     explicit TcpClient();
     ~TcpClient();
@@ -102,6 +159,9 @@ private:
     int onlineState;                   /*!< 在线状态(与OnlineStatus保持一致) */
     QString accountId;                 /*!< 用户ID */
     QString nickName;                  /*!< 用户昵称 */
+
+    QHash<QString,FileRecvDesc*> fileRecvList;      /*!< 文件接收缓冲列表 */
+    QMutex fileMutex;
 
     friend class TcpClientManager;
 };

@@ -49,7 +49,8 @@ SOURCES += main.cpp\
     thread/sendtextprocessthread.cpp \
     jsonkey.cpp \
     sql/rpersistence.cpp \
-    datastruct.cpp
+    datastruct.cpp \
+    global.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -66,7 +67,8 @@ HEADERS  += widget.h \
     thread/sendtextprocessthread.h \
     jsonkey.h \
     sql/rpersistence.h \
-    datastruct.h
+    datastruct.h \
+    global.h
 
 FORMS    += widget.ui
 

@@ -1,9 +1,17 @@
 #include "netglobal.h"
 
-QQueue<QByteArray> G_RecvButts;
-QMutex G_RecvMutex;
-QWaitCondition  G_RecvCondition;
+QQueue<QByteArray> G_TextRecvBuffs;
+QMutex G_TextRecvMutex;
+QWaitCondition  G_TextRecvCondition;
 
-QQueue<QByteArray> G_SendBuff;
-QMutex G_SendMutex;
-QWaitCondition  G_SendWaitCondition;
+QQueue<QByteArray> G_TextSendBuffs;
+QMutex G_TextSendMutex;
+QWaitCondition  G_TextSendWaitCondition;
+
+QQueue<QByteArray> G_FileRecvBuffs;
+QMutex G_FileRecvMutex;
+QWaitCondition  G_FileRecvCondition;
+
+QQueue<QByteArray> G_FileSendBuffs;
+QMutex G_FileSendMutex;
+QWaitCondition  G_FileSendWaitCondition;

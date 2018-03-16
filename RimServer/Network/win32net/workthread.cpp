@@ -92,7 +92,6 @@ void WorkThread::handleRecv(IocpContext *ioData, unsigned long recvLen, TcpClien
         memcpy(dataBuff + lastRecvBuffSize,ioData->getPakcet(),recvLen);
 
         ioData->getClient()->getHalfPacketBuff().clear();
-
         processRecvData(dataBuff,lastRecvBuffSize + recvLen,ioData);
 
         delete[] dataBuff;
@@ -113,18 +112,19 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
 
-    if(recvLen > sizeof(DataPacket))
+    if(recvLen >= sizeof(DataPacket))
     {
-        memcpy((char *)&packet,recvData,sizeof(DataPacket));
-        //[1]数据头部分正常
-        if(packet.magicNum == RECV_MAGIC_NUM)
+        unsigned int processLen = 0;
+        do
         {
-            SocketInData socketData;
-            socketData.sockId = ioData->getClient()->socket();
-
-            unsigned int processLen = sizeof(DataPacket);
-            do
+            memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
+            processLen += sizeof(DataPacket);
+            //[1]数据头部分正常
+            if(packet.magicNum == RECV_MAGIC_NUM)
             {
+                SocketInData socketData;
+                socketData.sockId = ioData->getClient()->socket();
+
                 //[1.1]至少存在多余一个完整数据包
                 if(packet.currentLen <= recvLen - processLen)
                 {
@@ -185,20 +185,20 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                        }
                        ioData->getClient()->unLock();
                     }
+
                     processLen += packet.currentLen;
 
-                    //[1.1.3]
+                    //[1.1.3]检验是否满足下次处理需求
                     int leftLen = recvLen - processLen;
-
-                    if(leftLen == 0)
+                    if(leftLen <= 0)
                     {
+                        qDebug()<<"[1]++++"<<leftLen<<"_"<<recvLen<<"_"<<processLen<<"_"<<packet.currentLen;
                         break;
                     }
 
                     if(leftLen >= sizeof(DataPacket))
                     {
-                        memcpy(&packet,recvData + processLen,sizeof(DataPacket));
-                        processLen += sizeof(DataPacket);
+                        continue;
                     }
                     else
                     {
@@ -207,11 +207,12 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
 
                         ioData->getClient()->lock();
                         ioData->getClient()->getHalfPacketBuff().clear();
-                        ioData->getClient()->getHalfPacketBuff().append((char *)&packet,leftLen);
+                        ioData->getClient()->getHalfPacketBuff().append(recvData + processLen,leftLen);
                         ioData->getClient()->unLock();
-
                         processLen += leftLen;
+                        break;
                     }
+                    qDebug()<<"[3]"<<processLen<<"__"<<recvLen;
                 }
                 //[1.2]【信息被截断】
                 else
@@ -225,14 +226,21 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                     ioData->getClient()->unLock();
 
                     processLen += leftLen;
+                    break;
                 }
-
-            }while(processLen < recvLen);
-        }
-        else
-        {
-            qDebug()<<"Recv Error Packet";
-        }
+            }
+            else
+            {
+                qDebug()<<"Recv Error Packet";
+            }
+        }while(processLen <= recvLen);
+    }
+    else
+    {
+        ioData->getClient()->lock();
+        ioData->getClient()->getHalfPacketBuff().clear();
+        ioData->getClient()->getHalfPacketBuff().append((char *)recvData,recvLen);
+        ioData->getClient()->unLock();
     }
 }
 

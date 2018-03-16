@@ -27,6 +27,8 @@ public:
     QByteArray handleTextReply(TextReply * response);
     QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
 
+    QByteArray handleFile(MsgPacket *response);
+
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
@@ -38,6 +40,8 @@ private:
     QByteArray handleFriendListResponse(FriendListResponse *packet);
     QByteArray handleGroupingResponse(GroupingResponse *packet);
     QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
+
+    QByteArray handleFileControl(SimpleFileItemRequest * packet);
 
     QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);

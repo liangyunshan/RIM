@@ -43,6 +43,9 @@ public:
 
     void processText(Database *db, int socketId, TextRequest *request);
 
+    void processFileRequest(Database *db, int socketId, FileItemRequest *request);
+    void processFileData(Database *db, int socketId, FileDataRequest *request);
+
 private:
     void pushFriendMyStatus(Database *db, int socketId, QString accountId, OnlineStatus onStatus);
 

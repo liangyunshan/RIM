@@ -31,7 +31,7 @@ void MsgReceiveProcTask::startMe()
     }
     else
     {
-        G_RecvCondition.wakeOne();
+        G_TextRecvCondition.wakeOne();
     }
 }
 
@@ -39,18 +39,18 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(G_RecvButts.isEmpty())
+        while(G_TextRecvBuffs.isEmpty())
         {
-            G_RecvMutex.lock();
-            G_RecvCondition.wait(&G_RecvMutex);
-            G_RecvMutex.unlock();
+            G_TextRecvMutex.lock();
+            G_TextRecvCondition.wait(&G_TextRecvMutex);
+            G_TextRecvMutex.unlock();
         }
 
-        if(runningFlag && G_RecvButts.size() > 0)
+        if(runningFlag && G_TextRecvBuffs.size() > 0)
         {
-            G_RecvMutex.lock();
-            QByteArray array = G_RecvButts.dequeue();
-            G_RecvMutex.unlock();
+            G_TextRecvMutex.lock();
+            QByteArray array = G_TextRecvBuffs.dequeue();
+            G_TextRecvMutex.unlock();
 
             if(array.size() > 0)
             {
@@ -77,8 +77,6 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
             case MSG_TEXT:
                 handleTextMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                 break;
-            case MSG_FILE:
-                            break;
             default:
                 break;
         }
@@ -146,10 +144,9 @@ void MsgReceiveProcTask::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
     }
 }
 
-
 void MsgReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_RecvCondition.wakeOne();
+    G_TextRecvCondition.wakeOne();
 }

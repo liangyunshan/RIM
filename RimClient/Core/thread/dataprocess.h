@@ -13,6 +13,7 @@
 #define DATAPROCESS_H
 
 #include <QJsonObject>
+#include "Util/rbuffer.h"
 
 class DataProcess
 {
@@ -33,6 +34,8 @@ public:
 
     void proText(QJsonObject &data);
     void proTextApply(QJsonObject &data);
+
+    void proFileControl(RBuffer &data);
 
 private:
 

@@ -116,7 +116,12 @@ enum MsgCommand
 /****MsgType为MSG_TEXT时以下字段有效******/
     MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天信息内容 */
     MSG_TEXT_SHAKE = 0xA2,                             /*!< 窗口抖动 */
-    MSG_TEXT_APPLY = 0xA3                              /*!< 文本确认消息 */
+    MSG_TEXT_APPLY = 0xA3,                             /*!< 文本确认消息 */
+
+/****MsgType为MSG_FILE时以下字段有效******/
+    MSG_FILE_CONTROL = 0xB1,                           /*!< 传输控制命令 */
+    MSG_FILE_REQUEST = 0xB2,                           /*!< 传输请求 */
+    MSG_FILE_DATA = 0xB3                               /*!< 传输正文 */
 };
 
 /*!
@@ -128,7 +133,6 @@ enum MsgOperateResponse
     STATUS_SUCCESS = 0x00,      /*!< 操作成功 */
     STATUS_FAILE                /*!< 操作失败 */
 };
-
 
 /*!
  *  @brief  联系人性别
@@ -554,7 +558,7 @@ public:
     SearchType stype;               /*!< 联系人分组/群分组  */
     QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
     QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
-    SimpleUserInfo user;            /*!< 联系人基本信息, type 为 G_Friend_Delete 时表示待删除联系人的基本信息 @link SimpleUserInfo @endlink  */
+    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
 };
 
 /*!
@@ -723,23 +727,29 @@ enum FileItemType
 };
 
 /*!
- *  @brief  文件下载结果
+ *  @brief  文件上传/下载结果
  */
-enum FileDownResult
+enum FileOperateResult
 {
     FILE_DOWN_SUCCESS,                /*!< 文件下载成功 */
     FILE_DOWN_FAILED,                 /*!< 文件下载失败 */
-    FILE_DOWN_CANCEL                  /*!< 取消下载 */
+    FILE_DOWN_CANCEL,                 /*!< 取消下载 */
+    FILE_Up_SUCCESS,                  /*!< 文件上传成功 */
+    FILE_Up_FAILED,                   /*!< 文件上传失败 */
+    FILE_Up_CANCEL                    /*!< 取消上传 */
 };
 
 /*!
- *  @brief  文件上传结果
+ *  @brief 文件传输控制指令
  */
-enum FileUpResult
+enum FileTransferControl
 {
-    FILE_Up_SUCCESS,                /*!< 文件上传成功 */
-    FILE_Up_FAILED,                 /*!< 文件上传失败 */
-    FILE_Up_CANCEL                  /*!< 取消上传 */
+    T_REQUEST,                 /*!< 传输请求 */
+    T_ABLE_SEND,               /*!< 可以发送 */
+    T_ABLE_RECEIVE,            /*!< 可以接收 */
+    T_PAUSE,                   /*!< 暂停传输 */
+    T_CANCEL,                  /*!< 取消传输 */
+    T_DATA                     /*!< 数据体 */
 };
 
 /*!
@@ -752,27 +762,61 @@ public:
     FileItemDesc(){}
     QString id;                     /*!< 当前文件唯一标识 */
     QString fullPath;               /*!< 文件全路径 */
-    qint64 fileSize;                /*!< 文件尺寸，用于在接收时开辟对应大小的控件 */
+    size_t fileSize;                /*!< 文件尺寸，用于在接收时开辟对应大小的控件 */
     QString md5;                    /*!< 文件对应的MD5值，用于校验接收数据的正确与否 */
     QString otherSideId;            /*!< 对方用户ID */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
 };
 
 /*!
- * @brief 文件操作请求
+ * @brief 文件发送操作
+ * @details 客户端向服务器传输文件时，经历以下几步： @n
+ *          1.从待发送列表缓冲区中取出一个待发送文件，计算文件的MD5、文件名等基本信息； @n
+ *          2.客户端将基本信息发送至服务器，服务器对基本信息进行接收处理准备,并向客户端发送确认接收信息;  @n
+ *          3.客户端接收服务器确认消息后，开始传输当前文件，直至结束; @n
+ *          4.服务器在接收完成，并进行MD5校验，将校验的结果传输至客户端; @n
+ *          5.若接收成功，则将当前文件移除队列，并进行下一个文件发送准备; @n
+ *          6.若接收失败，服务器删除接收的文件信息，客户端则重新发送文件，流程转至1 @n
  */
 class FileItemRequest : public MsgPacket
 {
 public:
     FileItemRequest();
-    QString id;                     /*!< 当前文件唯一标识 @attention 服务器以此文件名作为在磁盘中保存的索引 */
+    FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
     QString fileName;               /*!< 文件名称 @attention 维护文件真实的信息 */
-    qint64 size;                    /*!< 文件大小 */
+    size_t size;                    /*!< 文件大小 */
     QString localFileName;          /*!< 接收时，维护本地的文件名 */
-    QString md5;                    /*!< 文件MD5 */
+    QString md5;                    /*!< 文件MD5 @attention 服务器以此文件名作为在磁盘中保存的索引 */
     QString accountId;              /*!< 发送方的ID */
     QString otherId;                /*!< 接收方ID */
+};
+
+/*!
+ * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
+class FileDataRequest : public MsgPacket
+{
+public:
+    FileDataRequest();
+    FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
+    QString md5;                    /*!< 待传输文件MD5，用于标识判断 */
+    size_t index;                   /*!< 数据帧序号索引，默认从0开始，服务器在写文件时根据序号随机读写 */
+    QByteArray array;               /*!< 数据正文 */
+};
+
+/*!
+ *  @brief 简单文件传输控制请求
+ *  @details 在简历传输连接后，用于客户端和服务器端传输文件控制命令.
+ */
+class SimpleFileItemRequest : public MsgPacket
+{
+public:
+    SimpleFileItemRequest();
+    FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
+    QString md5;                    /*!< 当前文件唯一标识,以文件的MD5作为索引 @attention 服务器以此文件名作为在磁盘中保存的索引 */
 };
 
 }

@@ -1,6 +1,7 @@
 ﻿#include "dataprocess.h"
 
 #include <QDebug>
+#include <QThread>
 
 #include "Util/rutil.h"
 #include "rsingleton.h"
@@ -11,6 +12,8 @@
 
 #include "Network/tcpclient.h"
 using namespace ServerNetwork;
+
+#define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度
 
 #define SendData(data) { G_SendMutex.lock();\
                          G_SendButts.enqueue(data);\
@@ -701,4 +704,70 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
     delete reply;
 
     delete request;
+}
+
+void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest *request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
+
+    FileRecvDesc * desc = new FileRecvDesc;
+    desc->itemType = (int)request->itemType;
+    desc->size = request->size;
+    desc->fileName = request->fileName;
+    desc->md5 = request->md5;
+    desc->accountId = request->accountId;
+    desc->otherId = request->otherId;
+    desc->writeLen = 0;
+
+    if(tmpClient && tmpClient->addFile(request->md5,desc))
+    {
+        tmpClient->setAccount(request->accountId);
+        SimpleFileItemRequest * response = new SimpleFileItemRequest;
+        response->control = T_ABLE_SEND;
+        response->md5 = request->md5;
+
+        responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+    }
+    else
+    {
+
+    }
+
+    SendData(responseData);
+
+    delete request;
+}
+
+void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *request)
+{
+    TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
+    if(tmpClient)
+    {
+        FileRecvDesc * desc = tmpClient->getFile(request->md5);
+        if(desc)
+        {
+            desc->lock();
+            if(desc->file == NULL && !desc->create())
+            {
+                desc->unlock();
+                return;
+            }
+
+            desc->file->seek(request->index * FILE_MAX_PACK_SIZE);
+
+            qint64 writeLen = desc->file->write(request->array);
+            desc->writeLen += writeLen;
+            desc->file->flush();
+
+            if(desc->writeLen == desc->file->size())
+            {
+                qDebug()<<"++++Recv__Over---";
+                desc->file->close();
+            }
+            desc->unlock();
+        }
+    }
 }

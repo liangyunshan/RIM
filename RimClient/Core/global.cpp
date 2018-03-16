@@ -2,8 +2,11 @@
 #include <QApplication>
 #include <QAction>
 
-QString G_ServerIp;                             //服务器IP
-unsigned short G_ServerPort;                    //服务器监听端口
+QString G_TextServerIp;                         //文本服务器IP
+unsigned short G_TextServerPort;                //文本服务器监听端口
+
+QString G_FileServerIp;                         //文件服务器IP
+unsigned short G_FileServerPort;                //文件服务器监听端口
 
 //TODO
 QString G_ScreenShotKeySequence;
