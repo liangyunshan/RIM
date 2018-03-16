@@ -10,6 +10,7 @@
 #include "dataprocess.h"
 #include "protocoldata.h"
 #include "jsonkey.h"
+#include "global.h"
 
 using namespace ProtocolType;
 
@@ -18,28 +19,47 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
 
 }
 
+/*!
+ * @brief 分发数据类型
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void DataParse::processData(Database *db,const SocketInData &data)
 {
-    QJsonParseError errorInfo;
-    QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
-    if(errorInfo.error == QJsonParseError::NoError)
+    if(G_SERVICE_TYPE == SERVICE_TEXT)
     {
-        QJsonObject obj = document.object();
-        switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
+        QJsonParseError errorInfo;
+        QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
+        if(errorInfo.error == QJsonParseError::NoError)
         {
-            case MSG_CONTROL:
-                                        parseControlData(db,data.sockId,obj);
-                                        break;
-            case MSG_TEXT:
-                                        parseTextData(db,data.sockId,obj);
-
-            default:
-                  break;
+            QJsonObject obj = document.object();
+            switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
+            {
+                case MSG_CONTROL:
+                    parseControlData(db,data.sockId,obj);
+                    break;
+                case MSG_TEXT:
+                    parseTextData(db,data.sockId,obj);
+                    break;
+                default:
+                      break;
+            }
+        }
+        else
+        {
+            RLOG_ERROR("recv a error data,skip!");
         }
     }
-    else
+    else if(G_SERVICE_TYPE == SERVICE_FILE)
     {
-        RLOG_ERROR("recv a error data,skip!");
+        RBuffer buffer(data.data);
+        int msgType,msgCommand;
+        if(!buffer.read(msgType) || !buffer.read(msgCommand))
+            return;
+        if((MsgType)msgType == MSG_FILE)
+        {
+            parseFileData(db,data.sockId,buffer);
+        }
     }
 }
 
@@ -55,7 +75,7 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
     switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
     {
-         case MSG_USER_REGISTER:
+        case MSG_USER_REGISTER:
               onProcessUserRegist(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
         case MSG_USER_LOGIN:
@@ -63,6 +83,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
               break;
         case MSG_USER_UPDATE_INFO:
               onProcessUpdateUserInfo(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_USER_STATE:
+              onProcessUserStateChanged(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
         case MSG_RELATION_SEARCH:
               onProcessSearchFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
@@ -88,12 +111,12 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 }
 
 /*!
-     * @brief 解析消息文本
-     * @param[in] db 线程拥有的数据库
-     * @param[in] socketId 访问的socketId
-     * @param[in] obj 解析后json请求数据
-     * @return 无
-     */
+ * @brief 解析消息文本
+ * @param[in] db 线程拥有的数据库
+ * @param[in] socketId 访问的socketId
+ * @param[in] obj 解析后json请求数据
+ * @return 无
+ */
 void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
 {
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
@@ -101,13 +124,48 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     {
         TextRequest * request = new TextRequest;
         request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
+
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-        request->destAccountId = dataObj.value(JsonKey::key(JsonKey::DestId)).toString();
+        request->textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+        request->otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
         request->type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
         request->timeStamp = (SearchType)dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
+        request->isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
+        request->textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+
         request->sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
 
         RSingleton<DataProcess>::instance()->processText(db,socketId,request);
+    }
+}
+
+/*!
+ * @brief 解析文件传输过程中各种消息
+ * @param[in] db 线程拥有的数据库
+ * @param[in] socketId 访问的socketId
+ * @param[in] obj 解析后json请求数据
+ * @return 无
+ */
+void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
+{
+    if(buffer.seek(0) && buffer.skipInt())
+    {
+        int commandType;
+        if(buffer.read(commandType))
+        {
+            switch((MsgCommand)commandType)
+            {
+                case MSG_FILE_REQUEST:
+                    onProcessFileRequest(db,socketId,buffer);
+                    break;
+                case MSG_FILE_CONTROL:
+                    break;
+                case MSG_FILE_DATA:
+                    onProcessFileData(db,socketId,buffer);
+                    break;
+            }
+        }
     }
 }
 
@@ -146,6 +204,15 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
 
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
+}
+
+void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
+{
+    UserStateRequest * request = new UserStateRequest();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->onStatus = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
+
+    RSingleton<DataProcess>::instance()->processUserStateChanged(db,socketId,request);
 }
 
 void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
@@ -202,6 +269,7 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
     request->user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
     request->user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
     request->user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+    request->user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
     RSingleton<DataProcess>::instance()->processGroupingFriend(db,socketId,request);
 }
@@ -216,4 +284,62 @@ void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject 
     request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
 
     RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
+}
+
+void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
+{
+    FileItemRequest * request = new FileItemRequest();
+
+    int control,itemType;
+    if(!obj.read(control))
+        return;
+    request->control = (FileTransferControl)control;
+
+    if(!obj.read(itemType))
+        return;
+    request->itemType = (FileItemType)itemType;
+
+    if(!obj.read(request->fileName))
+        return;
+
+    if(!obj.read(request->size))
+        return;
+
+    if(!obj.read(request->localFileName))
+        return;
+
+    if(!obj.read(request->md5))
+        return;
+
+    if(!obj.read(request->accountId))
+        return;
+
+    if(!obj.read(request->otherId))
+        return;
+
+    RSingleton<DataProcess>::instance()->processFileRequest(db,socketId,request);
+}
+
+void DataParse::onProcessFileControl(Database *db, int socketId, QJsonObject &obj)
+{
+
+}
+
+void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
+{
+    FileDataRequest * request = new FileDataRequest();
+    request->control =  T_DATA;
+
+    if(!obj.read(request->md5))
+        return;
+    if(!obj.read(request->index))
+        return;
+
+    const char * data = NULL;
+    size_t dataLen = 0;
+    if(!obj.read(&data,BUFFER_DEFAULT_SIZE,dataLen))
+        return;
+    request->array.append(data,dataLen);
+
+    RSingleton<DataProcess>::instance()->processFileData(db,socketId,request);
 }

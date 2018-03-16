@@ -9,16 +9,21 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180130:wey:响应用户信息更改
+ *      20180207:wey:修改签名保存至数据库
  */
 #ifndef PANELTOPAREA_H
 #define PANELTOPAREA_H
 
 #include <QWidget>
 #include "observer.h"
+#include "onlinestate.h"
+#include "../protocoldata.h"
 
 class QLabel;
 class QLineEdit;
 class PanelTopAreaPrivate;
+
+using namespace ProtocolType;
 
 class PanelTopArea : public QWidget,public Observer
 {
@@ -29,8 +34,15 @@ public:
     ~PanelTopArea();
 
     void onMessage(MessageType type);
+    void setState(OnlineStatus state);
 
-signals:
+private slots:
+    void respSignChanged(QString content);
+    void recvBaseInfoResponse(ResponseUpdateUser result,UpdateBaseInfoResponse response);
+    void recvUserStateChanged(MsgOperateResponse result,UserStateResponse response);
+
+public slots:
+    void stateChanged(OnlineStatus state);
 
 private:
     void updateUserInfo();

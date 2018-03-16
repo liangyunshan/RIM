@@ -78,7 +78,7 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
 {
     QFont font = this->font();
     QColor color = this->textColor();
-    QString contents = this->toChatFormaText();
+    QString contents = this->toChatFormaText().replace("'","\"");
 
     unit.rowid = -1;
     unit.user.id = G_UserBaseInfo.accountId.toInt();

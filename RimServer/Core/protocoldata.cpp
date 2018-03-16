@@ -6,6 +6,13 @@ MsgPacket::MsgPacket()
 {
     msgType = MSG_TYPE_INVALID;
     msgCommand = MSG_Command_INVALID;
+
+    isAutoDelete = true;
+}
+
+MsgPacket::~MsgPacket()
+{
+
 }
 
 LoginRequest::LoginRequest()
@@ -92,6 +99,16 @@ FriendListResponse::FriendListResponse()
     msgCommand = MSG_RELATION_LIST;
 }
 
+FriendListResponse::~FriendListResponse()
+{
+    QList<RGroupData *>::iterator iter = groups.begin();
+    while((iter != groups.end()))
+    {
+        delete (*iter);
+        iter = groups.erase(iter);
+    }
+}
+
 GroupingRequest::GroupingRequest()
 {
     msgType = MSG_CONTROL;
@@ -108,12 +125,8 @@ TextRequest::TextRequest()
 {
     msgType = MSG_TEXT;
     msgCommand = MSG_TEXT_TEXT;
-}
 
-TextResponse::TextResponse()
-{
-    msgType = MSG_TEXT;
-    msgCommand = MSG_TEXT_TEXT;
+    isAutoDelete = false;
 }
 
 GroupingFriendRequest::GroupingFriendRequest()
@@ -126,6 +139,52 @@ GroupingFriendResponse::GroupingFriendResponse()
 {
     msgType = MSG_CONTROL;
     msgCommand = MSG_RELATION_GROUPING_FRIEND;
+}
+
+UserStateRequest::UserStateRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_STATE;
+}
+
+UserStateResponse::UserStateResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_STATE;
+}
+
+RGroupData::~RGroupData()
+{
+    QList<SimpleUserInfo *>::iterator iter = users.begin();
+    while(iter != users.end())
+    {
+        delete (*iter);
+        iter = users.erase(iter);
+    }
+}
+
+TextReply::TextReply()
+{
+    msgType = MSG_TEXT;
+    msgCommand = MSG_TEXT_APPLY;
+}
+
+FileItemRequest::FileItemRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_REQUEST;
+}
+
+SimpleFileItemRequest::SimpleFileItemRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_CONTROL;
+}
+
+FileDataRequest::FileDataRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_DATA;
 }
 
 

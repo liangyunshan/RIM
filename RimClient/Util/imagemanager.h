@@ -65,7 +65,7 @@ public:
     void loadSystemIcons();
     const QFileInfoList systemIcons();
 
-    QString getSystemUserIcon(int index = 0,bool fullPath = true);
+    QString getSystemUserIcon(unsigned short index = 0, bool fullPath = true);
     QString getSystemUserIcon(QString imageName);
     QString getSystemImageDir();
 

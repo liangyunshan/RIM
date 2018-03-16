@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
-CONFIG += ordered console debug
+CONFIG += ordered
 
 SUBDIRS += \
     Network \

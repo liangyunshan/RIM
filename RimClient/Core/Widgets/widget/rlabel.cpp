@@ -168,6 +168,12 @@ void RIconLabel::setPixmap(const QString &fileName)
     QLabel::setPixmap(QPixmap(fileName));
 }
 
+void RIconLabel::setPixmap(const QPixmap & pixmap)
+{
+    QLabel::setPixmap(pixmap);
+    update();
+}
+
 QFileInfo RIconLabel::getPixmapFileInfo()
 {
     MQ_D(RIconLabel);
@@ -300,9 +306,10 @@ void RIconLabel::mousePressEvent(QMouseEvent *)
     emit mousePressed();
 }
 
-void RIconLabel::mouseReleaseEvent(QMouseEvent *)
+void RIconLabel::mouseReleaseEvent(QMouseEvent *e)
 {
     emit mouseReleased();
+    QLabel::mouseReleaseEvent(e);
 }
 
 void RIconLabel::timeOut()

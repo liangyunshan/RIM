@@ -13,6 +13,7 @@
 #define DATAPROCESS_H
 
 #include <QJsonObject>
+#include "Util/rbuffer.h"
 
 class DataProcess
 {
@@ -22,6 +23,8 @@ public:
     void proRegistResponse(QJsonObject &data);
     void proLoginResponse(QJsonObject &data);
     void proUpdateBaseInfoResponse(QJsonObject &data);
+    void proUserStateChanged(QJsonObject &data);
+
     void proSearchFriendResponse(QJsonObject &data);
     void proAddFriendResponse(QJsonObject &data);
     void proOperateFriendResponse(QJsonObject &data);
@@ -30,6 +33,9 @@ public:
     void proGroupingFriendResponse(QJsonObject &data);
 
     void proText(QJsonObject &data);
+    void proTextApply(QJsonObject &data);
+
+    void proFileControl(RBuffer &data);
 
 private:
 

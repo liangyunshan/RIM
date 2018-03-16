@@ -7,6 +7,7 @@
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
 #include "jsonkey.h"
+#include "Util/rbuffer.h"
 
 MsgWrap::MsgWrap()
 {
@@ -31,6 +32,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_USER_UPDATE_INFO:
                 handleUpdateBaseInfoRequest((UpdateBaseInfoRequest *)packet);
                 break;
+        case MsgCommand::MSG_USER_STATE:
+                handleUserStateRequest((UserStateRequest*)packet);
+                break;
         case MsgCommand::MSG_RELATION_SEARCH:
                 handleSearchFriendRequest((SearchFriendRequest *)packet);
                 break;
@@ -52,7 +56,6 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         default:
                 break;
     }
-
 }
 
 void MsgWrap::hanleText(TextRequest *packet)
@@ -60,9 +63,13 @@ void MsgWrap::hanleText(TextRequest *packet)
     QJsonObject data;
 
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
-    data.insert(JsonKey::key(JsonKey::DestId),packet->destAccountId);
+    data.insert(JsonKey::key(JsonKey::TextId),packet->textId);
+    data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
     data.insert(JsonKey::key(JsonKey::SearchType),packet->type);
     data.insert(JsonKey::key(JsonKey::Time),packet->timeStamp);
+    data.insert(JsonKey::key(JsonKey::Encryption),packet->isEncryption);
+    data.insert(JsonKey::key(JsonKey::Compress),packet->isCompress);
+    data.insert(JsonKey::key(JsonKey::Type),packet->textType);
     //TODO 数据压缩
     data.insert(JsonKey::key(JsonKey::Data),packet->sendData);
 
@@ -90,25 +97,57 @@ void MsgWrap::handleRegistRequest(RegistRequest *packet)
     wrappedPack(packet,data);
 }
 
-//处理用户更新个人基本信息
+/*!
+ * @brief 处理用户更新个人基本信息
+ * @param[in] packet 用户基本信息请求
+ * @return 无
+ */
 void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
 {
     QJsonObject data;
-    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
-    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
-    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
-    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
-    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
-    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
-    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
-    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
-    data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+    if(packet->requestType == UPDATE_USER_DETAIL)
+    {
+        data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+        data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+        data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+        data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+        data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+        data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+        data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+        data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+        data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
+        data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+        data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
+    }
+    else
+    {
+        data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+        data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
+    }
+
 
     wrappedPack(packet,data);
 }
 
-//处理查找好友信息
+/*!
+ * @brief 处理用户状态变更
+ * @param[in] request 状态变更请求
+ * @return 无
+ */
+void MsgWrap::handleUserStateRequest(UserStateRequest * request)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::AccountId),request->accountId);
+    data.insert(JsonKey::key(JsonKey::Status),(int)request->onStatus);
+
+    wrappedPack(request,data);
+}
+
+/*!
+ * @brief 处理查找好友信息
+ * @param[in] packet 查询好友请求
+ * @return 无
+ */
 void MsgWrap::handleSearchFriendRequest(SearchFriendRequest * packet)
 {
     QJsonObject data;
@@ -178,6 +217,7 @@ void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
     user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
     user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
+    user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 
     data.insert(JsonKey::key(JsonKey::Users),user);
 
@@ -196,13 +236,55 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     document.setObject(obj);
     QByteArray array = document.toJson(QJsonDocument::Compact);
 
-    delete packet;
+    if(packet->isAutoDelete)
+    {
+        delete packet;
+    }
 
-    G_SendMutex.lock();
-    G_SendBuff.enqueue(array);
-    G_SendMutex.unlock();
+    G_TextSendMutex.lock();
+    G_TextSendBuffs.enqueue(array);
+    G_TextSendMutex.unlock();
 
-    G_SendWaitCondition.wakeOne();
+    G_TextSendWaitCondition.wakeOne();
+}
 
-//    RLOG_INFO("Send msg:%s",array.data());
+void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
+{
+    RBuffer rbuffer;
+    fileRequest->control = T_ABLE_SEND;
+    rbuffer.append((int)fileRequest->msgType);
+    rbuffer.append((int)fileRequest->msgCommand);
+    rbuffer.append((int)fileRequest->control);
+    rbuffer.append((int)fileRequest->itemType);
+    rbuffer.append(fileRequest->fileName);
+    rbuffer.append(fileRequest->size);
+    rbuffer.append(fileRequest->localFileName);
+    rbuffer.append(fileRequest->md5);
+    rbuffer.append(fileRequest->accountId);
+    rbuffer.append(fileRequest->otherId);
+
+    if(fileRequest->isAutoDelete)
+        delete fileRequest;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+void MsgWrap::handleFileData(QString fileMd5,size_t currIndex,QByteArray array)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)MSG_FILE);
+    rbuffer.append((int)MSG_FILE_DATA);
+    rbuffer.append(fileMd5);
+    rbuffer.append(currIndex);
+    rbuffer.append(array.data(),array.size());
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
 }

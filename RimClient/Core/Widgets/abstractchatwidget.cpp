@@ -20,7 +20,6 @@
 #include <QMimeData>
 #include <QPalette>
 
-
 #include "head.h"
 #include "global.h"
 #include "datastruct.h"
@@ -36,6 +35,9 @@
 #include "slidebar.h"
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
+#include "others/msgqueuemanager.h"
+#include "thread/imagetask.h"
+#include "Network/netconnector.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -101,13 +103,13 @@ protected:
     bool isMaxSize;
     QRect originRect;                      //原始位置及尺寸
 
-    QString windowId;
+    QString windowId;                       /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
     DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
     QTimer *p_shakeTimer;
-    int     m_nPosition;
-    QPoint  m_curPos;
+    int m_nPosition;
+    QPoint m_curPos;
     bool b_isScreeHide;
 };
 
@@ -536,7 +538,7 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     MQ_D(AbstractChatWidget);
     TextRequest * request = new TextRequest;
     request->msgCommand = MSG_TEXT_SHAKE;
-    request->destAccountId = d->userInfo.accountId;
+    request->otherSideId = d->userInfo.accountId;
     request->accountId = G_UserBaseInfo.accountId;
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
@@ -546,53 +548,55 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
 
 void AbstractChatWidget::shakeWindow()
 {
-    if(d_ptr->p_shakeTimer==NULL)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shakeTimer == NULL)
     {
-        d_ptr->p_shakeTimer = new QTimer();
-        QObject::connect(d_ptr->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
-        d_ptr->p_shakeTimer->setInterval(40);
+        d->p_shakeTimer = new QTimer();
+        connect(d->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
+        d->p_shakeTimer->setInterval(40);
     }
-    d_ptr->m_nPosition = 0;
-    d_ptr->m_curPos = this->pos();
-    d_ptr->p_shakeTimer->start();
+    d->m_nPosition = 0;
+    d->m_curPos = this->pos();
+    d->p_shakeTimer->start();
 }
 
 void AbstractChatWidget::slot_ShakeTimeout()
 {
-    if(d_ptr->p_shakeTimer==NULL)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shakeTimer==NULL)
     {
         return ;
     }
-    d_ptr->p_shakeTimer->stop();
-    if(d_ptr->m_nPosition < MaxLimitTimes)
+    d->p_shakeTimer->stop();
+    if(d->m_nPosition < MaxLimitTimes)
     {
-        ++d_ptr->m_nPosition;
-        switch(d_ptr->m_nPosition%4)
+        ++d->m_nPosition;
+        switch(d->m_nPosition%4)
         {
-        case 1:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x(),d_ptr->m_curPos.y()-MaxLimitSpace);
-            this->move(tmpPos);
+            case 1:
+            {
+                QPoint tmpPos(d->m_curPos.x(),d->m_curPos.y()-MaxLimitSpace);
+                this->move(tmpPos);
+            }
+                break;
+            case 2:
+            {
+                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y()-MaxLimitSpace);
+                this->move(tmpPos);
+            }
+                break;
+            case 3:
+            {
+                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y());
+                this->move(tmpPos);
+            }
+                break;
+            default:
+            case 0:
+                this->move(d->m_curPos);
+                break;
         }
-            break;
-        case 2:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x()-MaxLimitSpace,d_ptr->m_curPos.y()-MaxLimitSpace);
-            this->move(tmpPos);
-        }
-            break;
-        case 3:
-        {
-            QPoint tmpPos(d_ptr->m_curPos.x()-MaxLimitSpace,d_ptr->m_curPos.y());
-            this->move(tmpPos);
-        }
-            break;
-        default:
-        case 0:
-            this->move(d_ptr->m_curPos);
-            break;
-        }
-        d_ptr->p_shakeTimer->start();
+            d->p_shakeTimer->start();
     }
 }
 
@@ -638,32 +642,57 @@ void AbstractChatWidget::slot_CheckSendEnter()
     slot_ButtClick_SendMsg(true);
 }
 
-//点击发送按钮，发送聊天编辑区域的信息
+/*!
+ * @brief 发送信息
+ * @details 将用户信息输入区的内容封装成消息请求加入发送队列，同时将信息保存至消息队列用于后期的管理
+ * @param[in] flag 未使用
+ * @return 无
+ */
 void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
 
-    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
-    {
-        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
-        return ;
-    }
-    TextUnit::ChatInfoUnit unit;
-    d_ptr->chatInputArea->transTextToUnit(unit);
+//    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+//    {
+//        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
+//        return ;
+//    }
+//    TextUnit::ChatInfoUnit unit;
+//    d_ptr->chatInputArea->transTextToUnit(unit);
 
-    TextRequest * request = new TextRequest;
-    request->destAccountId = d->userInfo.accountId;
-    request->accountId = G_UserBaseInfo.accountId;
-    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
-    request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
+    FileNetConnector::instance()->connect();
 
-    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+//    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
+//    TextRequest * request = new TextRequest;
+//    request->type = SearchPerson;
+//    request->textId = RUtil::UUID();
+//    request->isEncryption = false;
+//    request->isCompress = false;
+//    request->textType = TEXT_NORAML;
+//    request->otherSideId = d->userInfo.accountId;
+//    request->accountId = G_UserBaseInfo.accountId;
+//    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
+//    request->timeStamp = RUtil::timeStamp();
+//    RSingleton<MsgWrap>::instance()->hanleText(request);
+//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
-    int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    //TODO 对图片进行测试
+    QString fileName = "e:/33.ISO";
+    FileItemDesc * desc = new FileItemDesc;
+    desc->id = RUtil::UUID();
+    desc->fullPath = fileName;
+    desc->fileSize = QFileInfo(fileName).size();
+//    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢，在真正传输时计算MD5信息
+    desc->otherSideId = d->userInfo.accountId;
+    desc->itemType = FILE_ITEM_CHAT_UP;
+    ImageTask::instance()->addItem(desc);
+
+//    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+
+//    int user_query_id = d->userInfo.accountId.toInt();
+//    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 
     d_ptr->chatInputArea->clear();
 }
@@ -671,6 +700,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //响应数据库线程查询结果
 void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
 {
+    Q_UNUSED(id);
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
         d_ptr->chatArea->insertChatText(unit);
@@ -749,6 +779,6 @@ void AbstractChatWidget::initChatRecord()
     bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
     d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
-
+    Q_UNUSED(ret);
 }
 

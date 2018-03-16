@@ -22,11 +22,13 @@ using namespace ProtocolType;
 #include "Widgets/widget/rmessagebox.h"
 
 #include "thread/msgreceiveproctask.h"
+#include "thread/filereceiveproctask.h"
 #include "thread/taskmanager.h"
+#include "thread/imagetask.h"
 
 #include "Network/rsocket.h"
-#include "Network/msgsender.h"
-#include "Network/msgreceive.h"
+#include "Network/win32net/msgsender.h"
+#include "Network/win32net/msgreceive.h"
 #include "Network/netconnector.h"
 
 /*!
@@ -118,6 +120,18 @@ int main(int argc, char *argv[])
     }
 
     QFile styleFile(configFullPath + QString(Constant::PATH_StylePath)+"/RimClient.qss");
+    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
+    qRegisterMetaType<FriendListResponse>("FriendListResponse");
+    qRegisterMetaType<GroupingResponse>("GroupingResponse");
+    qRegisterMetaType<TextRequest>("TextRequest");
+    qRegisterMetaType<UserStateResponse>("UserStateResponse");
+    qRegisterMetaType<GroupingFriendResponse>("GroupingFriendResponse");
+    qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
+    qRegisterMetaType<TextReply>("TextReply");
+    qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
+    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
+
+    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
     if(styleFile.open(QFile::ReadOnly))
     {
         app.setStyleSheet(styleFile.readAll());
@@ -132,16 +146,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
-    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
-    qRegisterMetaType<FriendListResponse>("FriendListResponse");
-    qRegisterMetaType<GroupingResponse>("GroupingResponse");
-    qRegisterMetaType<TextResponse>("TextResponse");
-    qRegisterMetaType<GroupingFriendResponse>("GroupingFriendResponse");
-    qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
-    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
-
-    RSingleton<TaskManager>::instance()->addTask(new NetConnector());
+    RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
+    RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());
+    RSingleton<TaskManager>::instance()->addTask(new ImageTask());
 
     LoginDialog dialog;
     dialog.show();

@@ -280,6 +280,12 @@ void NotifyWindow::ignoreAll()
     d->infoList->clear();
 }
 
+/*!
+ * @brief 查看通知详细内容
+ * @details 响应双击查看内容，查看后对应的消息ID从列表中移除。
+ * @param[in] item
+ * @return 无
+ */
 void NotifyWindow::viewNotify(ToolItem *item)
 {
     MQ_D(NotifyWindow);

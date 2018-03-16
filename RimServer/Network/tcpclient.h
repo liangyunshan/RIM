@@ -17,6 +17,8 @@
 #include <QMutex>
 #include <QLinkedList>
 #include <QHash>
+#include <QFile>
+#include <QDataStream>
 #include "network_global.h"
 
 namespace ServerNetwork {
@@ -49,11 +51,62 @@ struct PacketBuff
         return data;
     }
 
-    bool isCompleted;                           //该缓冲数据是否完整
-    unsigned int recvSize;                      //接收数据的长度
-    unsigned short totalPackIndex;              //总数据包分包大小
-    unsigned short recvPackIndex;               //已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包
-    QLinkedList<QByteArray> buff;               //存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1
+    bool isCompleted;                           /*!< 该缓冲数据是否完整 */
+    unsigned int recvSize;                      /*!< 接收数据的长度 */
+    unsigned short totalPackIndex;              /*!< 总数据包分包大小 */
+    unsigned short recvPackIndex;               /*!< 已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包 */
+    QLinkedList<QByteArray> buff;               /*!< 存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1 */
+};
+
+/*!
+ *  @brief  单个接收文本描述
+ */
+struct FileRecvDesc
+{
+    FileRecvDesc():file(NULL){}
+
+    bool create()
+    {
+        file = new QFile(fileName);
+        if(file->open(QFile::WriteOnly) )
+        {
+            if(file->resize(size))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void lock(){mutex.lock();}
+    void unlock(){mutex.unlock();}
+
+    void destory()
+    {
+        if(file)
+        {
+            if(file->isOpen())
+            {
+                file->close();
+            }
+            delete file;
+        }
+    }
+
+    ~FileRecvDesc()
+    {
+        destory();
+    }
+
+    int itemType;                        /*!< 文件操作类型 @line FileItemType @endlink */
+    qint64 size;                         /*!< 文件大小 */
+    qint64 writeLen;                     /*!< 文件已经写入的大小 */
+    QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
+    QString md5;                         /*!< 文件MD5 */
+    QString accountId;                   /*!< 自己ID */
+    QString otherId;                     /*!< 接收方ID */
+    QFile * file;                        /*!< 文件缓冲 */
+    QMutex mutex;                        /*!< 文件读写锁 */
 };
 
 class NETWORKSHARED_EXPORT TcpClient
@@ -66,9 +119,6 @@ public:
 
     QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}
     QByteArray & getHalfPacketBuff(){return halfPackBufff;}
-
-    void setOnLine(bool flag = true);
-    bool isOnLine(){return onLine;}
 
     void setOnLineState(int val){onlineState = val;}
     int getOnLineState(){return onlineState;}
@@ -84,6 +134,10 @@ public:
 
     int getPackId();
 
+    bool addFile(QString fileId,FileRecvDesc * desc);
+    bool removeFile(QString fileId);
+    FileRecvDesc * getFile(QString fileId);
+
 private:
     explicit TcpClient();
     ~TcpClient();
@@ -96,16 +150,18 @@ private:
        @details 因为IOCP接收数据后，将数据从缓冲区拷贝至对应的缓冲区之后，才进行下一次的接收投递请求。
                 这样即时断包，断的数据也是从头部截断，下一次读取数据后，发现头部不完整，则只需要从断包缓冲区将信息拿出拼接至此次数据头部即可。
     */
-    QByteArray halfPackBufff;                       //非完整包缓冲区
-    QHash<int,PacketBuff*> packetBuffs;             //多包缓冲区
+    QByteArray halfPackBufff;                       /*!< 非完整包缓冲区 */
+    QHash<int,PacketBuff*> packetBuffs;             /*!< 多包缓冲区 */
     QMutex packBuffMutex;
     QMutex packIdMutex;
-    int sendPackId;                                 //每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。
+    int sendPackId;                                 /*!< 每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。 */
 
-    bool onLine;                       //是否在线
-    int onlineState;                   //在线状态(与OnlineStatus保持一致)
-    QString accountId;                 //用户ID
-    QString nickName;
+    int onlineState;                   /*!< 在线状态(与OnlineStatus保持一致) */
+    QString accountId;                 /*!< 用户ID */
+    QString nickName;                  /*!< 用户昵称 */
+
+    QHash<QString,FileRecvDesc*> fileRecvList;      /*!< 文件接收缓冲列表 */
+    QMutex fileMutex;
 
     friend class TcpClientManager;
 };

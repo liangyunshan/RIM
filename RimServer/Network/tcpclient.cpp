@@ -14,18 +14,12 @@ TcpClient *TcpClient::create()
     client->cSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if(client->cSocket == INVALID_SOCKET)
     {
-        RLOG_ERROR("Create socket erro,ErrorCode:%d",WSAGetLastError());
+        RLOG_ERROR("Create socket error,ErrorCode:%d",WSAGetLastError());
         delete client;
         return NULL;
     }
 
     return client;
-}
-
-void TcpClient::setOnLine(bool flag)
-{
-    onLine = flag;
-    onlineState = 0;
 }
 
 int TcpClient::getPackId()
@@ -36,6 +30,40 @@ int TcpClient::getPackId()
     return sendPackId;
 }
 
+bool TcpClient::addFile(QString fileId, FileRecvDesc *desc)
+{
+    if(desc == NULL)
+    {
+        return false;
+    }
+    QMutexLocker fileLocker(&fileMutex);
+    fileRecvList.insert(fileId,desc);
+    return true;
+}
+
+bool TcpClient::removeFile(QString fileId)
+{
+    QMutexLocker fileLocker(&fileMutex);
+    if(fileRecvList.contains(fileId))
+    {
+        FileRecvDesc * desc = fileRecvList.value(fileId);
+        delete desc;
+        fileRecvList.remove(fileId);
+        return true;
+    }
+    return false;
+}
+
+FileRecvDesc *TcpClient::getFile(QString fileId)
+{
+    QMutexLocker fileLocker(&fileMutex);
+    if(fileRecvList.contains(fileId))
+    {
+        return fileRecvList.value(fileId);
+    }
+    return NULL;
+}
+
 TcpClient::TcpClient()
 {
     memset(cIp,0,32);
@@ -44,8 +72,6 @@ TcpClient::TcpClient()
 
     cSocket = 0;
     cPort = 0;
-
-    onLine = false;
 }
 
 TcpClient::~TcpClient()
@@ -119,7 +145,7 @@ TcpClient *TcpClientManager::getClient(int sock)
 TcpClient *TcpClientManager::getClient(QString accountId)
 {
     QMutexLocker locker(&mutex);
-    qDebug()<<clientList.size();
+
     QList<TcpClient *>::iterator iter = clientList.begin();
     while(iter != clientList.end())
     {

@@ -4,10 +4,10 @@
 #include <qmath.h>
 
 #include "Network/netglobal.h"
-#include "Network/netutils.h"
+#include "Network/win32net/netutils.h"
 #include "Network/tcpclient.h"
-#include "Network/iocpcontext.h"
-#include "Network/tcpserver.h"
+#include "Network/win32net/iocpcontext.h"
+#include "Network/win32net/tcpserver.h"
 #include "Util/rlog.h"
 
 using namespace ServerNetwork;
@@ -85,7 +85,7 @@ void SendTextProcessThread::run()
 
                         if(error != ERROR_IO_PENDING)
                         {
-
+                            //TODO 对错误进行处理
                         }
                     }
                     else

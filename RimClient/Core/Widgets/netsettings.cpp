@@ -45,6 +45,9 @@ private:
     QLineEdit * tcpTextServerIpEdit;
     QLineEdit * tcpTextServerPortEdit;
 
+    QLineEdit * tcpFileServerIpEdit;
+    QLineEdit * tcpFileServerPortEdit;
+
     RButton * saveButton;
     RButton * closeButton;
 };
@@ -64,11 +67,15 @@ void NetSettingsPrivate::initWidget()
     QWidget * mainWidget = new QWidget(contentWidget);
 
     QLabel * textLabel = new QLabel(mainWidget);
-    textLabel->setText(QObject::tr("Login Server"));
+    textLabel->setText(QObject::tr("Text Server"));
 
-    QLabel * ipLabel = new QLabel(mainWidget);
-    ipLabel->setText(QObject::tr("Ip Address"));
+    QLabel * ipTextLabel = new QLabel(mainWidget);
+    ipTextLabel->setText(QObject::tr("Ip Address"));
 
+    QLabel * portTextLabel = new QLabel(mainWidget);
+    portTextLabel->setText(QObject::tr("Port"));
+
+    /*******************文本服务器地址*************************/
     tcpTextServerIpEdit = new QLineEdit(mainWidget);
 
     QString matchWholeIp = QString(Constant::FullIp_Reg).arg(Constant::SingleIp_Reg).arg(Constant::SingleIp_Reg);
@@ -76,13 +83,26 @@ void NetSettingsPrivate::initWidget()
     QRegExpValidator * ipValidator = new QRegExpValidator(rx);
     tcpTextServerIpEdit->setValidator(ipValidator);
 
-    QLabel * portLabel = new QLabel(mainWidget);
-    portLabel->setText(QObject::tr("Port"));
-
     tcpTextServerPortEdit = new QLineEdit(mainWidget);
 
     QIntValidator * portValidator = new QIntValidator(1024,65535);
     tcpTextServerPortEdit->setValidator(portValidator);
+
+    /*******************文件服务器地址*************************/
+    QLabel * fileLabel = new QLabel(mainWidget);
+    fileLabel->setText(QObject::tr("File Server"));
+
+    QLabel * ipFileLabel = new QLabel(mainWidget);
+    ipFileLabel->setText(QObject::tr("Ip Address"));
+
+    QLabel * portFileLabel = new QLabel(mainWidget);
+    portFileLabel->setText(QObject::tr("Port"));
+
+    tcpFileServerIpEdit = new QLineEdit(mainWidget);
+    tcpFileServerIpEdit->setValidator(ipValidator);
+
+    tcpFileServerPortEdit = new QLineEdit(mainWidget);
+    tcpFileServerPortEdit->setValidator(portValidator);
 
     /***************按钮区******************/
     QWidget * bottomWidget = new QWidget(contentWidget);
@@ -108,16 +128,23 @@ void NetSettingsPrivate::initWidget()
 
     gridLayout->addWidget(textLabel,0,1,1,1);
 
-    gridLayout->addWidget(ipLabel,1,1,1,1);
+    gridLayout->addWidget(ipTextLabel,1,1,1,1);
     gridLayout->addWidget(tcpTextServerIpEdit,1,2,1,2);
-    gridLayout->addWidget(portLabel,1,4,1,1);
+    gridLayout->addWidget(portTextLabel,1,4,1,1);
     gridLayout->addWidget(tcpTextServerPortEdit,1,5,1,1);
+
+    gridLayout->addWidget(fileLabel,2,1,1,1);
+
+    gridLayout->addWidget(ipFileLabel,3,1,1,1);
+    gridLayout->addWidget(tcpFileServerIpEdit,3,2,1,2);
+    gridLayout->addWidget(portFileLabel,3,4,1,1);
+    gridLayout->addWidget(tcpFileServerPortEdit,3,5,1,1);
 
     gridLayout->setColumnStretch(6,1);
 
-    gridLayout->setRowStretch(2,5);
+    gridLayout->setRowStretch(4,5);
 
-    gridLayout->addWidget(bottomWidget,3,0,1,7);
+    gridLayout->addWidget(bottomWidget,5,0,1,7);
 
     mainWidget->setLayout(gridLayout);
 
@@ -157,8 +184,11 @@ void NetSettings::initLocalSettings()
     MQ_D(NetSettings);
     QSettings * settings =  RUtil::globalSettings();
 
-    d->tcpTextServerIpEdit->setText(settings->value(Constant::SETTING_NETWORK_IP,Constant::DEFAULT_NETWORK_IP).toString());
-    d->tcpTextServerPortEdit->setText(settings->value(Constant::SETTING_NETWORK_PORT,Constant::DEFAULT_NETWORK_PORT).toString());
+    d->tcpTextServerIpEdit->setText(settings->value(Constant::SETTING_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString());
+    d->tcpTextServerPortEdit->setText(settings->value(Constant::SETTING_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toString());
+
+    d->tcpFileServerIpEdit->setText(settings->value(Constant::SETTING_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString());
+    d->tcpFileServerPortEdit->setText(settings->value(Constant::SETTING_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
 }
 
 void NetSettings::updateSettings()
@@ -172,15 +202,18 @@ void NetSettings::updateSettings()
     }
 
     QSettings * settings =  RUtil::globalSettings();
-    settings->setValue(Constant::SETTING_NETWORK_IP,d->tcpTextServerIpEdit->text());
-    settings->setValue(Constant::SETTING_NETWORK_PORT,d->tcpTextServerPortEdit->text());
+    settings->setValue(Constant::SETTING_NETWORK_TEXT_IP,d->tcpTextServerIpEdit->text());
+    settings->setValue(Constant::SETTING_NETWORK_TEXT_PORT,d->tcpTextServerPortEdit->text());
 
-    if(G_ServerIp != d->tcpTextServerIpEdit->text() || G_ServerPort != d->tcpTextServerPortEdit->text().toUShort())
+    settings->setValue(Constant::SETTING_NETWORK_FILE_IP,d->tcpFileServerIpEdit->text());
+    settings->setValue(Constant::SETTING_NETWORK_FILE_PORT,d->tcpFileServerPortEdit->text());
+
+    if(G_TextServerIp != d->tcpTextServerIpEdit->text() || G_TextServerPort != d->tcpTextServerPortEdit->text().toUShort())
     {
-        G_ServerIp = d->tcpTextServerIpEdit->text();
-        G_ServerPort = d->tcpTextServerPortEdit->text().toUShort();
+        G_TextServerIp = d->tcpTextServerIpEdit->text();
+        G_TextServerPort = d->tcpTextServerPortEdit->text().toUShort();
 
-        NetConnector::instance()->disConnect();
+        TextNetConnector::instance()->disConnect();
     }
 
     RMessageBox::information(this,tr("Information"),tr("Save changes successfully!"),RMessageBox::Yes);

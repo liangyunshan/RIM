@@ -34,11 +34,31 @@ bool RUtil::isFileExist(QString filePath)
     return fileInfo.exists();
 }
 
+/*!
+ * @brief 对字符串进行MD5加密
+ * @param[in] text 待加密的字符串
+ * @return 加密后的字符串
+ */
 QString RUtil::MD5(QString text)
 {
     QByteArray bb;
     bb = QCryptographicHash::hash (text.toLocal8Bit(), QCryptographicHash::Md5 );
     return QString().append(bb.toHex());
+}
+
+/*!
+ * @brief 获取文件的MD5信息
+ * @details 对文件进行MD5计算，用于网络传输后对接收的文件数据进行正确性校验，防止传输过程中错误或者被篡改；
+ * @param[in] fileName 文件名信息
+ * @return 计算后的MD5值信息
+ */
+QString RUtil::MD5File(QString fileName)
+{
+    QFile theFile(fileName);
+    theFile.open(QIODevice::ReadOnly);
+    QByteArray ba = QCryptographicHash::hash(theFile.readAll(), QCryptographicHash::Md5).toHex();
+    theFile.close();
+    return QString(ba);
 }
 
 QString RUtil::getTimeStamp(QString format)
@@ -90,6 +110,38 @@ QSize RUtil::screenSize(int num)
     return qApp->desktop()->screen()->size();
 }
 
+/*!
+ * @brief 获取屏幕坐标尺寸范围
+ * @details 在多窗口下，主屏和副屏有顺序关系。顺序不同，其坐标的范围存在差异 @n
+ *          若A为主屏、B为辅屏，那么AB排列时，坐标范围为[0,2W][0,H] @n
+ *          若BA排列时，坐标范围是[-W,W][0,H] @n
+ * @warning AB、BA排列时在获取控件的位置时有较大的影响。
+ * @param[in] 无
+ * @return 屏幕坐标
+ */
+QRect RUtil::screenGeometry()
+{
+    int screenSize = qApp->desktop()->screenCount();
+
+    int minX = 0,maxX = 0 ,minY = 0,maxY = 0;
+    for(int i = 0; i < screenSize; i++)
+    {
+        QRect tmpRect = qApp->desktop()->screenGeometry(i);
+        minX = tmpRect.x() < minX ? tmpRect.x() : minX;
+        maxX = tmpRect.x() + tmpRect.width() > maxX ? tmpRect.x() + tmpRect.width() : maxX;
+        minY = tmpRect.y() < minY ? tmpRect.y() : minY;
+        maxY = tmpRect.y() + tmpRect.height() > maxY ? tmpRect.y() + tmpRect.height() : maxY;
+    }
+
+    QRect rect;
+    rect.setLeft(minX);
+    rect.setRight(maxX);
+    rect.setTop(minY);
+    rect.setBottom(maxY);
+
+    return rect;
+}
+
 qint64 RUtil::currentMSecsSinceEpoch()
 {
     return QDateTime::currentDateTime().currentMSecsSinceEpoch();
@@ -102,4 +154,49 @@ bool RUtil::validateIpFormat(QString dest)
     QRegExp rx(matchWholeIp);
 
     return rx.exactMatch(dest);
+}
+
+/*!
+     * @brief 将图片转换成灰度图
+     * @param[in] image：const QImage &，转换前的图片
+     * @return 无 t_grayImage：QImage，转换后的灰度图
+     */
+QImage RUtil::convertToGray(const QImage & t_image)
+{
+    int t_height = t_image.height();
+    int t_width = t_image.width();
+    QImage t_grayImage(t_width, t_height, QImage::Format_Indexed8);
+    t_grayImage.setColorCount(256);
+    for(int i = 0; i < 256; i++)
+    {
+        t_grayImage.setColor(i, qRgb(i, i, i));
+    }
+    switch(t_image.format())
+    {
+    case QImage::Format_Indexed8:
+        for(int i = 0; i < t_height; i ++)
+        {
+            const unsigned char *pSrc = (unsigned char *)t_image.constScanLine(i);
+            unsigned char *pDest = (unsigned char *)t_grayImage.scanLine(i);
+            memcpy(pDest, pSrc, t_width);
+        }
+        break;
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+    case QImage::Format_ARGB32_Premultiplied:
+        for(int i = 0; i < t_height; i ++)
+        {
+            const QRgb *pSrc = (QRgb *)t_image.constScanLine(i);
+            unsigned char *pDest = (unsigned char *)t_grayImage.scanLine(i);
+
+            for( int j = 0; j < t_width; j ++)
+            {
+                 pDest[j] = qGray(pSrc[j]);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+    return t_grayImage;
 }

@@ -23,18 +23,25 @@ public:
     MsgWrap();
 
     QByteArray handleMsg(MsgPacket * packet, int result = 0);
-    QByteArray handleText(TextResponse * response);
+    QByteArray handleText(TextRequest * request);
+    QByteArray handleTextReply(TextReply * response);
     QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
+
+    QByteArray handleFile(MsgPacket *response);
 
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
     QByteArray handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet);
+    QByteArray handleUserStateChanged(UserStateResponse * packet);
+
     QByteArray handleSearchFriendResponse(SearchFriendResponse * packet);
     QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
     QByteArray handleFriendListResponse(FriendListResponse *packet);
     QByteArray handleGroupingResponse(GroupingResponse *packet);
     QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
+
+    QByteArray handleFileControl(SimpleFileItemRequest * packet);
 
     QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);

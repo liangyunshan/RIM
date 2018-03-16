@@ -114,6 +114,12 @@ SystemTrayIcon::~SystemTrayIcon()
     }
 }
 
+/*!
+ * @brief 设置工作模式
+ * @details 托盘在创建时被登陆页面以及主页面共享使用，在两种状态下，托盘所具备的功能是不一致的。
+ * @param[in] model 工作模式
+ * @return 无
+ */
 void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
 {
     MQ_D(SystemTrayIcon);
@@ -146,12 +152,13 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
 }
 
 /*!
-     * @brief 添加一个通知，并进行提示
-     * @param[in] model 通知类型
-     * @param[in] id 通知消息id，此id和NotifyWindow中id保持一致，用于标识消息身份；若id为默认值，则此消息为系统消息或无通知
-     * @param[in] imagePath 图片路径
-     * @return 无
-     */
+ * @brief 添加通知
+ * @details 将新通知加入到通知列表，并将通知进行统一保存。
+ * @param[in] model 通知类型
+ * @param[in] id 通知消息id，此id和NotifyWindow中id保持一致，用于标识消息身份；若id为默认值，则此消息为系统消息或无通知
+ * @param[in] imagePath 图片路径
+ * @return 无
+ */
 void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QString imagePath)
 {
     MQ_D(SystemTrayIcon);
@@ -200,12 +207,12 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QStrin
 }
 
 /*!
-     * @brief 置顶显示某个消息
-     * @details 当存在多个不同用户消息时，再次接收到某个联系人消息时，则将其置顶显示
-     * @param[in] model 消息类型
-     * @param[in] id 消息ID
-     * @return 无
-     */
+ * @brief 置顶闪烁显示消息
+ * @details 当存在多个不同用户消息时，再次接收到某个联系人消息时，则将其置顶闪烁显示
+ * @param[in] model 消息类型
+ * @param[in] id 消息ID
+ * @return 无
+ */
 void SystemTrayIcon::frontNotify(NotifyModel model, QString id)
 {
     MQ_D(SystemTrayIcon);
@@ -230,6 +237,13 @@ void SystemTrayIcon::frontNotify(NotifyModel model, QString id)
     }
 }
 
+/*!
+ * @brief 移除通知消息
+ * @details 根据传入的ID，从通知列表中移除。若还有剩余消息，则将最后一个消息头像作为通知闪烁头像；若消息列表为空，则将托盘图标设置为系统默认图像，并停止闪烁。
+ * @see stopBliking
+ * @param[in] id 待移除的通知ID
+ * @return 无
+ */
 void SystemTrayIcon::removeNotify(QString id)
 {
     MQ_D(SystemTrayIcon);
@@ -266,6 +280,12 @@ void SystemTrayIcon::removeNotify(QString id)
     }
 }
 
+/*!
+ * @brief 开启闪烁
+ * @details 控制托盘状态闪烁，默认闪烁周期为400ms。
+ * @param[in] interval 闪烁周期
+ * @return 无
+ */
 void SystemTrayIcon::startBliking(int interval)
 {
     MQ_D(SystemTrayIcon);

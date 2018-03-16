@@ -8,6 +8,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note      20171228:wey:添加本地图片选择框，可选择系统自带的图像
+ *             20180206:wey:增加对输入的信息验证
  */
 #ifndef EDITPERSONINFOWINDOW_H
 #define EDITPERSONINFOWINDOW_H
@@ -36,6 +37,7 @@ private slots:
     void updateUserBaseInfo();
     void updateSystemIconInfo(QString filename);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
+    void singleBaseInfoFinished();
 
 private:
     EditPersonInfoWindowPrivate * d_ptr;

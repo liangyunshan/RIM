@@ -54,9 +54,18 @@ public:
         Users,
         Groups,
         GroupType,
-        DestId,
+        OtherSideId,
         Time,
-        FromId
+        FromId,
+        TextId,
+        FileName,
+        Size,
+        LocalFileName,
+        MD5,
+        Control,
+        Id,
+        Encryption,                          /*!< 是否加密 */
+        Compress                             /*!< 是否压缩 */
     };
     Q_FLAG(KeyId)
 

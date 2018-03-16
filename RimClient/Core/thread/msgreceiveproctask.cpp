@@ -23,34 +23,34 @@ void MsgReceiveProcTask::startMe()
 {
     RTask::startMe();
 
+    runningFlag = true;
+
     if(!isRunning())
     {
         start();
     }
     else
     {
-        G_RecvCondition.wakeOne();
+        G_TextRecvCondition.wakeOne();
     }
 }
 
 void MsgReceiveProcTask::run()
 {
-    runningFlag = true;
-
     while(runningFlag)
     {
-        while(G_RecvButts.isEmpty())
+        while(G_TextRecvBuffs.isEmpty())
         {
-            G_RecvMutex.lock();
-            G_RecvCondition.wait(&G_RecvMutex);
-            G_RecvMutex.unlock();
+            G_TextRecvMutex.lock();
+            G_TextRecvCondition.wait(&G_TextRecvMutex);
+            G_TextRecvMutex.unlock();
         }
 
-        if(runningFlag && G_RecvButts.size() > 0)
+        if(runningFlag && G_TextRecvBuffs.size() > 0)
         {
-            G_RecvMutex.lock();
-            QByteArray array = G_RecvButts.dequeue();
-            G_RecvMutex.unlock();
+            G_TextRecvMutex.lock();
+            QByteArray array = G_TextRecvBuffs.dequeue();
+            G_TextRecvMutex.unlock();
 
             if(array.size() > 0)
             {
@@ -75,12 +75,8 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
                 handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                 break;
             case MSG_TEXT:
-                handleTextMsg(root);
+                handleTextMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
                 break;
-            case MSG_IMAGE:
-                            break;
-            case MSG_FILE:
-                            break;
             default:
                 break;
         }
@@ -103,8 +99,11 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_USER_LOGIN:
                 RSingleton<DataProcess>::instance()->proLoginResponse(obj);
                 break;
-    case MSG_USER_UPDATE_INFO:
+        case MSG_USER_UPDATE_INFO:
                 RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
+                break;
+        case MSG_USER_STATE:
+                RSingleton<DataProcess>::instance()->proUserStateChanged(obj);
                 break;
         case MSG_RELATION_SEARCH:
                 RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);
@@ -127,15 +126,27 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
     };
 }
 
-void MsgReceiveProcTask::handleTextMsg(QJsonObject &obj)
+void MsgReceiveProcTask::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
 {
-    RSingleton<DataProcess>::instance()->proText(obj);
-}
+    switch(commandType)
+    {
+        case MSG_TEXT_TEXT:
+        case MSG_TEXT_SHAKE:
+            RSingleton<DataProcess>::instance()->proText(obj);
+            break;
 
+        case MSG_TEXT_APPLY:
+            RSingleton<DataProcess>::instance()->proTextApply(obj);
+            break;
+
+        default:
+            break;
+    }
+}
 
 void MsgReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_RecvCondition.wakeOne();
+    G_TextRecvCondition.wakeOne();
 }

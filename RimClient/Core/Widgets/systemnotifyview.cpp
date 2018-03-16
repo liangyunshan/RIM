@@ -1,4 +1,4 @@
-#include "systemnotifyview.h"
+﻿#include "systemnotifyview.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -108,6 +108,11 @@ void SystemNotifyViewPrivate::initWidget()
     q_ptr->setContentWidget(contentWidget);
 }
 
+/*!
+ * @brief 根据类型设置页面显示
+ * @param[in] type 好友操作类型
+ * @return 无
+ */
 void SystemNotifyViewPrivate::setType(ResponseFriendApply type)
 {
     QHBoxLayout * layout = new QHBoxLayout;
@@ -203,7 +208,6 @@ void SystemNotifyView::setNotifyInfo(NotifyInfo info)
 
     d->accountLabel->setText(info.accountId);
     d->nickNameLabel->setText(info.nickName);
-
 }
 
 void SystemNotifyView::resizeEvent(QResizeEvent *)

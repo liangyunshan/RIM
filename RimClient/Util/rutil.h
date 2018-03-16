@@ -7,6 +7,7 @@
  *  @date      2017.12.11
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note      20180210:LYS:添加正常图像转换为灰度图方法convertToGray
  */
 #ifndef RUTIL_H
 #define RUTIL_H
@@ -25,6 +26,7 @@ public:
     static bool isFileExist(QString filePath);
 
     static QString MD5(QString text);
+    static QString MD5File(QString fileName);
 
     static QString getTimeStamp(QString format = "yyyy-MM-dd hh:mm:ss:zzz");
     static QString getDate(QString format = "yyyy-MM-dd");
@@ -37,9 +39,13 @@ public:
 
     static QSize screenSize(int num = -1);
 
+    static QRect screenGeometry();
+
     static qint64 currentMSecsSinceEpoch();
 
     static bool validateIpFormat(QString dest);
+
+    static QImage convertToGray(const QImage &);
 
 private:
     static QSettings * gSettings;

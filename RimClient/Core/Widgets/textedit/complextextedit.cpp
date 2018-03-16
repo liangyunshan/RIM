@@ -312,6 +312,7 @@ void ComplexTextEdit::wheelEvent(QWheelEvent *event)
 
 void ComplexTextEdit::animate(int anim)
 {
+    Q_UNUSED(anim);
        // qDebug()<<"hash count is "<<urls.count();
     if (QMovie* movie = qobject_cast<QMovie*>(sender()))
     {

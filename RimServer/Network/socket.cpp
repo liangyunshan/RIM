@@ -8,18 +8,18 @@
 #include <winsock2.h>
 #include <windows.h>
 typedef  int socklen_t;
-#elif defined(Q_OS_UNIX)
+#pragma  comment(lib,"ws2_32.lib")
+#elif defined(Q_OS_LINUX)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <errno.h>
 #define closesocket close
 #endif
 
 #include "Util/rlog.h"
-
-#pragma  comment(lib,"ws2_32.lib")
 
 namespace ServerNetwork {
 
@@ -52,12 +52,10 @@ bool RSocket::createSocket()
     tcpSocket = socket(AF_INET,SOCK_STREAM,0);
     if(tcpSocket == INVALID_SOCKET)
     {
-        errorCode = WSAGetLastError();
+        errorCode = getErrorCode();
         RLOG_ERROR("Create socket failed! [ErrorCode:%d]",errorCode);
         return false;
     }
-
-    RLOG_INFO("Create socket success!");
 
     socketValid = true;
     return true;
@@ -79,12 +77,10 @@ bool RSocket::bind(const char *ip, unsigned short port)
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        errorCode = WSAGetLastError();
+        errorCode = getErrorCode();
         RLOG_ERROR("Bind socket error [%s:%d] [ErrorCode:%d]",ip,port,errorCode);
         return false;
     }
-
-    RLOG_INFO("Bind socket success!");
 
     strcpy(socketIp,ip);
     socketPort = port;
@@ -103,7 +99,7 @@ bool RSocket::listen()
     if(ret == SOCKET_ERROR)
     {
         closeSocket();
-        errorCode = WSAGetLastError();
+        errorCode = getErrorCode();
         RLOG_ERROR("Listen socket error! [ErrorCode:%d]",errorCode);
         return false;
     }
@@ -131,10 +127,10 @@ bool RSocket::closeSocket()
 }
 
 /*!
-     * @brief 作为server端接收客户端连接
-     * @param[in] 无
-     * @return 返回接收的socket描述信息
-     */
+ * @brief 作为server端接收客户端连接
+ * @param[in] 无
+ * @return 返回接收的socket描述信息
+ */
 RSocket RSocket::accept()
 {
     RSocket tmpSocket;
@@ -163,11 +159,11 @@ RSocket RSocket::accept()
 }
 
 /*!
-     * @brief 接收数据，并将结果保存至缓冲区
-     * @param[out] buff 保存并返回接收的数据
-     * @param[in] length 缓冲区数据长度
-     * @return 实际接收数据的长度
-     */
+ * @brief 接收数据，并将结果保存至缓冲区
+ * @param[out] buff 保存并返回接收的数据
+ * @param[in] length 缓冲区数据长度
+ * @return 实际接收数据的长度
+ */
 int RSocket::recv(char *buff, int length)
 {
     if(!isValid() || buff == NULL)
@@ -184,11 +180,11 @@ int RSocket::recv(char *buff, int length)
 }
 
 /*!
-     * @brief 发送一定长度多少护具
-     * @param[in] buff 待发送数据的缓冲区
-     * @param[in] length 待发送的长度
-     * @return 是否发送成功
-     */
+ * @brief 发送一定长度数据
+ * @param[in] buff 待发送数据的缓冲区
+ * @param[in] length 待发送的长度
+ * @return 是否发送成功
+ */
 int RSocket::send(const char *buff, const int length)
 {
     if(!isValid() || buff == NULL)
@@ -211,12 +207,12 @@ int RSocket::send(const char *buff, const int length)
 }
 
 /*!
-     * @brief 连接socket
-     * @param[in] remoteIp 远程IP
-     * @param[in] remotePort 远程端口
-     * @param[in] teimeouts 超时时间
-     * @return 连接是否成功
-     */
+ * @brief 连接socket
+ * @param[in] remoteIp 远程IP
+ * @param[in] remotePort 远程端口
+ * @param[in] teimeouts 超时时间
+ * @return 连接是否成功
+ */
 bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
 {
     if(!isValid())
@@ -252,10 +248,10 @@ bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int
 }
 
 /*!
-     * @brief 设置socket是否为阻塞模式
-     * @param[in] flag 状态
-     * @return 返回设置的是否成功设置
-     */
+ * @brief 设置socket是否为阻塞模式
+ * @param[in] flag 状态
+ * @return 返回设置的是否成功设置
+ */
 bool RSocket::setBlock(bool flag)
 {
     if(!isValid())
@@ -269,7 +265,7 @@ bool RSocket::setBlock(bool flag)
         ul = 1;
     }
     ioctlsocket(tcpSocket,FIONBIO,&ul);
-#else defined()
+#else defined(Q_OS_LINUX)
     int flags = fcntl(tcpSocket,F_GETFL,0);
     if(flags<0)
     {
@@ -295,6 +291,15 @@ bool RSocket::setBlock(bool flag)
 int RSocket::getLastError()
 {
     return errorCode;
+}
+
+int RSocket::getErrorCode()
+{
+#ifdef Q_OS_WIN
+    return WSAGetLastError();
+#elif defined(Q_OS_LINUX)
+    return -1;
+#endif
 }
 
 }//namespace ServerNetwork

@@ -47,6 +47,13 @@ RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
 
 }
 
+RUserChatCache::RUserChatCache():table("ruserchatcache"),id("ID"),account("ACCOUNT"),
+otherSideId("OTHERSIDEID"),data("DATA"),time("TTSTAMP"),msgType("MSGTYPE"),textId("TEXTID"),textType("TEXTTYPE"),encryption("ENCRYPTION"),
+  compress("COMPRESS")
+{
+
+}
+
 }
 
 

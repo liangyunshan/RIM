@@ -32,6 +32,11 @@ void MessDiapatch::onRecvUpdateBaseInfoResponse(ResponseUpdateUser status,Update
     emit recvUpdateBaseInfoResponse(status,response);
 }
 
+void MessDiapatch::onRecvUserStateChangedResponse(MsgOperateResponse result, UserStateResponse response)
+{
+    emit recvUserStateChangedResponse(result,response);
+}
+
 void MessDiapatch::onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response)
 {
     emit recvSearchFriendResponse(status,response);
@@ -62,9 +67,14 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
     emit errorGroupingOperate(type);
 }
 
-void MessDiapatch::onRecvText(TextResponse response)
+void MessDiapatch::onRecvText(TextRequest response)
 {
     emit recvText(response);
+}
+
+void MessDiapatch::onRecvTextReply(TextReply reply)
+{
+    emit recvTextReply(reply);
 }
 
 void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFriendResponse response)
@@ -77,4 +87,14 @@ void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFrien
     {
 
     }
+}
+
+void MessDiapatch::onRecvFileControl(SimpleFileItemRequest request)
+{
+    emit recvFileControl(request);
+}
+
+void MessDiapatch::onScreenChanged()
+{
+    emit screenChange();
 }

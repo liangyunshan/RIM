@@ -2,59 +2,38 @@
 
 #include <QDebug>
 
-#include "Network/msgsender.h"
-#include "Network/msgreceive.h"
+#include "Network/win32net/msgsender.h"
+#include "Network/win32net/msgreceive.h"
 #include "Util/rlog.h"
 #include "global.h"
 
-NetConnector * NetConnector::netConnector = NULL;
-
-NetConnector::NetConnector(QObject *parent):
-    ClientNetwork::RTask(parent),netConnected(false),
-    delayTime(3),command(Net_None)
+SuperConnector::SuperConnector(QObject *parent):ClientNetwork::RTask(parent),
+    netConnected(false),delayTime(3),command(Net_None)
 {
-    netConnector = this;
 
-    rsocket = new ClientNetwork::RSocket();
-
-    msgSender = new ClientNetwork::MsgSender();
-    QObject::connect(msgSender,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
-
-    msgReceive = new ClientNetwork::MsgReceive();
-    QObject::connect(msgReceive,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
 }
 
-NetConnector::~NetConnector()
-{
-    wait();
-}
-
-NetConnector *NetConnector::instance()
-{
-    return netConnector;
-}
-
-void NetConnector::connect(int delayTime)
+void SuperConnector::connect(int delayTime)
 {
     command = Net_Connect;
     delayTime = delayTime;
     condition.wakeOne();
 }
 
-void NetConnector::reconnect(int delayTime)
+void SuperConnector::reconnect(int delayTime)
 {
     command = Net_Reconnect;
     delayTime = delayTime;
     condition.wakeOne();
 }
 
-void NetConnector::disConnect()
+void SuperConnector::disConnect()
 {
     command = Net_Disconnect;
     condition.wakeOne();
 }
 
-bool NetConnector::setBlock(bool flag)
+bool SuperConnector::setBlock(bool flag)
 {
     if(rsocket->isValid())
     {
@@ -63,7 +42,7 @@ bool NetConnector::setBlock(bool flag)
     return false;
 }
 
-void NetConnector::startMe()
+void SuperConnector::startMe()
 {
     RTask::startMe();
 
@@ -73,23 +52,14 @@ void NetConnector::startMe()
     }
 }
 
-void NetConnector::stopMe()
+void SuperConnector::stopMe()
 {
     runningFlag = false;
     command = Net_None;
     condition.wakeOne();
 }
 
-void NetConnector::respSocketError(int errorCode)
-{
-    RLOG_ERROR("Socket close! ErrorCode[%d]",errorCode);
-
-    netConnected = false;
-    msgSender->stopMe();
-    msgReceive->stopMe();
-}
-
-void NetConnector::run()
+void SuperConnector::run()
 {
     runningFlag = true;
     while(runningFlag)
@@ -117,7 +87,44 @@ void NetConnector::run()
     }
 }
 
-void NetConnector::doConnect()
+
+TextNetConnector * TextNetConnector::netConnector = NULL;
+
+TextNetConnector::TextNetConnector():
+    SuperConnector()
+{
+    netConnector = this;
+
+    rsocket = new ClientNetwork::RSocket();
+
+    msgSender = new ClientNetwork::TextSender();
+    QObject::connect(msgSender,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+
+    msgReceive = new ClientNetwork::TextReceive();
+    QObject::connect(msgReceive,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+}
+
+TextNetConnector::~TextNetConnector()
+{
+    wait();
+}
+
+TextNetConnector *TextNetConnector::instance()
+{
+    return netConnector;
+}
+
+
+void TextNetConnector::respSocketError(int errorCode)
+{
+    RLOG_ERROR("Socket close! ErrorCode[%d]",errorCode);
+
+    netConnected = false;
+    msgSender->stopMe();
+    msgReceive->stopMe();
+}
+
+void TextNetConnector::doConnect()
 {
     if(!rsocket->isValid())
     {
@@ -128,7 +135,10 @@ void NetConnector::doConnect()
         }
     }
 
-    if(!netConnected && rsocket->isValid() && rsocket->connect(G_ServerIp.toLocal8Bit().data(),G_ServerPort,delayTime))
+    char ip[20] = {0};
+    memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
+
+    if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_TextServerPort,delayTime))
     {
         netConnected = true;
 
@@ -139,24 +149,110 @@ void NetConnector::doConnect()
     emit connected(netConnected);
 }
 
-void NetConnector::doReconnect()
+void TextNetConnector::doReconnect()
 {
     netConnected = false;
-    if(rsocket->isValid() && rsocket->connect(G_ServerIp.toLocal8Bit().data(),G_ServerPort,delayTime))
+    char ip[20] = {0};
+    memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
+    if(rsocket->isValid() && rsocket->connect(ip,G_TextServerPort,delayTime))
     {
         netConnected = true;
     }
-    RLOG_ERROR("Reconnect [%s:%d] error",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+    RLOG_ERROR("Reconnect [%s:%d] error",ip,G_TextServerPort);
 
     emit connected(netConnected);
 }
 
-void NetConnector::doDisconnect()
+void TextNetConnector::doDisconnect()
 {
     if(netConnected && rsocket->isValid())
     {
         if(rsocket->closeSocket())
         {
+            netConnected = false;
+            msgSender->stopMe();
+            msgReceive->stopMe();
+        }
+    }
+}
+
+FileNetConnector * FileNetConnector::netConnector = NULL;
+
+FileNetConnector::FileNetConnector():
+    SuperConnector()
+{
+    netConnector = this;
+
+    rsocket = new ClientNetwork::RSocket();
+
+    msgSender = new ClientNetwork::FileSender();
+    QObject::connect(msgSender,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+
+    msgReceive = new ClientNetwork::FileReceive();
+    QObject::connect(msgReceive,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+}
+
+FileNetConnector *FileNetConnector::instance()
+{
+    return netConnector;
+}
+
+void FileNetConnector::respSocketError(int errorCode)
+{
+    RLOG_ERROR("Socket close! ErrorCode[%d]",errorCode);
+
+    netConnected = false;
+    msgSender->stopMe();
+    msgReceive->stopMe();
+}
+
+void FileNetConnector::doConnect()
+{
+    if(!rsocket->isValid())
+    {
+        if(rsocket->createSocket())
+        {
+            msgSender->setSock(rsocket);
+            msgReceive->setSock(rsocket);
+        }
+    }
+
+    char ip[20] = {0};
+    memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
+
+    if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_FileServerPort,delayTime))
+    {
+        netConnected = true;
+        msgSender->startMe();
+        msgReceive->startMe();
+    }
+
+    emit connected(netConnected);
+}
+
+void FileNetConnector::doReconnect()
+{
+    netConnected = false;
+    char ip[20] = {0};
+    memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
+    if(rsocket->isValid() && rsocket->connect(ip,G_FileServerPort,delayTime))
+    {
+        netConnected = true;
+    }
+    RLOG_ERROR("Reconnect [%s:%d] error",ip,G_FileServerPort);
+
+    emit connected(netConnected);
+}
+
+void FileNetConnector::doDisconnect()
+{
+    if(netConnected && rsocket->isValid())
+    {
+        if(rsocket->closeSocket())
+        {
+            netConnected = false;
+            emit connected(netConnected);
+
             msgSender->stopMe();
             msgReceive->stopMe();
         }

@@ -1,6 +1,8 @@
 ﻿/*!
  *  @brief     网络数据转换
- *  @details   接收应用层的数据，将其转换为网络数据发送结构
+ *  @details   接收应用层的数据，将其转换为网络数据发送结构 @n
+ *             1.文本传输，采用JSON数据格式 @n
+ *             2.文件传输，采用流传输 @n
  *  @file      msgwrap.h
  *  @author    wey
  *  @version   1.0
@@ -28,10 +30,14 @@ public:
     void handleMsg(MsgPacket * packet);
     void hanleText(TextRequest *packet);
 
+    void handleFileRequest(FileItemRequest * fileRequest);
+    void handleFileData(QString fileMd5, size_t currIndex, QByteArray array);
+
 private:
     void handleRegistRequest(RegistRequest *packet);
     void handleLoginRequest(LoginRequest *packet);
     void handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet);
+    void handleUserStateRequest(UserStateRequest * request);
     void handleSearchFriendRequest(SearchFriendRequest * packet);
     void handleAddFriendRequest(AddFriendRequest * packet);
     void handleOperateFriendRequest(OperateFriendRequest * packet);

@@ -35,19 +35,22 @@ public:
     ~SystemTrayIcon();
 
     /*!
-     *  @brief 托盘模式
+     *  @brief 托盘工作模式
      */
     enum SystemTrayModel
     {
-        System_Login,       //登录页面模式
-        System_Main         //主页面模式
+        System_Login,       /*!< 登录页面模式 */
+        System_Main         /*!< 主页面模式 */
     };
 
+    /*!
+     *  @brief 通知类型
+     */
     enum NotifyModel
     {
-        NoneNotify,
-        SystemNotify,       //系统通知
-        UserNotify          //用户通知
+        NoneNotify,         /*!< 无通知 */
+        SystemNotify,       /*!< 系统通知 */
+        UserNotify          /*!< 用户通知 */
     };
 
     void setModel(SystemTrayIcon::SystemTrayModel model);
@@ -71,11 +74,15 @@ private slots:
     void switchNotifyImage();
 
 private:
+    /*!
+     *  @brief 通知具体描述信息
+     *  @details 通过此描述一个通知的详细信息
+     */
     struct NotifyDesc
     {
-        NotifyModel model;
-        QString id;
-        QString imagePath;
+        NotifyModel model;       /*!< @link NotifyModel @endlink */
+        QString id;              /*!< 与NotifyWinwos中通知id保持一致 */
+        QString imagePath;       /*!< 对应图片信息 */
     };
 
 private:

@@ -20,23 +20,22 @@
 
 namespace ClientNetwork
 {
-class MsgSender;
-class MsgReceive;
+class TextSender;
+class FileSender;
+class TextReceive;
+class FileReceive;
 }
 
 namespace ClientNetwork {
 class RTask;
 }
 
-class NetConnector : public ClientNetwork::RTask
+
+class SuperConnector : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
-    explicit NetConnector(QObject * parent = 0);
-    ~NetConnector();
-
-    static NetConnector * instance();
-
+    explicit SuperConnector(QObject * parent = 0);
     enum NetCommand
     {
         Net_None,
@@ -55,26 +54,25 @@ public:
 
     bool isSockValid(){return rsocket->isValid();}
 
+    ClientNetwork::RSocket * socket(){return rsocket;}
+
     void startMe();
     void stopMe();
+
+protected:
+    virtual void doConnect()=0;
+    virtual void doReconnect()=0;
+    virtual void doDisconnect()=0;
+
+    void run();
 
 signals:
     void connected(bool flag);
 
-private slots:
-    void respSocketError(int errorCode);
+protected slots:
+    virtual void respSocketError(int errorCode)=0;
 
 protected:
-    void run();
-
-private:
-    void doConnect();
-    void doReconnect();
-    void doDisconnect();
-
-private:
-    static NetConnector * netConnector;
-
     ClientNetwork::RSocket * rsocket;
 
     NetCommand command;
@@ -82,11 +80,56 @@ private:
 
     int delayTime;
 
+private:
     QMutex mutex;
     QWaitCondition condition;
 
-    ClientNetwork::MsgSender * msgSender;
-    ClientNetwork::MsgReceive * msgReceive;
+};
+
+class TextNetConnector : public SuperConnector
+{
+    Q_OBJECT
+public:
+    explicit TextNetConnector();
+    ~TextNetConnector();
+
+    static TextNetConnector * instance();
+
+private:
+    void doConnect();
+    void doReconnect();
+    void doDisconnect();
+
+protected slots:
+    void respSocketError(int errorCode);
+
+private:
+    static TextNetConnector * netConnector;
+
+    ClientNetwork::TextSender * msgSender;
+    ClientNetwork::TextReceive * msgReceive;
+};
+
+class FileNetConnector : public SuperConnector
+{
+    Q_OBJECT
+public:
+    explicit FileNetConnector();
+
+    static FileNetConnector * instance();
+
+private slots:
+    void respSocketError(int errorCode);
+
+private:
+    void doConnect();
+    void doReconnect();
+    void doDisconnect();
+private:
+    static FileNetConnector * netConnector;
+
+    ClientNetwork::FileSender * msgSender;
+    ClientNetwork::FileReceive * msgReceive;
 };
 
 #endif // NETCONNECTOR_H

@@ -42,7 +42,7 @@ const QFileInfoList ImageManager::systemIcons()
  * @param[in] fullPath 是否以全路径返回
  * @return 若存在则返回，若不存在返回空字符串
  */
-QString ImageManager::getSystemUserIcon(int index, bool fullPath)
+QString ImageManager::getSystemUserIcon(unsigned short index, bool fullPath)
 {
     if(localSystemUserIcon.size() == 0)
     {

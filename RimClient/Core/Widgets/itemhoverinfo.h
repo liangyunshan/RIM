@@ -14,6 +14,8 @@
 #define ITEMHOVERINFO_H
 
 #include "widget.h"
+#include "datastruct.h"
+#include "protocoldata.h"
 
 class ItemHoverInfoPrivate;
 
@@ -27,6 +29,8 @@ public:
 
     void fadein(QPoint itemPos);
     void fadeout();
+
+    void setSimpleUserInfo(SimpleUserInfo info);
 
 private:
     ItemHoverInfoPrivate * d_ptr;

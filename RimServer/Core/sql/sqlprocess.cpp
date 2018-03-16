@@ -20,6 +20,13 @@ int G_BaseAccountId = 0;
 
 #define SQL_ERROR -1
 
+/*!
+ *  @brief  开启事务宏
+ *  @details 在对某些数据库操作时，可能不支持事务，需要动态设置。 @n
+ *           当Qt的版本和Mysql的驱动版本不一致时，存在Qt不支持Mysql事务的情况。 @n
+ */
+//#define ENABLE_SQL_TRANSACTION
+
 SQLProcess::SQLProcess()
 {
 
@@ -199,7 +206,14 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     return FIND_FRIEND_FAILED;
 }
 
-//存储好友响应结果至数据库
+/*!
+ * @brief 存储好友响应结果至数据库
+ * @param[in] db 数据库
+ * @param[in] accountId 用户ID
+ * @param[in] operateId 待操作用户ID
+ * @param[in] type 操作类型 @link ResponseFriendApply @endlink
+ * @return 是否插入成功
+ */
 ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accountId,QString operateId,int type)
 {
     DataTable::RequestCache rc;
@@ -437,14 +451,14 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
                 {
                     while(userQuery.next())
                     {
-                        SimpleUserInfo simpleUserInfo;
+                        SimpleUserInfo * simpleUserInfo = new SimpleUserInfo;
 
-                        simpleUserInfo.accountId = userQuery.value(user.account).toString();
-                        simpleUserInfo.nickName = userQuery.value(user.nickName).toString();
-                        simpleUserInfo.signName = userQuery.value(user.signName).toString();
-                        simpleUserInfo.face = userQuery.value(user.face).toUInt();
-                        simpleUserInfo.customImgId = userQuery.value(user.faceId).toString();
-                        simpleUserInfo.remarks = userQuery.value(groupUser.remarks).toString();
+                        simpleUserInfo->accountId = userQuery.value(user.account).toString();
+                        simpleUserInfo->nickName = userQuery.value(user.nickName).toString();
+                        simpleUserInfo->signName = userQuery.value(user.signName).toString();
+                        simpleUserInfo->face = userQuery.value(user.face).toUInt();
+                        simpleUserInfo->customImgId = userQuery.value(user.faceId).toString();
+                        simpleUserInfo->remarks = userQuery.value(groupUser.remarks).toString();
 
                         groupData->users.append(simpleUserInfo);
                     }
@@ -458,7 +472,14 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
     return false;
 }
 
-void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
+/*!
+ * @brief 根据用户账户ID获取用户基本信息
+ * @param[in] db 数据库
+ * @param[in] accountId 用户账户ID
+ * @param[out] userInfo  用户基本信息
+ * @return 无
+ */
+bool SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo & userInfo)
 {
     DataTable::RUser user;
 
@@ -482,6 +503,51 @@ void SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             userInfo.remark = query.value(user.remark).toString();
             userInfo.face = query.value(user.face).toInt();
             userInfo.customImgId = query.value(user.faceId).toString();
+
+            return true;
+        }
+    }
+    return false;
+}
+
+void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList)
+{
+    DataTable::RUser user;
+    DataTable::RGroup group;
+    DataTable::RGroup_User groupUser;
+    RSelect rst(user.table);
+    rst.select(user.id);
+    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next())
+    {
+        QString uid = query.value(user.id).toString();
+
+        RSelect selectGroup(group.table);
+        selectGroup.createCriteria().add(Restrictions::eq(group.userId,uid));
+
+        if(query.exec(selectGroup.sql()))
+        {
+            while(query.next())
+            {
+                RGroupData * groupData = new RGroupData;
+                groupData->groupId = query.value(group.id).toString();
+                groupData->groupName = query.value(group.name).toString();
+                groupData->isDefault = query.value(group.defaultGroup).toBool();
+
+                QString sql = QString("select ru.account from %1 ru left join"
+                                      " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
+
+                QSqlQuery userQuery(db->sqlDatabase());
+                if(userQuery.exec(sql))
+                {
+                    while(userQuery.next())
+                    {
+                        friendList.append(userQuery.value(user.account).toString());
+                    }
+                }
+            }
         }
     }
 }
@@ -516,6 +582,244 @@ bool SQLProcess::updateMoveGroupFriend(Database *db, GroupingFriendRequest *requ
     return false;
 }
 
+/*!
+ * @brief 删除用户好友
+ * @details 1.先解除双方的好友关系；2.若好友在线，则向好友推送删除的结果信息，确保将好友列表中的自己移除。
+ * @param[in] db 数据库
+ * @param[in] requests 缓存请求容器
+ * @param[out] otherUserGroupId 自己在对方用户分组中的ID
+ * @return 是否删除成功
+ */
+bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QString & accountId,QString & otherUserGroupId)
+{
+    try
+    {
+        QSqlQuery query(db->sqlDatabase());
+
+        //TODO 将处理放入事务中处理，当前mysql的版本与qt的库存在不一致，暂不支持事务，因此需要重新编译mysql驱动
+#if defined(ENABLE_SQL_TRANSACTION)
+        if(db->sqlDatabase().transaction())
+#endif
+        {
+            //1.从己方列表中删除对方
+            UserBaseInfo otherSideUserInfo;
+            if(!getUserInfo(db,request->user.accountId,otherSideUserInfo))
+            {
+                throw "get other userbaseinfo errror";
+            }
+
+            DataTable::RGroup_User rgu;
+            RDelete rde(rgu.table);
+            rde.createCriteria().add(Restrictions::eq(rgu.groupId,request->groupId))
+                    .add(Restrictions::eq(rgu.userId,otherSideUserInfo.uuid));
+
+            if(!query.exec(rde.sql()))
+            {
+                throw "delete other friend from my group error!";
+            }
+
+            //2.获取自己的ID信息
+            DataTable::RGroup rgp;
+            DataTable::RUser rus;
+            QString sql = QString("select u.id,u.account from %1 u left join  %2 g on u.id = g.uid where g.id = '%3'")
+                    .arg(rus.table,rgp.table,request->groupId);
+
+            QString userId;
+            if(query.exec(sql) && query.next())
+            {
+               userId = query.value(rus.id).toString();
+               accountId = query.value(rus.account).toString();
+            }
+            else
+            {
+                throw "get userbaseinfo error!";
+            }
+
+            //3.获取对方分组ID
+            QStringList groups = getGroupsById(db,otherSideUserInfo.uuid);
+            if(groups.size() > 0)
+            {
+               QStringList::iterator iter =  groups.begin();
+               while(iter != groups.end())
+               {
+                   RSelect rsg(rgu.table);
+                   rsg.select(rgu.id);
+                   rsg.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
+                           .add(Restrictions::eq(rgu.userId,userId));
+
+                   if(query.exec(rsg.sql()) && query.next())
+                   {
+                       query.clear();
+                       rde.clearRestrictions();
+                       rde.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
+                               .add(Restrictions::eq(rgu.userId,userId));
+
+                       otherUserGroupId = *iter;
+                       if(!query.exec(rde.sql()))
+                       {
+                           throw "delete me from other group error!";
+                       }
+
+                       break;
+                   }
+                   iter++;
+               }
+            }
+
+#if defined(ENABLE_SQL_TRANSACTION)
+            db->sqlDatabase().commit();
+#endif
+        }
+#if defined(ENABLE_SQL_TRANSACTION)
+        else
+        {
+            throw "Current database can't support transaction!";
+        }
+#endif
+    }
+    catch(const char * p)
+    {
+#if defined(ENABLE_SQL_TRANSACTION)
+        db->sqlDatabase().rollback();
+#endif
+        RLOG_ERROR(p);
+        return false;
+    }
+
+    return true;
+}
+
+/*!
+ * @brief 加载缓存的系统通知消息
+ * @param[in] db 数据库
+ * @param[in] accountdId 账户ID
+ * @param[in] requests 缓存请求容器
+ * @return 是否加载成功
+ * @attention 离线消息数量大于0时，认为加载成功
+ */
+bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFriendRequest> &requests)
+{
+    DataTable::RequestCache requestCache;
+    RSelect rst(requestCache.table);
+    rst.select(requestCache.account);
+    rst.select(requestCache.operateId);
+    rst.select(requestCache.type);
+    rst.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            AddFriendRequest cacheRequest;
+            cacheRequest.accountId = query.value(requestCache.account).toString();
+            cacheRequest.operateId = query.value(requestCache.operateId).toString();
+            cacheRequest.stype = (SearchType)query.value(requestCache.type).toInt();
+            requests.append(cacheRequest);
+        }
+
+        if(requests.size() > 0)
+        {
+            RDelete rde(requestCache.table);
+            rde.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+            if(query.exec(rde.sql()))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 加载缓存的联系人消息
+ * @param[in] db 数据库
+ * @param[in] accountdId 账户ID
+ * @param[in] textResponse 离线消息存储
+ * @return 是否加载成功
+ * @attention [1]离线消息数量大于0时，认为加载成功 @n
+ *            [2]加载用户A消息时，需要将A的ID作为目的消息ID查询 @n
+ */
+bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextRequest>& textResponse)
+{
+    DataTable::RUserChatCache userchatcache;
+    RSelect rst(userchatcache.table);
+    rst.select(userchatcache.account);
+    rst.select(userchatcache.otherSideId);
+    rst.select(userchatcache.data);
+    rst.select(userchatcache.time);
+    rst.select(userchatcache.msgType);
+    rst.select(userchatcache.textId);
+    rst.select(userchatcache.textType);
+    rst.select(userchatcache.encryption);
+    rst.select(userchatcache.compress);
+    rst.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
+
+    QSqlQuery query(db->sqlDatabase());
+    qDebug()<<rst.sql();
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            TextRequest textCache;
+            textCache.accountId = query.value(userchatcache.account).toString();
+            textCache.type = SearchPerson;
+            //NOTE 注意
+            textCache.otherSideId = query.value(userchatcache.otherSideId).toString();
+            textCache.sendData = query.value(userchatcache.data).toString();
+            textCache.timeStamp = query.value(userchatcache.time).toLongLong();
+            textCache.msgCommand = (MsgCommand)query.value(userchatcache.msgType).toInt();
+            textCache.textId = query.value(userchatcache.textId).toString();
+            textCache.textType = (TextType)query.value(userchatcache.textType).toInt();
+            textCache.isEncryption = query.value(userchatcache.encryption).toBool();
+            textCache.isCompress = query.value(userchatcache.compress).toBool();
+            textResponse.append(textCache);
+        }
+
+        if(textResponse.size() > 0)
+        {
+            RDelete rde(userchatcache.table);
+            rde.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
+//            if(query.exec(rde.sql()))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 保存用户间对话信息
+ * @param[in] db 数据库
+ * @param[in] request 文本请求
+ * @return 是否保存成功
+ */
+bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
+{
+    DataTable::RUserChatCache userchatcache;
+    RPersistence rps(userchatcache.table);
+    rps.insert(userchatcache.account,request->accountId);
+    rps.insert(userchatcache.otherSideId,request->otherSideId);
+    rps.insert(userchatcache.data,request->sendData);
+    rps.insert(userchatcache.time,request->timeStamp);
+    rps.insert(userchatcache.msgType,request->msgCommand);
+    rps.insert(userchatcache.textId,request->textId);
+    rps.insert(userchatcache.textType,request->textType);
+    rps.insert(userchatcache.encryption,request->isEncryption);
+    rps.insert(userchatcache.compress,request->isCompress);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rps.sql()))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 //根据User表ID查找用户默认分组
 QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
 {
@@ -536,13 +840,19 @@ QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
     return QString();
 }
 
+/*!
+ * @brief 获取用户默认分组ID
+ * @param[in] db 数据库
+ * @param[in] id 用户账户ID
+ * @return 默认分组ID
+ */
 QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString id)
 {
     DataTable::RGroup group;
     DataTable::RUser user;
 
-    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 ")
-            .arg(group.table,user.table,user.account,id);
+    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 and %5 = 1 ")
+            .arg(group.table,user.table,user.account,id,group.defaultGroup);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(sql))
@@ -553,5 +863,31 @@ QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString i
         }
     }
     return QString();
+}
+
+/*!
+ * @brief 根据ID获取用户所有的分组
+ * @param[in] db 数据库
+ * @param[in] id User表中的ID
+ * @return 用户所有分组ID
+ * @warning id不是登陆ID，此id是数据库中主键，由随机产生。
+ */
+QStringList SQLProcess::getGroupsById(Database *db, const QString id)
+{
+    DataTable::RGroup group;
+    RSelect rst(group.table);
+    rst.select(group.id);
+    rst.createCriteria().add(Restrictions::eq(group.userId,id));
+
+    QStringList list;
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            list.append(query.value(group.id).toString());
+        }
+    }
+    return list;
 }
 

@@ -3,6 +3,7 @@
         <file>resource/background/login.png</file>
         <file>resource/background/slide_hide.png</file>
         <file>resource/background/slide_show.png</file>
+        <file>resource/background/item_hover.png</file>
     </qresource>
     <qresource prefix="/style">
         <file>resource/RimClient.qss</file>
@@ -63,12 +64,22 @@
         <file>resource/icon/icon_success_32.png</file>
         <file>resource/icon/icon_star_32.png</file>
         <file>resource/icon/Tool_Panel_Notify.png</file>
+        <file>resource/icon/downrow.png</file>
+        <file>resource/icon/uprow.png</file>
+        <file>resource/icon/Detail_Account.png</file>
+        <file>resource/icon/Detail_Address.png</file>
+        <file>resource/icon/Detail_BaseInfo.png</file>
+        <file>resource/icon/Detail_EditRemarkl.png</file>
+        <file>resource/icon/Detail_Group.png</file>
+        <file>resource/icon/Detail_Nick.png</file>
+        <file>resource/icon/Detail_Remark.png</file>
     </qresource>
     <qresource prefix="/state">
-        <file>resource/icon/state/STATE_HIDE.png</file>
-        <file>resource/icon/state/STATE_ONLINE.png</file>
+        <file>resource/icon/state/STATE_AWAY.png</file>
         <file>resource/icon/state/STATE_BUSY.png</file>
+        <file>resource/icon/state/STATE_HIDE.png</file>
         <file>resource/icon/state/STATE_NODISTURB.png</file>
         <file>resource/icon/state/STATE_OFFLINE.png</file>
+        <file>resource/icon/state/STATE_ONLINE.png</file>
     </qresource>
 </RCC>

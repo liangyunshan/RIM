@@ -86,7 +86,7 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
             response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
             response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
             response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
-
+            response.reponseType = (OperateContact)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
             MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(UPDATE_USER_SUCCESS,response);
         }
     }
@@ -94,6 +94,26 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
     {
         ResponseUpdateUser rr = (ResponseUpdateUser)data.value(JsonKey::key(JsonKey::Status)).toInt();
         MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(rr,response);
+    }
+}
+
+void DataProcess::proUserStateChanged(QJsonObject &data)
+{
+    UserStateResponse response;
+    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        if(!dataObj.isEmpty())
+        {
+            response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+            response.onStatus = (OnlineStatus)dataObj.value(JsonKey::key(JsonKey::Status)).toInt();
+
+            MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_SUCCESS,response);
+        }
+    }
+    else
+    {
+        MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_FAILE,response);
     }
 }
 
@@ -192,13 +212,14 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
             {
                 QJsonObject user = users.at(j).toObject();
 
-                SimpleUserInfo userInfo;
-                userInfo.accountId = user.value(JsonKey::key(JsonKey::AccountId)).toString();
-                userInfo.nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
-                userInfo.signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
-                userInfo.remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
-                userInfo.face = user.value(JsonKey::key(JsonKey::Face)).toInt();
-                userInfo.customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+                SimpleUserInfo * userInfo = new SimpleUserInfo();
+                userInfo->accountId = user.value(JsonKey::key(JsonKey::AccountId)).toString();
+                userInfo->nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
+                userInfo->signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
+                userInfo->remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
+                userInfo->face = user.value(JsonKey::key(JsonKey::Face)).toInt();
+                userInfo->customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+                userInfo->status = (OnlineStatus)user.value(JsonKey::key(JsonKey::Status)).toInt();
 
                 groupData->users.append(userInfo);
             }
@@ -253,6 +274,7 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
         response.user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
         response.user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
         response.user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+        response.user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
         MessDiapatch::instance()->onRecvGroupingFriend(status,response);
     }
@@ -264,12 +286,18 @@ void DataProcess::proText(QJsonObject &data)
     if(result == STATUS_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
-        TextResponse response;
+        TextRequest response;
+
         response.msgCommand = (MsgCommand)data.value(JsonKey::key(JsonKey::Command)).toInt();
+
         response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
-        response.fromAccountId = dataObj.value(JsonKey::key(JsonKey::FromId)).toString();
+        response.textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+        response.otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
+        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
         response.timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
+        response.isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
+        response.isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
+        response.textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.sendData = dataObj.value(JsonKey::key(JsonKey::Data)).toString();
 
         MessDiapatch::instance()->onRecvText(response);
@@ -277,5 +305,39 @@ void DataProcess::proText(QJsonObject &data)
     else
     {
 
+    }
+}
+
+void DataProcess::proTextApply(QJsonObject &data)
+{
+    QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+    TextReply textReply;
+    textReply.textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
+    textReply.applyType = (TextReplyType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+
+    MessDiapatch::instance()->onRecvTextReply(textReply);
+}
+
+/*!
+ * @attention 注意RBuffer中数据的开始指针已经不是指向0的位置
+ */
+void DataProcess::proFileControl(RBuffer &data)
+{
+    SimpleFileItemRequest simpleControl;
+
+    int status;
+    if(!data.read(status))
+        return;
+    if((MsgOperateResponse)status == STATUS_SUCCESS)
+    {
+        int control;
+        if(!data.read(control))
+            return;
+        simpleControl.control = (FileTransferControl)control;
+
+        if(!data.read(simpleControl.md5))
+            return;
+
+        MessDiapatch::instance()->onRecvFileControl(simpleControl);
     }
 }

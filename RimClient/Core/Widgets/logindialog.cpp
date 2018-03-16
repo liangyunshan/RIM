@@ -9,7 +9,6 @@
 #include <QMenu>
 #include <QAction>
 #include <QDesktopWidget>
-#include <QComboBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -18,6 +17,7 @@
 #include <QLineEdit>
 #include <QApplication>
 #include <QDir>
+#include <QListWidget>
 
 #include "head.h"
 #include "datastruct.h"
@@ -33,9 +33,11 @@
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
+#include "thread/imagetask.h"
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
+#include "others/msgqueuemanager.h"
 #include "registdialog.h"
 #include "netsettings.h"
 #include "global.h"
@@ -48,6 +50,7 @@
 #include "abstractchatwidget.h"
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
+#include "widget/rcombobox.h"
 #include "json/jsonresolver.h"
 using namespace TextUnit ;
 
@@ -95,7 +98,8 @@ private:
     QLineEdit *password;
     QCheckBox *rememberPassord;
     QCheckBox *autoLogin;
-    QComboBox *userList;
+    RComboBox *userList;
+    QListWidget * userListWidget;
 
     QRegExp numberExp;
     QRegExp passExp;
@@ -154,12 +158,17 @@ void LoginDialogPrivate::initWidget()
     inputGridLayout->setContentsMargins(0, 0, 0, 0);
 
     QRegExpValidator * numberValidator = new QRegExpValidator(QRegExp(Constant::AccountId_Reg));
-    userList = new QComboBox();
+
+    userListWidget = new QListWidget();
+
+    userList = new RComboBox();
+    userList->setObjectName("LoginComboBox");
     userList->setFixedSize(QSize(193, 28));
+    userList->setModel(userListWidget->model());
+    userList->setView(userListWidget);
     userList->setEditable(true);
     userList->lineEdit()->setValidator(numberValidator);
     userList->lineEdit()->setPlaceholderText(QObject::tr("Input number"));
-    userList->setView(new QListView());
 
     QRegExpValidator * passValidator = new QRegExpValidator(QRegExp(Constant::AccountPassword_Reg));
     password = new QLineEdit();
@@ -219,7 +228,6 @@ void LoginDialogPrivate::initWidget()
 
     bottomWidget->setLayout(bottomLayout);
 
-    QObject::connect(userList,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(switchUser(int)));
     QObject::connect(userList,SIGNAL(currentTextChanged(QString)),q_ptr,SLOT(validateInput(QString)));
     QObject::connect(login,SIGNAL(pressed()),q_ptr,SLOT(login()));
     QObject::connect(rememberPassord,SIGNAL(toggled(bool)),q_ptr,SLOT(setPassword(bool)));
@@ -243,8 +251,6 @@ void LoginDialogPrivate::initWidget()
     toolBar->appendToolButton(minSize);
     toolBar->appendToolButton(closeButt);
 
-    userList->setEditable(true);
-
     contentLayout->addWidget(imageWidget);
     contentLayout->addWidget(bottomWidget);
 
@@ -262,7 +268,7 @@ int LoginDialogPrivate::userIndex(QString text)
 {
     for(int i = 0; i < localUserInfo.size(); i++)
     {
-        if(localUserInfo.at(i)->userName == text)
+        if(localUserInfo.at(i)->accountId == text)
         {
             return i;
         }
@@ -286,23 +292,30 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
-    connect(MessDiapatch::instance(),SIGNAL(recvText(TextResponse)),this,SLOT(procRecvText(TextResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
+    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
+            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
-void LoginDialog::respConnect(bool flag)
+void LoginDialog::respTextConnect(bool flag)
 {
     MQ_D(LoginDialog);
+
     if(flag)
     {
 #ifndef __NO_SERVER__
         LoginRequest * request = new LoginRequest();
         request->accountId = d->userList->currentText();
         request->password = RUtil::MD5( d->password->text());
-        request->status = STATUS_ONLINE;
+        request->status = d->onlineState->state();
+        G_OnlineStatus = d->onlineState->state();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
 #else
         recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
@@ -310,15 +323,25 @@ void LoginDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+    }
+}
+
+void LoginDialog::respFileConnect(bool flag)
+{
+    if(flag)
+    {
+#ifndef __NO_SERVER__
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
+#endif
     }
 }
 
 void LoginDialog::login()
 {
 #ifndef __NO_SERVER__
-    NetConnector::instance()->connect();
+    TextNetConnector::instance()->connect();
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -355,41 +378,6 @@ void LoginDialog::setPassword(bool flag)
     }
 }
 
-void LoginDialog::switchUser(int index)
-{
-    MQ_D(LoginDialog);
-
-    if(d->localUserInfo.size() > 0 && index >= 0 && index < d->localUserInfo.size())
-    {
-        UserInfoDesc * userInfo = d->localUserInfo.at(index);
-        d->password->setText(userInfo->originPassWord);
-        d->rememberPassord->setChecked(userInfo->isRemberPassword);
-        d->autoLogin->setChecked(userInfo->isAutoLogin);
-        if(userInfo->isSystemPixMap)
-        {
-            QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
-            if(pixmap.isNull())
-            {
-                userInfo->pixmap = d->defaultUserIconPath;
-                d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
-            }
-            else
-            {
-                d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
-            }
-        }
-
-        d->onlineState->setState((OnLineState::UserState)userInfo->loginState);
-        d->isNewUser = false;
-
-        validateInput("");
-    }
-    else
-    {
-        d->isNewUser = true;
-    }
-}
-
 void LoginDialog::createTrayMenu()
 {
     MQ_D(LoginDialog);
@@ -403,8 +391,11 @@ void LoginDialog::createTrayMenu()
 
 void LoginDialog::loadLocalSettings()
 {
-    G_ServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_IP,Constant::DEFAULT_NETWORK_IP).toString();
-    G_ServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_PORT,Constant::DEFAULT_NETWORK_PORT).toUInt();
+    G_TextServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_TextServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+
+    G_FileServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_FileServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
 }
 
 int LoginDialog::isContainUser()
@@ -426,7 +417,7 @@ void LoginDialog::resetDefaultInput()
     d->autoLogin->setChecked(false);
     d->rememberPassord->setChecked(false);
 
-    d->onlineState->setState(OnLineState::STATE_ONLINE);
+    d->onlineState->setState(ProtocolType::STATUS_ONLINE);
     d->userIcon->setPixmap(fullPath);
 
     d->login->setEnabled(false);
@@ -442,9 +433,17 @@ void LoginDialog::readLocalUser()
 
     if(d->localUserInfo.size() > 0)
     {
+        respItemChanged(d->localUserInfo.first()->accountId);
         foreach(UserInfoDesc * user,d->localUserInfo)
         {
-             d->userList->addItem(user->userName);
+            ComboxItem * item = new ComboxItem;
+            connect(item,SIGNAL(deleteItem(QString)),this,SLOT(removeUserItem(QString)));
+            connect(item,SIGNAL(itemClicked(QString)),this,SLOT(respItemChanged(QString)));
+            item->setNickName(user->userName);
+            item->setAccountId(user->accountId);
+
+            QListWidgetItem* widgetItem = new QListWidgetItem(d->userListWidget);
+            d->userListWidget->setItemWidget(widgetItem,item);
         }
     }
     else
@@ -461,8 +460,7 @@ void LoginDialog::validateInput(QString /*text*/)
         if(d->numberExp.exactMatch(d->userList->currentText()) && d->passExp.exactMatch(d->password->text()))
         {
             d->login->setEnabled(true);
-            d->login->style()->unpolish(d->login);
-            d->login->style()->polish(d->login);
+            repolish(d->login);
             return;
         }
     }
@@ -479,9 +477,95 @@ void LoginDialog::showNetSettings()
     settings->show();
 }
 
+void LoginDialog::removeUserItem(QString accountId)
+{
+    MQ_D(LoginDialog);
+
+    int index = -1;
+    for(int i = 0; i < d->userListWidget->count();i++)
+    {
+        QListWidgetItem * item = d->userListWidget->item(i);
+        ComboxItem * comboxItem = dynamic_cast<ComboxItem *>(d->userListWidget->itemWidget(item));
+        if(comboxItem && comboxItem->getAccountId() == accountId)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if(index >= 0)
+    {
+       int result = RMessageBox::warning(this,"warning",QString("Delete count %1 from list?").arg(accountId),RMessageBox::Yes|RMessageBox::No,RMessageBox::No);
+       if(result == RMessageBox::Yes)
+       {
+            d->userListWidget->takeItem(index);
+            QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
+            while(iter != d->localUserInfo.end())
+            {
+                if((*iter)->accountId == accountId)
+                {
+                    d->localUserInfo.erase(iter);
+                    break;
+                }
+                iter++;
+            }
+            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+       }
+    }
+}
+
+void LoginDialog::respItemChanged(QString id)
+{
+    MQ_D(LoginDialog);
+
+    bool existed = false;
+    QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
+    while(iter != d->localUserInfo.end())
+    {
+        if((*iter)->accountId == id)
+        {
+            UserInfoDesc * userInfo = *iter;
+            d->userList->hidePopup();
+            d->userList->setEditText(id);
+            d->password->setText(userInfo->originPassWord);
+            d->rememberPassord->setChecked(userInfo->isRemberPassword);
+            d->autoLogin->setChecked(userInfo->isAutoLogin);
+            if(userInfo->isSystemPixMap)
+            {
+                QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                if(pixmap.isNull())
+                {
+                    userInfo->pixmap = d->defaultUserIconPath;
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                }
+                else
+                {
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                }
+            }
+
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<userInfo->loginState;
+
+            d->onlineState->setState((OnlineStatus)userInfo->loginState);
+            d->isNewUser = false;
+
+            validateInput("");
+
+            existed = true;
+            break;
+        }
+        iter++;
+    }
+
+    if(!existed)
+    {
+        d->isNewUser = true;
+    }
+}
+
 void LoginDialog::showRegistDialog()
 {
-    disconnect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 
     RegistDialog * dialog = new RegistDialog(this);
     connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
@@ -490,12 +574,13 @@ void LoginDialog::showRegistDialog()
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 }
 
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
 {
     MQ_D(LoginDialog);
+
     if(status == LOGIN_SUCCESS)
     {
         int index = -1;
@@ -503,18 +588,21 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         {
             if(index < d->localUserInfo.size())
             {
-                d->localUserInfo.at(index)->userName = d->userList->currentText();
+                d->localUserInfo.at(index)->userName = response.baseInfo.nickName;
+                d->localUserInfo.at(index)->accountId = response.baseInfo.accountId;
                 d->localUserInfo.at(index)->originPassWord = d->password->text();
                 d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
                 d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
                 d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
+                d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }
         else
         {
             UserInfoDesc * desc = new UserInfoDesc;
-            desc->userName = d->userList->currentText();
+            desc->userName = response.baseInfo.nickName;
+            desc->accountId = response.baseInfo.accountId;
             desc->loginState = (int)d->onlineState->state();
             desc->originPassWord = d->password->text();
             desc->password = RUtil::MD5(d->password->text());
@@ -529,7 +617,6 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
         G_UserBaseInfo = response.baseInfo;
 
-        //创建每个用户对应的缓存文件夹
         QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
         G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
         RUtil::createDir(G_Temp_Picture_Path);
@@ -550,6 +637,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         }
 
         d->mainDialog->show();
+        d->mainDialog->setLogInState(d->onlineState->state());
 
         FriendListRequest * request = new FriendListRequest;
         request->accountId = G_UserBaseInfo.accountId;
@@ -586,11 +674,11 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 }
 
 /*!
-     * @brief 接收好友操作响应信息
-     * @details 可操作好友请求、同意请求、拒绝请求
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
+ * @brief 接收好友操作响应信息
+ * @details 可操作好友请求、同意请求、拒绝请求
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
     MQ_D(LoginDialog);
@@ -615,16 +703,16 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 //TODO 考虑若未打开窗口，消息如何存储？？
 /*!
-     * @brief 接收发送的聊天消息
-     * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
-     *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
-     * @param[in] response 消息体内容
-     * @return 是否插入成功
-     */
-void LoginDialog::procRecvText(TextResponse response)
+ * @brief 接收发送的聊天消息
+ * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
+ *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+ * @param[in] response 消息体内容
+ * @return 是否插入成功
+ */
+void LoginDialog::procRecvText(TextRequest response)
 {
     MQ_D(LoginDialog);
-    UserClient * client = RSingleton<UserManager>::instance()->client(response.fromAccountId);
+    UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
     if(client)
     {
         //【1】存储消息至数据库
@@ -659,11 +747,11 @@ void LoginDialog::procRecvText(TextResponse response)
             }
             else if(response.msgCommand == MSG_TEXT_TEXT)
             {
-                //TODO 未将文本消息设置到提示框中
+                //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();
                 info.msgCommand = response.msgCommand;
-                info.accountId = response.fromAccountId;
+                info.accountId = response.otherSideId;
                 info.nickName = client->simpleUserInfo.nickName;
                 info.type = NotifyUser;
                 info.stype = response.type;
@@ -695,14 +783,88 @@ void LoginDialog::procRecvText(TextResponse response)
 }
 
 /*!
-     * @brief 查看系统通知消息
-     * @param[in] info 通知消息内容
-     * @return 无
-     */
+ * @brief 接收系统消息反馈
+ * @param[in] reply 消息回复
+ * @return 无
+ * @note 接收系统推送的消息反馈后，根据反馈的类型不同，执行相应的操作: @n
+ *      1.APPLY_SYSTEM:将聊天信息存入对应用户的db; @n
+ *      2.APPLY_CONFIRM:显示接收提示(弹窗或其它方式显示); @n
+ *      3.APPLY_RECEIPT:更新回执状态(已读/未读);
+ */
+void LoginDialog::processTextReply(TextReply reply)
+{
+    AbstractChatWidget * chatWidget = NULL;
+    TextRequest * msgDesc = RSingleton<MsgQueueManager>::instance()->dequeue(reply.textId);
+    if(msgDesc != NULL)
+    {
+         UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
+         if(client && client->chatWidget != NULL)
+         {
+             chatWidget = client->chatWidget;
+         }
+    }
+
+    switch(reply.applyType)
+    {
+        case APPLY_SYSTEM:
+             {
+
+             }
+             break;
+        default:
+            break;
+    }
+}
+
+/*!
+ * @brief 响应好友状态更新
+ * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @param[in] result 操作结果
+ * @param[in] response 好友状态信息
+ * @return 无
+ */
+void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
+{
+    if(result == STATUS_SUCCESS && response.accountId != G_UserBaseInfo.accountId)
+    {
+        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+        if(client)
+        {
+            client->toolItem->setStatus(response.onStatus);
+            client->simpleUserInfo.status = response.onStatus;
+            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+            {
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+            }
+        }
+    }
+}
+
+/*!
+ * @brief 处理服务器端的传输控制
+ * @param[in] request 控制命令
+ * @return 无
+ */
+void LoginDialog::procFileControl(SimpleFileItemRequest request)
+{
+    if(ImageTask::instance()->containsTask(request.md5))
+    {
+        if(request.control == T_ABLE_SEND)
+        {
+            ImageTask::instance()->transfer(request.md5);
+        }
+    }
+}
+
+/*!
+ * @brief 查看系统通知消息
+ * @param[in] info 通知消息内容
+ * @return 无
+ */
 void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(LoginDialog);
-
+    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -726,9 +888,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatWidget->initChatRecord();
             }
 
-            //TODO client抓取最近notifyCount记录消息
-            notifyCount;
-            client->chatWidget->showRecentlyChatMsg(notifyCount);
+//            client->chatWidget->showRecentlyChatMsg(notifyCount);
             client->chatWidget->show();
         }
     }
@@ -831,4 +991,79 @@ bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
     }
 
     return Widget::eventFilter(obj,event);
+}
+
+ComboxItem::ComboxItem(QWidget *parent):QWidget(parent)
+{
+    QWidget * widget = new QWidget(this);
+
+    iconLabel = new RIconLabel;
+    iconLabel->setTransparency(true);
+    iconLabel->setEnterCursorChanged(false);
+    iconLabel->setEnterHighlight(false);
+    iconLabel->setCorner(true);
+
+    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
+
+    nickNameLabel = new QLabel(widget);
+    nickNameLabel->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    nickNameLabel->setAlignment(Qt::AlignLeft);
+    nickNameLabel->setMinimumWidth(125);
+    nickNameLabel->setMinimumHeight(22);
+
+    accountLabel = new QLabel(widget);
+    accountLabel->setMinimumHeight(22);
+    accountLabel->setAlignment(Qt::AlignLeft);
+
+    closeButt = new QPushButton;
+    closeButt->setText("X");
+    closeButt->setFixedSize(20,20);
+    closeButt->setToolTip(QObject::tr("Remove account"));
+    connect(closeButt,SIGNAL(pressed()),this,SLOT(prepareDelete()));
+
+    QGridLayout * gridlayout = new QGridLayout;
+    gridlayout->setContentsMargins(2,2,2,2);
+    gridlayout->addWidget(iconLabel,0,0,2,1);
+    gridlayout->addWidget(nickNameLabel,0,1,1,6);
+    gridlayout->addWidget(accountLabel,1,1,1,6);
+    gridlayout->addWidget(closeButt,0,8,2,1);
+    gridlayout->setHorizontalSpacing(1);
+    gridlayout->setVerticalSpacing(1);
+
+    widget->setLayout(gridlayout);
+
+    QHBoxLayout * layout = new QHBoxLayout;
+    layout->setContentsMargins(0,0,0,0);
+    layout->addWidget(widget);
+    setLayout(layout);
+}
+
+ComboxItem::~ComboxItem()
+{
+
+}
+
+void ComboxItem::setNickName(QString name)
+{
+    nickNameLabel->setText(name);
+}
+
+void ComboxItem::setAccountId(QString id)
+{
+    accountLabel->setText(id);
+}
+
+QString ComboxItem::getAccountId()
+{
+    return accountLabel->text();
+}
+
+void ComboxItem::mouseReleaseEvent(QMouseEvent *)
+{
+    emit itemClicked(accountLabel->text());
+}
+
+void ComboxItem::prepareDelete()
+{
+    emit deleteItem(accountLabel->text());
 }

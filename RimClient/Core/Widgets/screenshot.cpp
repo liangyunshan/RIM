@@ -127,6 +127,3 @@ void ScreenShot::slot_ScreenShotHide(bool flag)
 {
     b_isScreeHide = flag;
 }
-
-
-

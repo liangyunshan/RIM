@@ -166,7 +166,7 @@ RegistDialog::RegistDialog(QWidget *parent):
         bar->setWindowTitle(windowTitle());
     }
 
-    connect(NetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvRegistResponse(ResponseRegister,RegistResponse)),this,SLOT(recvResponse(ResponseRegister,RegistResponse)));
 }
 
@@ -220,7 +220,7 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
-    NetConnector::instance()->connect();
+    TextNetConnector::instance()->connect();
 }
 
 void RegistDialog::respConnect(bool flag)
@@ -237,14 +237,14 @@ void RegistDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
     }
 }
 
 void RegistDialog::closeEvent(QCloseEvent *event)
 {
-    disconnect(NetConnector::instance());
+    disconnect(TextNetConnector::instance());
     Widget::closeEvent(event);
 }
 
