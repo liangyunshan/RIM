@@ -30,6 +30,7 @@ public:
     void handleMsg(MsgPacket * packet);
     void hanleText(TextRequest *packet);
 
+    void handelFileControl(SimpleFileItemRequest * request);
     void handleFileRequest(FileItemRequest * fileRequest);
     void handleFileData(QString fileMd5, size_t currIndex, QByteArray array);
 

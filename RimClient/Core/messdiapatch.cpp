@@ -94,6 +94,11 @@ void MessDiapatch::onRecvFileControl(SimpleFileItemRequest request)
     emit recvFileControl(request);
 }
 
+void MessDiapatch::onRecvFileRequest(FileItemRequest request)
+{
+    emit recvFileRequest(request);
+}
+
 void MessDiapatch::onScreenChanged()
 {
     emit screenChange();

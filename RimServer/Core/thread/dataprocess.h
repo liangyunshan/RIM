@@ -44,6 +44,7 @@ public:
     void processText(Database *db, int socketId, TextRequest *request);
 
     void processFileRequest(Database *db, int socketId, FileItemRequest *request);
+    void processFileControl(Database *db, int socketId, SimpleFileItemRequest *request);
     void processFileData(Database *db, int socketId, FileDataRequest *request);
 
 private:

@@ -248,6 +248,28 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     G_TextSendWaitCondition.wakeOne();
 }
 
+//处理文件控制请求
+void MsgWrap::handelFileControl(SimpleFileItemRequest *request)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)request->msgType);
+    rbuffer.append((int)request->msgCommand);
+    rbuffer.append((int)request->control);
+    rbuffer.append((int)request->itemType);
+    rbuffer.append(request->md5);
+    rbuffer.append(request->fileId);
+
+    if(request->isAutoDelete)
+        delete request;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+//文件上传请求
 void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
 {
     RBuffer rbuffer;
@@ -258,7 +280,7 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
     rbuffer.append((int)fileRequest->itemType);
     rbuffer.append(fileRequest->fileName);
     rbuffer.append(fileRequest->size);
-    rbuffer.append(fileRequest->localFileName);
+    rbuffer.append(fileRequest->fileId);
     rbuffer.append(fileRequest->md5);
     rbuffer.append(fileRequest->accountId);
     rbuffer.append(fileRequest->otherId);
@@ -273,6 +295,7 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
     G_FileSendWaitCondition.wakeOne();
 }
 
+//文件数据流
 void MsgWrap::handleFileData(QString fileMd5,size_t currIndex,QByteArray array)
 {
     RBuffer rbuffer;

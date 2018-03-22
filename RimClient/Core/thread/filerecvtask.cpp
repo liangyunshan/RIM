@@ -1,4 +1,4 @@
-﻿#include "imagetask.h"
+﻿#include "filerecvtask.h"
 
 #include <QReadWriteLock>
 #include <QFileInfo>
@@ -13,15 +13,17 @@
 #include "rsingleton.h"
 #include "Network/msgwrap.h"
 
-ImageTask * ImageTask::imageTask = NULL;
+FileRecvTask * FileRecvTask::imageTask = NULL;
 
-ImageTask::ImageTask()
+FileRecvTask::FileRecvTask()
 {
     imageTask = this;
     workMode = FileRequestMode;
+    isFileTransfer = false;
+    currTransFile = NULL;
 }
 
-ImageTask *ImageTask::instance()
+FileRecvTask *FileRecvTask::instance()
 {
     return imageTask;
 }
@@ -31,7 +33,7 @@ ImageTask *ImageTask::instance()
  * @param[in] item 请求描述信息
  * @return 是否添加成功
  */
-bool ImageTask::addItem(FileItemDesc *item)
+bool FileRecvTask::addSendItem(FileItemDesc *item)
 {
     if(item == NULL)
     {
@@ -39,15 +41,34 @@ bool ImageTask::addItem(FileItemDesc *item)
     }
 
     mutex.lock();
-    processItems.enqueue(item);
+    sendItems.enqueue(item);
     mutex.unlock();
 
-    waitCondition.wakeOne();
+    if(!isFileTransfer)
+    {
+        workMode = FileRequestMode;
+
+        waitCondition.wakeOne();
+    }
 
     return true;
 }
 
-void ImageTask::startMe()
+bool FileRecvTask::addRecvItem(SimpleFileItemRequest *item)
+{
+    recvItems.append(item);
+
+    RSingleton<MsgWrap>::instance()->handelFileControl(item);
+
+    return true;
+}
+
+void FileRecvTask::sendControlItem(SimpleFileItemRequest *item)
+{
+    RSingleton<MsgWrap>::instance()->handelFileControl(item);
+}
+
+void FileRecvTask::startMe()
 {
     RTask::startMe();
     runningFlag = true;
@@ -61,18 +82,18 @@ void ImageTask::startMe()
     }
 }
 
-void ImageTask::stopMe()
+void FileRecvTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
     waitCondition.wakeOne();
 }
 
-bool ImageTask::containsTask(QString md5)
+bool FileRecvTask::containsTask(QString md5)
 {
 //    QMutexLocker lock(&mutex);
-//    QQueue<FileItemDesc *>::iterator iter = processItems.begin();
-//    while(iter != processItems.end())
+//    QQueue<FileItemDesc *>::iterator iter = sendItems.begin();
+//    while(iter != sendItems.end())
 //    {
 //        if((*iter)->md5 == md5)
 //        {
@@ -86,13 +107,22 @@ bool ImageTask::containsTask(QString md5)
     return false;
 }
 
-void ImageTask::transfer(QString fileId)
+void FileRecvTask::transfer(QString fileId)
 {
     workMode = FileTransMode;
     waitCondition.wakeOne();
 }
 
-void ImageTask::run()
+void FileRecvTask::nextFile()
+{
+    if(!isFileTransfer)
+    {
+        workMode = FileRequestMode;
+        waitCondition.wakeOne();
+    }
+}
+
+void FileRecvTask::run()
 {
     while(runningFlag)
     {
@@ -100,18 +130,22 @@ void ImageTask::run()
         {
             case FileRequestMode:
                 {
-                    while(processItems.isEmpty())
+                    while(sendItems.isEmpty())
                     {
                         mutex.lock();
                         waitCondition.wait(&mutex);
                         mutex.unlock();
                     }
 
-                    if(runningFlag && processItems.size() > 0)
+                    if(runningFlag && sendItems.size() > 0)
                     {
-                        currTransFile = NULL;
+                        if(currTransFile != NULL)
+                        {
+                            delete currTransFile;
+                            currTransFile = NULL;
+                        }
                         mutex.lock();
-                        currTransFile = processItems.dequeue();
+                        currTransFile = sendItems.dequeue();
                         mutex.unlock();
 
                         handleItem();
@@ -137,11 +171,10 @@ void ImageTask::run()
 }
 
 /*!
- * @brief 处理网络传输请求
- * @param[in] request 请求描述信息
- * @return 无
+ * @brief 向服务器发送文件传输请求
+ * @details 服务器会在将请求绑定至此socket对应的文件队列
  */
-void ImageTask::handleItem()
+void FileRecvTask::handleItem()
 {
     if(currTransFile == NULL)
     {
@@ -161,23 +194,18 @@ void ImageTask::handleItem()
     RSingleton<MsgWrap>::instance()->handleFileRequest(fileRequest);
 }
 
-void ImageTask::transferFile()
+void FileRecvTask::transferFile()
 {
     if(currTransFile != NULL)
     {
         QFile file(currTransFile->fullPath);
-        if(!file.exists())
+        if(!file.exists() || !file.open(QFile::ReadOnly))
         {
             //TODO 提示发送失败
             return;
         }
 
-        if(!file.open(QFile::ReadOnly))
-        {
-            //TODO 提示发送失败
-            return;
-        }
-
+        isFileTransfer = true;
         int sendLen = 0;
         int currIndex = 0;
         while(!file.atEnd())
@@ -187,5 +215,6 @@ void ImageTask::transferFile()
             qDebug()<<"SendLen:"<<sendLen<<"_"<<currTransFile->fileSize;
             RSingleton<MsgWrap>::instance()->handleFileData(currTransFileId,currIndex++,data);
         }
+        isFileTransfer = false;
     }
 }

@@ -93,10 +93,15 @@ void FileReceiveProcTask::handleFileMsg(MsgCommand commandType, RBuffer &obj)
         case MSG_FILE_CONTROL:
             RSingleton<DataProcess>::instance()->proFileControl(obj);
             break;
+
         case MSG_FILE_REQUEST:
+            RSingleton<DataProcess>::instance()->proFileRequest(obj);
             break;
+
         case MSG_FILE_DATA:
+            RSingleton<DataProcess>::instance()->proFileData(obj);
             break;
+
         default:
             break;
     }

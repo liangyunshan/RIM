@@ -59,11 +59,25 @@ struct PacketBuff
 };
 
 /*!
+ *  @brief 文件传输过程中状态
+ *  @details 用于底层控制接收文件的状态，状态由FILE_CREATE->FILE_OVER逐渐变化状态
+ */
+enum FileTransState
+{
+    FILE_ERROR,                     /*!< 错误状态， @note 默认状态 */
+    FILE_TRANING,                   /*!< 文件传输过程中 */
+    FILE_PAUSE,                     /*!< 文件传输暂停 */
+    FILE_CANCEL,                    /*!< 文件传取消 */
+    FILE_OVER                       /*!< 文件传输结束 */
+};
+
+
+/*!
  *  @brief  单个接收文本描述
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():file(NULL){}
+    FileRecvDesc():file(NULL),fileTransState(FILE_ERROR){}
 
     bool create()
     {
@@ -72,10 +86,50 @@ struct FileRecvDesc
         {
             if(file->resize(size))
             {
+                fileTransState = FILE_TRANING;
                 return true;
             }
         }
         return false;
+    }
+
+    bool isNull(){return !file;}
+
+    bool seek(size_t pos)
+    {
+        if(!file)
+            return false;
+
+        return file->seek(pos);
+    }
+
+    qint64 write(const QByteArray &data)
+    {
+        if(!file)
+            return -1;
+        qint64 realWriteLen = file->write(data);
+        writeLen += realWriteLen;
+        return realWriteLen;
+    }
+
+    bool flush()
+    {
+        if(file)
+            return file->flush();
+        return false;
+    }
+
+    bool isRecvOver()
+    {
+        if(!file)
+            return false;
+        return writeLen == file->size();
+    }
+
+    void close()
+    {
+        if(file)
+            file->close();
     }
 
     void lock(){mutex.lock();}
@@ -87,18 +141,24 @@ struct FileRecvDesc
         {
             if(file->isOpen())
             {
+                fileTransState = FILE_OVER;
                 file->close();
             }
             delete file;
         }
     }
 
+
+    FileTransState state(){return fileTransState;}
+    void setState(FileTransState state){fileTransState = state;}
+
     ~FileRecvDesc()
     {
         destory();
     }
 
-    int itemType;                        /*!< 文件操作类型 @line FileItemType @endlink */
+    int itemType;                        /*!< 文件操作类型 @link FileItemType @endlink */
+    FileTransState fileTransState;       /*!< 文件传输状态，用于控制文件的状态 */
     qint64 size;                         /*!< 文件大小 */
     qint64 writeLen;                     /*!< 文件已经写入的大小 */
     QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */

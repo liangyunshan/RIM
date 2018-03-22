@@ -64,8 +64,8 @@ void RecveiveTask::run()
                 memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
                 memcpy(dataBuff + lastRecvBuff.size(),recvBuff,recvLen);
 
-                recvData(dataBuff,lastRecvBuff.size() + recvLen);
                 lastRecvBuff.clear();
+                recvData(dataBuff,tmpBuffLen - 1);
 
                 delete[] dataBuff;
             }
@@ -97,9 +97,8 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
         unsigned int processLen = 0;
         do
         {
-            memcpy((char *)&packet,recvData,sizeof(DataPacket));
+            memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
             processLen += sizeof(DataPacket);
-
             //[1]数据头部分正常
             if(packet.magicNum == RECV_MAGIC_NUM)
             {
@@ -112,7 +111,6 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                     {
                         dataBuff.resize(packet.currentLen);
                         memcpy(dataBuff.data(),recvData + processLen,packet.currentLen);
-
                         processData(dataBuff);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
@@ -174,11 +172,12 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                         memcpy(&packet,recvData + processLen,leftLen);
 
                         lastRecvBuff.clear();
-                        lastRecvBuff.append((char *)&packet,leftLen);
+                        lastRecvBuff.append(recvData + processLen,leftLen);
 
                         processLen += leftLen;
                         break;
                     }
+
                 }
                 //[1.2]【信息被截断】
                 else

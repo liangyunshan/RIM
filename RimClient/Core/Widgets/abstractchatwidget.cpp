@@ -36,7 +36,7 @@
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
 
 #include "actionmanager/actionmanager.h"
@@ -678,15 +678,22 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //TODO 对图片进行测试
-    QString fileName = "e:/33.ISO";
-    FileItemDesc * desc = new FileItemDesc;
-    desc->id = RUtil::UUID();
-    desc->fullPath = fileName;
-    desc->fileSize = QFileInfo(fileName).size();
-//    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢，在真正传输时计算MD5信息
-    desc->otherSideId = d->userInfo.accountId;
-    desc->itemType = FILE_ITEM_CHAT_UP;
-    ImageTask::instance()->addItem(desc);
+//    QString fileName = "e:/test2.chm";
+//    FileItemDesc * desc = new FileItemDesc;
+//    desc->id = RUtil::UUID();
+//    desc->fullPath = fileName;
+//    desc->fileSize = QFileInfo(fileName).size();
+//    desc->otherSideId = d->userInfo.accountId;
+//    desc->itemType = FILE_ITEM_CHAT_UP;
+//    FileRecvTask::instance()->addSendItem(desc);
+
+
+    //文件下载
+    SimpleFileItemRequest * request = new SimpleFileItemRequest;
+    request->control = T_REQUEST;
+    request->itemType = FILE_ITEM_CHAT_DOWN;
+    request->fileId = "17a865af162a41bebe103b53bf92ded4";
+    FileRecvTask::instance()->addRecvItem(request);
 
 //    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
 

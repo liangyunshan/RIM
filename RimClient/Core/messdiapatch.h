@@ -38,6 +38,7 @@ public:
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void onRecvFileControl(SimpleFileItemRequest request);
+    void onRecvFileRequest(FileItemRequest request);
 
     void onScreenChanged();
 
@@ -57,6 +58,7 @@ signals:
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void recvFileControl(SimpleFileItemRequest control);
+    void recvFileRequest(FileItemRequest control);
 
     void screenChange();
 

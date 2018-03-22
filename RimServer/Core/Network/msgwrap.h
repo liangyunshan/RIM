@@ -29,6 +29,8 @@ public:
 
     QByteArray handleFile(MsgPacket *response);
 
+    QByteArray handleFileData(QString fileMd5,size_t currIndex,QByteArray array);
+
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
     QByteArray handleLoginResponse(LoginResponse *packet);
@@ -42,6 +44,7 @@ private:
     QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
 
     QByteArray handleFileControl(SimpleFileItemRequest * packet);
+    QByteArray handleFileRequest(FileItemRequest * packet);
 
     QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);

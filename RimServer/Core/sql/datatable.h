@@ -137,6 +137,22 @@ public:
     const QString msgType;                  /*!< 消息类型 */
 };
 
+class RFile
+{
+public:
+    RFile();
+    const QString table;
+    const QString id;                       /*!< 消息ID */
+    const QString md5;                      /*!< MD5 */
+    const QString fileName;                 /*!< 文件名 */
+    const QString quoteId;                  /*!< 当出现MD5存在时，将对应的数据ID，作为自己的引用，在数据读取时进行查询 */
+    const QString quoteNum;                 /*!< 当前数据记录被引用的次数，默认为0，若不为0 ，则不可直接删除。 */
+    const QString src;                      /*!< 发送用户 */
+    const QString dst;                      /*!< 目的用户 */
+    const QString dtime;                    /*!< 发送日期 */
+    const QString fileSize;                 /*!< 文件大小 */
+};
+
 }
 
 /*!

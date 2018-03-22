@@ -90,7 +90,7 @@ void SendTextProcessThread::run()
                     }
                     else
                     {
-                        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"send Client";
+                        qDebug()<<__FILE__<<__FUNCTION__<<"send Client::"<<packet.packId;
                     }
 
                     if(sendLength == dataLen)

@@ -117,12 +117,16 @@ QByteArray MsgWrap::handleFile(MsgPacket *response)
     {
         case MSG_FILE_CONTROL:
             return handleFileControl((SimpleFileItemRequest *)response);
-        break;
+            break;
         case MSG_FILE_REQUEST:
-        break;
+            return handleFileRequest((FileItemRequest *)response);
+            break;
         case MSG_FILE_DATA:
-        break;
+            break;
+        default:
+            break;
     }
+    return QByteArray();
 }
 
 QByteArray MsgWrap::handleRegistResponse(RegistResponse * packet)
@@ -305,9 +309,43 @@ QByteArray MsgWrap::handleFileControl(SimpleFileItemRequest *packet)
     buffer.append((int)packet->msgCommand);
     buffer.append((int)STATUS_SUCCESS);
     buffer.append((int)packet->control);
+    buffer.append((int)packet->itemType);
     buffer.append(packet->md5);
+    buffer.append(packet->fileId);
 
     return buffer.byteArray();
+}
+
+QByteArray MsgWrap::handleFileRequest(FileItemRequest *packet)
+{
+    RBuffer buffer;
+    buffer.append((int)packet->msgType);
+    buffer.append((int)packet->msgCommand);
+    buffer.append((int)STATUS_SUCCESS);
+    buffer.append((int)packet->control);
+    buffer.append((int)packet->itemType);
+    buffer.append(packet->fileName);
+    buffer.append(packet->size);
+    buffer.append(packet->fileId);
+    buffer.append(packet->md5);
+    buffer.append(packet->accountId);
+    buffer.append(packet->otherId);
+
+    return buffer.byteArray();
+}
+
+//文件数据流
+QByteArray MsgWrap::handleFileData(QString fileMd5,size_t currIndex,QByteArray array)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)MSG_FILE);
+    rbuffer.append((int)MSG_FILE_DATA);
+    rbuffer.append((int)STATUS_SUCCESS);
+    rbuffer.append(fileMd5);
+    rbuffer.append(currIndex);
+    rbuffer.append(array.data(),array.size());
+
+    return rbuffer.byteArray();
 }
 
 /*!

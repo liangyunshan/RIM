@@ -24,7 +24,7 @@ using namespace ProtocolType;
 #include "thread/msgreceiveproctask.h"
 #include "thread/filereceiveproctask.h"
 #include "thread/taskmanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
 
 #include "Network/rsocket.h"
 #include "Network/win32net/msgsender.h"
@@ -146,10 +146,13 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
+    qRegisterMetaType<FileItemRequest>("FileItemRequest");
+    qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
+
     RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
     RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new ImageTask());
+    RSingleton<TaskManager>::instance()->addTask(new FileRecvTask());
 
     LoginDialog dialog;
     dialog.show();

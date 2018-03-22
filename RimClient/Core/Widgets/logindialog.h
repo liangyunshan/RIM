@@ -105,12 +105,14 @@ private slots:
     void processTextReply(TextReply reply);
     void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
     void procFileControl(SimpleFileItemRequest request);
+    void procFileRequest(FileItemRequest response);
 
 private:
     void createTrayMenu();
     void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
+    void resetDefaultPixmap();
 
 private:
     LoginDialogPrivate * d_ptr;

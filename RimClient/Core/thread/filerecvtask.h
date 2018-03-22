@@ -1,6 +1,6 @@
 ﻿/*!
- *  @brief     图片发送任务
- *  @details   用户上传、下载不同图片。
+ *  @brief     文件处理任务
+ *  @details   处理用户上传或下载文件请求
  *  @file      imagetask.h
  *  @author    wey
  *  @version   1.0
@@ -8,8 +8,8 @@
  *  @warning
  *  @copyright NanJing RenGu.
  */
-#ifndef IMAGETASK_H
-#define IMAGETASK_H
+#ifndef FILERECVTASK_H
+#define FILERECVTASK_H
 
 #include <QQueue>
 #include <QWaitCondition>
@@ -20,11 +20,11 @@
 #include "protocoldata.h"
 using namespace ProtocolType;
 
-class ImageTask : public ClientNetwork::RTask
+class FileRecvTask : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
-    ImageTask();
+    FileRecvTask();
 
     enum WorkMode
     {
@@ -32,15 +32,19 @@ public:
         FileTransMode
     };
 
-    static ImageTask * instance();
+    static FileRecvTask * instance();
 
-    bool addItem(FileItemDesc * item);
+    bool addSendItem(FileItemDesc * item);
+    bool addRecvItem(SimpleFileItemRequest *item);
+
+    void sendControlItem(SimpleFileItemRequest *item);
 
     void startMe();
     void stopMe();
 
     bool containsTask(QString md5);
     void transfer(QString fileId);
+    void nextFile();
 
 protected:
     void run();
@@ -50,14 +54,16 @@ private:
     void transferFile();
 
 private:
-    static ImageTask * imageTask;
+    static FileRecvTask * imageTask;
 
     WorkMode workMode;
     QString currTransFileId;
     FileItemDesc *  currTransFile;
-    QQueue<FileItemDesc *> processItems;
+    QQueue<FileItemDesc *> sendItems;
+    QQueue<SimpleFileItemRequest *> recvItems;
     QWaitCondition waitCondition;
     QMutex mutex;
+    bool isFileTransfer;
 };
 
 #endif // IMAGETASK_H

@@ -6,6 +6,8 @@
 #include <QSqlResult>
 #include <QMutex>
 #include <QDate>
+#include <QDateTime>
+#include <QSqlRecord>
 
 #include "datatable.h"
 #include "sql/database.h"
@@ -819,6 +821,197 @@ bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
 
     return false;
 }
+
+/*!
+ * @brief 为已经存在的文件增加引用记录
+ * @details 1.查询是否存在文件名、发送源、目的地一致的数据记录，若存在则直接返回true，说明文件已经存在； @n
+ *          2.若不存在，查询MD5对应的记录的信息，主要为ID信息； @n
+ *          3.插入当前数据的记录信息，MD5一栏为空，QUOTEID一栏为上面查询的ID，其它为本次的request信息; @n
+ *          4.更新步骤2中ID的QuoteNum，将其+1并保存； @n
+ * @param[in] db 数据库连接
+ * @param[in] request 文件传输请求
+ * @return 是否引用成功
+ */
+bool SQLProcess::addQuoteFile(Database *db, const FileItemRequest *request)
+{
+    DataTable::RFile rfile;
+
+    RSelect rst(rfile.table);
+    rst.select(rfile.id);
+    rst.createCriteria().add(Restrictions::eq(rfile.src,request->accountId))
+            .add(Restrictions::eq(rfile.dst,request->otherId)).add(Restrictions::eq(rfile.fileName,request->fileName));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next())
+    {
+        return true;
+    }
+
+    RSelect rst1(rfile.table);
+    rst1.select(rfile.id);
+    rst1.select(rfile.quoteNum);
+    rst1.createCriteria().add(Restrictions::eq(rfile.md5,request->md5));
+    if(query.exec(rst1.sql())&& query.next())
+    {
+        QString originId = query.value(rfile.id).toString();
+        int quoteNum = query.value(rfile.quoteNum).toInt();
+
+        if(originId.size() > 0)
+        {
+            RPersistence rps(rfile.table);
+            rps.insert(rfile.id,RUtil::UUID());
+            rps.insert(rfile.quoteId,originId);
+            rps.insert(rfile.quoteNum,0);
+            rps.insert(rfile.fileName,request->fileName);
+            rps.insert(rfile.src,request->accountId);
+            rps.insert(rfile.dst,request->otherId);
+            rps.insert(rfile.dtime,QDateTime::currentDateTime());
+            rps.insert(rfile.fileSize,request->size);
+
+            if(query.exec(rps.sql()))
+            {
+                RUpdate rud(rfile.table);
+                rud.update(rfile.quoteNum,quoteNum+1);
+                rud.createCriteria().add(Restrictions::eq(rfile.id,originId));
+                if(query.exec(rud.sql()))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+
+    return false;
+}
+
+/*!
+ * @brief 查询数据库中是否存在此md5的文件
+ * @param[in] db 数据库连接
+ * @param[in] fileMd5 文件md5
+ * @return 是否存在
+ */
+bool SQLProcess::queryFile(Database *db, const QString &fileMd5)
+{
+    DataTable::RFile rfile;
+    RSelect rst(rfile.table);
+
+    rst.createCriteria().add(Restrictions::eq(rfile.md5,fileMd5));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        if(query.next())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 向数据库中插入用户发送文件的描述信息
+ * @param[in] db 数据库链接
+ * @param[in] desc 基本文件描述
+ * @param[in/out] fileId 文件在数据库中唯一ID
+ * @return 是否插入成功
+ */
+bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc,QString & fileId)
+{
+    DataTable::RFile rfile;
+    RPersistence rs(rfile.table);
+    QString tmpFileId = RUtil::UUID();
+    rs.insert(rfile.id,tmpFileId);
+    rs.insert(rfile.md5,desc->md5);
+    rs.insert(rfile.quoteNum,0);
+    rs.insert(rfile.fileName,desc->fileName);
+    rs.insert(rfile.src,desc->accountId);
+    rs.insert(rfile.dst,desc->otherId);
+    rs.insert(rfile.dtime,QDateTime::currentDateTime());
+    rs.insert(rfile.fileSize,desc->size);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rs.sql()))
+    {
+        fileId = tmpFileId;
+        return true;
+    }
+
+    return false;
+}
+
+bool SQLProcess::getFileInfo(Database *db, SimpleFileItemRequest *request, FileItemRequest *response)
+{
+    DataTable::RFile rfile;
+    RSelect rst(rfile.table);
+
+    rst.createCriteria().add(Restrictions::eq(rfile.id,request->fileId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        if(query.next())
+        {
+            response->fileId = query.value(rfile.id).toString();
+            response->fileName = query.value(rfile.fileName).toString();
+            response->size = query.value(rfile.fileSize).toUInt();
+            response->md5 = query.value(rfile.md5).toString();
+            response->accountId = query.value(rfile.src).toString();
+            response->otherId = query.value(rfile.dst).toString();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 获取解引用的文件信息
+ * @details 下载文件时，需先检测当前ID是否引用了其它ID文件，若引用则返回引用的文件名，作为下载时打开的文件。
+ * @return 是否成功获取文件信息
+ */
+bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *request, FileItemRequest *response)
+{
+    DataTable::RFile rfile;
+    RSelect rst(rfile.table);
+
+    rst.createCriteria().add(Restrictions::eq(rfile.id,request->fileId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        if(query.next())
+        {
+            response->md5 = query.value(rfile.md5).toString();
+            response->fileId = query.value(rfile.id).toString();
+            response->fileName = query.value(rfile.fileName).toString();
+            response->size = query.value(rfile.fileSize).toUInt();
+            response->accountId = query.value(rfile.src).toString();
+            response->otherId = query.value(rfile.dst).toString();
+            QString quoteId = query.value(rfile.quoteId).toString();
+
+            //存在引用，查找真实的MD5和FileName
+            if(response->md5.size() <= 0 && quoteId.size() > 0)
+            {
+                RSelect rst1(rfile.table);
+                rst1.select(rfile.md5);
+                rst1.select(rfile.fileName);
+                rst1.createCriteria().add(Restrictions::eq(rfile.id,quoteId));
+                if(query.exec(rst1.sql()) && query.next())
+                {
+                    response->md5 = query.value(rfile.md5).toString();
+                    response->fileName = query.value(rfile.fileName).toString();
+
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 
 //根据User表ID查找用户默认分组
 QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)

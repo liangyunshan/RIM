@@ -160,6 +160,7 @@ void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
                     onProcessFileRequest(db,socketId,buffer);
                     break;
                 case MSG_FILE_CONTROL:
+                    onProcessFileControl(db,socketId,buffer);
                     break;
                 case MSG_FILE_DATA:
                     onProcessFileData(db,socketId,buffer);
@@ -305,7 +306,7 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
     if(!obj.read(request->size))
         return;
 
-    if(!obj.read(request->localFileName))
+    if(!obj.read(request->fileId))
         return;
 
     if(!obj.read(request->md5))
@@ -320,9 +321,33 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
     RSingleton<DataProcess>::instance()->processFileRequest(db,socketId,request);
 }
 
-void DataParse::onProcessFileControl(Database *db, int socketId, QJsonObject &obj)
+/*!
+ * @brief 响应用于文件传输控制命令
+ * @param[in] db 数据库链接
+ * @param[in] socketId 网络标识
+ * @param[in] obj 数据缓冲区
+ * @return 无
+ */
+void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
 {
+    SimpleFileItemRequest * request = new SimpleFileItemRequest();
+    int controlType = 0;
+    if(!obj.read(controlType))
+        return;
+    request->control = static_cast<FileTransferControl>(controlType);
 
+    int itemType = 0;
+    if(!obj.read(itemType))
+        return;
+    request->itemType = static_cast<FileItemType>(itemType);
+
+    if(!obj.read(request->md5))
+        return;
+
+    if(!obj.read(request->fileId))
+        return;
+
+    RSingleton<DataProcess>::instance()->processFileControl(db,socketId,request);
 }
 
 void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)

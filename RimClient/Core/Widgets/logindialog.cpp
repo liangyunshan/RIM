@@ -33,7 +33,7 @@
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
@@ -51,6 +51,7 @@
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
 #include "widget/rcombobox.h"
+#include "file/filemanager.h"
 #include "json/jsonresolver.h"
 using namespace TextUnit ;
 
@@ -301,6 +302,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procFileRequest(FileItemRequest)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -409,26 +411,33 @@ void LoginDialog::resetDefaultInput()
     MQ_D(LoginDialog);
 
     d->isSystemUserIcon = true;
-    QString fullPath = RSingleton<ImageManager>::instance()->getSystemUserIcon();
-    QFileInfo  info(fullPath);
-    d->defaultUserIconPath = info.fileName();
 
     d->password->setText(tr(""));
     d->autoLogin->setChecked(false);
     d->rememberPassord->setChecked(false);
 
     d->onlineState->setState(ProtocolType::STATUS_ONLINE);
-    d->userIcon->setPixmap(fullPath);
-
     d->login->setEnabled(false);
     d->login->style()->unpolish(d->login);
     d->login->style()->polish(d->login);
+
+    resetDefaultPixmap();
+}
+
+void LoginDialog::resetDefaultPixmap()
+{
+    MQ_D(LoginDialog);
+    QString fullPath = RSingleton<ImageManager>::instance()->getSystemUserIcon();
+    QFileInfo  info(fullPath);
+    d->defaultUserIconPath = info.fileName();
+    d->userIcon->setPixmap(fullPath);
 }
 
 void LoginDialog::readLocalUser()
 {
     MQ_D(LoginDialog);
 
+    resetDefaultPixmap();
     RSingleton<UserInfoFile>::instance()->readUsers(d->localUserInfo);
 
     if(d->localUserInfo.size() > 0)
@@ -847,12 +856,41 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
  */
 void LoginDialog::procFileControl(SimpleFileItemRequest request)
 {
-    if(ImageTask::instance()->containsTask(request.md5))
+    if(FileRecvTask::instance()->containsTask(request.md5))
     {
         if(request.control == T_ABLE_SEND)
         {
-            ImageTask::instance()->transfer(request.md5);
+            FileRecvTask::instance()->transfer(request.md5);
         }
+        else if(request.control == T_OVER)
+        {
+            RMessageBox::information(this,"title","file transferover \n fileId:"+request.fileId,RMessageBox::Yes);
+        }
+        else if(request.control == T_SERVER_EXIST)
+        {
+            RMessageBox::information(this,"title","Server file exist file!",RMessageBox::Yes);
+            FileRecvTask::instance()->nextFile();
+        }
+    }
+}
+
+/*!
+ * @brief 处理服务器发送的文件传输请求信息
+ * @param[in] request 传输请求信息
+ * @return 无
+ */
+void LoginDialog::procFileRequest(FileItemRequest response)
+{
+    if(RSingleton<FileManager>::instance()->addFile(response,QDir::currentPath()))
+    {
+//        qDebug()<<response.accountId<<"_"<<response.otherId<<"_"<<response.fileName;
+        SimpleFileItemRequest * request = new SimpleFileItemRequest;
+        request->control = T_ABLE_SEND;
+        request->itemType = FILE_ITEM_CHAT_DOWN;
+        request->fileId = response.fileId;
+        request->md5 = response.md5;
+
+        FileRecvTask::instance()->sendControlItem(request);
     }
 }
 

@@ -36,6 +36,8 @@ public:
     void proTextApply(QJsonObject &data);
 
     void proFileControl(RBuffer &data);
+    void proFileRequest(RBuffer & data);
+    void proFileData(RBuffer & data);
 
 private:
 
