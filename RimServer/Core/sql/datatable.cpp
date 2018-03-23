@@ -55,7 +55,7 @@ otherSideId("OTHERSIDEID"),data("DATA"),time("TTSTAMP"),msgType("MSGTYPE"),textI
 }
 
 RFile::RFile():table("rfile"),id("ID"),md5("MD5"),fileName("FILENAME"),src("SRC"),dst("DST"),dtime("DTIME"),fileSize("FILESIZE"),
-    quoteId("QUOTEID"),quoteNum("QUOTENUM")
+    quoteId("QUOTEID"),quoteNum("QUOTENUM"),filePath("FILEPATH")
 {
 
 }

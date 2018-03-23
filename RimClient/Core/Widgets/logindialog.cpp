@@ -53,6 +53,7 @@
 #include "widget/rcombobox.h"
 #include "file/filemanager.h"
 #include "json/jsonresolver.h"
+#include "user/user.h"
 using namespace TextUnit ;
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
@@ -393,11 +394,14 @@ void LoginDialog::createTrayMenu()
 
 void LoginDialog::loadLocalSettings()
 {
-    G_TextServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_TextServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
+    G_TextServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_TextServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
 
-    G_FileServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_FileServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+    G_FileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_FileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+
+    RUtil::globalSettings()->endGroup();
 }
 
 int LoginDialog::isContainUser()
@@ -586,6 +590,11 @@ void LoginDialog::respRegistDialogDestory(QObject *)
     connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 }
 
+/*!
+ * @brief 接收登陆结果
+ * @param[in] status 登陆状态
+ * @param[in] response 登陆结果信息
+ */
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
 {
     MQ_D(LoginDialog);
@@ -626,9 +635,11 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
         G_UserBaseInfo = response.baseInfo;
 
-        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
-        RUtil::createDir(G_Temp_Picture_Path);
+        User * user = new User(G_UserBaseInfo.accountId);
+
+//        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+//        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
+//        RUtil::createDir(G_Temp_Picture_Path);
 
         setVisible(false);
         d->trayIcon->disconnect();
@@ -728,7 +739,7 @@ void LoginDialog::procRecvText(TextRequest response)
         SimpleUserInfo userInfo;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-        SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
+        SQLProcess::instance()->insertTableUserChatInfo(User::instance()->database(),unit,userInfo);
 
         //【2】判断窗口是否创建或者是否可见
         if(client->chatWidget && client->chatWidget->isVisible())

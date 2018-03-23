@@ -22,6 +22,7 @@ const char Version[] = "1.0.0";
 const char PATH_UserPath[] = "/../users";
 const char PATH_ImagePath[] = "/../image";
 const char PATH_ConfigPath[] = "/../config";
+const char PATH_File[] = "/../file";
 const char PATH_LocalePath[] = "/translations";
 const char PATH_StylePath[] = "/style";
 const char PATH_SystemIconPath[] = "/systemIcon";
@@ -34,6 +35,9 @@ const char TEXT_PORT[] = "TextServicePort";
 const char FILE_PORT[] = "FileServicePort";
 const char TEXT_IP[] = "TextServiceIp";
 const char FILE_IP[] = "FileServiceIp";
+
+const char FileServerSetting[] = "FileServer";
+const char UPLOAD_FILE_PATH [] = "UploadFilePath";
 
 /*图片*/
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";

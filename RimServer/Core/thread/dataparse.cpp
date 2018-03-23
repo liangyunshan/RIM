@@ -26,7 +26,7 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
  */
 void DataParse::processData(Database *db,const SocketInData &data)
 {
-    if(G_SERVICE_TYPE == SERVICE_TEXT)
+    if(RGlobal::G_SERVICE_TYPE == SERVICE_TEXT)
     {
         QJsonParseError errorInfo;
         QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
@@ -50,7 +50,7 @@ void DataParse::processData(Database *db,const SocketInData &data)
             RLOG_ERROR("recv a error data,skip!");
         }
     }
-    else if(G_SERVICE_TYPE == SERVICE_FILE)
+    else if(RGlobal::G_SERVICE_TYPE == SERVICE_FILE)
     {
         RBuffer buffer(data.data);
         int msgType,msgCommand;

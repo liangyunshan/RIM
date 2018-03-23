@@ -137,7 +137,9 @@ SOURCES += \
     thread/filereceiveproctask.cpp \
     thread/filerecvtask.cpp \
     file/filedesc.cpp \
-    file/filemanager.cpp
+    file/filemanager.cpp \
+    user/user.cpp \
+    sql/rpersistence.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -218,7 +220,9 @@ HEADERS  += \
     thread/filereceiveproctask.h \
     thread/filerecvtask.h \
     file/filedesc.h \
-    file/filemanager.h
+    file/filemanager.h \
+    user/user.h \
+    sql/rpersistence.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -74,14 +74,16 @@ enum FileTransState
 
 /*!
  *  @brief  单个接收文本描述
+ *  @attention 1.保存文件时需要指定文件的路径，此路径需要保存至数据库中，防止后期移动; @n
+ *             2.文件使用md5进行重命名，取消文件的后缀，防止用户直接打开，真实的文件名保存在数据库中; @n
  */
 struct FileRecvDesc
 {
     FileRecvDesc():file(NULL),fileTransState(FILE_ERROR){}
 
-    bool create()
+    bool create(const QString& filePath)
     {
-        file = new QFile(fileName);
+        file = new QFile(filePath + "/" +md5);
         if(file->open(QFile::WriteOnly) )
         {
             if(file->resize(size))

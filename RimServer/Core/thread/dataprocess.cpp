@@ -9,6 +9,8 @@
 #include "Network/msgwrap.h"
 #include "Network/head.h"
 #include "Network/netglobal.h"
+#include "global.h"
+#include "datastruct.h"
 
 #include "Network/tcpclient.h"
 using namespace ServerNetwork;
@@ -836,11 +838,11 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
         }
         else if(request->control == T_ABLE_SEND)
         {
-            FileItemRequest response;
-            bool flag = RSingleton<SQLProcess>::instance()->getDereferenceFileInfo(db,request,&response);
+            Datastruct::FileItemInfo fileItemInfo;
+            bool flag = RSingleton<SQLProcess>::instance()->getDereferenceFileInfo(db,request,&fileItemInfo);
             if(flag)
             {
-                QFile file(response.fileName);
+                QFile file(fileItemInfo.filePath + "/" +fileItemInfo.md5);
                 if(!file.open(QFile::ReadOnly))
                 {
                     //TODO 提示客户端文件不存在
@@ -857,8 +859,7 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
                     QByteArray data = file.read(900);
                     sendLen += data.size();
                     responseData.data = RSingleton<MsgWrap>::instance()->handleFileData(request->fileId,currIndex++,data);
-                    qDebug()<<"SendLen:"<<sendLen<<"_"<<responseData.data.size();
-
+//                    qDebug()<<"SendLen:"<<sendLen<<"_"<<responseData.data.size();
                     SendData(responseData);
                 }
             }
@@ -886,7 +887,7 @@ void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *r
                 return;
             }
 
-            if(desc->isNull() && !desc->create())
+            if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
             {
                 desc->unlock();
                 return;

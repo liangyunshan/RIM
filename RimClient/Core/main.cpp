@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     RUtil::createDir(configFullPath);
     RUtil::createDir(qApp->applicationDirPath() + QString(Constant::PATH_UserPath));
-    RUtil::createDir(configFullPath + QString(Constant::PATH_StylePath));
+    RUtil::createDir(configFullPath + QString(Constant::CONFIG_StylePath));
 
     if(!RSingleton<RLog>::instance()->init())
     {
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
     QTranslator translator;
 
-    QString translationPath = configFullPath + QString(Constant::PATH_LocalePath);
+    QString translationPath = configFullPath + QString(Constant::CONFIG_LocalePath);
     if(RUtil::createDir(translationPath))
     {
         QStringList uiLanguages;
@@ -119,7 +119,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    QFile styleFile(configFullPath + QString(Constant::PATH_StylePath)+"/RimClient.qss");
+    QFile styleFile(configFullPath + QString(Constant::CONFIG_StylePath)+"/RimClient.qss");
+    if(styleFile.open(QFile::ReadOnly))
+    {
+        app.setStyleSheet(styleFile.readAll());
+    }
+
     qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
     qRegisterMetaType<FriendListResponse>("FriendListResponse");
     qRegisterMetaType<GroupingResponse>("GroupingResponse");
@@ -130,13 +135,6 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TextReply>("TextReply");
     qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
     qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
-
-    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
-    if(styleFile.open(QFile::ReadOnly))
-    {
-        app.setStyleSheet(styleFile.readAll());
-    }
-
     qRegisterMetaType<ResponseLogin>("ResponseLogin");
     qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");
@@ -149,6 +147,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<FileItemRequest>("FileItemRequest");
     qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
 
+    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
     RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());

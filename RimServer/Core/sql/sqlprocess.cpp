@@ -14,7 +14,9 @@
 #include "Util/rutil.h"
 #include "constants.h"
 #include "rpersistence.h"
+#include "datastruct.h"
 #include "Util/rlog.h"
+#include "global.h"
 
 QMutex ACCOUNT_LOCK;
 
@@ -930,6 +932,7 @@ bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc,QString
     rs.insert(rfile.dst,desc->otherId);
     rs.insert(rfile.dtime,QDateTime::currentDateTime());
     rs.insert(rfile.fileSize,desc->size);
+    rs.insert(rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
@@ -971,7 +974,7 @@ bool SQLProcess::getFileInfo(Database *db, SimpleFileItemRequest *request, FileI
  * @details 下载文件时，需先检测当前ID是否引用了其它ID文件，若引用则返回引用的文件名，作为下载时打开的文件。
  * @return 是否成功获取文件信息
  */
-bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *request, FileItemRequest *response)
+bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *request, FileItemInfo *itemInfo)
 {
     DataTable::RFile rfile;
     RSelect rst(rfile.table);
@@ -983,25 +986,28 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
     {
         if(query.next())
         {
-            response->md5 = query.value(rfile.md5).toString();
-            response->fileId = query.value(rfile.id).toString();
-            response->fileName = query.value(rfile.fileName).toString();
-            response->size = query.value(rfile.fileSize).toUInt();
-            response->accountId = query.value(rfile.src).toString();
-            response->otherId = query.value(rfile.dst).toString();
+            itemInfo->md5 = query.value(rfile.md5).toString();
+            itemInfo->fileId = query.value(rfile.id).toString();
+            itemInfo->fileName = query.value(rfile.fileName).toString();
+            itemInfo->size = query.value(rfile.fileSize).toUInt();
+            itemInfo->accountId = query.value(rfile.src).toString();
+            itemInfo->otherId = query.value(rfile.dst).toString();
+            itemInfo->filePath = query.value(rfile.filePath).toString();
             QString quoteId = query.value(rfile.quoteId).toString();
 
             //存在引用，查找真实的MD5和FileName
-            if(response->md5.size() <= 0 && quoteId.size() > 0)
+            if(itemInfo->md5.size() <= 0 && quoteId.size() > 0)
             {
                 RSelect rst1(rfile.table);
                 rst1.select(rfile.md5);
                 rst1.select(rfile.fileName);
+                rst1.select(rfile.filePath);
                 rst1.createCriteria().add(Restrictions::eq(rfile.id,quoteId));
                 if(query.exec(rst1.sql()) && query.next())
                 {
-                    response->md5 = query.value(rfile.md5).toString();
-                    response->fileName = query.value(rfile.fileName).toString();
+                    itemInfo->md5 = query.value(rfile.md5).toString();
+                    itemInfo->fileName = query.value(rfile.fileName).toString();
+                    itemInfo->filePath = query.value(rfile.filePath).toString();
 
                     return true;
                 }

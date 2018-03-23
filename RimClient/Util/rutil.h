@@ -34,6 +34,7 @@ public:
 
     static void setGlobalSettings(QSettings * settings);
     static QSettings * globalSettings();
+    static QVariant getGlobalValue(const QString & group, const QString &key, const QVariant &defaultValue);
 
     static QString UUID();
 

@@ -62,7 +62,7 @@ bool MediaPlayer::updatePlayest(const MediaPlayer::MediaType type, const QString
 
         QSettings * settings = RUtil::globalSettings();
         QMetaEnum metaEnum = QMetaEnum::fromType<MediaType>();
-        settings->beginGroup(Constant::SETTING_SOUND_GROUP);
+        settings->beginGroup(Constant::USER_SETTING_SOUND_GROUP);
         settings->setValue(metaEnum.key((int)type),fileName);
         settings->endGroup();
 
@@ -87,9 +87,9 @@ void MediaPlayer::init()
     connect(player,SIGNAL(currentMediaChanged(QMediaContent)),this,SLOT(switchMedia(QMediaContent)));
 
     QSettings * settings = RUtil::globalSettings();
-    settings->beginGroup(Constant::SETTING_SOUND_GROUP);
+    settings->beginGroup(Constant::USER_SETTING_SOUND_GROUP);
 
-    QString defaultFilePath = qApp->applicationDirPath()+Constant::PATH_ConfigPath+Constant::PATH_SountPath;
+    QString defaultFilePath = qApp->applicationDirPath()+Constant::PATH_ConfigPath+Constant::CONFIG_SountPath;
 
     QMetaEnum metaEnum = QMetaEnum::fromType<MediaType>();
     for(int i = 0; i < metaEnum.keyCount();i++)

@@ -33,8 +33,8 @@
 #include <QKeyEvent>
 #include "Util/rutil.h"
 
-const int UI_SETTING_WIDTH = 500 ;
-const int UI_SETTING_HEIGHT = 450 ;
+const int UI_USER_BASIC_WIDTH = 500 ;
+const int UI_USER_BASIC_HEIGHT = 450 ;
 
 SetKeySequenceDialog::SetKeySequenceDialog(QWidget *parent):
     Widget(parent)
@@ -57,10 +57,10 @@ SetKeySequenceDialog::SetKeySequenceDialog(QWidget *parent):
 
     RSingleton<Subject>::instance()->attach(this);
 
-    setFixedSize(UI_SETTING_WIDTH,UI_SETTING_HEIGHT);
+    setFixedSize(UI_USER_BASIC_WIDTH,UI_USER_BASIC_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
-    setGeometry((screenSize.width() - UI_SETTING_WIDTH)/2,(screenSize.height() - UI_SETTING_HEIGHT)/2,
-                UI_SETTING_WIDTH,UI_SETTING_HEIGHT);
+    setGeometry((screenSize.width() - UI_USER_BASIC_WIDTH)/2,(screenSize.height() - UI_USER_BASIC_HEIGHT)/2,
+                UI_USER_BASIC_WIDTH,UI_USER_BASIC_HEIGHT);
 
 }
 
@@ -86,7 +86,7 @@ void SetKeySequenceDialog::initWidget()
 {
     QWidget * contentWidget = new QWidget;
     contentWidget->setObjectName(QString::fromUtf8("SetKeySequenceDialog"));
-    contentWidget->resize(UI_SETTING_WIDTH, UI_SETTING_HEIGHT);
+    contentWidget->resize(UI_USER_BASIC_WIDTH, UI_USER_BASIC_HEIGHT);
 
     QVBoxLayout * contentLayout = new QVBoxLayout;
     contentLayout->setContentsMargins(0,0,0,0);

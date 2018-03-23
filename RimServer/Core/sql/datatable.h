@@ -151,6 +151,7 @@ public:
     const QString dst;                      /*!< 目的用户 */
     const QString dtime;                    /*!< 发送日期 */
     const QString fileSize;                 /*!< 文件大小 */
+    const QString filePath;                 /*!< 文件存储的路径，后期可动态调整 */
 };
 
 }

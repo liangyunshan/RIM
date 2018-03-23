@@ -26,6 +26,7 @@
 #include "subject.h"
 #include "widget/rmessagebox.h"
 #include "setkeysequencedialog.h"
+#include "user/user.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
 {
@@ -371,25 +372,31 @@ void SystemSettingsPrivate::initWidget()
 
 void SystemSettingsPrivate::localSettings()
 {
-    autoStartUp->setChecked(RUtil::globalSettings()->value(Constant::SETTING_AUTO_STARTUP,false).toBool());
-    autoLogin->setChecked(RUtil::globalSettings()->value(Constant::SETTING_AUTO_LOGIN,false).toBool());
+    QSettings * settings = User::instance()->getSettings();
+    settings->beginGroup(Constant::USER_SETTING_GROUP);
 
-    keepFront->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT,false).toBool());
-    exitSystem->setChecked(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM,false).toBool());
+    autoStartUp->setChecked(settings->value(Constant::USER_SETTING_AUTO_STARTUP,false).toBool());
+    autoLogin->setChecked(settings->value(Constant::USER_SETTING_AUTO_LOGIN,false).toBool());
+
+    keepFront->setChecked(settings->value(Constant::USER_SETTING_TOPHINT,false).toBool());
+    exitSystem->setChecked(settings->value(Constant::USER_SETTING_EXIT_SYSTEM,false).toBool());
+    hidePanel->setChecked(settings->value(Constant::USER_SETTING_HIDEPANEL,false).toBool());
+
+    windowShaking->setChecked(settings->value(Constant::USER_SETTING_WINDOW_SHAKE,false).toBool());
+
+    soundAvailable->setChecked(settings->value(Constant::USER_SETTING_SOUND_AVAILABLE,false).toBool());
+
+    lockCheckBox->setChecked(settings->value(Constant::USER_SETTING_SYSTEM_LOCK,false).toBool());
+
+    recordCheckBox->setChecked(settings->value(Constant::USER_SETTING_EXIT_DELRECORD,false).toBool());
+
+    settings->endGroup();
+
     systemTrayIcon->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,false).toBool());
-    hidePanel->setChecked(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
-
-    windowShaking->setChecked(RUtil::globalSettings()->value(Constant::SETTING_WINDOW_SHAKE,false).toBool());
-
-    soundAvailable->setChecked(RUtil::globalSettings()->value(Constant::SETTING_SOUND_AVAILABLE,false).toBool());
-
-    lockCheckBox->setChecked(RUtil::globalSettings()->value(Constant::SETTING_SYSTEM_LOCK,false).toBool());
-
-    recordCheckBox->setChecked(RUtil::globalSettings()->value(Constant::SETTING_EXIT_DELRECORD,false).toBool());
 }
 
-#define SYSTEM_SETTING_WIDTH 380
-#define SYSTEM_SETTING_HEIGHT 600
+#define SYSTEM_USER_BASIC_WIDTH 380
+#define SYSTEM_USER_BASIC_HEIGHT 600
 
 SystemSettings::SystemSettings(QWidget *parent):
     d_ptr(new SystemSettingsPrivate(this)),
@@ -410,9 +417,9 @@ SystemSettings::SystemSettings(QWidget *parent):
 
     RSingleton<Subject>::instance()->attach(this);
 
-    setFixedSize(SYSTEM_SETTING_WIDTH,SYSTEM_SETTING_HEIGHT);
+    setFixedSize(SYSTEM_USER_BASIC_WIDTH,SYSTEM_USER_BASIC_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
-    setGeometry((screenSize.width() - SYSTEM_SETTING_WIDTH)/2,(screenSize.height() - SYSTEM_SETTING_HEIGHT)/2,SYSTEM_SETTING_WIDTH,SYSTEM_SETTING_HEIGHT);
+    setGeometry((screenSize.width() - SYSTEM_USER_BASIC_WIDTH)/2,(screenSize.height() - SYSTEM_USER_BASIC_HEIGHT)/2,SYSTEM_USER_BASIC_WIDTH,SYSTEM_USER_BASIC_HEIGHT);
 }
 
 SystemSettings::~SystemSettings()
@@ -427,7 +434,7 @@ void SystemSettings::onMessage(MessageType)
 
 void SystemSettings::respAutoStartUp(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_AUTO_STARTUP,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_STARTUP,flag);
 
 #ifdef Q_OS_WIN32
     QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
@@ -446,18 +453,18 @@ void SystemSettings::respAutoStartUp(bool flag)
 
 void SystemSettings::respAutoLogIn(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_AUTO_LOGIN,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_LOGIN,flag);
 }
 
 void SystemSettings::respKeepFront(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respExitSystem(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_EXIT_SYSTEM,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,flag);
 }
 
 void SystemSettings::respSystemTrayIcon(bool flag)
@@ -468,23 +475,23 @@ void SystemSettings::respSystemTrayIcon(bool flag)
 
 void SystemSettings::respHidePanel(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_HIDEPANEL,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,flag);
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respWindowShake(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_WINDOW_SHAKE,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_WINDOW_SHAKE,flag);
 }
 
 void SystemSettings::respSoundAvailable(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_SOUND_AVAILABLE,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SOUND_AVAILABLE,flag);
 }
 
 void SystemSettings::respSystemLock(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_SYSTEM_LOCK,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SYSTEM_LOCK,flag);
     if(flag)
     {
         RMessageBox::information(this,tr("Information"),tr("Use account password to unlock!"),RMessageBox::Yes);
@@ -508,7 +515,7 @@ void SystemSettings::respDelRecord(bool flag)
            d->recordCheckBox->setChecked(true);
        }
     }
-    RUtil::globalSettings()->setValue(Constant::SETTING_EXIT_DELRECORD,flag);
+    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_DELRECORD,flag);
 }
 
 void SystemSettings::respAutoReply()
