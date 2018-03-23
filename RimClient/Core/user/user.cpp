@@ -7,11 +7,8 @@
 #include "constants.h"
 #include "Util/rutil.h"
 
-User * User::puser = NULL;
-
 User::User(const QString &id):userId(id)
 {
-    puser = this;
     chatDatabase = nullptr;
     userSettings = nullptr;
 
@@ -27,11 +24,6 @@ User::User(const QString &id):userId(id)
 User::~User()
 {
 
-}
-
-User *User::instance()
-{
-    return puser;
 }
 
 QString User::getUserHome() const
@@ -102,6 +94,18 @@ void User::setSettingValue(const QString &group, const QString &key, QVariant va
     userSettings->beginGroup(group);
     userSettings->setValue(key,value);
     userSettings->endGroup();
+}
+
+/*!
+ * @brief 获取接收目录下指定文件的全路径
+ * @param[in] id 文件ID
+ * @param[in] suffix 文件后缀名
+ * @return 是否插入成功
+ */
+QString User::getFilePath(QString id, QString suffix)
+{
+    QString tmp = userFilePath + QDir::separator() + id + "."+ suffix;
+    return tmp;
 }
 
 void User::setDatabase(Database *database)

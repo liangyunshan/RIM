@@ -861,7 +861,7 @@ bool SQLProcess::addQuoteFile(Database *db, const FileItemRequest *request)
         if(originId.size() > 0)
         {
             RPersistence rps(rfile.table);
-            rps.insert(rfile.id,RUtil::UUID());
+            rps.insert(rfile.id,request->fileId);
             rps.insert(rfile.quoteId,originId);
             rps.insert(rfile.quoteNum,0);
             rps.insert(rfile.fileName,request->fileName);
@@ -919,12 +919,11 @@ bool SQLProcess::queryFile(Database *db, const QString &fileMd5)
  * @param[in/out] fileId 文件在数据库中唯一ID
  * @return 是否插入成功
  */
-bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc,QString & fileId)
+bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc)
 {
     DataTable::RFile rfile;
     RPersistence rs(rfile.table);
-    QString tmpFileId = RUtil::UUID();
-    rs.insert(rfile.id,tmpFileId);
+    rs.insert(rfile.id,desc->fileId);
     rs.insert(rfile.md5,desc->md5);
     rs.insert(rfile.quoteNum,0);
     rs.insert(rfile.fileName,desc->fileName);
@@ -937,7 +936,6 @@ bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc,QString
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
     {
-        fileId = tmpFileId;
         return true;
     }
 
@@ -1011,6 +1009,10 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
 
                     return true;
                 }
+            }
+            else
+            {
+                return true;
             }
         }
     }

@@ -728,10 +728,12 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
         desc->size = request->size;
         desc->fileName = request->fileName;
         desc->md5 = request->md5;
+        desc->fileId = request->fileId;
         desc->accountId = request->accountId;
         desc->otherId = request->otherId;
         desc->writeLen = 0;
 
+        //查询是否已经存在此md5文件，若由的话直接在数据库中建立索引关系，避免再次上传
         bool exist = RSingleton<SQLProcess>::instance()->queryFile(db,request->md5);
 
         if(exist)
@@ -742,6 +744,7 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
                 SimpleFileItemRequest * response = new SimpleFileItemRequest;
                 response->control = T_SERVER_EXIST;
                 response->md5 = request->md5;
+                response->fileId = request->fileId;
 
                 responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
                 delete response;
@@ -753,12 +756,13 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
         }
         else
         {
-            if(tmpClient && tmpClient->addFile(request->md5,desc))
+            if(tmpClient && tmpClient->addFile(request->fileId,desc))
             {
                 tmpClient->setAccount(request->accountId);
                 SimpleFileItemRequest * response = new SimpleFileItemRequest;
                 response->control = T_ABLE_SEND;
                 response->md5 = request->md5;
+                response->fileId = request->fileId;
 
                 responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
                 delete response;
@@ -787,7 +791,7 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
         TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
         if(tmpClient)
         {
-            FileRecvDesc * desc = tmpClient->getFile(request->md5);
+            FileRecvDesc * desc = tmpClient->getFile(request->fileId);
             if(desc)
             {
                 desc->lock();
@@ -824,6 +828,7 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
         if(request->control == T_REQUEST)
         {
             FileItemRequest * response = new FileItemRequest;
+            response->itemType = request->itemType;
             bool flag = RSingleton<SQLProcess>::instance()->getFileInfo(db,request,response);
             if(flag)
             {
@@ -859,7 +864,6 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
                     QByteArray data = file.read(900);
                     sendLen += data.size();
                     responseData.data = RSingleton<MsgWrap>::instance()->handleFileData(request->fileId,currIndex++,data);
-//                    qDebug()<<"SendLen:"<<sendLen<<"_"<<responseData.data.size();
                     SendData(responseData);
                 }
             }
@@ -877,7 +881,7 @@ void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *r
     TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
     if(tmpClient)
     {
-        FileRecvDesc * desc = tmpClient->getFile(request->md5);
+        FileRecvDesc * desc = tmpClient->getFile(request->fileId);
         if(desc)
         {
             desc->lock();
@@ -900,16 +904,15 @@ void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *r
                     {
                         desc->close();
 
-                        QString fileId;
-                        if(RSingleton<SQLProcess>::instance()->addFile(db,desc,fileId))
+                        if(RSingleton<SQLProcess>::instance()->addFile(db,desc))
                         {
                             SocketOutData responseData;
                             responseData.sockId = socketId;
 
                             SimpleFileItemRequest * response = new SimpleFileItemRequest;
                             response->control = T_OVER;
-                            response->md5 = request->md5;
-                            response->fileId = fileId;
+                            response->md5 = desc->md5;
+                            response->fileId = desc->fileId;
                             responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
 
                             delete response;
@@ -924,7 +927,7 @@ void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *r
             if(desc->isRecvOver())
             {
                 {
-                    tmpClient->removeFile(request->md5);
+                    tmpClient->removeFile(request->fileId);
                 }
             }
         }

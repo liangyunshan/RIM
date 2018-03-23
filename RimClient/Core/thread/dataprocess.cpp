@@ -408,7 +408,7 @@ void DataProcess::proFileData(RBuffer &data)
         return;
     request.control = static_cast<FileTransferControl>(control);
 
-    if(!data.read(request.md5))
+    if(!data.read(request.fileId))
         return;
 
     if(!data.read(request.index))
@@ -420,7 +420,7 @@ void DataProcess::proFileData(RBuffer &data)
         return;
     request.array.append(recvData,dataLen);
 
-    FileRecvDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.md5);
+    FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
     if(fileDesc)
     {
         if(fileDesc->isNull() && !fileDesc->create())
@@ -431,18 +431,13 @@ void DataProcess::proFileData(RBuffer &data)
 //        if(fileDesc->state() == FILE_TRANING || fileDesc->state() == FILE_PAUSE)
         if(fileDesc->seek(request.index * FILE_MAX_PACK_SIZE) && fileDesc->write(request.array) > 0)
         {
-//            qDebug()<<"++:"<<fileDesc->getWriteSize()<<":index:"<<request.index<<"_"<<fileDesc->fileSize();
+            qDebug()<<"++:"<<fileDesc->getWriteSize()<<":index:"<<request.index<<"_"<<fileDesc->fileSize();
             if(fileDesc->flush() && fileDesc->isRecvOver())
             {
                 fileDesc->close();
 
-                //TODO 通知客户端接收完成
+                MessDiapatch::instance()->onRecvFileData(fileDesc->fileId,fileDesc->fileName);
             }
-        }
-
-        if(fileDesc->isRecvOver())
-        {
-            RSingleton<FileManager>::instance()->removeFile(request.md5);
         }
     }
 }

@@ -117,6 +117,7 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
         data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
         data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
         data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+        data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
         data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
     }
     else
@@ -296,12 +297,12 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
 }
 
 //文件数据流
-void MsgWrap::handleFileData(QString fileMd5,size_t currIndex,QByteArray array)
+void MsgWrap::handleFileData(QString fileId,size_t currIndex,QByteArray array)
 {
     RBuffer rbuffer;
     rbuffer.append((int)MSG_FILE);
     rbuffer.append((int)MSG_FILE_DATA);
-    rbuffer.append(fileMd5);
+    rbuffer.append(fileId);
     rbuffer.append(currIndex);
     rbuffer.append(array.data(),array.size());
 

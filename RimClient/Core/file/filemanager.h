@@ -1,6 +1,6 @@
 ﻿/*!
- *  @brief     文件下载队列管理
- *  @details   提供对下载文件的管理，包括添加下载文件、监控下载文件的状态、移除完成或取消的下载文件
+ *  @brief     文件队列管理
+ *  @details   提供对上传/下载文件的管理，包括添加上传/下载文件、监控下载文件的状态、移除完成或取消的上传/下载文件
  *  @file      filemanager.h
  *  @author    wey
  *  @version   1.0
@@ -16,7 +16,7 @@
 
 #include "protocoldata.h"
 
-class FileRecvDesc;
+class FileDesc;
 
 class FileManager
 {
@@ -29,10 +29,12 @@ public:
     bool addFile(const ProtocolType::FileItemRequest & desc, const QString savePath);
     bool removeFile(QString fileId);
 
-    FileRecvDesc * getFile(const QString fileId);
+    bool addUploadFile(FileDesc *desc);
+
+    FileDesc *getFile(const QString fileId);
 
 private:
-    QMap<QString,FileRecvDesc *> recvFileMap;
+    QMap<QString,FileDesc *> recvFileMap;
     QMutex mutex;
 };
 

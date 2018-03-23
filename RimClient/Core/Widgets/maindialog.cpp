@@ -60,7 +60,7 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
-        m_autoHideSetting = User::instance()->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool();
+        m_autoHideSetting = G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool();
     }
 
 private:
@@ -136,8 +136,8 @@ void MainDialog::onMessage(MessageType type)
     {
         case MESS_SETTINGS:
         {
-            makeWindowFront(User::instance()->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
-            blockAutoHidePanel(User::instance()->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
+            makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
+            blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
         }
         break;
         case MESS_SCREEN_CHANGE:
@@ -211,7 +211,7 @@ void MainDialog::updateWidgetGeometry()
 
 void MainDialog::closeWindow()
 {
-    if(User::instance()->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,false).toBool())
+    if(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,false).toBool())
     {
         this->close();
     }
@@ -236,7 +236,7 @@ void MainDialog::makeWindowFront(bool flag)
         ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Stick"));
     }
 
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
 
     show();
 }
@@ -435,7 +435,9 @@ void MainDialog::initWidget()
 
     d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
-    makeWindowFront(User::instance()->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
+    //读取个人配置信息设置系统功能
+    makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
+    blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -479,7 +481,7 @@ void MainDialog::initWidget()
  */
 void MainDialog::readSettings()
 {
-    QSettings * settings = User::instance()->getSettings();
+    QSettings * settings = G_User->getSettings();
     settings->beginGroup(Constant::USER_BASIC_GROUP);
     if(!settings->value(Constant::USER_BASIC_X).isValid() || !settings->value(Constant::USER_BASIC_Y).isValid()
             ||!settings->value(Constant::USER_BASIC_WIDTH).isValid() ||!settings->value(Constant::USER_BASIC_HEIGHT).isValid())
@@ -604,7 +606,7 @@ void MainDialog::moveToDesktop(int direction)
 void MainDialog::writeSettings()
 {
     QRect rect = this->geometry();
-    QSettings * settings = User::instance()->getSettings();
+    QSettings * settings = G_User->getSettings();
     settings->beginGroup(Constant::USER_BASIC_GROUP);
     settings->setValue(Constant::USER_BASIC_X,rect.x());
     settings->setValue(Constant::USER_BASIC_Y,rect.y());
@@ -647,7 +649,7 @@ void MainDialog::initSqlDatabase()
     {
         RMessageBox::warning(this,tr("warning"),tr("Open chat message database error! \n please check database config."),RMessageBox::Yes);
     }
-    User::instance()->setDatabase(chatDatabase);
+    G_User->setDatabase(chatDatabase);
 
     SQLProcess::instance()->createTablebUserList(chatDatabase);
 }

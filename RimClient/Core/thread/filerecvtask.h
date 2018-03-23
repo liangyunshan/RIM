@@ -42,7 +42,7 @@ public:
     void startMe();
     void stopMe();
 
-    bool containsTask(QString md5);
+    bool containsTask(QString fileId);
     void transfer(QString fileId);
     void nextFile();
 

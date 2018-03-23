@@ -39,6 +39,7 @@ public:
 
     void onRecvFileControl(SimpleFileItemRequest request);
     void onRecvFileRequest(FileItemRequest request);
+    void onRecvFileData(QString fileId,QString fileName);
 
     void onScreenChanged();
 
@@ -59,6 +60,7 @@ signals:
 
     void recvFileControl(SimpleFileItemRequest control);
     void recvFileRequest(FileItemRequest control);
+    void recvFileData(QString fileId,QString fileName);
 
     void screenChange();
 

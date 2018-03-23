@@ -47,6 +47,8 @@ public:
 
     void setNickName(QString name);
 
+    void setPixmap(QString pixmap);
+
     void setAccountId(QString id);
     QString getAccountId();
 
@@ -106,6 +108,7 @@ private slots:
     void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
     void procFileControl(SimpleFileItemRequest request);
     void procFileRequest(FileItemRequest response);
+    void procFileData(QString fileId,QString fileName);
 
 private:
     void createTrayMenu();

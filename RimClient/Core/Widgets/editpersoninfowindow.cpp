@@ -25,6 +25,10 @@
 #include "widget/rmessagebox.h"
 #include "widget/rcombobox.h"
 #include "Util/regexp.h"
+#include "thread/filerecvtask.h"
+#include "Network/netconnector.h"
+#include "file/filemanager.h"
+#include "user/user.h"
 
 #define EDIT_PERSON_WIDTH 380
 #define EDIT_PERSON_HEIGHT 600
@@ -111,7 +115,6 @@ void EditPersonInfoWindowPrivate::initWidget()
     iconLabel = new RIconLabel(iconWidget);
     iconLabel->setToolTip(QObject::tr("Open system image"));
     iconLabel->setTransparency(true);
-    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     QObject::connect(iconLabel,SIGNAL(mousePressed()),q_ptr,SLOT(openSystemImage()));
 
     iconButton = new RButton(iconWidget);
@@ -268,6 +271,10 @@ void EditPersonInfoWindowPrivate::initContent()
     m_sign_plainEdit->appendPlainText(G_UserBaseInfo.signName);
     m_sexual_box->setCurrentIndex((int)G_UserBaseInfo.sexual);
     m_birth_dateEdit->setDate(QDate::fromString(G_UserBaseInfo.birthday,Constant::Date_Simple));
+    if(G_UserBaseInfo.birthday.size() <= 0)
+    {
+        G_UserBaseInfo.birthday = m_birth_dateEdit->text();
+    }
     m_address_edit->setText(G_UserBaseInfo.address);
     if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_UserBaseInfo.email))
     {
@@ -302,6 +309,8 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
 
     RSingleton<Subject>::instance()->attach(this);
 
+    loadCustomUserImage();
+
     setFixedSize(EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
     setGeometry((screenSize.width() - EDIT_PERSON_WIDTH)/2,(screenSize.height() - EDIT_PERSON_HEIGHT)/2,EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
@@ -324,6 +333,11 @@ void EditPersonInfoWindow::onMessage(MessageType type)
                 d->initContent();
             }
             break;
+        case MESS_ICON_CHANGE:
+            {
+                loadCustomUserImage();
+            }
+            break;
         default:
             break;
     }
@@ -338,10 +352,18 @@ void EditPersonInfoWindow::openSystemImage()
 
 void EditPersonInfoWindow::openLocalImage()
 {
+    MQ_D(EditPersonInfoWindow);
     QString imageFile = QFileDialog::getOpenFileName(this,tr("Local image"),"/home", tr("Image Files (*.png)"));
     if(!imageFile.isNull())
     {
+        FileItemDesc * desc = new FileItemDesc;
+        desc->id = RUtil::UUID();
+        desc->fullPath = imageFile;
+        desc->fileSize = QFileInfo(imageFile).size();
+        desc->itemType = FILE_ITEM_USER_UP;
+        desc->otherSideId = G_UserBaseInfo.accountId;
 
+        FileRecvTask::instance()->addSendItem(desc);
     }
 }
 
@@ -377,8 +399,8 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.email = d->m_mail_edit->text();
     request->baseInfo.phoneNumber = d->m_phone_edit->text();
     request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
-    request->baseInfo.face = 0;     //FIXME LYS-根据实际情况进行处理
-    request->baseInfo.customImgId = "456";
+    request->baseInfo.face = G_UserBaseInfo.face;
+    request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -436,6 +458,24 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     else if(QObject::sender() == d->m_nickName_edit)
     {
         //TODO 验证昵称输入是否符合要求
+    }
+}
+
+void EditPersonInfoWindow::loadCustomUserImage()
+{
+    MQ_D(EditPersonInfoWindow);
+
+    if(G_UserBaseInfo.customImgId.size() > 0)
+    {
+        QString pix = G_User->getFileRecvPath() + QDir::separator() + G_UserBaseInfo.customImgId + ".png";
+        if(QFile(pix).exists())
+        {
+            d->iconLabel->setPixmap(pix);
+        }
+    }
+    else
+    {
+        d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face));
     }
 }
 

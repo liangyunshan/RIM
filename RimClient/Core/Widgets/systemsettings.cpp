@@ -372,7 +372,7 @@ void SystemSettingsPrivate::initWidget()
 
 void SystemSettingsPrivate::localSettings()
 {
-    QSettings * settings = User::instance()->getSettings();
+    QSettings * settings = G_User->getSettings();
     settings->beginGroup(Constant::USER_SETTING_GROUP);
 
     autoStartUp->setChecked(settings->value(Constant::USER_SETTING_AUTO_STARTUP,false).toBool());
@@ -434,7 +434,7 @@ void SystemSettings::onMessage(MessageType)
 
 void SystemSettings::respAutoStartUp(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_STARTUP,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_STARTUP,flag);
 
 #ifdef Q_OS_WIN32
     QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
@@ -453,18 +453,18 @@ void SystemSettings::respAutoStartUp(bool flag)
 
 void SystemSettings::respAutoLogIn(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_LOGIN,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_LOGIN,flag);
 }
 
 void SystemSettings::respKeepFront(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respExitSystem(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,flag);
 }
 
 void SystemSettings::respSystemTrayIcon(bool flag)
@@ -475,23 +475,23 @@ void SystemSettings::respSystemTrayIcon(bool flag)
 
 void SystemSettings::respHidePanel(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,flag);
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respWindowShake(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_WINDOW_SHAKE,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_WINDOW_SHAKE,flag);
 }
 
 void SystemSettings::respSoundAvailable(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SOUND_AVAILABLE,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SOUND_AVAILABLE,flag);
 }
 
 void SystemSettings::respSystemLock(bool flag)
 {
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SYSTEM_LOCK,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SYSTEM_LOCK,flag);
     if(flag)
     {
         RMessageBox::information(this,tr("Information"),tr("Use account password to unlock!"),RMessageBox::Yes);
@@ -515,7 +515,7 @@ void SystemSettings::respDelRecord(bool flag)
            d->recordCheckBox->setChecked(true);
        }
     }
-    User::instance()->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_DELRECORD,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_DELRECORD,flag);
 }
 
 void SystemSettings::respAutoReply()

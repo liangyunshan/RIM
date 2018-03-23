@@ -355,7 +355,7 @@ void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
     FileDataRequest * request = new FileDataRequest();
     request->control =  T_DATA;
 
-    if(!obj.read(request->md5))
+    if(!obj.read(request->fileId))
         return;
     if(!obj.read(request->index))
         return;

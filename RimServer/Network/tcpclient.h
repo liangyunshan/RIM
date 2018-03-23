@@ -165,6 +165,7 @@ struct FileRecvDesc
     qint64 writeLen;                     /*!< 文件已经写入的大小 */
     QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
     QString md5;                         /*!< 文件MD5 */
+    QString fileId;                      /*!< 文件唯一标识，有客户端指定，与数据库中保持一致 */
     QString accountId;                   /*!< 自己ID */
     QString otherId;                     /*!< 接收方ID */
     QFile * file;                        /*!< 文件缓冲 */

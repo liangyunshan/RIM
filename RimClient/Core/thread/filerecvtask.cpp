@@ -12,6 +12,8 @@
 #include "Util/rbuffer.h"
 #include "rsingleton.h"
 #include "Network/msgwrap.h"
+#include "file/filedesc.h"
+#include "file/filemanager.h"
 
 FileRecvTask * FileRecvTask::imageTask = NULL;
 
@@ -89,7 +91,7 @@ void FileRecvTask::stopMe()
     waitCondition.wakeOne();
 }
 
-bool FileRecvTask::containsTask(QString md5)
+bool FileRecvTask::containsTask(QString fileId)
 {
 //    QMutexLocker lock(&mutex);
 //    QQueue<FileItemDesc *>::iterator iter = sendItems.begin();
@@ -100,7 +102,7 @@ bool FileRecvTask::containsTask(QString md5)
 //            return true;
 //        }
 //    }
-    if(currTransFileId == md5)
+    if(currTransFileId == fileId)
     {
         return true;
     }
@@ -185,11 +187,24 @@ void FileRecvTask::handleItem()
     fileRequest->itemType = currTransFile->itemType;
     fileRequest->fileName = QFileInfo(currTransFile->fullPath).fileName();
     fileRequest->size = currTransFile->fileSize;
+    fileRequest->fileId = RUtil::UUID();
     fileRequest->md5 = RUtil::MD5File(currTransFile->fullPath);
     fileRequest->accountId = G_UserBaseInfo.accountId;
     fileRequest->otherId = currTransFile->otherSideId;
 
-    currTransFileId = fileRequest->md5;
+    FileDesc * fileDesc = new FileDesc;
+    fileDesc->itemType = static_cast<int>(fileRequest->itemType);
+    fileDesc->size = fileRequest->size;
+    fileDesc->fileName = fileRequest->fileName;
+    fileDesc->md5 = fileRequest->md5;
+    fileDesc->fileId = fileRequest->fileId;
+    fileDesc->accountId = fileRequest->accountId;
+    fileDesc->otherId = fileRequest->otherId;
+    fileDesc->filePath = currTransFile->fullPath;
+
+    RSingleton<FileManager>::instance()->addUploadFile(fileDesc);
+
+    currTransFileId = fileRequest->fileId;
 
     RSingleton<MsgWrap>::instance()->handleFileRequest(fileRequest);
 }

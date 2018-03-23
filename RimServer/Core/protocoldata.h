@@ -823,7 +823,7 @@ class FileDataRequest : public MsgPacket
 public:
     FileDataRequest();
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
-    QString md5;                    /*!< 待传输文件MD5，用于标识判断 */
+    QString fileId;                 /*!< 待传输文件MD5，用于标识判断 */
     size_t index;                   /*!< 数据帧序号索引，默认从0开始，服务器在写文件时根据序号随机读写 */
     QByteArray array;               /*!< 数据正文 */
 };
@@ -839,7 +839,7 @@ public:
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
     QString md5;                    /*!< 当前文件唯一标识,以文件的MD5作为索引 @attention 服务器以此文件名作为在磁盘中保存的索引 */
-    QString fileId;                 /*!< 文件在数据库中的唯一ID */
+    QString fileId;                 /*!< 文件在数据库中的唯一ID,用户可以拿着此ID下载文件或者告诉对方下载文件 */
 };
 
 }

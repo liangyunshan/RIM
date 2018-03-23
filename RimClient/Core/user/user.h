@@ -24,8 +24,6 @@ public:
     explicit User(const QString & id);
     ~User();
 
-    static User * instance();
-
     QString getUserHome()const;
 
     QString getUserDatabasePath();
@@ -38,6 +36,8 @@ public:
 
     QVariant getSettingValue(const QString & group,const QString &key,QVariant defaultValue);
     void setSettingValue(const QString & group,const QString &key,QVariant value);
+
+    QString getFilePath(QString id,QString suffix);
 
     void setDatabase(Database * database);
     Database * database();

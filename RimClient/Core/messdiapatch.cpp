@@ -99,6 +99,11 @@ void MessDiapatch::onRecvFileRequest(FileItemRequest request)
     emit recvFileRequest(request);
 }
 
+void MessDiapatch::onRecvFileData(QString fileId,QString fileName)
+{
+    emit recvFileData(fileId,fileName);
+}
+
 void MessDiapatch::onScreenChanged()
 {
     emit screenChange();

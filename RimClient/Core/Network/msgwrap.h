@@ -32,7 +32,7 @@ public:
 
     void handelFileControl(SimpleFileItemRequest * request);
     void handleFileRequest(FileItemRequest * fileRequest);
-    void handleFileData(QString fileMd5, size_t currIndex, QByteArray array);
+    void handleFileData(QString fileId, size_t currIndex, QByteArray array);
 
 private:
     void handleRegistRequest(RegistRequest *packet);

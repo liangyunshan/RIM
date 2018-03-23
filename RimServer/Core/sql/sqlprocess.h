@@ -56,7 +56,7 @@ public:
 
     bool addQuoteFile(Database * db,const FileItemRequest * request);
     bool queryFile(Database * db,const QString & fileMd5);
-    bool addFile(Database * db, ServerNetwork::FileRecvDesc * desc, QString &fileId);
+    bool addFile(Database * db, ServerNetwork::FileRecvDesc * desc);
     bool getFileInfo(Database * db, SimpleFileItemRequest *request, FileItemRequest * response);
     bool getDereferenceFileInfo(Database * db, SimpleFileItemRequest *request, Datastruct::FileItemInfo *itemInfo);
 

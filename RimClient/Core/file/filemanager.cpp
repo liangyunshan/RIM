@@ -26,15 +26,16 @@ bool FileManager::addFile(const ProtocolType::FileItemRequest &desc,const QStrin
 
     if(!recvFileMap.contains(desc.fileId))
     {
-        FileRecvDesc * tmpDesc = new FileRecvDesc;
+        FileDesc * tmpDesc = new FileDesc;
         tmpDesc->itemType = desc.itemType;
         tmpDesc->size = desc.size;
         tmpDesc->writeLen = 0;
         tmpDesc->fileName = desc.fileName;
         tmpDesc->md5 = desc.md5;
+        tmpDesc->fileId = desc.fileId;
         tmpDesc->accountId = desc.accountId;
         tmpDesc->otherId = desc.otherId;
-        tmpDesc->saveFilePath = savePath;
+        tmpDesc->filePath = savePath;
 
         recvFileMap.insert(desc.fileId,tmpDesc);
 
@@ -49,7 +50,7 @@ bool FileManager::removeFile(QString fileId)
     QMutexLocker locker(&mutex);
     if(recvFileMap.contains(fileId))
     {
-        FileRecvDesc * desc = recvFileMap.take(fileId);
+        FileDesc * desc = recvFileMap.take(fileId);
         delete desc;
 
         return true;
@@ -58,7 +59,21 @@ bool FileManager::removeFile(QString fileId)
     return false;
 }
 
-FileRecvDesc *FileManager::getFile(const QString fileId)
+bool FileManager::addUploadFile(FileDesc * desc)
+{
+    QMutexLocker locker(&mutex);
+
+    if(!recvFileMap.contains(desc->fileId))
+    {
+        recvFileMap.insert(desc->fileId,desc);
+
+        return true;
+    }
+
+    return false;
+}
+
+FileDesc *FileManager::getFile(const QString fileId)
 {
     QMutexLocker locker(&mutex);
     if(recvFileMap.contains(fileId))
