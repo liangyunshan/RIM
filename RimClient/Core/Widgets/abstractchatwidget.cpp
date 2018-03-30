@@ -68,6 +68,8 @@ protected:
         p_DatabaseThread = NULL;
         p_shotProcess = NULL;
         p_shotTimer = NULL;
+        p_shakeTimer = NULL;
+        b_isScreeHide = false;
     }
 
     void initWidget();
@@ -193,6 +195,7 @@ void AbstractChatWidgetPrivate::initWidget()
 
     chatArea = new ComplexTextEdit(leftWidget);
     chatArea->setReadOnly(true);
+    QObject::connect(chatArea,SIGNAL(sig_QueryRecordTask(int,int)),q_ptr,SLOT(slot_QueryHistoryRecords(int,int)));
 
     slideBar = new SlideBar(contentWidget);
     slideBar->setFixedWidth(10);
@@ -218,10 +221,13 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * fontButt = new RToolButton();
     fontButt->setObjectName(Constant::Tool_Chat_Font);
     fontButt->setToolTip(QObject::tr("Font"));
+    //ShangChao
+    QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
 
     RToolButton * fontColorButt = new RToolButton();
     fontColorButt->setObjectName(Constant::Tool_Chat_FontColor);
     fontColorButt->setToolTip(QObject::tr("FontColor"));
+    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
 
     RToolButton * faceButt = new RToolButton();
     faceButt->setObjectName(Constant::Tool_Chat_Face);
@@ -230,6 +236,7 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * shakeButt = new RToolButton();
     shakeButt->setObjectName(Constant::Tool_Chat_Shake);
     shakeButt->setToolTip(QObject::tr("Shake window"));
+    QObject::connect(shakeButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ShakeWidget(bool)));
 
     RToolButton * imageButt = new RToolButton();
     imageButt->setObjectName(Constant::Tool_Chat_Image);
@@ -247,6 +254,7 @@ void AbstractChatWidgetPrivate::initWidget()
     hideWindowAction->setObjectName(this->windowId + "HideScreenshot");
     hideWindowAction->setCheckable(true);
     hideWindowAction->setChecked(false);
+    QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
 
     screenShotMenu->addAction(G_pScreenShotAction);
     screenShotMenu->addAction(hideWindowAction);
@@ -258,6 +266,9 @@ void AbstractChatWidgetPrivate::initWidget()
     recordButt->setToolTip(QObject::tr("Record data"));
     recordButt->removeIcon();
     recordButt->setText(QObject::tr("Record data"));
+    recordButt->setCheckable(true);
+    recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
+    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
 
     chatToolBar->appendToolButton(fontButt);
     chatToolBar->appendToolButton(fontColorButt);
@@ -268,17 +279,7 @@ void AbstractChatWidgetPrivate::initWidget()
     chatToolBar->addStretch(1);
     chatToolBar->appendToolButton(recordButt);
 
-    recordButt->setCheckable(true);
-    recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
-    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
-
-    //ShangChao
-    QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
-    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
-    QObject::connect(shakeButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ShakeWidget(bool)));
     QObject::connect(G_pScreenShot,SIGNAL(sig_ShotReady(bool)),q_ptr,SLOT(slot_ScreenShot_Ready(bool)));
-    QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
-    //
 
     /**********聊天内容输入框***************/
     chatInputArea = new SimpleTextEdit(chatInputContainter);
@@ -301,7 +302,7 @@ void AbstractChatWidgetPrivate::initWidget()
     sendMessButton->setObjectName(Constant::Button_Chat_Send);
     sendMessButton->setText(QObject::tr("Send message"));
     QObject::connect(sendMessButton,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ButtClick_SendMsg(bool)));
-    QObject::connect(this->chatInputArea,SIGNAL(sigEnter()),q_ptr,SLOT(slot_CheckSendEnter()));
+    QObject::connect(chatInputArea,SIGNAL(sigEnter()),q_ptr,SLOT(slot_CheckSendEnter()));
 
     RToolButton * extralButton = new RToolButton();
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -379,13 +380,7 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
-    d_ptr->chatInputArea->setFocus();
-
-    d_ptr->p_shakeTimer = NULL;
-    d_ptr->b_isScreeHide = false;
-
-    connect(d_ptr->chatArea,SIGNAL(sig_QueryRecordTask(int,int)),
-            this,SLOT(slot_QueryHistoryRecords(int,int)));
+//    d_ptr->chatInputArea->setFocus();
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
@@ -393,23 +388,24 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
 AbstractChatWidget::~AbstractChatWidget()
 {
-    if(d_ptr->p_shotProcess)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shotProcess)
     {
-        delete d_ptr->p_shotProcess;
-        d_ptr->p_shotProcess = NULL;
+        delete d->p_shotProcess;
+        d->p_shotProcess = NULL;
     }
-    if(d_ptr->p_shotTimer)
+    if(d->p_shotTimer)
     {
-        delete d_ptr->p_shotTimer;
-        d_ptr->p_shotTimer = NULL;
+        delete d->p_shotTimer;
+        d->p_shotTimer = NULL;
     }
-    if(d_ptr->p_shakeTimer)
+    if(d->p_shakeTimer)
     {
-        delete d_ptr->p_shakeTimer;
-        d_ptr->p_shakeTimer = NULL;
+        delete d->p_shakeTimer;
+        d->p_shakeTimer = NULL;
     }
 
-    delete d_ptr;
+    delete d;
 }
 
 QString AbstractChatWidget::widgetId()
@@ -423,7 +419,7 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
@@ -431,7 +427,7 @@ void AbstractChatWidget::showRecentlyChatMsg(int count)
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -441,7 +437,7 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     d->userInfo_NameLabel->setText(info.nickName);
     setWindowTitle(info.nickName);
 
-    d_ptr->chatArea->setSimpleUserInfo(info);
+    d->chatArea->setSimpleUserInfo(info);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -449,12 +445,11 @@ void AbstractChatWidget::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SHORTCUT:
-                           {
-
-                                break;
-                           }
+           {
+                break;
+           }
         default:
-            break;
+                break;
     }
 }
 
@@ -467,7 +462,8 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 //响应聊天框的历史信息查询
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
+    MQ_D(AbstractChatWidget);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -509,13 +505,17 @@ void AbstractChatWidget::setSideVisible(bool flag)
 //出现字体设置界面
 void AbstractChatWidget::slot_SetChatEditFont(bool flag)
 {
-    Q_UNUSED(flag)
+    Q_UNUSED(flag);
+    MQ_D(AbstractChatWidget);
     bool ok;
     QFont font = QFontDialog::getFont(
                   &ok, QFont("Helvetica [Cronyx]", 10), this);
-    if (ok) {
-        d_ptr->chatInputArea->setInputFont(font);
-    } else {
+    if(ok)
+    {
+        d->chatInputArea->setInputFont(font);
+    }
+    else
+    {
 
     }
 }
@@ -523,10 +523,10 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
 //出现字体颜色设置界面
 void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
 {
-    Q_UNUSED(flag)
-
+    Q_UNUSED(flag);
+    MQ_D(AbstractChatWidget);
     QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
-    d_ptr->chatInputArea->setInputColor(color);
+    d->chatInputArea->setInputColor(color);
 }
 
 //实现窗口抖动
@@ -602,6 +602,7 @@ void AbstractChatWidget::slot_ShakeTimeout()
 //截图完成
 void AbstractChatWidget::slot_ScreenShot_Ready(bool)
 {
+    MQ_D(AbstractChatWidget);
     if(!this->isActiveWindow())
     {
         return ;
@@ -610,7 +611,7 @@ void AbstractChatWidget::slot_ScreenShot_Ready(bool)
     const QMimeData *mimeData = clipboard->mimeData();
     if(mimeData->hasImage())
     {
-        d_ptr->chatInputArea->insertCopyImage(clipboard->image());
+        d->chatInputArea->insertCopyImage(clipboard->image());
     }
     if(this->isMinimized())
     {
@@ -623,15 +624,17 @@ void AbstractChatWidget::slot_ScreenShot_Ready(bool)
 //截屏时聊天界面是否隐藏
 void AbstractChatWidget::slot_ScreenShotHide(bool flag)
 {
-    d_ptr->b_isScreeHide = flag;
+    MQ_D(AbstractChatWidget);
+    d->b_isScreeHide = flag;
 }
 
 void AbstractChatWidget::slot_ScreenTimeout()
 {
-    d_ptr->p_shotTimer->stop();
-    if(d_ptr->p_shotProcess)
+    MQ_D(AbstractChatWidget);
+    d->p_shotTimer->stop();
+    if(d->p_shotProcess)
     {
-        d_ptr->p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
+        d->p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
     }
 }
 
@@ -651,14 +654,13 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
-
-    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+    if(d->chatInputArea->toPlainText().trimmed().isEmpty())
     {
-        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
+        d->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
         return ;
     }
     TextUnit::ChatInfoUnit unit;
-    d_ptr->chatInputArea->transTextToUnit(unit);
+    d->chatInputArea->transTextToUnit(unit);
 
     //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
     TextRequest * request = new TextRequest;
@@ -690,25 +692,25 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 
     int user_query_id = d->userInfo.accountId.toInt();
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 
-    d_ptr->chatInputArea->clear();
+    d->chatInputArea->clear();
 }
 
 //响应数据库线程查询结果
 void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
 {
     Q_UNUSED(id);
+    MQ_D(AbstractChatWidget);
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
-        d_ptr->chatArea->insertChatText(unit);
+        d->chatArea->insertChatText(unit);
     }
 }
 
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(AbstractChatWidget);
-
     if(watched == d->userInfoWidget)
     {
         if(event->type() == QEvent::MouseButtonDblClick)
@@ -725,7 +727,6 @@ bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
             return true;
         }
     }
-
 
     return Widget::eventFilter(watched,event);
 }
@@ -764,19 +765,19 @@ void AbstractChatWidget::switchWindowSize()
 void AbstractChatWidget::initChatRecord()
 {
     MQ_D(AbstractChatWidget);
-    d_ptr->p_DatabaseThread = new DatabaseThread(this);
-    d_ptr->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
+    d->p_DatabaseThread = new DatabaseThread(this);
+    d->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
 
-    connect(d_ptr->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
+    connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
             this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
-    connect(d_ptr->p_DatabaseThread,SIGNAL(finished()),
-            d_ptr->p_DatabaseThread,SLOT(deleteLater()));
-    d_ptr->p_DatabaseThread->start();
+    connect(d->p_DatabaseThread,SIGNAL(finished()),
+            d->p_DatabaseThread,SLOT(deleteLater()));
+    d->p_DatabaseThread->start();
 
     int user_query_id = d->userInfo.accountId.toInt();
     bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
     int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
     Q_UNUSED(ret);
 }
 
