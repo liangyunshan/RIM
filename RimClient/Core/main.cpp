@@ -22,12 +22,13 @@ using namespace ProtocolType;
 #include "Widgets/widget/rmessagebox.h"
 
 #include "thread/msgreceiveproctask.h"
+#include "thread/filereceiveproctask.h"
 #include "thread/taskmanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
 
 #include "Network/rsocket.h"
-#include "Network/msgsender.h"
-#include "Network/msgreceive.h"
+#include "Network/win32net/msgsender.h"
+#include "Network/win32net/msgreceive.h"
 #include "Network/netconnector.h"
 
 /*!
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 
     RUtil::createDir(configFullPath);
     RUtil::createDir(qApp->applicationDirPath() + QString(Constant::PATH_UserPath));
-    RUtil::createDir(configFullPath + QString(Constant::PATH_StylePath));
+    RUtil::createDir(configFullPath + QString(Constant::CONFIG_StylePath));
 
     if(!RSingleton<RLog>::instance()->init())
     {
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 
     QTranslator translator;
 
-    QString translationPath = configFullPath + QString(Constant::PATH_LocalePath);
+    QString translationPath = configFullPath + QString(Constant::CONFIG_LocalePath);
     if(RUtil::createDir(translationPath))
     {
         QStringList uiLanguages;
@@ -118,12 +119,22 @@ int main(int argc, char *argv[])
         }
     }
 
-    QFile styleFile(configFullPath + QString(Constant::PATH_StylePath)+"/RimClient.qss");
+    QFile styleFile(configFullPath + QString(Constant::CONFIG_StylePath)+"/RimClient.qss");
     if(styleFile.open(QFile::ReadOnly))
     {
         app.setStyleSheet(styleFile.readAll());
     }
 
+    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
+    qRegisterMetaType<FriendListResponse>("FriendListResponse");
+    qRegisterMetaType<GroupingResponse>("GroupingResponse");
+    qRegisterMetaType<TextRequest>("TextRequest");
+    qRegisterMetaType<UserStateResponse>("UserStateResponse");
+    qRegisterMetaType<GroupingFriendResponse>("GroupingFriendResponse");
+    qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
+    qRegisterMetaType<TextReply>("TextReply");
+    qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
+    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
     qRegisterMetaType<ResponseLogin>("ResponseLogin");
     qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");
@@ -133,19 +144,14 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
-    qRegisterMetaType<OperateFriendResponse>("OperateFriendResponse");
-    qRegisterMetaType<FriendListResponse>("FriendListResponse");
-    qRegisterMetaType<GroupingResponse>("GroupingResponse");
-    qRegisterMetaType<TextRequest>("TextRequest");
-    qRegisterMetaType<UserStateResponse>("UserStateResponse");
-    qRegisterMetaType<GroupingFriendResponse>("GroupingFriendResponse");
-    qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
-    qRegisterMetaType<TextReply>("TextReply");
-    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
+    qRegisterMetaType<FileItemRequest>("FileItemRequest");
+    qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
 
     RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
+    RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new ImageTask());
+    RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());
+    RSingleton<TaskManager>::instance()->addTask(new FileRecvTask());
 
     LoginDialog dialog;
     dialog.show();

@@ -5,6 +5,8 @@
 #include <QDate>
 #include <QMetaEnum>
 #include <QThread>
+#include <QMutex>
+#include <QMutexLocker>
 #include <stdarg.h>
 
 #include "rutil.h"
@@ -21,6 +23,7 @@ bool RLog::isRecord2File = true;
 RLog::RLOG_LEVEL RLog::logLevel = RLog::RINFO;           //默认是info级
 
 QFile localFile;
+QMutex mutex;
 
 RLog::RLog()
 {
@@ -61,6 +64,7 @@ bool RLog::init()
 
 void RLog::log(RLOG_LEVEL nLevel, const char *fileDesc, const char *functionDesc, int lineNum, const char* data, ...)
 {
+    QMutexLocker locker(&mutex);
     if(isFileReady && nLevel >= logLevel)
     {
         QString recordInfo = QString("[%1]").arg(RUtil::getTimeStamp());

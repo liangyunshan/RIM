@@ -172,6 +172,19 @@ TextReply::TextReply()
 FileItemRequest::FileItemRequest()
 {
     msgType = MSG_FILE;
+    msgCommand = MSG_FILE_REQUEST;
+}
+
+SimpleFileItemRequest::SimpleFileItemRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_CONTROL;
+}
+
+FileDataRequest::FileDataRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_DATA;
 }
 
 

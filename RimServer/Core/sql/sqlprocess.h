@@ -17,6 +17,13 @@
 #include "protocoldata.h"
 using namespace ProtocolType;
 
+#include "Network/tcpclient.h"
+
+namespace Datastruct
+{
+struct FileItemInfo;
+}
+
 class Database;
 
 class SQLProcess
@@ -47,6 +54,11 @@ public:
 
     bool saveUserChat2Cache(Database * db, TextRequest * request);
 
+    bool addQuoteFile(Database * db,const FileItemRequest * request);
+    bool queryFile(Database * db,const QString & fileMd5);
+    bool addFile(Database * db, ServerNetwork::FileRecvDesc * desc);
+    bool getFileInfo(Database * db, SimpleFileItemRequest *request, FileItemRequest * response);
+    bool getDereferenceFileInfo(Database * db, SimpleFileItemRequest *request, Datastruct::FileItemInfo *itemInfo);
 
     QString getDefaultGroupByUserId(Database * db,const QString id);
     QString getDefaultGroupByUserAccountId(Database * db,const QString id);

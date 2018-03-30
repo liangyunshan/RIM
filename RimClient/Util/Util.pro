@@ -45,7 +45,8 @@ SOURCES += \
     imagemanager.cpp \
     rlog.cpp \
     rutil.cpp \
-    regexp.cpp
+    regexp.cpp \
+    rbuffer.cpp
 
 HEADERS +=\
         util_global.h \
@@ -53,4 +54,5 @@ HEADERS +=\
     imagemanager.h \
     rlog.h \
     rutil.h \
-    regexp.h
+    regexp.h \
+    rbuffer.h

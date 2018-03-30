@@ -112,7 +112,7 @@ bool TcpServer::createWorkThread()
 
     int maxCount = 2 * info.dwNumberOfProcessors + 1;
 
-    for(int i = 0; i < maxCount; i++)
+    for(int i = 0; i < 1; i++)
     {
         WorkThread * thread = new WorkThread(m_sharedIocpData);
         workThreads.push_back(thread);

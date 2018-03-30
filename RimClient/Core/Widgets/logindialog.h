@@ -47,6 +47,8 @@ public:
 
     void setNickName(QString name);
 
+    void setPixmap(QString pixmap);
+
     void setAccountId(QString id);
     QString getAccountId();
 
@@ -94,7 +96,8 @@ private slots:
     void removeUserItem(QString accountId);
     void respItemChanged(QString id);
     void showRegistDialog();
-    void respConnect(bool flag);
+    void respTextConnect(bool flag);
+    void respFileConnect(bool flag);
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
@@ -103,12 +106,16 @@ private slots:
     void procRecvText(TextRequest response);
     void processTextReply(TextReply reply);
     void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
+    void procFileControl(SimpleFileItemRequest request);
+    void procFileRequest(FileItemRequest response);
+    void procFileData(QString fileId,QString fileName);
 
 private:
     void createTrayMenu();
     void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
+    void resetDefaultPixmap();
 
 private:
     LoginDialogPrivate * d_ptr;

@@ -33,6 +33,7 @@
 #include "systemtrayicon.h"
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
+#include "thread/filerecvtask.h"
 #include "Network/msgwrap.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
@@ -50,7 +51,10 @@
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
 #include "widget/rcombobox.h"
+#include "file/filemanager.h"
 #include "json/jsonresolver.h"
+#include "file/filedesc.h"
+#include "user/user.h"
 using namespace TextUnit ;
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
@@ -291,19 +295,24 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procFileRequest(FileItemRequest)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileData(QString,QString)),this,SLOT(procFileData(QString,QString)));
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
-void LoginDialog::respConnect(bool flag)
+void LoginDialog::respTextConnect(bool flag)
 {
     MQ_D(LoginDialog);
+
     if(flag)
     {
 #ifndef __NO_SERVER__
@@ -319,8 +328,18 @@ void LoginDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_ServerIp.toLocal8Bit().data(),G_ServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+    }
+}
+
+void LoginDialog::respFileConnect(bool flag)
+{
+    if(flag)
+    {
+#ifndef __NO_SERVER__
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
+#endif
     }
 }
 
@@ -377,14 +396,19 @@ void LoginDialog::createTrayMenu()
 
 void LoginDialog::loadLocalSettings()
 {
-    G_ServerIp = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_IP,Constant::DEFAULT_NETWORK_IP).toString();
-    G_ServerPort = RUtil::globalSettings()->value(Constant::SETTING_NETWORK_PORT,Constant::DEFAULT_NETWORK_PORT).toUInt();
+    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
+    G_TextServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_TextServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+
+    G_FileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_FileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+
+    RUtil::globalSettings()->endGroup();
 }
 
 int LoginDialog::isContainUser()
 {
     MQ_D(LoginDialog);
-    qDebug()<<d->userList->currentText()<<"===hha";
     return d->userIndex(d->userList->currentText());
 }
 
@@ -393,26 +417,33 @@ void LoginDialog::resetDefaultInput()
     MQ_D(LoginDialog);
 
     d->isSystemUserIcon = true;
-    QString fullPath = RSingleton<ImageManager>::instance()->getSystemUserIcon();
-    QFileInfo  info(fullPath);
-    d->defaultUserIconPath = info.fileName();
 
     d->password->setText(tr(""));
     d->autoLogin->setChecked(false);
     d->rememberPassord->setChecked(false);
 
     d->onlineState->setState(ProtocolType::STATUS_ONLINE);
-    d->userIcon->setPixmap(fullPath);
-
     d->login->setEnabled(false);
     d->login->style()->unpolish(d->login);
     d->login->style()->polish(d->login);
+
+    resetDefaultPixmap();
+}
+
+void LoginDialog::resetDefaultPixmap()
+{
+    MQ_D(LoginDialog);
+    QString fullPath = RSingleton<ImageManager>::instance()->getSystemUserIcon();
+    QFileInfo  info(fullPath);
+    d->defaultUserIconPath = info.fileName();
+    d->userIcon->setPixmap(fullPath);
 }
 
 void LoginDialog::readLocalUser()
 {
     MQ_D(LoginDialog);
 
+    resetDefaultPixmap();
     RSingleton<UserInfoFile>::instance()->readUsers(d->localUserInfo);
 
     if(d->localUserInfo.size() > 0)
@@ -425,6 +456,15 @@ void LoginDialog::readLocalUser()
             connect(item,SIGNAL(itemClicked(QString)),this,SLOT(respItemChanged(QString)));
             item->setNickName(user->userName);
             item->setAccountId(user->accountId);
+            if(user->isSystemPixMap)
+            {
+                item->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(user->pixmap));
+            }
+            else
+            {
+                User tmpUser(user->accountId);
+                item->setPixmap(tmpUser.getFilePath(user->pixmap,"png"));
+            }
 
             QListWidgetItem* widgetItem = new QListWidgetItem(d->userListWidget);
             d->userListWidget->setItemWidget(widgetItem,item);
@@ -527,8 +567,19 @@ void LoginDialog::respItemChanged(QString id)
                     d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
                 }
             }
-
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<userInfo->loginState;
+            else
+            {
+                User currUser(id);
+                QString pixmap = currUser.getFileRecvPath()+QDir::separator()+userInfo->pixmap+".png";
+                if(QFile(pixmap).exists())
+                {
+                    d->userIcon->setPixmap(pixmap);
+                }
+                else
+                {
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                }
+            }
 
             d->onlineState->setState((OnlineStatus)userInfo->loginState);
             d->isNewUser = false;
@@ -561,9 +612,15 @@ void LoginDialog::respRegistDialogDestory(QObject *)
     connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
 }
 
+/*!
+ * @brief 接收登陆结果
+ * @param[in] status 登陆状态
+ * @param[in] response 登陆结果信息
+ */
 void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response)
 {
     MQ_D(LoginDialog);
+
     if(status == LOGIN_SUCCESS)
     {
         int index = -1;
@@ -578,6 +635,16 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
                 d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
                 d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
+                if(response.baseInfo.customImgId.size()> 0)
+                {
+                    d->localUserInfo.at(index)->isSystemPixMap = false;
+                    d->localUserInfo.at(index)->pixmap = response.baseInfo.customImgId;
+                }
+                else
+                {
+                    d->localUserInfo.at(index)->isSystemPixMap = d->isSystemUserIcon;
+                    d->localUserInfo.at(index)->pixmap = d->defaultUserIconPath;
+                }
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }
@@ -586,23 +653,45 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
             UserInfoDesc * desc = new UserInfoDesc;
             desc->userName = response.baseInfo.nickName;
             desc->accountId = response.baseInfo.accountId;
-            desc->loginState = (int)d->onlineState->state();
             desc->originPassWord = d->password->text();
             desc->password = RUtil::MD5(d->password->text());
             desc->isAutoLogin = d->autoLogin->isChecked();
             desc->isRemberPassword = d->rememberPassord->isChecked();
-            desc->isSystemPixMap = d->isSystemUserIcon;
-            desc->pixmap = d->defaultUserIconPath;
+            desc->loginState = (int)d->onlineState->state();
+
+            if(response.baseInfo.customImgId.size() > 0)
+            {
+                desc->isSystemPixMap = false;
+                desc->pixmap = response.baseInfo.customImgId;
+            }
+            else
+            {
+                desc->isSystemPixMap = d->isSystemUserIcon;
+                desc->pixmap = d->defaultUserIconPath;
+            }
 
             d->localUserInfo.append(desc);
             RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
         }
 
-        G_UserBaseInfo = response.baseInfo;
+        //TODO 对文件服务器进行重连、状态显示等操作
+        FileNetConnector::instance()->connect();
 
-        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
-        RUtil::createDir(G_Temp_Picture_Path);
+        G_UserBaseInfo = response.baseInfo;
+        G_User = new User(G_UserBaseInfo.accountId);
+
+        if(G_UserBaseInfo.face <=0 && !QFile(G_User->getFilePath(G_UserBaseInfo.customImgId,"png")).exists() && G_UserBaseInfo.customImgId.size() > 0)
+         {
+             SimpleFileItemRequest * request = new SimpleFileItemRequest;
+             request->control = T_REQUEST;
+             request->itemType = FILE_ITEM_USER_DOWN;
+             request->fileId = G_UserBaseInfo.customImgId;
+             FileRecvTask::instance()->addRecvItem(request);
+         }
+
+//        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
+//        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
+//        RUtil::createDir(G_Temp_Picture_Path);
 
         setVisible(false);
         d->trayIcon->disconnect();
@@ -702,7 +791,7 @@ void LoginDialog::procRecvText(TextRequest response)
         SimpleUserInfo userInfo;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-        SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,userInfo);
+        SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
 
         //【2】判断窗口是否创建或者是否可见
         if(client->chatWidget && client->chatWidget->isVisible())
@@ -819,6 +908,160 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
             }
+        }
+    }
+}
+
+/*!
+ * @brief 处理服务器端的传输控制
+ * @details 在传输完成后，从上传文件的队列中更新对应的状态: @n
+ *          1.在上传完头像后，应该将fileId更新至服务器数据记录中，将头像改成自定义; @n
+ *          2.在传输完成文件后，将fileId通过聊天服务器发送至对方，由对方去下载; @n
+ * @param[in] request 控制命令
+ * @return 无
+ */
+void LoginDialog::procFileControl(SimpleFileItemRequest request)
+{
+    MQ_D(LoginDialog);
+    if(FileRecvTask::instance()->containsTask(request.fileId))
+    {
+        if(request.control == T_ABLE_SEND)
+        {
+            FileRecvTask::instance()->transfer(request.fileId);
+        }
+        else if(request.control == T_OVER)
+        {
+            FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
+            if(fileDesc != nullptr)
+            {
+                switch(static_cast<FileItemType>(fileDesc->itemType))
+                {
+                    case FILE_ITEM_USER_UP:
+                            //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
+                            if(fileDesc->otherId == G_UserBaseInfo.accountId)
+                            {
+                                QFileInfo fileInfo(fileDesc->filePath);
+                                QString newPath = G_User->getFileRecvPath()+QDir::separator()+fileDesc->fileId+"."+fileInfo.suffix();
+                                if(QFile::copy(fileDesc->filePath,newPath))
+                                {
+                                    G_UserBaseInfo.face = 0;
+                                    G_UserBaseInfo.customImgId = fileDesc->fileId;
+                                    RSingleton<Subject>::instance()->notify(MESS_ICON_CHANGE);
+
+                                    UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
+
+                                    request->baseInfo.accountId = G_UserBaseInfo.accountId;
+                                    request->baseInfo.nickName = G_UserBaseInfo.nickName;
+                                    request->baseInfo.signName = G_UserBaseInfo.signName;
+                                    request->baseInfo.sexual = G_UserBaseInfo.sexual;
+                                    request->baseInfo.birthday = G_UserBaseInfo.birthday;
+                                    request->baseInfo.address = G_UserBaseInfo.address;
+                                    request->baseInfo.email = G_UserBaseInfo.email;
+                                    request->baseInfo.phoneNumber = G_UserBaseInfo.phoneNumber;
+                                    request->baseInfo.remark = G_UserBaseInfo.remark;
+                                    request->baseInfo.face = 0;
+                                    request->baseInfo.customImgId = fileDesc->fileId;
+                                    request->requestType = UPDATE_USER_DETAIL;
+
+                                    RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+                                    QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
+                                    while(iter != d->localUserInfo.end())
+                                    {
+                                        if((*iter)->accountId == G_UserBaseInfo.accountId)
+                                        {
+                                            (*iter)->isSystemPixMap = false;
+                                            (*iter)->pixmap = fileDesc->fileId;
+                                            break;
+                                        }
+                                        iter++;
+                                    }
+
+                                    RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+                                }
+                            }
+                            //好友ID图片
+                            else if(false)
+                            {
+                                //TODO 处理好友的头像信息
+                            }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            RMessageBox::information(NULL,"title","file transferover \n fileId:"+request.fileId,RMessageBox::Yes);
+        }
+        else if(request.control == T_SERVER_EXIST)
+        {
+            RMessageBox::information(this,"title","Server file exist file!",RMessageBox::Yes);
+            FileRecvTask::instance()->nextFile();
+        }
+    }
+}
+
+/*!
+ * @brief 处理服务器发送的文件传输请求信息
+ * @param[in] request 传输请求信息
+ * @return 无
+ */
+void LoginDialog::procFileRequest(FileItemRequest response)
+{
+    if(RSingleton<FileManager>::instance()->addFile(response,G_User->getFileRecvPath()))
+    {
+//        qDebug()<<response.accountId<<"_"<<response.otherId<<"_"<<response.fileName;
+        SimpleFileItemRequest * request = new SimpleFileItemRequest;
+        request->control = T_ABLE_SEND;
+        request->itemType = FILE_ITEM_CHAT_DOWN;
+        request->fileId = response.fileId;
+        request->md5 = response.md5;
+
+        FileRecvTask::instance()->sendControlItem(request);
+    }
+}
+
+/*!
+ * @brief 文件数据接收完成
+ * @param[in] fileId 文件ID
+ * @param[in] fileName 数据库中文件名
+ * @return 是否插入成功
+ */
+void LoginDialog::procFileData(QString fileId, QString fileName)
+{
+    MQ_D(LoginDialog);
+    FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(fileId);
+    if(fileDesc != nullptr)
+    {
+        switch(static_cast<FileItemType>(fileDesc->itemType))
+        {
+            case FILE_ITEM_USER_DOWN:
+                //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
+                if(fileDesc->otherId == G_UserBaseInfo.accountId)
+                {
+                    QString localFileName = G_User->getFileRecvPath()+QDir::separator()+fileName;
+                    if(QFile(localFileName).exists())
+                    {
+                        QFileInfo fileInfo(localFileName);
+                        QString newName = G_User->getFileRecvPath()+QDir::separator() + fileId + "." + fileInfo.suffix();
+
+                        QFile::rename(localFileName,newName);
+
+                        if(fileDesc->isRecvOver())
+                        {
+                            RSingleton<FileManager>::instance()->removeFile(fileId);
+                        }
+
+                        RSingleton<Subject>::instance()->notify(MESS_ICON_CHANGE);
+                    }
+                }
+                else
+                {
+                    //TODO 处理好友的头像信息
+                }
+                break;
+            default:
+                break;
         }
     }
 }
@@ -1013,6 +1256,11 @@ ComboxItem::~ComboxItem()
 void ComboxItem::setNickName(QString name)
 {
     nickNameLabel->setText(name);
+}
+
+void ComboxItem::setPixmap(QString pixmap)
+{
+    iconLabel->setPixmap(pixmap);
 }
 
 void ComboxItem::setAccountId(QString id)

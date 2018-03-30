@@ -14,7 +14,6 @@ DatabaseManager::DatabaseManager():
     m_hostName(""),m_dbName(""),m_dbUser(""),m_dbPass(""),m_port(0),
     m_dbType("")
 {
-    p_DB = NULL;
     p_This = this;
     m_QueryRow = TextUnit::DefaultQueryRow;
 }
@@ -49,8 +48,6 @@ Database *DatabaseManager::newDatabase(QString connectionName)
     db->setPassword(m_dbPass);
 
     db->open();
-
-    p_DB = db;
 
     return db;
 }

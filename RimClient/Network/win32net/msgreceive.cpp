@@ -11,23 +11,18 @@
 
 namespace ClientNetwork{
 
-MsgReceive::MsgReceive(QObject *parent) :
+RecveiveTask::RecveiveTask(QObject *parent) :
     tcpSocket(NULL),RTask(parent)
 {
 
 }
 
-MsgReceive::~MsgReceive()
-{
-
-}
-
-void MsgReceive::setSock(RSocket *sock)
+void RecveiveTask::setSock(RSocket *sock)
 {
     tcpSocket = sock;
 }
 
-void MsgReceive::startMe()
+void RecveiveTask::startMe()
 {
     RTask::startMe();
     if(!isRunning())
@@ -36,7 +31,7 @@ void MsgReceive::startMe()
     }
 }
 
-void MsgReceive::stopMe()
+void RecveiveTask::stopMe()
 {
     if(runningFlag)
     {
@@ -45,7 +40,7 @@ void MsgReceive::stopMe()
     }
 }
 
-void MsgReceive::run()
+void RecveiveTask::run()
 {
     RLOG_INFO("Start Receive++++++++++++++++++++++");
 
@@ -69,15 +64,14 @@ void MsgReceive::run()
                 memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
                 memcpy(dataBuff + lastRecvBuff.size(),recvBuff,recvLen);
 
-
-                processRecvData(dataBuff,lastRecvBuff.size() + recvLen);
                 lastRecvBuff.clear();
+                recvData(dataBuff,tmpBuffLen - 1);
 
                 delete[] dataBuff;
             }
             else
             {
-                processRecvData(recvBuff,recvLen);
+                recvData(recvBuff,recvLen);
             }
         }
         else
@@ -93,35 +87,31 @@ void MsgReceive::run()
     RLOG_INFO("Stop Receive++++++++++++++++++++++");
 }
 
-void MsgReceive::processRecvData(char * recvData,int recvLen)
+void RecveiveTask::recvData(char * recvData,int recvLen)
 {
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
 
     if(recvLen > sizeof(DataPacket))
     {
-        memcpy((char *)&packet,recvData,sizeof(DataPacket));
-        //[1]数据头部分正常
-        if(packet.magicNum == RECV_MAGIC_NUM)
+        unsigned int processLen = 0;
+        do
         {
-            int processLen = sizeof(DataPacket);
-            do
+            memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
+            processLen += sizeof(DataPacket);
+            //[1]数据头部分正常
+            if(packet.magicNum == RECV_MAGIC_NUM)
             {
-                QByteArray processData;
+                QByteArray dataBuff;
                 //[1.1]至少存在多余一个完整数据包
                 if(packet.currentLen <= recvLen - processLen)
                 {
                     //[1.1.1]一包数据
                     if(packet.totalIndex == 1)
                     {
-                        processData.resize(packet.currentLen);
-                        memcpy(processData.data(),recvData + processLen,packet.currentLen);
-
-                        G_RecvMutex.lock();
-                        G_RecvButts.enqueue(processData);
-                        G_RecvMutex.unlock();
-
-                        G_RecvCondition.wakeOne();
+                        dataBuff.resize(packet.currentLen);
+                        memcpy(dataBuff.data(),recvData + processLen,packet.currentLen);
+                        processData(dataBuff);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
@@ -152,16 +142,12 @@ void MsgReceive::processRecvData(char * recvData,int recvLen)
                                 {
                                     buff->isCompleted = true;
 
-                                    processData.append(buff->getFullData());
+                                    dataBuff.append(buff->getFullData());
 
                                     packetBuffs.remove(packet.packId);
                                     delete buff;
 
-                                    G_RecvMutex.lock();
-                                    G_RecvButts.enqueue(processData);
-                                    G_RecvMutex.unlock();
-
-                                    G_RecvCondition.wakeOne();
+                                    processData(dataBuff);
                                 }
                             }
                        }
@@ -171,15 +157,14 @@ void MsgReceive::processRecvData(char * recvData,int recvLen)
                     //[1.1.3]
                     int leftLen = recvLen - processLen;
 
-                    if(leftLen == 0)
+                    if(leftLen <= 0)
                     {
                         break;
                     }
 
                     if(leftLen >= sizeof(DataPacket))
                     {
-                        memcpy(&packet,recvData + processLen,sizeof(DataPacket));
-                        processLen += sizeof(DataPacket);
+                        continue;
                     }
                     else
                     {
@@ -187,29 +172,82 @@ void MsgReceive::processRecvData(char * recvData,int recvLen)
                         memcpy(&packet,recvData + processLen,leftLen);
 
                         lastRecvBuff.clear();
-                        lastRecvBuff.append((char *)&packet,leftLen);
+                        lastRecvBuff.append(recvData + processLen,leftLen);
 
                         processLen += leftLen;
+                        break;
                     }
+
                 }
                 //[1.2]【信息被截断】
                 else
                 {
                     int leftLen = recvLen - processLen;
+
                     lastRecvBuff.clear();
                     lastRecvBuff.append((char *)&packet,sizeof(DataPacket));
                     lastRecvBuff.append(recvData+processLen,leftLen);
 
                     processLen += leftLen;
+                    break;
                 }
-
-            }while(processLen < recvLen);
-        }
-        else
-        {
-            qDebug()<<"Recv Error Packet";
-        }
+            }
+            else
+            {
+                qDebug()<<"Recv Error Packet";
+            }
+        }while(processLen <= recvLen);
     }
+    else
+    {
+        lastRecvBuff.clear();
+        lastRecvBuff.append(recvData,recvLen);
+    }
+}
+
+RecveiveTask::~RecveiveTask()
+{
+
+}
+
+TextReceive::TextReceive(QObject *parent):
+    RecveiveTask(parent)
+{
+
+}
+
+TextReceive::~TextReceive()
+{
+
+}
+
+void TextReceive::processData(QByteArray &data)
+{
+    G_TextRecvMutex.lock();
+    G_TextRecvBuffs.enqueue(data);
+    G_TextRecvMutex.unlock();
+
+    G_TextRecvCondition.wakeOne();
+}
+
+FileReceive::FileReceive(QObject *parent):
+    RecveiveTask(parent)
+{
+
+}
+
+FileReceive::~FileReceive()
+{
+
+}
+
+void FileReceive::processData(QByteArray &data)
+{
+    G_FileRecvMutex.lock();
+    G_FileRecvBuffs.enqueue(data);
+    G_FileRecvMutex.unlock();
+
+    G_FileRecvCondition.wakeOne();
 }
 
 } //namespace ClientNetwork;

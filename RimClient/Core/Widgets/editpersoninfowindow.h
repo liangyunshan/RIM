@@ -7,8 +7,9 @@
  *  @date      2017.12.27
  *  @warning
  *  @copyright NanJing RenGu.
- *  @note      20171228:wey:添加本地图片选择框，可选择系统自带的图像
- *             20180206:wey:增加对输入的信息验证
+ *  @note      20171228:wey:添加本地图片选择框，可选择系统自带的图像;
+ *             20180206:wey:增加对输入的信息验证;
+ *             20180323:wey:增加本地头像上传功能;
  */
 #ifndef EDITPERSONINFOWINDOW_H
 #define EDITPERSONINFOWINDOW_H
@@ -38,6 +39,9 @@ private slots:
     void updateSystemIconInfo(QString filename);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
     void singleBaseInfoFinished();
+
+private:
+    void loadCustomUserImage();
 
 private:
     EditPersonInfoWindowPrivate * d_ptr;

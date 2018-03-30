@@ -131,10 +131,15 @@ SOURCES += \
     json/jsonresolver.cpp \
     Widgets/widget/rcombobox.cpp \
     Widgets/widget/rlineedit.cpp \
-    thread/imagetask.cpp \
     Widgets/modifyremarkwindow.cpp \
     Widgets/contactdetailwindow.cpp \
-    others/msgqueuemanager.cpp
+    others/msgqueuemanager.cpp \
+    thread/filereceiveproctask.cpp \
+    thread/filerecvtask.cpp \
+    file/filedesc.cpp \
+    file/filemanager.cpp \
+    user/user.cpp \
+    sql/rpersistence.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -210,9 +215,14 @@ HEADERS  += \
     Widgets/widget/rcombobox.h \
     Widgets/widget/rlineedit.h \
     others/msgqueuemanager.h \
-    thread/imagetask.h \
     Widgets/modifyremarkwindow.h \
-    Widgets/contactdetailwindow.h 
+    Widgets/contactdetailwindow.h \ 
+    thread/filereceiveproctask.h \
+    thread/filerecvtask.h \
+    file/filedesc.h \
+    file/filemanager.h \
+    user/user.h \
+    sql/rpersistence.h
 
 DISTFILES += \
     Widgets/Widgets.pri

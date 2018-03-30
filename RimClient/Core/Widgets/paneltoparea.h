@@ -46,6 +46,7 @@ public slots:
 
 private:
     void updateUserInfo();
+    void loadCustomUserImage();
 
 private:
     PanelTopAreaPrivate * d_ptr;

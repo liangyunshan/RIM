@@ -24,7 +24,7 @@ void ImageManager::loadSystemIcons()
 {
    localSystemUserIcon.clear();
 
-   QDir dir(qApp->applicationDirPath()+Constant::PATH_ImagePath+Constant::PATH_SystemIconPath);
+   QDir dir(qApp->applicationDirPath()+Constant::PATH_ImagePath+Constant::IMAGE_SystemIconPath);
    if(dir.exists())
    {
        localSystemUserIcon = dir.entryInfoList(QStringList(QObject::tr("*.png")),QDir::Files|QDir::NoDotAndDotDot);
@@ -89,7 +89,7 @@ QString ImageManager::getSystemUserIcon(QString imageName)
 
 QString ImageManager::getSystemImageDir()
 {
-    QDir dir(qApp->applicationDirPath()+Constant::PATH_ImagePath+Constant::PATH_SystemIconPath);
+    QDir dir(qApp->applicationDirPath()+Constant::PATH_ImagePath+Constant::IMAGE_SystemIconPath);
     return dir.absolutePath();
 }
 

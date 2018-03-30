@@ -37,6 +37,10 @@ public:
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
+    void onRecvFileControl(SimpleFileItemRequest request);
+    void onRecvFileRequest(FileItemRequest request);
+    void onRecvFileData(QString fileId,QString fileName);
+
     void onScreenChanged();
 
 signals:
@@ -53,6 +57,10 @@ signals:
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+
+    void recvFileControl(SimpleFileItemRequest control);
+    void recvFileRequest(FileItemRequest control);
+    void recvFileData(QString fileId,QString fileName);
 
     void screenChange();
 

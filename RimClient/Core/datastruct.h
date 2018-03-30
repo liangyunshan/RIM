@@ -41,6 +41,7 @@ enum MessageType
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
     MESS_GROUP_DELETE,           /*!< 分组删除消息 */
+    MESS_ICON_CHANGE,            /*!< 登陆用户icon改变 */
     MESS_SCREEN_CHANGE           /*!< 屏幕改变 */
 };
 
@@ -64,7 +65,7 @@ struct UserInfoDesc
     bool isRemberPassword;          /*!< 是否记住密码 */
     bool isAutoLogin;               /*!< 是否自动登录 */
     bool isSystemPixMap;            /*!< 是否为系统默认头像 */
-    QString pixmap;                 /*!< 头像路径 */
+    QString pixmap;                 /*!< 头像ID，默认在【账户ID/ChatRecvFile】文件夹下 */
 
     friend QDataStream & operator <<(QDataStream & stream,const UserInfoDesc & desc);
     friend QDataStream & operator >>(QDataStream & stream,UserInfoDesc & desc);

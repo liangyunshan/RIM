@@ -29,6 +29,7 @@
 #include "user/userclient.h"
 #include "panelpersonpage.h"
 #include "media/mediaplayer.h"
+#include "user/user.h"
 
 #include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
@@ -59,7 +60,7 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
-        m_autoHideSetting = RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool();
+        m_autoHideSetting = G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool();
     }
 
 private:
@@ -86,7 +87,7 @@ private:
 MainDialog * MainDialog::dialog = NULL;
 
 MainDialog::MainDialog(QWidget *parent) :
-    d_ptr(new MainDialogPrivate(this)),
+    d_ptr(new MainDialogPrivate(this)),p_dbManager(nullptr),
     Widget(parent)
 {
     setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
@@ -135,8 +136,8 @@ void MainDialog::onMessage(MessageType type)
     {
         case MESS_SETTINGS:
         {
-            makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
-            blockAutoHidePanel(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
+            makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
+            blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
         }
         break;
         case MESS_SCREEN_CHANGE:
@@ -210,7 +211,7 @@ void MainDialog::updateWidgetGeometry()
 
 void MainDialog::closeWindow()
 {
-    if(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM).toBool())
+    if(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,false).toBool())
     {
         this->close();
     }
@@ -235,7 +236,7 @@ void MainDialog::makeWindowFront(bool flag)
         ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Stick"));
     }
 
-    RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
 
     show();
 }
@@ -434,7 +435,9 @@ void MainDialog::initWidget()
 
     d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
-    makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
+    //读取个人配置信息设置系统功能
+    makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
+    blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -478,27 +481,27 @@ void MainDialog::initWidget()
  */
 void MainDialog::readSettings()
 {
-    QSettings * settings = RUtil::globalSettings();
-
-    if(!settings->value(Constant::SETTING_X).isValid() || !settings->value(Constant::SETTING_Y).isValid()
-            ||!settings->value(Constant::SETTING_WIDTH).isValid() ||!settings->value(Constant::SETTING_HEIGHT).isValid())
+    QSettings * settings = G_User->getSettings();
+    settings->beginGroup(Constant::USER_BASIC_GROUP);
+    if(!settings->value(Constant::USER_BASIC_X).isValid() || !settings->value(Constant::USER_BASIC_Y).isValid()
+            ||!settings->value(Constant::USER_BASIC_WIDTH).isValid() ||!settings->value(Constant::USER_BASIC_HEIGHT).isValid())
     {
         QRect rect = qApp->desktop()->screen()->geometry();
 
         int tmpWidth = Constant::MAIN_PANEL_MIN_WIDTH * SCALE_ZOOMIN_FACTOR;
         int tmpHeight = rect.height() * SCALE_ZOOMOUT_FACTOR;
 
-
-        RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.width() - tmpWidth - PANEL_MARGIN);
-        RUtil::globalSettings()->setValue(Constant::SETTING_Y,PANEL_MARGIN);
-        RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,tmpWidth);
-        RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,tmpHeight);
+        settings->setValue(Constant::USER_BASIC_X,rect.width() - tmpWidth - PANEL_MARGIN);
+        settings->setValue(Constant::USER_BASIC_Y,PANEL_MARGIN);
+        settings->setValue(Constant::USER_BASIC_WIDTH,tmpWidth);
+        settings->setValue(Constant::USER_BASIC_HEIGHT,tmpHeight);
     }
 
-    int x = RUtil::globalSettings()->value(Constant::SETTING_X).toInt();
-    int y = RUtil::globalSettings()->value(Constant::SETTING_Y).toInt();
-    int w = RUtil::globalSettings()->value(Constant::SETTING_WIDTH).toInt();
-    int h = RUtil::globalSettings()->value(Constant::SETTING_HEIGHT).toInt();
+    int x = settings->value(Constant::USER_BASIC_X).toInt();
+    int y = settings->value(Constant::USER_BASIC_Y).toInt();
+    int w = settings->value(Constant::USER_BASIC_WIDTH).toInt();
+    int h = settings->value(Constant::USER_BASIC_HEIGHT).toInt();
+    settings->endGroup();
 
     changeGeometry(x,y,w,h);
 }
@@ -603,24 +606,52 @@ void MainDialog::moveToDesktop(int direction)
 void MainDialog::writeSettings()
 {
     QRect rect = this->geometry();
-    RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.x());
-    RUtil::globalSettings()->setValue(Constant::SETTING_Y,rect.y());
-    RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,rect.width());
-    RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,rect.height());
+    QSettings * settings = G_User->getSettings();
+    settings->beginGroup(Constant::USER_BASIC_GROUP);
+    settings->setValue(Constant::USER_BASIC_X,rect.x());
+    settings->setValue(Constant::USER_BASIC_Y,rect.y());
+    settings->setValue(Constant::USER_BASIC_WIDTH,rect.width());
+    settings->setValue(Constant::USER_BASIC_HEIGHT,rect.height());
+    settings->endGroup();
 }
 
+/*!
+ * @brief 初始化数据库连接
+ * @details 从配置文件中读取数据库连接信息，若没有填写对应的信息，则启用系统默认信息
+ */
 void MainDialog::initSqlDatabase()
 {
-    QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-    QString db_path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserDBDirName);
-    RUtil::createDir(db_path);
-    db_path += QString("/%1").arg(Constant::UserDBFileName);
     p_dbManager = new DatabaseManager();
-    p_dbManager->setConnectInfo("localhost",db_path,"root","rengu123456");
-    p_dbManager->setDatabaseType("QSQLITE");
-    p_dbManager->newDatabase("sqlite1234");
 
-    SQLProcess::instance()->createTablebUserList(p_dbManager->getLastDB());
+    QString type = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_TYPE,Constant::DEFAULT_SQL_TYPE).toString();
+    QString hostName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_HOSTNAME,Constant::DEFAULT_SQL_HOST).toString();
+    QString databaseName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_DATABASE,Constant::DEFAULT_SQL_DATABASE).toString();
+    QString userName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_USER,Constant::DEFAULT_SQL_USER).toString();
+    int port = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_PORT,Constant::DEFAULT_SQL_PORT).toString().toInt();
+
+    bool useInnerPass = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_INNER_PASSWORD,Constant::DEFAULT_SQL_INNER_PASS).toBool();
+    QString password;
+    if(useInnerPass)
+    {
+        password = Constant::DEFAULT_SQL_PASSWORD;
+    }
+    else
+    {
+        RUtil::globalSettings()->beginGroup(Constant::SYSTEM_DB);
+        password = RUtil::globalSettings()->value(Constant::SYSTEM_DB_PASS,"").toString();
+        RUtil::globalSettings()->endGroup();
+    }
+
+    p_dbManager->setConnectInfo(hostName,databaseName,userName,password,port);
+    p_dbManager->setDatabaseType(type);
+    Database * chatDatabase = p_dbManager->newDatabase(RUtil::UUID());
+    if(!chatDatabase->open())
+    {
+        RMessageBox::warning(this,tr("warning"),tr("Open chat message database error! \n please check database config."),RMessageBox::Yes);
+    }
+    G_User->setDatabase(chatDatabase);
+
+    SQLProcess::instance()->createTablebUserList(chatDatabase);
 }
 
 /*!

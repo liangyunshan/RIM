@@ -7,6 +7,7 @@
  *  @date      2017.12.13
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note 20180308:wey:修复多线程访问，因未加互斥锁产生的奔溃问题;
  */
 #ifndef RLOG_H
 #define RLOG_H
@@ -15,7 +16,6 @@
 #define RLOG_WARNING(...)    RLog::log(RLog::RWARNING, __FILE__,__FUNCTION__, __LINE__,__VA_ARGS__)
 #define RLOG_ERROR(...)      RLog::log(RLog::RERROR,__FILE__,__FUNCTION__,__LINE__,__VA_ARGS__)
 #include <QFile>
-#include <QMutex>
 
 #include "util_global.h"
 
