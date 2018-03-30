@@ -24,50 +24,94 @@ const char Space_Reg[] = "\\s+";
 const char SingleIp_Reg[] = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
 const char FullIp_Reg[] = "(%1\\.){3}%2";
 
-/*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
-const char UserTempName[] = "temp";
-const char UserDBDirName[] = "db";
-const char UserDBFileName[] = "rimclient.db";
-const char PATH_UserPath[] = "/../users";
 
+/*!
+ * @note 定义系统目录下文件夹的存放信息
+ * @attention 1.在定义系统根目录时使用PATH_***Path 命名; @n
+ *            2.在定义子目录时，以当前所在父目录作为命名的起始名称即 ***_XXX @;
+ *        以config文件夹为例：因在根目录下，直接命名为PATH_ConfigPath,下一层的目录如style目录则名称为 CONFIG_StylePath;
+*/
 const char PATH_ImagePath[] = "/../image";
-const char PATH_SystemIconPath[] = "/systemIcon";
+const char IMAGE_SystemIconPath[] = "/systemIcon";
 
 const char PATH_ConfigPath[] = "/../config";
-const char PATH_LocalePath[] = "/translations";
-const char PATH_StylePath[] = "/style";
-const char PATH_SountPath[] = "/sound";
+const char CONFIG_LocalePath[] = "/translations";
+const char CONFIG_StylePath[] = "/style";
+const char CONFIG_SountPath[] = "/sound";
 
+const char PATH_UserPath[] = "/../users";
+const char USER_RecvFileDirName[] = "ChatRecvFile";
+const char USER_DBDirName[] = "ChatLog";
+const char USER_DBFileName[] = "chatlog.db";
+const char USER_ConfigName[] = "userconfg.ini";
+const char USER_TempName[] = "temp";
 
-/*系统设置*/
-const char SETTING_X[] = "Main/X";
-const char SETTING_Y[] = "Main/Y";
-const char SETTING_WIDTH[] = "Main/Width";
-const char SETTING_HEIGHT[] = "Main/Height";
+/*!
+ * @note 系统配置信息
+ * @details 系统配置信息采用分组保存，在定义时需要指定分组的名称，变量的名称。
+*/
+const char SETTING_TRAYICON[] = "TrayIcon";
 
-const char SETTING_AUTO_STARTUP[] = "Main/MainAutoStartUp";
-const char SETTING_AUTO_LOGIN[] = "Main/AutoLogin";
+const char SYSTEM_NETWORK[] = "network";
+const char SYSTEM_NETWORK_TEXT_IP[] = "textip";
+const char SYSTEM_NETWORK_TEXT_PORT[] = "textport";
+const char SYSTEM_NETWORK_FILE_IP[] = "fileip";
+const char SYSTEM_NETWORK_FILE_PORT[] = "fileport";
 
-const char SETTING_TOPHINT[] = "Main/TopHint";
-const char SETTING_EXIT_SYSTEM[] = "Main/ExitSystem";
-const char SETTING_TRAYICON[] = "Main/TrayIcon";
-const char SETTING_HIDEPANEL[] = "Main/HidePanel";
+const char SYSTEM_DB[] = "database";
+const char SYSTEM_DB_TYPE[] = "type";
+const char SYSTEM_DB_HOSTNAME[] = "host";
+const char SYSTEM_DB_DATABASE[] = "database";
+const char SYSTEM_DB_USER[] = "user";
+const char SYSTEM_DB_PASS[] = "password";
+const char SYSTEM_DB_PORT[] = "port";
+const char SYSTEM_DB_INNER_PASSWORD[] = "innerpassword";
 
-const char SETTING_WINDOW_SHAKE[] = "Main/WindowShake";
-const char SETTING_SOUND_AVAILABLE[] = "Main/Sounds";
+/*!
+ * @note 用户配置信息
+ * @details 用户配置信息采用分组保存，在定义时需要指定分组的名称，变量的名称。
+*/
+const char USER_BASIC_GROUP [] = "Basic";
 
-const char SETTING_SYSTEM_LOCK[] = "Main/SystemLock";
-const char SETTING_EXIT_DELRECORD[] = "Main/ExitDelRecord";
+const char USER_BASIC_X[] = "windowX";
+const char USER_BASIC_Y[] = "windowY";
+const char USER_BASIC_WIDTH[] = "windowWidth";
+const char USER_BASIC_HEIGHT[] = "windowHeight";
 
-const char SETTING_NETWORK_IP[] = "Network/LoginIp";
-const char SETTING_NETWORK_PORT[] = "Network/LoginPort";
+const char USER_SETTING_GROUP[] = "Setting";
 
-const char SETTING_SOUND_GROUP[] = "Sound";
+const char USER_SETTING_AUTO_STARTUP[] = "MainAutoStartUp";
+const char USER_SETTING_AUTO_LOGIN[] = "AutoLogin";
+const char USER_SETTING_TOPHINT[] = "TopHint";
+const char USER_SETTING_EXIT_SYSTEM[] = "ExitSystem";
+const char USER_SETTING_HIDEPANEL[] = "HidePanel";
 
-const QString DEFAULT_NETWORK_IP = "127.0.0.1";
-const QString DEFAULT_NETWORK_PORT = "8023";
+const char USER_SETTING_WINDOW_SHAKE[] = "WindowShake";
+const char USER_SETTING_SOUND_AVAILABLE[] = "Sounds";
+
+const char USER_SETTING_SYSTEM_LOCK[] = "SystemLock";
+const char USER_SETTING_EXIT_DELRECORD[] = "ExitDelRecord";
+
+const char USER_SETTING_SOUND_GROUP[] = "Sound";
+
+const QString DEFAULT_NETWORK_TEXT_IP = "127.0.0.1";
+const QString DEFAULT_NETWORK_TEXT_PORT = "8023";
+
+const QString DEFAULT_NETWORK_FILE_IP = "127.0.0.1";
+const QString DEFAULT_NETWORK_FILE_PORT = "8024";
+
+/*!
+ *  @brief 用户聊天数据库连接信息
+ */
+const QString DEFAULT_SQL_TYPE = "QSQLITE";
+const QString DEFAULT_SQL_HOST = "localhost";
+const QString DEFAULT_SQL_DATABASE = "rimclient";
+const QString DEFAULT_SQL_USER = "root";
+const QString DEFAULT_SQL_PASSWORD = "rengu123!@#";
+const QString DEFAULT_SQL_PORT = "3306";
+const bool DEFAULT_SQL_INNER_PASS = true;
 
 /*图片*/
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";

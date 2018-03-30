@@ -48,17 +48,17 @@ unix {
 }
 
 SOURCES += \
-    msgreceive.cpp \
     netglobal.cpp \
-    msgsender.cpp \
+    win32net/msgsender.cpp \
     rsocket.cpp \
-    rtask.cpp
+    rtask.cpp \
+    win32net/msgreceive.cpp
 
 HEADERS +=\
         network_global.h \
-    msgreceive.h \
     netglobal.h \
-    msgsender.h \
+    win32net/msgsender.h \
     rsocket.h \
-    rtask.h
+    rtask.h \
+    win32net/msgreceive.h
 

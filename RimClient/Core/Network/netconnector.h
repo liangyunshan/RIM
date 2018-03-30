@@ -20,8 +20,10 @@
 
 namespace ClientNetwork
 {
-class MsgSender;
-class MsgReceive;
+class TextSender;
+class FileSender;
+class TextReceive;
+class FileReceive;
 }
 
 namespace ClientNetwork {
@@ -52,6 +54,8 @@ public:
 
     bool isSockValid(){return rsocket->isValid();}
 
+    ClientNetwork::RSocket * socket(){return rsocket;}
+
     void startMe();
     void stopMe();
 
@@ -64,6 +68,9 @@ protected:
 
 signals:
     void connected(bool flag);
+
+protected slots:
+    virtual void respSocketError(int errorCode)=0;
 
 protected:
     ClientNetwork::RSocket * rsocket;
@@ -88,6 +95,29 @@ public:
 
     static TextNetConnector * instance();
 
+private:
+    void doConnect();
+    void doReconnect();
+    void doDisconnect();
+
+protected slots:
+    void respSocketError(int errorCode);
+
+private:
+    static TextNetConnector * netConnector;
+
+    ClientNetwork::TextSender * msgSender;
+    ClientNetwork::TextReceive * msgReceive;
+};
+
+class FileNetConnector : public SuperConnector
+{
+    Q_OBJECT
+public:
+    explicit FileNetConnector();
+
+    static FileNetConnector * instance();
+
 private slots:
     void respSocketError(int errorCode);
 
@@ -95,12 +125,11 @@ private:
     void doConnect();
     void doReconnect();
     void doDisconnect();
-
 private:
-    static TextNetConnector * netConnector;
+    static FileNetConnector * netConnector;
 
-    ClientNetwork::MsgSender * msgSender;
-    ClientNetwork::MsgReceive * msgReceive;
+    ClientNetwork::FileSender * msgSender;
+    ClientNetwork::FileReceive * msgReceive;
 };
 
 #endif // NETCONNECTOR_H

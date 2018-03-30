@@ -10,6 +10,7 @@
 #include <QDateTime>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
+#include <QDir>
 
 #include "Util/rutil.h"
 #include "Util/rlog.h"
@@ -17,8 +18,8 @@
 #include "constants.h"
 #include "thread/recvtextprocessthread.h"
 #include "thread/sendtextprocessthread.h"
-#include "datastruct.h"
-using namespace Datastruct;
+#include "constants.h"
+#include "global.h"
 
 #ifdef Q_OS_WIN
 #pragma  comment(lib,"ws2_32.lib")
@@ -41,20 +42,24 @@ struct SettingConfig
 {
     SettingConfig()
     {
-        dbConsumer = 5;
-        textConsumer = 5;
+        textRecvProcCount = 5;
+        textSendProcCount = 5;
         textListenPort = 8023;
         fileListenPort = 8024;
         textIp = "127.0.0.1";
         fileIp = "127.0.0.1";
+
+        uploadFilePath = qApp->applicationDirPath() + Constant::PATH_File;
     }
-    int dbConsumer;
-    int textConsumer;
+    int textRecvProcCount;
+    int textSendProcCount;
     unsigned short textListenPort;
     unsigned short fileListenPort;
 
     QString textIp;
     QString fileIp;
+
+    QString uploadFilePath;
 };
 
 void parseCommandLine(QApplication & app,CommandParameter & result)
@@ -179,65 +184,71 @@ void parseCommandLine(QApplication & app,CommandParameter & result)
     result.parseResult = EXEC_PROGRAM;
 }
 
-const char DB_Thread[] = "DatabaseThreadCount";
-const char MSG_Thead[] = "MessageThreadCount";
-const char TEXT_Port[] = "TextServicePort";
-const char FILE_Port[] = "FileServicePort";
-const char TEXT_Ip[] = "TextServiceIp";
-const char FILE_Ip[] = "FileServiceIp";
-
 void readSettings(QSettings * settings,SettingConfig & localConfig)
 {
-    settings->beginGroup("para");
+    //[1]网络配置
+    settings->beginGroup(Constant::GroupNetwork);
 
-    if(!settings->contains(DB_Thread))
+    if(!settings->contains(Constant::DB_THREAD))
     {
-        settings->setValue(DB_Thread,localConfig.dbConsumer);
+        settings->setValue(Constant::DB_THREAD,localConfig.textRecvProcCount);
     }
 
-    localConfig.dbConsumer = settings->value(DB_Thread,localConfig.dbConsumer).toInt();
+    localConfig.textRecvProcCount = settings->value(Constant::DB_THREAD,localConfig.textRecvProcCount).toInt();
 
-    if(!settings->contains(MSG_Thead))
+    if(!settings->contains(Constant::MSG_THREAD))
     {
-        settings->setValue(MSG_Thead,localConfig.textConsumer);
+        settings->setValue(Constant::MSG_THREAD,localConfig.textSendProcCount);
     }
 
-    localConfig.textConsumer = settings->value(MSG_Thead,localConfig.textConsumer).toInt();
+    localConfig.textSendProcCount = settings->value(Constant::MSG_THREAD,localConfig.textSendProcCount).toInt();
 
-    if(!settings->contains(TEXT_Port))
+    if(!settings->contains(Constant::TEXT_PORT))
     {
-        settings->setValue(TEXT_Port,localConfig.textListenPort);
+        settings->setValue(Constant::TEXT_PORT,localConfig.textListenPort);
     }
 
-    localConfig.textListenPort = settings->value(TEXT_Port,localConfig.textListenPort).toInt();
+    localConfig.textListenPort = settings->value(Constant::TEXT_PORT,localConfig.textListenPort).toInt();
 
-    if(!settings->contains(FILE_Port))
+    if(!settings->contains(Constant::FILE_PORT))
     {
-        settings->setValue(FILE_Port,localConfig.fileListenPort);
+        settings->setValue(Constant::FILE_PORT,localConfig.fileListenPort);
     }
 
-    localConfig.fileListenPort = settings->value(FILE_Port,localConfig.fileListenPort).toInt();
+    localConfig.fileListenPort = settings->value(Constant::FILE_PORT,localConfig.fileListenPort).toInt();
 
-    if(!settings->contains(TEXT_Ip))
+    if(!settings->contains(Constant::TEXT_IP))
     {
-        settings->setValue(TEXT_Ip,localConfig.textIp);
+        settings->setValue(Constant::TEXT_IP,localConfig.textIp);
     }
 
-    localConfig.textIp = settings->value(TEXT_Ip,localConfig.textIp).toString();
+    localConfig.textIp = settings->value(Constant::TEXT_IP,localConfig.textIp).toString();
 
-    if(!settings->contains(FILE_Ip))
+    if(!settings->contains(Constant::FILE_IP))
     {
-        settings->setValue(FILE_Ip,localConfig.fileIp);
+        settings->setValue(Constant::FILE_IP,localConfig.fileIp);
     }
 
-    localConfig.fileIp = settings->value(FILE_Ip,localConfig.fileIp).toString();
+    localConfig.fileIp = settings->value(Constant::FILE_IP,localConfig.fileIp).toString();
+
+    settings->endGroup();
+
+    //[2]文件服务器配置
+    settings->beginGroup(Constant::FileServerSetting);
+
+    if(!settings->contains(Constant::UPLOAD_FILE_PATH))
+    {
+        settings->setValue(Constant::UPLOAD_FILE_PATH,localConfig.uploadFilePath);
+    }
+
+    localConfig.uploadFilePath = settings->value(Constant::UPLOAD_FILE_PATH,localConfig.uploadFilePath).toString();
 
     settings->endGroup();
 
     settings->sync();
 }
 
-void printProgramInfo(CommandParameter & result)
+void printProgramInfo(CommandParameter & result,QString ip,unsigned short port)
 {
     QString serviceType;
     switch(result.serviceType)
@@ -270,9 +281,10 @@ void printProgramInfo(CommandParameter & result)
             "    / _, _/  __/ / / / /_/ / /_/ /     \n"
             "   /_/ |_|\___/_/ /_/\__, /\__,_/      \n"
             "                    /____/             \n"
-            "                                       \n "
-            "[System working type: %s  %s  %s ]\n"
-           ,serviceType.toLocal8Bit().data(),transType.toLocal8Bit().data(),dbType.toLocal8Bit().data());
+            "                                       \n"
+            "[System working type: %s  %s  %s ]     \n"
+            "[Listening ip and port: %s %d]         \n"
+           ,serviceType.toLocal8Bit().data(),transType.toLocal8Bit().data(),dbType.toLocal8Bit().data(),ip.toLocal8Bit().data(),port);
 }
 
 int main(int argc, char *argv[])
@@ -319,13 +331,37 @@ int main(int argc, char *argv[])
         SettingConfig settingConfig;
         readSettings(settings,settingConfig);
 
-        printProgramInfo(commandResult);
+        RGlobal::G_SERVICE_TYPE = commandResult.serviceType;
+
+        if(RGlobal::G_SERVICE_TYPE == SERVICE_FILE)
+        {
+            QDir fileDir(settingConfig.uploadFilePath);
+            if(!fileDir.mkpath(settingConfig.uploadFilePath))
+            {
+                RLOG_ERROR("create file path error ! %s",settingConfig.uploadFilePath.toLocal8Bit().data());
+                return -1;
+            }
+            RGlobal::G_FILE_UPLOAD_PATH = settingConfig.uploadFilePath;
+        }
 
         DatabaseManager dbManager;
         dbManager.setConnectInfo("localhost","rimserver","root","rengu123456");
         dbManager.setDatabaseType(commandResult.dbType);
 
-        for(int i = 0; i < settingConfig.dbConsumer;i++)
+        if(commandResult.serviceType == SERVICE_TEXT)
+        {
+            printProgramInfo(commandResult,settingConfig.textIp,settingConfig.textListenPort);
+            AbstractServer * tcpTextServer = new TcpServer();
+            tcpTextServer->startMe(settingConfig.textIp.toLocal8Bit().data(),settingConfig.textListenPort);
+        }
+        else if(commandResult.serviceType == SERVICE_FILE)
+        {
+            printProgramInfo(commandResult,settingConfig.fileIp,settingConfig.fileListenPort);
+            AbstractServer * fileServer = new TcpServer();
+            fileServer->startMe(settingConfig.fileIp.toLocal8Bit().data(),settingConfig.fileListenPort);
+        }
+
+        for(int i = 0; i < settingConfig.textRecvProcCount;i++)
         {
             RecvTextProcessThread * thread = new RecvTextProcessThread;
             Database * dbs = dbManager.newDatabase();
@@ -341,21 +377,10 @@ int main(int argc, char *argv[])
             }
         }
 
-        for(int i = 0; i< settingConfig.textConsumer;i++)
+        for(int i = 0; i< settingConfig.textSendProcCount;i++)
         {
             SendTextProcessThread * thread = new SendTextProcessThread;
             thread->start();
-        }
-
-        if(commandResult.serviceType == SERVICE_TEXT)
-        {
-            AbstractServer * tcpTextServer = new TcpServer();
-            tcpTextServer->startMe(settingConfig.textIp.toLocal8Bit().data(),settingConfig.textListenPort);
-        }
-        else if(commandResult.serviceType == SERVICE_FILE)
-        {
-            TcpServer fileServer;
-            fileServer.startMe(settingConfig.fileIp.toLocal8Bit().data(),settingConfig.fileListenPort);
         }
 
         return a.exec();

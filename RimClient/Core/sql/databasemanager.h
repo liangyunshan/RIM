@@ -25,9 +25,6 @@ public:
     void setConnectInfo(const QString host,const QString dbName,const QString user,const QString pass,const int port = 0);
 
     Database * newDatabase(QString connectionName = "");
-    Database *getLastDB(){
-        return p_DB;
-    }
 
     QStringList availableDrivers();
 
@@ -41,8 +38,6 @@ private:
 
     unsigned short m_port;
     unsigned short m_QueryRow;
-    Database * p_DB;
-
 };
 
 #endif // DATABASEMANAGER_H

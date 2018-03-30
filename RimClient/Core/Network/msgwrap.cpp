@@ -7,6 +7,7 @@
 #include "Network/netglobal.h"
 #include "Util/rlog.h"
 #include "jsonkey.h"
+#include "Util/rbuffer.h"
 
 MsgWrap::MsgWrap()
 {
@@ -116,6 +117,7 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
         data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
         data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
         data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
+        data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
         data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
     }
     else
@@ -240,11 +242,73 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
         delete packet;
     }
 
-    G_SendMutex.lock();
-    G_SendBuff.enqueue(array);
-    G_SendMutex.unlock();
+    G_TextSendMutex.lock();
+    G_TextSendBuffs.enqueue(array);
+    G_TextSendMutex.unlock();
 
-    G_SendWaitCondition.wakeOne();
+    G_TextSendWaitCondition.wakeOne();
+}
 
-//    RLOG_INFO("Send msg:%s",array.data());
+//处理文件控制请求
+void MsgWrap::handelFileControl(SimpleFileItemRequest *request)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)request->msgType);
+    rbuffer.append((int)request->msgCommand);
+    rbuffer.append((int)request->control);
+    rbuffer.append((int)request->itemType);
+    rbuffer.append(request->md5);
+    rbuffer.append(request->fileId);
+
+    if(request->isAutoDelete)
+        delete request;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+//文件上传请求
+void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
+{
+    RBuffer rbuffer;
+    fileRequest->control = T_ABLE_SEND;
+    rbuffer.append((int)fileRequest->msgType);
+    rbuffer.append((int)fileRequest->msgCommand);
+    rbuffer.append((int)fileRequest->control);
+    rbuffer.append((int)fileRequest->itemType);
+    rbuffer.append(fileRequest->fileName);
+    rbuffer.append(fileRequest->size);
+    rbuffer.append(fileRequest->fileId);
+    rbuffer.append(fileRequest->md5);
+    rbuffer.append(fileRequest->accountId);
+    rbuffer.append(fileRequest->otherId);
+
+    if(fileRequest->isAutoDelete)
+        delete fileRequest;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+//文件数据流
+void MsgWrap::handleFileData(QString fileId,size_t currIndex,QByteArray array)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)MSG_FILE);
+    rbuffer.append((int)MSG_FILE_DATA);
+    rbuffer.append(fileId);
+    rbuffer.append(currIndex);
+    rbuffer.append(array.data(),array.size());
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
 }

@@ -36,7 +36,8 @@
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
+#include "Network/netconnector.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -45,6 +46,7 @@
 #include "sql/sqlprocess.h"
 #include "json/jsonresolver.h"
 #include "screenshot.h"
+#include "user/user.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -418,16 +420,16 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -654,45 +656,54 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
-    if(d->chatInputArea->toPlainText().trimmed().isEmpty())
-    {
-        d->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
-        return ;
-    }
-    TextUnit::ChatInfoUnit unit;
-    d->chatInputArea->transTextToUnit(unit);
 
-    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
-    TextRequest * request = new TextRequest;
-    request->type = SearchPerson;
-    request->textId = RUtil::UUID();
-    request->isEncryption = false;
-    request->isCompress = false;
-    request->textType = TEXT_NORAML;
-    request->otherSideId = d->userInfo.accountId;
-    request->accountId = G_UserBaseInfo.accountId;
-    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
-    request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
-    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+//    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+//    {
+//        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
+//        return ;
+//    }
+//    TextUnit::ChatInfoUnit unit;
+//    d_ptr->chatInputArea->transTextToUnit(unit);
+
+    FileNetConnector::instance()->connect();
+
+//    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
+//    TextRequest * request = new TextRequest;
+//    request->type = SearchPerson;
+//    request->textId = RUtil::UUID();
+//    request->isEncryption = false;
+//    request->isCompress = false;
+//    request->textType = TEXT_NORAML;
+//    request->otherSideId = d->userInfo.accountId;
+//    request->accountId = G_UserBaseInfo.accountId;
+//    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
+//    request->timeStamp = RUtil::timeStamp();
+//    RSingleton<MsgWrap>::instance()->hanleText(request);
+//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //TODO 对图片进行测试
-    QString fileName = "e:/2.ISO";
-    FileItemDesc * desc = new FileItemDesc;
-    desc->id = RUtil::UUID();
-    desc->fullPath = fileName;
-    desc->fileSize = QFileInfo(fileName).size();
-    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢
-    desc->otherSideId = d->userInfo.accountId;
-    desc->itemType = FILE_ITEM_CHAT_UP;
+//    QString fileName = "e:/test2.chm";
+//    FileItemDesc * desc = new FileItemDesc;
+//    desc->id = RUtil::UUID();
+//    desc->fullPath = fileName;
+//    desc->fileSize = QFileInfo(fileName).size();
+//    desc->otherSideId = d->userInfo.accountId;
+//    desc->itemType = FILE_ITEM_CHAT_UP;
+//    FileRecvTask::instance()->addSendItem(desc);
 
-    ImageTask::instance()->addItem(desc);
 
-    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+    //文件下载
+//    SimpleFileItemRequest * request = new SimpleFileItemRequest;
+//    request->control = T_REQUEST;
+//    request->itemType = FILE_ITEM_CHAT_DOWN;
+//    request->fileId = "f5a7c4c5e9574d31bb37723945b5d6a3";
+//    FileRecvTask::instance()->addRecvItem(request);
 
-    int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+//    SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
+
+//    int user_query_id = d->userInfo.accountId.toInt();
+//    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 
     d->chatInputArea->clear();
 }
@@ -765,8 +776,8 @@ void AbstractChatWidget::switchWindowSize()
 void AbstractChatWidget::initChatRecord()
 {
     MQ_D(AbstractChatWidget);
-    d->p_DatabaseThread = new DatabaseThread(this);
-    d->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
+    d_ptr->p_DatabaseThread = new DatabaseThread(this);
+    d_ptr->p_DatabaseThread->setDatabase(G_User->database());
 
     connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
             this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
@@ -775,9 +786,9 @@ void AbstractChatWidget::initChatRecord()
     d->p_DatabaseThread->start();
 
     int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+    bool ret = SQLProcess::instance()->initTableUser_id(G_User->database(),d->userInfo);
+    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
     Q_UNUSED(ret);
 }
 

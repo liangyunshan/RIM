@@ -58,6 +58,12 @@ public:
         Time,
         FromId,
         TextId,
+        FileName,
+        Size,
+        LocalFileName,
+        MD5,
+        Control,
+        Id,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

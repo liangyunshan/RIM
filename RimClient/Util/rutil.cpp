@@ -93,6 +93,21 @@ QSettings *RUtil::globalSettings()
     return gSettings;
 }
 
+QVariant RUtil::getGlobalValue(const QString & group,const QString &key, const QVariant & defaultValue)
+{
+    gSettings->beginGroup(group);
+    if(!gSettings->contains(key))
+    {
+        gSettings->setValue(key,defaultValue);
+    }
+
+    QVariant val = gSettings->value(key,defaultValue);
+
+    gSettings->endGroup();
+
+    return val;
+}
+
 QString RUtil::UUID()
 {
     QString uuid = QUuid::createUuid().toString();

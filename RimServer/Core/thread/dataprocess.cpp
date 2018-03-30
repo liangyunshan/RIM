@@ -1,6 +1,7 @@
 ﻿#include "dataprocess.h"
 
 #include <QDebug>
+#include <QThread>
 
 #include "Util/rutil.h"
 #include "rsingleton.h"
@@ -8,9 +9,13 @@
 #include "Network/msgwrap.h"
 #include "Network/head.h"
 #include "Network/netglobal.h"
+#include "global.h"
+#include "datastruct.h"
 
 #include "Network/tcpclient.h"
 using namespace ServerNetwork;
+
+#define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度
 
 #define SendData(data) { G_SendMutex.lock();\
                          G_SendButts.enqueue(data);\
@@ -701,4 +706,230 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
     delete reply;
 
     delete request;
+}
+
+/*!
+ * @brief 处理文件发送请求或处理发送文件
+ * @param[in] db 数据库连接
+ * @param[in] socketId 通信ID
+ * @param[in] request 文件传输请求
+ */
+void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest *request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    if(request->itemType == FILE_ITEM_CHAT_UP || request->itemType == FILE_ITEM_USER_UP)
+    {
+        TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
+
+        FileRecvDesc * desc = new FileRecvDesc;
+        desc->itemType = (int)request->itemType;
+        desc->size = request->size;
+        desc->fileName = request->fileName;
+        desc->md5 = request->md5;
+        desc->fileId = request->fileId;
+        desc->accountId = request->accountId;
+        desc->otherId = request->otherId;
+        desc->writeLen = 0;
+
+        //查询是否已经存在此md5文件，若由的话直接在数据库中建立索引关系，避免再次上传
+        bool exist = RSingleton<SQLProcess>::instance()->queryFile(db,request->md5);
+
+        if(exist)
+        {
+            bool quoteResult = RSingleton<SQLProcess>::instance()->addQuoteFile(db,request);
+            if(quoteResult)
+            {
+                SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                response->control = T_SERVER_EXIST;
+                response->md5 = request->md5;
+                response->fileId = request->fileId;
+
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+                delete response;
+            }
+            else
+            {
+                //TODO 引用失败后，因提示用户
+            }
+        }
+        else
+        {
+            if(tmpClient && tmpClient->addFile(request->fileId,desc))
+            {
+                tmpClient->setAccount(request->accountId);
+                SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                response->control = T_ABLE_SEND;
+                response->md5 = request->md5;
+                response->fileId = request->fileId;
+
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+                delete response;
+            }
+        }
+    }
+
+    SendData(responseData);
+
+    delete request;
+}
+
+/*!
+ * @details A:响应用户文件请求、文件状态控制，需要注意的是，在接收到用户控制报文时有以下情况： @n
+ *              1.控制报文比其它数据报文先行处理，此时文件可能未被创建 @n
+ *              2.控制报文在数据报文中处理，在设置完文件状态后，不能直接丢弃之后的数据，也需要缓存起来 @n
+ *              3.控制报文在最后处理，此时所有的数据报文均已经处理完成，那么此时控制报文已经没有意义 @n
+ *          B:文件下载请求: @n
+ *              1.查找对应文件的基本信息反馈客户端 @n
+ */
+void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemRequest *request)
+{
+    //上传文件控制报文
+    if(request->itemType == FILE_ITEM_CHAT_UP || request->itemType == FILE_ITEM_USER_UP)
+    {
+        TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
+        if(tmpClient)
+        {
+            FileRecvDesc * desc = tmpClient->getFile(request->fileId);
+            if(desc)
+            {
+                desc->lock();
+                if(request->control == T_PAUSE)
+                {
+                    desc->setState(FILE_PAUSE);
+                }
+                else if(request->control == T_TRANING)
+                {
+                    desc->setState(FILE_TRANING);
+                }
+                else if(request->control == T_CANCEL)
+                {
+                    desc->setState(FILE_CANCEL);
+                    desc->destory();
+                }
+
+                SocketOutData responseData;
+                responseData.sockId = socketId;
+
+                SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                response->control = request->control;
+                response->md5 = request->md5;
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+                SendData(responseData);
+
+                desc->unlock();
+            }
+        }
+    }
+    //下载文件请求报文
+    else if(request->itemType == FILE_ITEM_CHAT_DOWN || request->itemType == FILE_ITEM_USER_DOWN)
+    {
+        if(request->control == T_REQUEST)
+        {
+            FileItemRequest * response = new FileItemRequest;
+            response->itemType = request->itemType;
+            bool flag = RSingleton<SQLProcess>::instance()->getFileInfo(db,request,response);
+            if(flag)
+            {
+                SocketOutData responseData;
+                responseData.sockId = socketId;
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+
+                delete response;
+
+                SendData(responseData);
+            }
+        }
+        else if(request->control == T_ABLE_SEND)
+        {
+            Datastruct::FileItemInfo fileItemInfo;
+            bool flag = RSingleton<SQLProcess>::instance()->getDereferenceFileInfo(db,request,&fileItemInfo);
+            if(flag)
+            {
+                QFile file(fileItemInfo.filePath + "/" +fileItemInfo.md5);
+                if(!file.open(QFile::ReadOnly))
+                {
+                    //TODO 提示客户端文件不存在
+                    return;
+                }
+
+                int sendLen = 0;
+                int currIndex = 0;
+                while(!file.atEnd())
+                {
+                    SocketOutData responseData;
+                    responseData.sockId = socketId;
+
+                    QByteArray data = file.read(900);
+                    sendLen += data.size();
+                    responseData.data = RSingleton<MsgWrap>::instance()->handleFileData(request->fileId,currIndex++,data);
+                    SendData(responseData);
+                }
+            }
+        }
+    }
+}
+
+/*!
+ *  @details 在传输过程中，因控制报文可在数据报文中间,则在文件处理时，采用以下策略: @n
+ *           1.暂停传输/恢复传输：数据报文接收后继续往文件中写入，不丢弃； @n
+ *           2.取消传输；将文件关闭并删除，之后的数据报文直接丢弃。
+ */
+void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *request)
+{
+    TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
+    if(tmpClient)
+    {
+        FileRecvDesc * desc = tmpClient->getFile(request->fileId);
+        if(desc)
+        {
+            desc->lock();
+            if(desc->state() == FILE_CANCEL)
+            {
+                desc->unlock();
+                return;
+            }
+
+            if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
+            {
+                desc->unlock();
+                return;
+            }
+
+            if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE)
+                if(desc->seek(request->index * FILE_MAX_PACK_SIZE) && desc->write(request->array) > 0)
+                {
+                    if(desc->flush() && desc->isRecvOver())
+                    {
+                        desc->close();
+
+                        if(RSingleton<SQLProcess>::instance()->addFile(db,desc))
+                        {
+                            SocketOutData responseData;
+                            responseData.sockId = socketId;
+
+                            SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                            response->control = T_OVER;
+                            response->md5 = desc->md5;
+                            response->fileId = desc->fileId;
+                            responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+
+                            delete response;
+
+                            SendData(responseData);
+                        }
+                    }
+                }
+
+            desc->unlock();
+
+            if(desc->isRecvOver())
+            {
+                {
+                    tmpClient->removeFile(request->fileId);
+                }
+            }
+        }
+    }
 }

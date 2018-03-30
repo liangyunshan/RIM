@@ -4,6 +4,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QDir>
 
 #include "datastruct.h"
 #include "constants.h"
@@ -16,6 +17,7 @@
 #include "protocoldata.h"
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
+#include "user/user.h"
 
 #include "widget/rlabel.h"
 
@@ -72,7 +74,6 @@ void PanelTopAreaPrivate::initWidget()
     userIconLabel->setObjectName("Panel_Top_UserIconLabel");
     userIconLabel->setToolTip(QObject::tr("Edit personal information"));
     userIconLabel->setFixedSize(PANEL_TOP_USER_ICON_SIZE,PANEL_TOP_USER_ICON_SIZE);
-    userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     QObject::connect(userIconLabel,SIGNAL(mousePressed()),MainDialog::instance(),SLOT(showPersonalEditWindow()));
 //    connect(userIconLabel,SIGNAL(mouseHover(bool)),MainDialog::instance(),SLOT(showUserInfo(bool)));
 
@@ -151,6 +152,8 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
 {
     RSingleton<Subject>::instance()->attach(this);
 
+    loadCustomUserImage();
+
     connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
             this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
 
@@ -169,10 +172,31 @@ void PanelTopArea::onMessage(MessageType type)
     switch(type)
     {
         case MESS_BASEINFO_UPDATE:
-                             updateUserInfo();
-                             break;
+             updateUserInfo();
+             break;
+        case MESS_ICON_CHANGE:
+             loadCustomUserImage();
+             break;
         default:
             break;
+    }
+}
+
+void PanelTopArea::loadCustomUserImage()
+{
+    MQ_D(PanelTopArea);
+
+    if(G_UserBaseInfo.customImgId.size() > 0)
+    {
+        QString pix = G_User->getFileRecvPath() + QDir::separator() + G_UserBaseInfo.customImgId + ".png";
+        if(QFile(pix).exists())
+        {
+            d->userIconLabel->setPixmap(pix);
+        }
+    }
+    else
+    {
+        d->userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face));
     }
 }
 
