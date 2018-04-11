@@ -58,8 +58,8 @@ void DataProcess::proLoginResponse(QJsonObject &data)
             response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
             response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
             response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
-            response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
-            response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+            response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+            response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
 
             MessDiapatch::instance()->onRecvLoginResponse(LOGIN_SUCCESS,response);
         }
@@ -88,8 +88,8 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
             response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
             response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
             response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
-            response.baseInfo.face = dataObj.value(JsonKey::key(JsonKey::Face)).toInt();
-            response.baseInfo.customImgId = dataObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+            response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+            response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
             response.reponseType = (OperateContact)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
             MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(UPDATE_USER_SUCCESS,response);
         }
@@ -138,8 +138,8 @@ void DataProcess::proSearchFriendResponse(QJsonObject &data)
                     result.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
                     result.nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
                     result.signName = obj.value(JsonKey::key(JsonKey::SignName)).toString();
-                    result.face = obj.value(JsonKey::key(JsonKey::Face)).toInt();
-                    result.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
+                    result.isSystemIcon = obj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+                    result.iconId = obj.value(JsonKey::key(JsonKey::IconId)).toString();
 
                     response.result.append(result);
                 }
@@ -180,8 +180,8 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
                                     response.requestInfo.accountId = requestInfo.value(JsonKey::key(JsonKey::AccountId)).toString();
                                     response.requestInfo.nickName = requestInfo.value(JsonKey::key(JsonKey::NickName)).toString();
                                     response.requestInfo.signName = requestInfo.value(JsonKey::key(JsonKey::SignName)).toString();
-                                    response.requestInfo.face = requestInfo.value(JsonKey::key(JsonKey::Face)).toInt();
-                                    response.requestInfo.customImgId = requestInfo.value(JsonKey::key(JsonKey::FaceId)).toString();
+                                    response.requestInfo.isSystemIcon = requestInfo.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
+                                    response.requestInfo.iconId = requestInfo.value(JsonKey::key(JsonKey::IconId)).toString();
                                 }
 
                                 MessDiapatch::instance()->onRecvFriendRequest(response);
@@ -221,8 +221,8 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
                 userInfo->nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
                 userInfo->signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
                 userInfo->remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
-                userInfo->face = user.value(JsonKey::key(JsonKey::Face)).toInt();
-                userInfo->customImgId = user.value(JsonKey::key(JsonKey::FaceId)).toString();
+                userInfo->isSystemIcon = user.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
+                userInfo->iconId = user.value(JsonKey::key(JsonKey::IconId)).toString();
                 userInfo->status = (OnlineStatus)user.value(JsonKey::key(JsonKey::Status)).toInt();
 
                 groupData->users.append(userInfo);
@@ -275,8 +275,8 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
         response.user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
         response.user.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
         response.user.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
-        response.user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
-        response.user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+        response.user.isSystemIcon = simpleObj.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
+        response.user.iconId = simpleObj.value(JsonKey::key(JsonKey::IconId)).toString();
         response.user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
         response.user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 

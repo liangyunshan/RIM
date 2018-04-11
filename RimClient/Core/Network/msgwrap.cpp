@@ -116,8 +116,8 @@ void MsgWrap::handleUpdateBaseInfoRequest(UpdateBaseInfoRequest * packet)
         data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
         data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
         data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-        data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
-        data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
+        data.insert(JsonKey::key(JsonKey::SystemIcon),packet->baseInfo.isSystemIcon);
+        data.insert(JsonKey::key(JsonKey::IconId),packet->baseInfo.iconId);
         data.insert(JsonKey::key(JsonKey::Type),packet->requestType);
     }
     else
@@ -215,8 +215,8 @@ void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
     user.insert(JsonKey::key(JsonKey::AccountId),packet->user.accountId);
     user.insert(JsonKey::key(JsonKey::NickName),packet->user.nickName);
     user.insert(JsonKey::key(JsonKey::SignName),packet->user.signName);
-    user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
-    user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
+    user.insert(JsonKey::key(JsonKey::SystemIcon),packet->user.isSystemIcon);
+    user.insert(JsonKey::key(JsonKey::IconId),packet->user.iconId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
     user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 

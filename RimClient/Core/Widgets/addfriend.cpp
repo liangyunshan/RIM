@@ -23,6 +23,7 @@
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"
+#include "user/user.h"
 
 #define ADD_FRIEND_WIDTH 380
 #define ADD_FRIEND_HEIGHT 400
@@ -283,7 +284,7 @@ void AddFriend::addFriend()
     {
         AddFriendRequest * request = new AddFriendRequest;
         request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
-        request->accountId = G_UserBaseInfo.accountId;
+        request->accountId = G_User->BaseInfo().accountId;
         request->operateId = d->searchList->selectedItem()->getName();
         RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
@@ -371,7 +372,7 @@ void AddFriend::itemSelected(ToolItem * item)
 {
     MQ_D(AddFriend);
 
-    if(item && item->getName() != G_UserBaseInfo.accountId && !friendExisted(item->getName()))
+    if(item && item->getName() != G_User->BaseInfo().accountId && !friendExisted(item->getName()))
     {
         d->enableSearch(true);
     }

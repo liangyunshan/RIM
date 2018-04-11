@@ -23,6 +23,7 @@
 #include "rsingleton.h"
 #include "json/jsonresolver.h"
 #include "global.h"
+#include "user/user.h"
 
 #include <QDebug>
 
@@ -81,8 +82,8 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
     QString contents = this->toChatFormaText().replace("'","\"");
 
     unit.rowid = -1;
-    unit.user.id = G_UserBaseInfo.accountId.toInt();
-    unit.user.name = G_UserBaseInfo.nickName;
+    unit.user.id = G_User->BaseInfo().accountId.toInt();
+    unit.user.name = G_User->BaseInfo().nickName;
     unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
     unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
     unit.font.fontName = font.key();

@@ -27,7 +27,10 @@ void ImageManager::loadSystemIcons()
    QDir dir(qApp->applicationDirPath()+Constant::PATH_ImagePath+Constant::IMAGE_SystemIconPath);
    if(dir.exists())
    {
-       localSystemUserIcon = dir.entryInfoList(QStringList(QObject::tr("*.png")),QDir::Files|QDir::NoDotAndDotDot);
+       localSystemUserIcon = dir.entryInfoList(QStringList(QObject::tr("*.png")),QDir::Files|QDir::NoDotAndDotDot,QDir::Name);
+       std::sort(localSystemUserIcon.begin(),localSystemUserIcon.end(),[](const QFileInfo & a,const QFileInfo & b){
+           return a.baseName().toInt() < b.baseName().toInt();
+       });
    }
 }
 
@@ -49,13 +52,13 @@ QString ImageManager::getSystemUserIcon(unsigned short index, bool fullPath)
         loadSystemIcons();
     }
 
-    if(index >=0 && index < localSystemUserIcon.size())
+    if(index >=1 && index <= localSystemUserIcon.size())
     {
         if(fullPath)
         {
-            return localSystemUserIcon.at(index).absoluteFilePath();
+            return localSystemUserIcon.at(index - 1).absoluteFilePath();
         }
-        return localSystemUserIcon.at(index).fileName();
+        return localSystemUserIcon.at(index - 1).fileName();
     }
 
     return QString("");
@@ -63,7 +66,7 @@ QString ImageManager::getSystemUserIcon(unsigned short index, bool fullPath)
 
 /*!
  * @brief 获取用户图标
- * @param[in] imageName 文件名
+ * @param[in] imageName 文件名(1.png)
  * @return 若存在则返回全路径，若不存在返回空字符串
  */
 QString ImageManager::getSystemUserIcon(QString imageName)
@@ -94,10 +97,10 @@ QString ImageManager::getSystemImageDir()
 }
 
 /*!
-     * @brief 获取原型图标
-     * @param[in] imagePath 图片路径
-     * @return 处理后圆形图标
-     */
+ * @brief 获取圆形图标
+ * @param[in] imagePath 图片路径
+ * @return 处理后圆形图标
+ */
 QIcon ImageManager::getCircularIcons(QString imagePath)
 {
     QPixmap pixmap(imagePath);

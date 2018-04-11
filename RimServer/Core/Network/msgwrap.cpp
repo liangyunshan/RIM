@@ -152,8 +152,8 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
     data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
     data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
     data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
-    data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
+    data.insert(JsonKey::key(JsonKey::SystemIcon),packet->baseInfo.isSystemIcon);
+    data.insert(JsonKey::key(JsonKey::IconId),packet->baseInfo.iconId);
 
     return wrappedPack(packet,LOGIN_SUCCESS,data);
 }
@@ -172,8 +172,8 @@ QByteArray MsgWrap::handleUpdateBaseInfoResponse(UpdateBaseInfoResponse * packet
     data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
     data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
     data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-    data.insert(JsonKey::key(JsonKey::Face),packet->baseInfo.face);
-    data.insert(JsonKey::key(JsonKey::FaceId),packet->baseInfo.customImgId);
+    data.insert(JsonKey::key(JsonKey::SystemIcon),packet->baseInfo.isSystemIcon);
+    data.insert(JsonKey::key(JsonKey::IconId),packet->baseInfo.iconId);
 
     return wrappedPack(packet,UPDATE_USER_SUCCESS,data);
 }
@@ -198,8 +198,8 @@ QByteArray MsgWrap::handleSearchFriendResponse(SearchFriendResponse * packet)
         obj.insert(JsonKey::key(JsonKey::AccountId),packet->result.at(i).accountId);
         obj.insert(JsonKey::key(JsonKey::NickName),packet->result.at(i).nickName);
         obj.insert(JsonKey::key(JsonKey::SignName),packet->result.at(i).signName);
-        obj.insert(JsonKey::key(JsonKey::Face),packet->result.at(i).face);
-        obj.insert(JsonKey::key(JsonKey::FaceId),packet->result.at(i).customImgId);
+        obj.insert(JsonKey::key(JsonKey::SystemIcon),packet->result.at(i).isSystemIcon);
+        obj.insert(JsonKey::key(JsonKey::IconId),packet->result.at(i).iconId);
 
         data.append(obj);
     }
@@ -220,8 +220,8 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
     requsetInfo.insert(JsonKey::key(JsonKey::AccountId),packet->requestInfo.accountId);
     requsetInfo.insert(JsonKey::key(JsonKey::NickName),packet->requestInfo.nickName);
     requsetInfo.insert(JsonKey::key(JsonKey::SignName),packet->requestInfo.signName);
-    requsetInfo.insert(JsonKey::key(JsonKey::Face),packet->requestInfo.face);
-    requsetInfo.insert(JsonKey::key(JsonKey::FaceId),packet->requestInfo.customImgId);
+    requsetInfo.insert(JsonKey::key(JsonKey::SystemIcon),packet->requestInfo.isSystemIcon);
+    requsetInfo.insert(JsonKey::key(JsonKey::IconId),packet->requestInfo.iconId);
 
     obj.insert(JsonKey::key(JsonKey::OperateInfo),requsetInfo);
 
@@ -253,8 +253,8 @@ QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
             user.insert(JsonKey::key(JsonKey::AccountId),userInfo->accountId);
             user.insert(JsonKey::key(JsonKey::NickName),userInfo->nickName);
             user.insert(JsonKey::key(JsonKey::SignName),userInfo->signName);
-            user.insert(JsonKey::key(JsonKey::Face),userInfo->face);
-            user.insert(JsonKey::key(JsonKey::FaceId),userInfo->customImgId);
+            user.insert(JsonKey::key(JsonKey::SystemIcon),userInfo->isSystemIcon);
+            user.insert(JsonKey::key(JsonKey::IconId),userInfo->iconId);
             user.insert(JsonKey::key(JsonKey::Remark),userInfo->remarks);
             user.insert(JsonKey::key(JsonKey::Status),userInfo->status);
 
@@ -292,8 +292,8 @@ QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int resu
     user.insert(JsonKey::key(JsonKey::AccountId),packet->user.accountId);
     user.insert(JsonKey::key(JsonKey::NickName),packet->user.nickName);
     user.insert(JsonKey::key(JsonKey::SignName),packet->user.signName);
-    user.insert(JsonKey::key(JsonKey::Face),packet->user.face);
-    user.insert(JsonKey::key(JsonKey::FaceId),packet->user.customImgId);
+    user.insert(JsonKey::key(JsonKey::SystemIcon),packet->user.isSystemIcon);
+    user.insert(JsonKey::key(JsonKey::IconId),packet->user.iconId);
     user.insert(JsonKey::key(JsonKey::Remark),packet->user.remarks);
     user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 

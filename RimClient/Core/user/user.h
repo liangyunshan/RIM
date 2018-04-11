@@ -18,10 +18,15 @@
 class QSettings;
 class Database;
 
+#include "protocoldata.h"
+
+using namespace ProtocolType;
+
 class User
 {
 public:
-    explicit User(const QString & id);
+    explicit User(const UserBaseInfo & baseInfo);
+    User(const QString userId);
     ~User();
 
     QString getUserHome()const;
@@ -37,15 +42,22 @@ public:
     QVariant getSettingValue(const QString & group,const QString &key,QVariant defaultValue);
     void setSettingValue(const QString & group,const QString &key,QVariant value);
 
-    QString getFilePath(QString id,QString suffix);
+    QString getFilePath(QString id);
+    QString getIcon();
 
     void setDatabase(Database * database);
     Database * database();
 
+    UserBaseInfo & BaseInfo(){return userBaseInfo;}
+
+private:
+    bool createUserHome(const QString id);
+
 private:
     static User * puser;
 
-    QString userId;
+    UserBaseInfo userBaseInfo;       /*!< 用户基本数据信息 */
+
     QString userHome;
     QString userDBPath;
     QString userFilePath;

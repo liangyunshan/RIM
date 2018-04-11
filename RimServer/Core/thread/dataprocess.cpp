@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QThread>
+#include <QScopedPointer>
 
 #include "Util/rutil.h"
 #include "rsingleton.h"
@@ -32,30 +33,27 @@ DataProcess::DataProcess()
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *request)
+void DataProcess::processUserRegist(Database *db, int socketId, std::shared_ptr<RegistRequest>request)
 {
     SocketOutData data;
     data.sockId = socketId;
 
     QString registId,uuid;
 
-    ResponseRegister regResult = RSingleton<SQLProcess>::instance()->processUserRegist(db,request,registId,uuid);
+    ResponseRegister regResult = RSingleton<SQLProcess>::instance()->processUserRegist(db,request.get(),registId,uuid);
 
     if(regResult == REGISTER_SUCCESS)
     {
-        RegistResponse * response = new RegistResponse;
+        QScopedPointer<RegistResponse> response(new RegistResponse);
         QString groupId;
         RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),groupId,true);
         response->accountId = registId;
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-        delete response;
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,regResult);
     }
-
-    delete request;
 
     SendData(data);
 }
@@ -71,7 +69,7 @@ void DataProcess::processUserRegist(Database *db, int socketId, RegistRequest *r
  *      2.向用户的在线好友推送用户的登陆状态; @n
  *
  */
-void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *request)
+void DataProcess::processUserLogin(Database * db,int socketId, QSharedPointer<LoginRequest> request)
 {
     SocketOutData data;
     data.sockId = socketId;
@@ -86,14 +84,14 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
     }
     else
     {
-        loginResult = RSingleton<SQLProcess>::instance()->processUserLogin(db,request);
+        loginResult = RSingleton<SQLProcess>::instance()->processUserLogin(db,request.data());
     }
 
     if(loginResult == LOGIN_SUCCESS)
     {
-        LoginResponse * response = new LoginResponse;
+        QScopedPointer<LoginResponse> response(new LoginResponse);
         RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,response->baseInfo);
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
 
         TcpClient * client = TcpClientManager::instance()->getClient(socketId);
         if(client)
@@ -102,7 +100,6 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
             client->setNickName(response->baseInfo.nickName);
             client->setOnLineState((int)request->status);
         }
-        delete response;
     }
     else
     {
@@ -113,38 +110,31 @@ void DataProcess::processUserLogin(Database * db,int socketId, LoginRequest *req
 
     //[1]向用户对应的好友推送上线通知。
     pushFriendMyStatus(db,socketId,request->accountId,request->status);
-
-    delete request;
 }
 
-void DataProcess::processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request)
+void DataProcess::processUpdateUserInfo(Database * db,int socketId, QSharedPointer<UpdateBaseInfoRequest> request)
 {
     SocketOutData data;
     data.sockId = socketId;
 
-    ResponseUpdateUser updateResult = RSingleton<SQLProcess>::instance()->processUpdateUserInfo(db,request);
+    ResponseUpdateUser updateResult = RSingleton<SQLProcess>::instance()->processUpdateUserInfo(db,request.data());
 
     if(updateResult == UPDATE_USER_SUCCESS)
     {
-
-        UpdateBaseInfoResponse * response = new UpdateBaseInfoResponse;
+        QScopedPointer<UpdateBaseInfoResponse> response (new UpdateBaseInfoResponse);
 
         RSingleton<SQLProcess>::instance()->getUserInfo(db,request->baseInfo.accountId,response->baseInfo);
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-
-        delete response;
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,updateResult);
     }
 
-    delete request;
-
     SendData(data);
 }
 
-void DataProcess::processUserStateChanged(Database *db, int socketId, UserStateRequest *request)
+void DataProcess::processUserStateChanged(Database *db, int socketId, QSharedPointer<UserStateRequest> request)
 {
     SocketOutData data;
     data.sockId = socketId;
@@ -154,13 +144,11 @@ void DataProcess::processUserStateChanged(Database *db, int socketId, UserStateR
     {
         client->setOnLineState((int)request->onStatus);
 
-        UserStateResponse * response = new UserStateResponse;
+        QScopedPointer<UserStateResponse> response(new UserStateResponse);
         response->accountId = request->accountId;
         response->onStatus = request->onStatus;
 
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-
-        delete response;
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
@@ -170,8 +158,6 @@ void DataProcess::processUserStateChanged(Database *db, int socketId, UserStateR
     SendData(data);
 
     pushFriendMyStatus(db,socketId,request->accountId,request->onStatus);
-
-    delete request;
 }
 
 /*!
@@ -196,39 +182,33 @@ void DataProcess::pushFriendMyStatus(Database *db, int socketId, QString account
             SocketOutData tmpData;
             tmpData.sockId = friendClient->socket();
 
-            UserStateResponse * response = new UserStateResponse;
+            QScopedPointer<UserStateResponse> response (new UserStateResponse);
             response->accountId = accountId;
             response->onStatus = onStatus;
 
-            tmpData.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-
-            delete response;
-
+            tmpData.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
             SendData(tmpData);
         }
         iter++;
     }
 }
 
-void DataProcess::processSearchFriend(Database * db,int socketId, SearchFriendRequest *request)
+void DataProcess::processSearchFriend(Database * db,int socketId, QSharedPointer<SearchFriendRequest> request)
 {
     SocketOutData data;
     data.sockId = socketId;
-    SearchFriendResponse * response = new SearchFriendResponse;
+    QScopedPointer<SearchFriendResponse> response (new SearchFriendResponse);
 
-    ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchFriend(db,request,response);
+    ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchFriend(db,request.data(),response.data());
 
     if(updateResult == FIND_FRIEND_FOUND)
     {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response);
-        delete response;
+        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
         data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,updateResult);
     }
-
-    delete request;
 
     SendData(data);
 }
@@ -242,7 +222,7 @@ void DataProcess::processSearchFriend(Database * db,int socketId, SearchFriendRe
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest *request)
+void DataProcess::processAddFriend(Database * db,int socketId, QSharedPointer<AddFriendRequest> request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
@@ -255,7 +235,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
         SocketOutData reqeuestData;
         reqeuestData.sockId = client->socket();
 
-        OperateFriendResponse * ofresponse = new OperateFriendResponse();
+        QScopedPointer<OperateFriendResponse> ofresponse (new OperateFriendResponse());
         ofresponse->type = FRIEND_APPLY;
         ofresponse->result = (int)FRIEND_REQUEST;
         ofresponse->stype = request->stype;
@@ -266,12 +246,11 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
         ofresponse->requestInfo.accountId = baseInfo.accountId;
         ofresponse->requestInfo.nickName = baseInfo.nickName;
         ofresponse->requestInfo.signName = baseInfo.signName;
-        ofresponse->requestInfo.face = baseInfo.face;
-        ofresponse->requestInfo.customImgId = baseInfo.customImgId;
+        ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+        ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse);
+        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
 
-        delete ofresponse;
         SendData(reqeuestData);
     }
     else
@@ -280,8 +259,6 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
     }
 
     responseData.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,result);
-
-    delete request;
 
     SendData(responseData);
 }
@@ -295,14 +272,14 @@ void DataProcess::processAddFriend(Database * db,int socketId, AddFriendRequest 
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void DataProcess::processRelationOperate(Database *db, int socketId, OperateFriendRequest *request)
+void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPointer<OperateFriendRequest> request)
 {
     bool flag = false;
 
     ResponseFriendApply result = (ResponseFriendApply)request->result;
     if(result == FRIEND_AGREE)
     {
-        flag = RSingleton<SQLProcess>::instance()->establishRelation(db,request);
+        flag = RSingleton<SQLProcess>::instance()->establishRelation(db,request.data());
     }
 
     //【1】向自己发送对方联系人基本信息
@@ -311,7 +288,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         SocketOutData responseData;
         responseData.sockId = socketId;
 
-        GroupingFriendResponse * responseA = new GroupingFriendResponse;
+        QScopedPointer<GroupingFriendResponse> responseA (new GroupingFriendResponse);
         responseA->type = G_Friend_CREATE;
         responseA->stype = request->stype;
         responseA->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->accountId);
@@ -321,8 +298,8 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         responseA->user.accountId = baseInfo.accountId;
         responseA->user.nickName = baseInfo.nickName;
         responseA->user.signName = baseInfo.signName;
-        responseA->user.face = baseInfo.face;
-        responseA->user.customImgId = baseInfo.customImgId;
+        responseA->user.isSystemIcon = baseInfo.isSystemIcon;
+        responseA->user.iconId = baseInfo.iconId;
         responseA->user.remarks = baseInfo.nickName;
 
         TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
@@ -335,8 +312,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             responseA->user.status = STATUS_OFFLINE;
         }
 
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA);
-        delete responseA;
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
         SendData(responseData);
     }
 
@@ -349,7 +325,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         SocketOutData reqeuestData;
         reqeuestData.sockId = operateSock;
 
-        OperateFriendResponse * ofresponse = new OperateFriendResponse();
+        QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
         ofresponse->type = FRIEND_APPLY;
         ofresponse->result = (int)request->result;
         ofresponse->stype = request->stype;
@@ -360,11 +336,11 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
         ofresponse->requestInfo.accountId = baseInfo.accountId;
         ofresponse->requestInfo.nickName = baseInfo.nickName;
         ofresponse->requestInfo.signName = baseInfo.signName;
-        ofresponse->requestInfo.face = baseInfo.face;
-        ofresponse->requestInfo.customImgId = baseInfo.customImgId;
+        ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+        ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse);
-        delete ofresponse;
+        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+
         SendData(reqeuestData);
 
         //【3】若同意请求，则再次向对方发送自己的基本信息
@@ -373,7 +349,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             SocketOutData responseData;
             responseData.sockId = operateSock;
 
-            GroupingFriendResponse * responseB = new GroupingFriendResponse;
+            QScopedPointer<GroupingFriendResponse> responseB(new GroupingFriendResponse());
             responseB->type = G_Friend_CREATE;
             responseB->stype = request->stype;
 
@@ -382,8 +358,8 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
             responseB->user.accountId = baseInfo.accountId;
             responseB->user.nickName = baseInfo.nickName;
             responseB->user.signName = baseInfo.signName;
-            responseB->user.face = baseInfo.face;
-            responseB->user.customImgId = baseInfo.customImgId;
+            responseB->user.isSystemIcon = baseInfo.isSystemIcon;
+            responseB->user.iconId = baseInfo.iconId;
             responseB->user.remarks = baseInfo.nickName;
 
             TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
@@ -396,8 +372,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
                 responseB->user.status = STATUS_OFFLINE;
             }
 
-            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB);
-            delete responseB;
+            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
             SendData(responseData);
         }
     }
@@ -405,8 +380,6 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
     {
         RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
     }
-
-    delete request;
 }
 
 /*!
@@ -423,14 +396,14 @@ void DataProcess::processRelationOperate(Database *db, int socketId, OperateFrie
  *      4.推送当前用户离线消息; @n
  * @attention 若可以查到好友在线状态，则将当前状态作为好友状态；若查找不到，默认使用离线状态表示。
  */
-void DataProcess::processFriendList(Database *db, int socketId, FriendListRequest *request)
+void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<FriendListRequest> request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
 
-    FriendListResponse * response = new FriendListResponse;
+    QScopedPointer<FriendListResponse> response (new FriendListResponse);
     response->accountId = request->accountId;
-    bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response);
+    bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response.data());
     if(flag)
     {
         for(int i = 0; i < response->groups.size(); i++)
@@ -451,7 +424,7 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
             }
         }
 
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response);
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
@@ -472,7 +445,7 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
                 SocketOutData reqeuestData;
                 reqeuestData.sockId = socketId;
 
-                OperateFriendResponse * ofresponse = new OperateFriendResponse();
+                QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
                 ofresponse->type = FRIEND_APPLY;
                 ofresponse->result = (int)FRIEND_REQUEST;
                 ofresponse->stype = (*iter).stype;
@@ -483,12 +456,11 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
                 ofresponse->requestInfo.accountId = baseInfo.accountId;
                 ofresponse->requestInfo.nickName = baseInfo.nickName;
                 ofresponse->requestInfo.signName = baseInfo.signName;
-                ofresponse->requestInfo.face = baseInfo.face;
-                ofresponse->requestInfo.customImgId = baseInfo.customImgId;
+                ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+                ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-                reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse);
+                reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
 
-                delete ofresponse;
                 SendData(reqeuestData);
 
                 iter++;
@@ -513,12 +485,9 @@ void DataProcess::processFriendList(Database *db, int socketId, FriendListReques
             }
         }
     }
-
-    delete request;
-    delete response;
 }
 
-void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingRequest *request)
+void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPointer<GroupingRequest> request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
@@ -535,12 +504,12 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingReq
             break;
         case GROUPING_RENAME:
             {
-               flag = RSingleton<SQLProcess>::instance()->renameGroup(db,request);
+               flag = RSingleton<SQLProcess>::instance()->renameGroup(db,request.data());
             }
             break;
         case GROUPING_DELETE:
             {
-               flag = RSingleton<SQLProcess>::instance()->deleteGroup(db,request);
+               flag = RSingleton<SQLProcess>::instance()->deleteGroup(db,request.data());
             }
             break;
         case GROUPING_SORT:
@@ -554,21 +523,18 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingReq
 
     if(flag)
     {
-        GroupingResponse * response = new GroupingResponse;
+        QScopedPointer<GroupingResponse> response (new GroupingResponse);
         response->uuid = request->uuid;
         response->gtype = request->gtype;
         response->type = request->type;
         response->groupId = groupId;
 
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response);
-        delete response;
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else
     {
 
     }
-
-    delete request;
 
     SendData(responseData);
 }
@@ -581,7 +547,7 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, GroupingReq
  * @param[in] request 数据请求
  * @return 无
  */
-void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFriendRequest *request)
+void DataProcess::processGroupingFriend(Database *db, int socketId, QSharedPointer<GroupingFriendRequest> request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
@@ -594,24 +560,24 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
     {
         case G_Friend_UPDATE:
             {
-                flag = RSingleton<SQLProcess>::instance()->updateGroupFriendInfo(db,request);
+                flag = RSingleton<SQLProcess>::instance()->updateGroupFriendInfo(db,request.data());
             }
             break;
         case G_Friend_MOVE:
             {
-                flag = RSingleton<SQLProcess>::instance()->updateMoveGroupFriend(db,request);
+                flag = RSingleton<SQLProcess>::instance()->updateMoveGroupFriend(db,request.data());
             }
             break;
         case G_Friend_Delete:
             {
-                flag = RSingleton<SQLProcess>::instance()->deleteFriend(db,request,accountId,otherUserGroupId);
+                flag = RSingleton<SQLProcess>::instance()->deleteFriend(db,request.data(),accountId,otherUserGroupId);
             }
             break;
         default:
             break;
     }
 
-    GroupingFriendResponse * response = new GroupingFriendResponse();
+    QScopedPointer<GroupingFriendResponse> response (new GroupingFriendResponse());
     response->type = request->type;
     response->stype = request->stype;
     response->groupId = request->groupId;
@@ -620,11 +586,11 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
 
     if(flag)
     {
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response,STATUS_SUCCESS);
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),STATUS_SUCCESS);
     }
     else
     {
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response,STATUS_FAILE);
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),STATUS_FAILE);
     }
     SendData(responseData);
 
@@ -637,7 +603,7 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
             SocketOutData pushData;
             pushData.sockId = client->socket();
 
-            GroupingFriendResponse * pushResponse = new GroupingFriendResponse();
+            QScopedPointer<GroupingFriendResponse> pushResponse (new GroupingFriendResponse());
             pushResponse->type = request->type;
             pushResponse->stype = request->stype;
             pushResponse->groupId = otherUserGroupId;
@@ -646,15 +612,10 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, GroupingFrie
             //客户端只需要对方ID来查找对应的ToolItem
             pushResponse->user.accountId = accountId;
 
-            pushData.data = RSingleton<MsgWrap>::instance()->handleMsg(pushResponse,STATUS_SUCCESS);
+            pushData.data = RSingleton<MsgWrap>::instance()->handleMsg(pushResponse.data(),STATUS_SUCCESS);
             SendData(pushData);
-
-            delete pushResponse;
         }
     }
-
-    delete response;
-    delete request;
 }
 
 /*!
@@ -695,15 +656,14 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
 
     SocketOutData replyData;
 
-    TextReply * reply = new TextReply;
+    QScopedPointer<TextReply> reply (new TextReply);
     reply->applyType = APPLY_SYSTEM;
     reply->textId = request->textId;
 
     replyData.sockId = socketId;
-    replyData.data = RSingleton<MsgWrap>::instance()->handleTextReply(reply);
+    replyData.data = RSingleton<MsgWrap>::instance()->handleTextReply(reply.data());
 
     SendData(replyData);
-    delete reply;
 
     delete request;
 }
@@ -714,7 +674,7 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
  * @param[in] socketId 通信ID
  * @param[in] request 文件传输请求
  */
-void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest *request)
+void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<FileItemRequest> request)
 {
     SocketOutData responseData;
     responseData.sockId = socketId;
@@ -738,16 +698,15 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
 
         if(exist)
         {
-            bool quoteResult = RSingleton<SQLProcess>::instance()->addQuoteFile(db,request);
+            bool quoteResult = RSingleton<SQLProcess>::instance()->addQuoteFile(db,request.data());
             if(quoteResult)
             {
-                SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                 response->control = T_SERVER_EXIST;
                 response->md5 = request->md5;
                 response->fileId = request->fileId;
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
-                delete response;
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
             }
             else
             {
@@ -759,20 +718,17 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
             if(tmpClient && tmpClient->addFile(request->fileId,desc))
             {
                 tmpClient->setAccount(request->accountId);
-                SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                 response->control = T_ABLE_SEND;
                 response->md5 = request->md5;
                 response->fileId = request->fileId;
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
-                delete response;
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
             }
         }
     }
 
     SendData(responseData);
-
-    delete request;
 }
 
 /*!
@@ -783,7 +739,7 @@ void DataProcess::processFileRequest(Database *db, int socketId, FileItemRequest
  *          B:文件下载请求: @n
  *              1.查找对应文件的基本信息反馈客户端 @n
  */
-void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemRequest *request)
+void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<SimpleFileItemRequest> request)
 {
     //上传文件控制报文
     if(request->itemType == FILE_ITEM_CHAT_UP || request->itemType == FILE_ITEM_USER_UP)
@@ -827,24 +783,21 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
     {
         if(request->control == T_REQUEST)
         {
-            FileItemRequest * response = new FileItemRequest;
+            QScopedPointer<FileItemRequest> response (new FileItemRequest);
             response->itemType = request->itemType;
-            bool flag = RSingleton<SQLProcess>::instance()->getFileInfo(db,request,response);
+            bool flag = RSingleton<SQLProcess>::instance()->getFileInfo(db,request.data(),response.data());
             if(flag)
             {
                 SocketOutData responseData;
                 responseData.sockId = socketId;
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
-
-                delete response;
-
+                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
                 SendData(responseData);
             }
         }
         else if(request->control == T_ABLE_SEND)
         {
             Datastruct::FileItemInfo fileItemInfo;
-            bool flag = RSingleton<SQLProcess>::instance()->getDereferenceFileInfo(db,request,&fileItemInfo);
+            bool flag = RSingleton<SQLProcess>::instance()->getDereferenceFileInfo(db,request.data(),&fileItemInfo);
             if(flag)
             {
                 QFile file(fileItemInfo.filePath + "/" +fileItemInfo.md5);
@@ -876,7 +829,7 @@ void DataProcess::processFileControl(Database *db, int socketId, SimpleFileItemR
  *           1.暂停传输/恢复传输：数据报文接收后继续往文件中写入，不丢弃； @n
  *           2.取消传输；将文件关闭并删除，之后的数据报文直接丢弃。
  */
-void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *request)
+void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<FileDataRequest> request)
 {
     TcpClient * tmpClient = TcpClientManager::instance()->getClient(socketId);
     if(tmpClient)
@@ -909,13 +862,11 @@ void DataProcess::processFileData(Database *db, int socketId, FileDataRequest *r
                             SocketOutData responseData;
                             responseData.sockId = socketId;
 
-                            SimpleFileItemRequest * response = new SimpleFileItemRequest;
+                            QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                             response->control = T_OVER;
                             response->md5 = desc->md5;
                             response->fileId = desc->fileId;
-                            responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
-
-                            delete response;
+                            responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
 
                             SendData(responseData);
                         }
