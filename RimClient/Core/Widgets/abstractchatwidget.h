@@ -22,13 +22,6 @@ class AbstractChatWidget : public Widget , public Observer
     Q_OBJECT
     Q_DECLARE_PRIVATE(AbstractChatWidget)
 public:
-    //窗口抖动的次数
-    enum
-    {MaxLimitTimes = 12};
-
-    //窗口抖动的幅度
-    enum
-    {MaxLimitSpace = 5};
     AbstractChatWidget(QWidget * parent = 0);
     ~AbstractChatWidget();
 
@@ -52,7 +45,6 @@ private slots:
     void slot_SetChatEditFont(bool flag);
     void slot_SetChatEditFontColor(bool flag);
     void slot_ShakeWidget(bool flag);
-    void slot_ShakeTimeout();
     void slot_ScreenShot_Ready(bool);
     void slot_ScreenShotHide(bool flag);
     void slot_ScreenTimeout();

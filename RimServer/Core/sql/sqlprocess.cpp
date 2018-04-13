@@ -447,7 +447,7 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
                 groupData->groupName = query.value(group.name).toString();
                 groupData->isDefault = query.value(group.defaultGroup).toBool();
 
-                QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.face,ru.faceid,rr.remarks from %1 ru left join"
+                QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.SYSTEMICON,ru.ICONID,rr.remarks from %1 ru left join"
                                       " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
 
                 QSqlQuery userQuery(db->sqlDatabase());

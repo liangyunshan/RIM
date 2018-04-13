@@ -19,6 +19,7 @@
 #include <QProcess>
 #include <QMimeData>
 #include <QPalette>
+#include <QPropertyAnimation>
 
 #include "head.h"
 #include "global.h"
@@ -55,6 +56,9 @@
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
 #define CHAT_RIGHT_EXTREA_WIDTH   370       //消息记录等宽度
+#define CHAT_SHAKE_DURATION 200             //窗口抖动动画持续时间
+#define CHAT_SHAKE_LOOPCOUNT 2              //窗口抖动动画循环次数
+#define CHAT_SHAKE_RANGE 6                  //窗口抖动幅度
 
 class AbstractChatWidgetPrivate : public GlobalData<AbstractChatWidget>
 {
@@ -70,7 +74,6 @@ protected:
         p_DatabaseThread = NULL;
         p_shotProcess = NULL;
         p_shotTimer = NULL;
-        p_shakeTimer = NULL;
         b_isScreeHide = false;
     }
 
@@ -110,9 +113,6 @@ protected:
     DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
-    QTimer *p_shakeTimer;
-    int m_nPosition;
-    QPoint m_curPos;
     bool b_isScreeHide;
 };
 
@@ -401,11 +401,6 @@ AbstractChatWidget::~AbstractChatWidget()
         delete d->p_shotTimer;
         d->p_shotTimer = NULL;
     }
-    if(d->p_shakeTimer)
-    {
-        delete d->p_shakeTimer;
-        d->p_shakeTimer = NULL;
-    }
 
     delete d;
 }
@@ -549,56 +544,22 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
 
 void AbstractChatWidget::shakeWindow()
 {
-    MQ_D(AbstractChatWidget);
-    if(d->p_shakeTimer == NULL)
-    {
-        d->p_shakeTimer = new QTimer();
-        connect(d->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
-        d->p_shakeTimer->setInterval(40);
-    }
-    d->m_nPosition = 0;
-    d->m_curPos = this->pos();
-    d->p_shakeTimer->start();
-}
-
-void AbstractChatWidget::slot_ShakeTimeout()
-{
-    MQ_D(AbstractChatWidget);
-    if(d->p_shakeTimer==NULL)
-    {
-        return ;
-    }
-    d->p_shakeTimer->stop();
-    if(d->m_nPosition < MaxLimitTimes)
-    {
-        ++d->m_nPosition;
-        switch(d->m_nPosition%4)
-        {
-            case 1:
-            {
-                QPoint tmpPos(d->m_curPos.x(),d->m_curPos.y()-MaxLimitSpace);
-                this->move(tmpPos);
-            }
-                break;
-            case 2:
-            {
-                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y()-MaxLimitSpace);
-                this->move(tmpPos);
-            }
-                break;
-            case 3:
-            {
-                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y());
-                this->move(tmpPos);
-            }
-                break;
-            default:
-            case 0:
-                this->move(d->m_curPos);
-                break;
-        }
-            d->p_shakeTimer->start();
-    }
+    QPoint pos = this->pos();
+    QPropertyAnimation *pAnimation = new QPropertyAnimation(this, "pos");
+    pAnimation->setDuration(CHAT_SHAKE_DURATION);
+    pAnimation->setLoopCount(CHAT_SHAKE_LOOPCOUNT);
+    pAnimation->setStartValue(pos);
+    pAnimation->setKeyValueAt(0.1,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.2,pos + QPoint(-CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.3,pos + QPoint(-CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.4,pos + QPoint(0,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.5,pos + QPoint(CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.6,pos + QPoint(CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.7,pos + QPoint(CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.8,pos + QPoint(0,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.9,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setEndValue(pos);
+    pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 //截图完成
