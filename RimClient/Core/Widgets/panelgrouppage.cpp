@@ -12,6 +12,7 @@
 #include "actionmanager/actionmanager.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"
+#include "user/user.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -210,7 +211,7 @@ void PanelGroupPage::deleteGroup()
     }
     d->m_deleteID = t_page->getID();
     GroupingRequest * request = new GroupingRequest();
-    request->uuid = G_UserBaseInfo.uuid;
+    request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_DELETE;
     request->gtype = GROUPING_GROUP;
     request->groupId = t_page->getID();
@@ -253,7 +254,7 @@ void PanelGroupPage::renameEditFinished()
     {
         d->toolBox->selectedPage()->setToolName(d->tmpNameEdit->text());
         GroupingRequest * request = new GroupingRequest();
-        request->uuid = G_UserBaseInfo.uuid;
+        request->uuid = G_User->BaseInfo().uuid;
         if(d->groupIsCreate)
         {
             request->type = GROUPING_CREATE;

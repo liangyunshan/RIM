@@ -36,7 +36,7 @@ private slots:
     void openSystemImage();
     void openLocalImage();
     void updateUserBaseInfo();
-    void updateSystemIconInfo(QString filename);
+    void updateSystemIconInfo(QString fileName);
     void recvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
     void singleBaseInfoFinished();
 

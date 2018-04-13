@@ -299,7 +299,7 @@ void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
     d->m_nickName_edit->setText(info.nickName);
     d->m_remark_edit->setText(info.remarks);
     d->m_remark_edit->adjustSize();
-    d->m_headPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(info.face);
+    d->m_headPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(info.iconId);
     d->m_head_label->setPixmap(d->m_headPath);
     d->m_signName_edit->setText(info.signName);
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;

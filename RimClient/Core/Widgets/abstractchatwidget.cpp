@@ -540,7 +540,7 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     TextRequest * request = new TextRequest;
     request->msgCommand = MSG_TEXT_SHAKE;
     request->otherSideId = d->userInfo.accountId;
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
 

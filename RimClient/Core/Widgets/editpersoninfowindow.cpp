@@ -84,6 +84,8 @@ private:
     RButton * closeButton;
 
     RButton * iconButton;
+
+    bool isSystemIcon;
 };
 
 void EditPersonInfoWindowPrivate::initWidget()
@@ -265,27 +267,27 @@ void EditPersonInfoWindowPrivate::initWidget()
 
 void EditPersonInfoWindowPrivate::initContent()
 {
-    m_account_edit->setText(G_UserBaseInfo.accountId);
-    m_nickName_edit->setText(G_UserBaseInfo.nickName);
+    m_account_edit->setText(G_User->BaseInfo().accountId);
+    m_nickName_edit->setText(G_User->BaseInfo().nickName);
     m_sign_plainEdit->clear();
-    m_sign_plainEdit->appendPlainText(G_UserBaseInfo.signName);
-    m_sexual_box->setCurrentIndex((int)G_UserBaseInfo.sexual);
-    m_birth_dateEdit->setDate(QDate::fromString(G_UserBaseInfo.birthday,Constant::Date_Simple));
-    if(G_UserBaseInfo.birthday.size() <= 0)
+    m_sign_plainEdit->appendPlainText(G_User->BaseInfo().signName);
+    m_sexual_box->setCurrentIndex((int)G_User->BaseInfo().sexual);
+    m_birth_dateEdit->setDate(QDate::fromString(G_User->BaseInfo().birthday,Constant::Date_Simple));
+    if(G_User->BaseInfo().birthday.size() <= 0)
     {
-        G_UserBaseInfo.birthday = m_birth_dateEdit->text();
+        G_User->BaseInfo().birthday = m_birth_dateEdit->text();
     }
-    m_address_edit->setText(G_UserBaseInfo.address);
-    if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_UserBaseInfo.email))
+    m_address_edit->setText(G_User->BaseInfo().address);
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_User->BaseInfo().email))
     {
-        m_mail_edit->setText(G_UserBaseInfo.email);
+        m_mail_edit->setText(G_User->BaseInfo().email);
     }
-    if(RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,G_UserBaseInfo.phoneNumber))
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,G_User->BaseInfo().phoneNumber))
     {
-        m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
+        m_phone_edit->setText(G_User->BaseInfo().phoneNumber);
     }
     m_desc_plainEdit->clear();
-    m_desc_plainEdit->appendPlainText(G_UserBaseInfo.remark);
+    m_desc_plainEdit->appendPlainText(G_User->BaseInfo().remark);
 }
 
 EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
@@ -361,7 +363,7 @@ void EditPersonInfoWindow::openLocalImage()
         desc->fullPath = imageFile;
         desc->fileSize = QFileInfo(imageFile).size();
         desc->itemType = FILE_ITEM_USER_UP;
-        desc->otherSideId = G_UserBaseInfo.accountId;
+        desc->otherSideId = G_User->BaseInfo().accountId;
 
         FileRecvTask::instance()->addSendItem(desc);
     }
@@ -390,7 +392,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
 
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
-    request->baseInfo.accountId = G_UserBaseInfo.accountId;
+    request->baseInfo.accountId = G_User->BaseInfo().accountId;
     request->baseInfo.nickName = d->m_nickName_edit->text();
     request->baseInfo.signName = d->m_sign_plainEdit->toPlainText();
     request->baseInfo.sexual = (Sexual)d->m_sexual_box->currentIndex();
@@ -399,8 +401,10 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.email = d->m_mail_edit->text();
     request->baseInfo.phoneNumber = d->m_phone_edit->text();
     request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
-    request->baseInfo.face = G_UserBaseInfo.face;
-    request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
+
+    request->baseInfo.isSystemIcon = d->isSystemIcon;
+    request->baseInfo.iconId = d->iconLabel->getPixmapName();
+
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -411,23 +415,23 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
     switch(status)
     {
         case UPDATE_USER_SUCCESS:
-                                    {
-                                        if(response.reponseType == UPDATE_USER_DETAIL)
-                                        {
-                                            G_UserBaseInfo = response.baseInfo;
-                                            RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
-                                            RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
-                                        }
-                                    }
-                                    break;
+            {
+                if(response.reponseType == UPDATE_USER_DETAIL)
+                {
+                    G_User->BaseInfo() = response.baseInfo;
+                    RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
+                    RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
+                }
+            }
+            break;
 
         case UPDATE_USER_FAILED:
         default:
-                                    if(response.reponseType == UPDATE_USER_DETAIL)
-                                    {
-                                        RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
-                                    }
-                                    break;
+            if(response.reponseType == UPDATE_USER_DETAIL)
+            {
+                RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
+            }
+            break;
     }
 }
 
@@ -465,23 +469,13 @@ void EditPersonInfoWindow::loadCustomUserImage()
 {
     MQ_D(EditPersonInfoWindow);
 
-    if(G_UserBaseInfo.customImgId.size() > 0)
-    {
-        QString pix = G_User->getFileRecvPath() + QDir::separator() + G_UserBaseInfo.customImgId + ".png";
-        if(QFile(pix).exists())
-        {
-            d->iconLabel->setPixmap(pix);
-        }
-    }
-    else
-    {
-        d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face));
-    }
+    d->isSystemIcon = G_User->BaseInfo().isSystemIcon;
+    d->iconLabel->setPixmap(G_User->getIcon());
 }
 
-void EditPersonInfoWindow::updateSystemIconInfo(QString filename)
+void EditPersonInfoWindow::updateSystemIconInfo(QString fileName)
 {
     MQ_D(EditPersonInfoWindow);
-    d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemImageDir()+"/"+filename);
+    d->isSystemIcon = true;
+    d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(fileName));
 }
-

@@ -6,19 +6,31 @@
 
 #include "constants.h"
 #include "Util/rutil.h"
+#include "rsingleton.h"
+#include "Util/imagemanager.h"
 
-User::User(const QString &id):userId(id)
+User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr)
 {
-    chatDatabase = nullptr;
-    userSettings = nullptr;
+    createUserHome(baseInfo.accountId);
+}
 
-    userHome = QDir::currentPath() + Constant::PATH_UserPath + QDir::separator() + userId;
+User::User(const QString userId)
+{
+    createUserHome(userId);
+}
+
+bool User::createUserHome(const QString id)
+{
+    userHome = QDir::currentPath() + Constant::PATH_UserPath + QDir::separator() + id;
     userDBPath = userHome + QDir::separator() + Constant::USER_DBDirName;
     userFilePath = userHome + QDir::separator() + Constant::USER_RecvFileDirName;
 
-    RUtil::createDir(userHome);
-    RUtil::createDir(userDBPath);
-    RUtil::createDir(userFilePath);
+    if(RUtil::createDir(userHome))
+        if(RUtil::createDir(userDBPath))
+            if(RUtil::createDir(userFilePath))
+                return true;
+
+    return  false;
 }
 
 User::~User()
@@ -99,13 +111,32 @@ void User::setSettingValue(const QString &group, const QString &key, QVariant va
 /*!
  * @brief 获取接收目录下指定文件的全路径
  * @param[in] id 文件ID
- * @param[in] suffix 文件后缀名
  * @return 是否插入成功
  */
-QString User::getFilePath(QString id, QString suffix)
+QString User::getFilePath(QString id)
 {
-    QString tmp = userFilePath + QDir::separator() + id + "."+ suffix;
+    QString tmp = userFilePath + QDir::separator() + id;
     return tmp;
+}
+
+/*!
+ * @brief 获取当前用户的ICON信息，判断是系统默认还是用户自定义分别返回
+ * @return 返回ICON全路径信息
+ */
+QString User::getIcon()
+{
+    QString tmpIconPath;
+    if(userBaseInfo.isSystemIcon){
+        tmpIconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(userBaseInfo.iconId);
+    }else{
+        tmpIconPath = userFilePath + QDir::separator() + userBaseInfo.iconId;
+    }
+
+    QFileInfo fileInfo(tmpIconPath);
+    if(fileInfo.exists())
+        return tmpIconPath;
+    else
+        return RSingleton<ImageManager>::instance()->getSystemUserIcon();
 }
 
 void User::setDatabase(Database *database)

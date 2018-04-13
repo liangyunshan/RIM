@@ -316,8 +316,8 @@ struct UserBaseInfo
     QString email;                 /*!< 邮箱,可为空 */
     QString phoneNumber;           /*!< 电话,可为空 */
     QString remark;                /*!< 备注,可为空 */
-    unsigned short face;           /*!< 头像信息(0表示为自定义，大于0表示系统头像) */
-    QString customImgId;           /*!< 头像信息(face为0时有效) */
+    bool isSystemIcon;             /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
+    QString iconId;                /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
 };
 
 /*!
@@ -401,8 +401,8 @@ struct SimpleUserInfo
     QString accountId;           /*!< 登陆账号 */
     QString nickName;            /*!< 昵称 */
     QString signName;            /*!< 签名 */
-    unsigned short face;         /*!< 头像信息(0表示为自定义，大于0表示系统头像) */
-    QString customImgId;         /*!< 头像信息(face为0时有效) */
+    bool isSystemIcon;           /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
+    QString iconId;              /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
     QString remarks;             /*!< 备注名称 */
     OnlineStatus status;         /*!< 在线状态 */
 };

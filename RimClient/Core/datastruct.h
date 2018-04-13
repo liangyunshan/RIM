@@ -55,7 +55,7 @@ struct UserInfoDesc
     {
         isRemberPassword = false;
         isAutoLogin = false;
-        isSystemPixMap = false;
+        isSystemIcon = true;
     }
     QString userName;               /*!< 用户名 */
     QString accountId;              /*!< 账号*/
@@ -64,8 +64,8 @@ struct UserInfoDesc
     QString password;               /*!< 加密后的密码 */
     bool isRemberPassword;          /*!< 是否记住密码 */
     bool isAutoLogin;               /*!< 是否自动登录 */
-    bool isSystemPixMap;            /*!< 是否为系统默认头像 */
-    QString pixmap;                 /*!< 头像ID，默认在【账户ID/ChatRecvFile】文件夹下 */
+    bool isSystemIcon;              /*!< 是否为系统图标，默认为true，修改为自定义图标后为false */
+    QString iconId;                 /*!< 头像ID，isSystemIcon为true时，值为系统图标文件名【1.png】；为false时，默认在【账户ID/ChatRecvFile】文件夹下 */
 
     friend QDataStream & operator <<(QDataStream & stream,const UserInfoDesc & desc);
     friend QDataStream & operator >>(QDataStream & stream,UserInfoDesc & desc);
@@ -92,8 +92,8 @@ struct NotifyInfo
     NotifyType type;                        /*!< 消息类型 */
     QString accountId;                      /*!< 通知消息所属发放用户ID */
     QString nickName;                       /*!< 用户昵称 */
-    unsigned short face;                    /*!< 头像信息(0表示为自定义，大于0表示系统头像) */
-    QString pixmap;                         /*!< 头像本地路径 */
+    bool isSystemIcon;                      /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
+    QString iconId;                         /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
 
     QString content;                        /*!< 若type为NotifyUser或NotifyGroup时表示聊天内容 */
     MsgCommand msgCommand;                  /*!< 命令类型 */

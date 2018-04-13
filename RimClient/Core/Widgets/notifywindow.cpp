@@ -24,6 +24,7 @@
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
+#include "user/user.h"
 
 #pragma comment(lib,"user32.lib")
 
@@ -146,7 +147,7 @@ NotifyWindow::NotifyWindow(QWidget *parent):
     {
         d_ptr->toolBar->setToolFlags((ToolBar::ToolType)(ToolBar::TOOL_DIALOG & ~ToolBar::TOOL_CLOSE));
         d_ptr->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
-        d_ptr->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
+        d_ptr->toolBar->setWindowTitle(G_User->BaseInfo().nickName);
         connect(this,SIGNAL(minimumWindow()),this,SIGNAL(hideWindow()));
     }
     setMaximumWidth(NOTIFY_WINDOW_WIDTH);
@@ -215,7 +216,7 @@ QString NotifyWindow::addNotifyInfo(NotifyInfo info)
         }
         existInfoIdeitity = info.identityId;
         d->systemNotifyInfos.insert(item,info);
-        item->setIcon(info.pixmap);
+        item->setIcon(info.iconId);
         item->addNotifyInfo();
         d->infoList->addItem(item);
 
@@ -245,7 +246,7 @@ void NotifyWindow::onMessage(MessageType type)
     MQ_D(NotifyWindow);
     if(type == MESS_BASEINFO_UPDATE)
     {
-        d->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
+        d->toolBar->setWindowTitle(G_User->BaseInfo().nickName);
     }
 }
 

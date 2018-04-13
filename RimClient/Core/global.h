@@ -29,7 +29,6 @@ extern QString G_ScreenShotKeySequence;                 //截屏快捷按键
 
 extern User * G_User;                                   //当前登陆用户
 extern OnlineStatus G_OnlineStatus;                     //在线状态
-extern UserBaseInfo G_UserBaseInfo;                     //登陆成功后接收用户基本信息
 extern QList<RGroupData *> G_FriendList;                //保存登陆用户的好友列表信息
 
 extern QAction *G_pScreenShotAction;                    //全局截屏快捷动作

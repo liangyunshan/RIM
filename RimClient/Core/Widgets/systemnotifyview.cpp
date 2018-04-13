@@ -16,6 +16,7 @@
 #include "widget/rbutton.h"
 #include "Network/msgwrap.h"
 #include "widget/rlabel.h"
+#include "user/user.h"
 
 #define NOTIFY_VIEW_WIDTH 380
 #define NOTIFY_VIEW_HEIGHT 260
@@ -245,7 +246,7 @@ void SystemNotifyView::respReRequest()
     MQ_D(SystemNotifyView);
     AddFriendRequest * request = new AddFriendRequest;
     request->stype = d->notifyInfo.stype;
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->operateId = d->notifyInfo.accountId;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -257,7 +258,7 @@ void SystemNotifyView::sendResponse(ResponseFriendApply result)
     request->type = FRIEND_APPLY;
     request->stype = d->notifyInfo.stype;
     request->result = (int)result;
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->operateId = d->notifyInfo.accountId;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);

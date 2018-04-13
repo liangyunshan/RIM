@@ -145,8 +145,8 @@ ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateB
     rpd.update(user.address,request->baseInfo.address);
     rpd.update(user.email,request->baseInfo.email);
     rpd.update(user.remark,request->baseInfo.remark);
-    rpd.update(user.face,request->baseInfo.face);
-    rpd.update(user.faceId,request->baseInfo.customImgId);
+    rpd.update(user.systemIon,request->baseInfo.isSystemIcon);
+    rpd.update(user.iconId,request->baseInfo.iconId);
 
     rpd.createCriteria().add(Restrictions::eq(user.account,request->baseInfo.accountId));
 
@@ -172,8 +172,8 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
         rst.select(user.account);
         rst.select(user.nickName);
         rst.select(user.signName);
-        rst.select(user.face);
-        rst.select(user.faceId);
+        rst.select(user.systemIon);
+        rst.select(user.iconId);
         rst.createCriteria().add(Restrictions::eq(user.account,request->accountOrNickName))
                 .orr(Restrictions::like(user.nickName,"%"+request->accountOrNickName+"%"));
 
@@ -196,8 +196,8 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
                 result.accountId = query.value(user.account).toString();
                 result.nickName = query.value(user.nickName).toString();
                 result.signName = query.value(user.signName).toString();
-                result.face = query.value(user.face).toInt();
-                result.customImgId = query.value(user.faceId).toString();
+                result.isSystemIcon = query.value(user.systemIon).toBool();
+                result.iconId = query.value(user.iconId).toString();
                 response->result.append(result);
             }
             return FIND_FRIEND_FOUND;
@@ -460,8 +460,8 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
                         simpleUserInfo->accountId = userQuery.value(user.account).toString();
                         simpleUserInfo->nickName = userQuery.value(user.nickName).toString();
                         simpleUserInfo->signName = userQuery.value(user.signName).toString();
-                        simpleUserInfo->face = userQuery.value(user.face).toUInt();
-                        simpleUserInfo->customImgId = userQuery.value(user.faceId).toString();
+                        simpleUserInfo->isSystemIcon = userQuery.value(user.systemIon).toBool();
+                        simpleUserInfo->iconId = userQuery.value(user.iconId).toString();
                         simpleUserInfo->remarks = userQuery.value(groupUser.remarks).toString();
 
                         groupData->users.append(simpleUserInfo);
@@ -505,8 +505,8 @@ bool SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             userInfo.email = query.value(user.email).toString();
             userInfo.phoneNumber = query.value(user.phone).toString();
             userInfo.remark = query.value(user.remark).toString();
-            userInfo.face = query.value(user.face).toInt();
-            userInfo.customImgId = query.value(user.faceId).toString();
+            userInfo.isSystemIcon = query.value(user.systemIon).toBool();
+            userInfo.iconId = query.value(user.iconId).toString();
 
             return true;
         }
