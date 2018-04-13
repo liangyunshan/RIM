@@ -174,6 +174,12 @@ void RIconLabel::setPixmap(const QPixmap & pixmap)
     update();
 }
 
+QString RIconLabel::getPixmapName()
+{
+    MQ_D(RIconLabel);
+    return QFileInfo(d->fileName).fileName();
+}
+
 QFileInfo RIconLabel::getPixmapFileInfo()
 {
     MQ_D(RIconLabel);

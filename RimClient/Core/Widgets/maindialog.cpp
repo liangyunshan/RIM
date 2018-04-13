@@ -353,7 +353,7 @@ void MainDialog::updateFriendList(FriendListResponse *friendList)
 //TODO 根据服务器返回的信息更新本地分组信息
 void MainDialog::recvGroupingOperate(GroupingResponse response)
 {
-    if(response.uuid != G_UserBaseInfo.uuid)
+    if(response.uuid != G_User->BaseInfo().uuid)
         return;
     if(response.gtype == GROUPING_FRIEND)
     {

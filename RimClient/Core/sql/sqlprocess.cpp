@@ -109,7 +109,7 @@ bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit, Simple
     {
         user_insert.id = userInfo.accountId.toInt();
         user_insert.name = userInfo.nickName;
-        user_insert.head = userInfo.customImgId;
+        user_insert.head = userInfo.iconId;
     }
 
     if(!queryUser(db,user_insert.id))
@@ -144,7 +144,7 @@ bool SQLProcess::initTableUser_id(Database *db, SimpleUserInfo userInfo)
     UserInfo user_insert ;
     user_insert.id = userInfo.accountId.toInt();
     user_insert.name = userInfo.nickName;
-    user_insert.head = userInfo.customImgId;
+    user_insert.head = userInfo.iconId;
 
     bool ret = true;
     if(!queryUser(db,user_insert.id))

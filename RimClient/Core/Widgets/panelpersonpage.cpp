@@ -19,6 +19,7 @@
 #include "maindialog.h"
 #include "modifyremarkwindow.h"
 #include "contactdetailwindow.h"
+#include "user/user.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -335,7 +336,7 @@ void PanelPersonPage::onMessage(MessageType type)
 void PanelPersonPage::refreshList()
 {
     GroupingRequest * request = new GroupingRequest();
-    request->uuid = G_UserBaseInfo.uuid;
+    request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_REFRESH;
     request->gtype = GROUPING_FRIEND;
 
@@ -405,7 +406,7 @@ void PanelPersonPage::delGroup()
     }
     d->m_deleteID = t_page->getID();
     GroupingRequest * request = new GroupingRequest();
-    request->uuid = G_UserBaseInfo.uuid;
+    request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_DELETE;
     request->gtype = GROUPING_FRIEND;
     request->groupId = t_page->getID();
@@ -558,8 +559,8 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                         info->accountId = response.user.accountId;
                         info->nickName = response.user.nickName;
                         info->signName = response.user.signName;
-                        info->face = response.user.face;
-                        info->customImgId = response.user.customImgId;
+                        info->isSystemIcon = response.user.isSystemIcon;
+                        info->iconId = response.user.iconId;
                         info->remarks = response.user.remarks;
                         info->status = response.user.status;
                         (*groupIter)->users.append(info);
@@ -795,7 +796,7 @@ void PanelPersonPage::renameEditFinished()
         d->toolBox->selectedPage()->setToolName(d->tmpNameEdit->text());
 
         GroupingRequest * request = new GroupingRequest();
-        request->uuid = G_UserBaseInfo.uuid;
+        request->uuid = G_User->BaseInfo().uuid;
         if(d->groupIsCreate)
         {
             request->type = GROUPING_CREATE;

@@ -45,8 +45,8 @@ public:
     const QString address;                  //地址
     const QString email;                    //邮箱
     const QString remark;                   //基本描述
-    const QString face;                     //头像类型
-    const QString faceId;                   //图片索引
+    const QString systemIon;                //是否为系统头像，默认为系统头像true
+    const QString iconId;                   //图片索引
 };
 
 /*!

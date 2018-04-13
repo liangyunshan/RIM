@@ -6,7 +6,7 @@ RUser::RUser():
     table("ruser"),id("ID"),account("ACCOUNT"),
     password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
     gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ADDRESS"),
-    email("EMAIL"),remark("REMARK"),face("FACE"),faceId("FACEID")
+    email("EMAIL"),remark("REMARK"),systemIon("SYSTEMICON"),iconId("ICONID")
 {
 
 }

@@ -38,8 +38,6 @@ public:
         Email,
         Phone,
         Remark,
-        Face,
-        FaceId,
         Status,
         SearchContent,
         SearchType,
@@ -64,6 +62,8 @@ public:
         MD5,
         Control,
         Id,
+        SystemIcon,
+        IconId,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

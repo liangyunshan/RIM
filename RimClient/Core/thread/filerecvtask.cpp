@@ -14,6 +14,7 @@
 #include "Network/msgwrap.h"
 #include "file/filedesc.h"
 #include "file/filemanager.h"
+#include "user/user.h"
 
 FileRecvTask * FileRecvTask::imageTask = NULL;
 
@@ -189,7 +190,7 @@ void FileRecvTask::handleItem()
     fileRequest->size = currTransFile->fileSize;
     fileRequest->fileId = RUtil::UUID();
     fileRequest->md5 = RUtil::MD5File(currTransFile->fullPath);
-    fileRequest->accountId = G_UserBaseInfo.accountId;
+    fileRequest->accountId = G_User->BaseInfo().accountId;
     fileRequest->otherId = currTransFile->otherSideId;
 
     FileDesc * fileDesc = new FileDesc;

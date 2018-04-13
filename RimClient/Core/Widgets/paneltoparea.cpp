@@ -90,7 +90,7 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel = new QLabel(contentWidget);
     userNikcNameLabel->setObjectName("Panel_Top_UserNikcNameLabel");
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userNikcNameLabel->setText(G_UserBaseInfo.nickName);
+    userNikcNameLabel->setText(G_User->BaseInfo().nickName);
 
     onlineState = new OnLineState(contentWidget);
     onlineState->setState(G_OnlineStatus);
@@ -105,7 +105,7 @@ void PanelTopAreaPrivate::initWidget()
     userSignNameEdit = new RLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userSignNameEdit->setText(G_UserBaseInfo.signName);
+    userSignNameEdit->setText(G_User->BaseInfo().signName);
     QObject::connect(userSignNameEdit,SIGNAL(contentChanged(QString)),q_ptr,SLOT(respSignChanged(QString)));
 
     extendToolWiget = new QWidget(contentWidget);
@@ -186,18 +186,7 @@ void PanelTopArea::loadCustomUserImage()
 {
     MQ_D(PanelTopArea);
 
-    if(G_UserBaseInfo.customImgId.size() > 0)
-    {
-        QString pix = G_User->getFileRecvPath() + QDir::separator() + G_UserBaseInfo.customImgId + ".png";
-        if(QFile(pix).exists())
-        {
-            d->userIconLabel->setPixmap(pix);
-        }
-    }
-    else
-    {
-        d->userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face));
-    }
+    d->userIconLabel->setPixmap(G_User->getIcon());
 }
 
 /*!
@@ -215,17 +204,17 @@ void PanelTopArea::respSignChanged(QString content)
 {
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
-    request->baseInfo.accountId = G_UserBaseInfo.accountId;
-    request->baseInfo.nickName = G_UserBaseInfo.nickName;
+    request->baseInfo.accountId = G_User->BaseInfo().accountId;
+    request->baseInfo.nickName = G_User->BaseInfo().nickName;
     request->baseInfo.signName = content;
-    request->baseInfo.sexual = G_UserBaseInfo.sexual;
-    request->baseInfo.birthday = G_UserBaseInfo.birthday;
-    request->baseInfo.address = G_UserBaseInfo.address;
-    request->baseInfo.email = G_UserBaseInfo.email;
-    request->baseInfo.phoneNumber = G_UserBaseInfo.phoneNumber;
-    request->baseInfo.remark = G_UserBaseInfo.remark;
-    request->baseInfo.face = G_UserBaseInfo.face;
-    request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
+    request->baseInfo.sexual = G_User->BaseInfo().sexual;
+    request->baseInfo.birthday = G_User->BaseInfo().birthday;
+    request->baseInfo.address = G_User->BaseInfo().address;
+    request->baseInfo.email = G_User->BaseInfo().email;
+    request->baseInfo.phoneNumber = G_User->BaseInfo().phoneNumber;
+    request->baseInfo.remark = G_User->BaseInfo().remark;
+    request->baseInfo.isSystemIcon = G_User->BaseInfo().isSystemIcon;
+    request->baseInfo.iconId = G_User->BaseInfo().iconId;
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -235,7 +224,7 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
 {
     if(result == UPDATE_USER_SUCCESS)
     {
-        G_UserBaseInfo = response.baseInfo;
+        G_User->BaseInfo() = response.baseInfo;
 
         RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
     }
@@ -244,13 +233,12 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
 void PanelTopArea::updateUserInfo()
 {
     MQ_D(PanelTopArea);
-    UserBaseInfo tmp = G_UserBaseInfo;
-    d->userSignNameEdit->setText(G_UserBaseInfo.signName);
+    d->userSignNameEdit->setText(G_User->BaseInfo().signName);
 
     QString t_iconPath;
-    if(G_UserBaseInfo.face>0)
+    if(G_User->BaseInfo().isSystemIcon)
     {
-        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face);
+        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_User->BaseInfo().iconId);
     }
     else
     {
@@ -272,7 +260,7 @@ void PanelTopArea::updateUserInfo()
 void PanelTopArea::stateChanged(OnlineStatus state)
 {
     UserStateRequest * request = new UserStateRequest();
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->onStatus = state;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }

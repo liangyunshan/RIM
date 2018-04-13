@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
     QApplication::setFont(QFont("微软雅黑",9));
     QApplication::setQuitOnLastWindowClosed(false);
 
+    //设置系统工作路径
     QString configFullPath = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath);
 
     QSettings * settings = new QSettings(configFullPath+"/config.ini",QSettings::IniFormat);

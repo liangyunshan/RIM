@@ -14,6 +14,7 @@
  *             20180207:wey:调整用户登陆列表
  *             20180225:wey:修复切换用户其登陆状态未同步切换问题
  *             20180301:wey:修复接收好友状态信息后未及时更新缓存信息
+ *             20180410:wey:修复好友列表初始不能获取登陆信息问题；调整输入验证，未登录则自动切换为默认头像
  */
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
@@ -84,6 +85,7 @@ protected:
     void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
+    void keyPressEvent(QKeyEvent * event);
 
 private slots:
     void login();
@@ -91,7 +93,9 @@ private slots:
     void closeWindow();
     void setPassword(bool flag);
     void readLocalUser();
-    void validateInput(QString text);
+    void validateInput();
+    void validateUserName(QString name);
+    void validatePassword(QString);
     void showNetSettings();
     void removeUserItem(QString accountId);
     void respItemChanged(QString id);

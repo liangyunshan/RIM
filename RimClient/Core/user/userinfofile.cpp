@@ -60,7 +60,7 @@ bool UserInfoFile::saveUsers(const QList<UserInfoDesc *> users)
             dataStream<<(*desc);
         }
 
-        return true;
+        return file.flush();
 
     }
     return false;

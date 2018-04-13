@@ -72,6 +72,7 @@ public:
 
         isSystemUserIcon = true;
         isNewUser = true;
+        registView = false;
     }
     ~LoginDialogPrivate(){}
 
@@ -87,9 +88,10 @@ private:
     QPoint mousePreseePoint;
 
     bool isSystemUserIcon;
-    QString defaultUserIconPath;
+    QString defaultUserIconPath;                /*!< 默认用户头像名称 */
 
     bool isNewUser;
+    bool registView;                            /*!< 是否为注册模式 */
 
     QWidget * contentWidget;
     QWidget * iconWidget;
@@ -176,6 +178,7 @@ void LoginDialogPrivate::initWidget()
     QRegExpValidator * passValidator = new QRegExpValidator(QRegExp(Constant::AccountPassword_Reg));
     password = new QLineEdit();
     password->setFixedSize(QSize(193, 28));
+    password->setObjectName("password");
     password->setValidator(passValidator);
     password->setPlaceholderText(QObject::tr("Input password"));
     password->setEchoMode(QLineEdit::Password);
@@ -183,6 +186,7 @@ void LoginDialogPrivate::initWidget()
     login = new QPushButton();
     login->setMinimumSize(QSize(0, 28));
     login->setText(QObject::tr("Sin in"));
+    login->setObjectName("login");
 
     forgetPassword = new RTextLabel();
     forgetPassword->setText(QObject::tr("Forget Password"));
@@ -231,11 +235,11 @@ void LoginDialogPrivate::initWidget()
 
     bottomWidget->setLayout(bottomLayout);
 
-    QObject::connect(userList,SIGNAL(currentTextChanged(QString)),q_ptr,SLOT(validateInput(QString)));
+    QObject::connect(userList,SIGNAL(currentTextChanged(QString)),q_ptr,SLOT(validateUserName(QString)));
     QObject::connect(login,SIGNAL(pressed()),q_ptr,SLOT(login()));
     QObject::connect(rememberPassord,SIGNAL(toggled(bool)),q_ptr,SLOT(setPassword(bool)));
     QObject::connect(autoLogin,SIGNAL(clicked(bool)),rememberPassord,SLOT(setChecked(bool)));
-    QObject::connect(password,SIGNAL(textEdited(QString)),q_ptr,SLOT(validateInput(QString)));
+    QObject::connect(password,SIGNAL(textEdited(QString)),q_ptr,SLOT(validatePassword(QString)));
 
     mainDialog = NULL;
 
@@ -424,8 +428,7 @@ void LoginDialog::resetDefaultInput()
 
     d->onlineState->setState(ProtocolType::STATUS_ONLINE);
     d->login->setEnabled(false);
-    d->login->style()->unpolish(d->login);
-    d->login->style()->polish(d->login);
+    repolish(d->login);
 
     resetDefaultPixmap();
 }
@@ -456,17 +459,20 @@ void LoginDialog::readLocalUser()
             connect(item,SIGNAL(itemClicked(QString)),this,SLOT(respItemChanged(QString)));
             item->setNickName(user->userName);
             item->setAccountId(user->accountId);
-            if(user->isSystemPixMap)
+            if(user->isSystemIcon)
             {
-                item->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(user->pixmap));
+                item->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(user->iconId));
             }
             else
             {
                 User tmpUser(user->accountId);
-                item->setPixmap(tmpUser.getFilePath(user->pixmap,"png"));
+                item->setPixmap(tmpUser.getFilePath(user->iconId));
             }
 
-            QListWidgetItem* widgetItem = new QListWidgetItem(d->userListWidget);
+            QListWidgetItem* widgetItem = new QListWidgetItem;
+            //需要向Item设置当前基本信息，否则会出现空字符串
+            widgetItem->setText(user->accountId);
+            d->userListWidget->addItem(widgetItem);
             d->userListWidget->setItemWidget(widgetItem,item);
         }
     }
@@ -476,9 +482,14 @@ void LoginDialog::readLocalUser()
     }
 }
 
-void LoginDialog::validateInput(QString /*text*/)
+/*!
+ * @brief 验证输入的用户信息
+ * @details 若本地保存的登陆历史记录中不包含当前用户输入的名称，则将登陆框置为默认，否则显示该用户对应的信息
+ */
+void LoginDialog::validateInput()
 {
     MQ_D(LoginDialog);
+
     if(d->userList->currentText().size() >0 && d->password->text().size() > 0)
     {
         if(d->numberExp.exactMatch(d->userList->currentText()) && d->passExp.exactMatch(d->password->text()))
@@ -492,6 +503,24 @@ void LoginDialog::validateInput(QString /*text*/)
     d->login->setEnabled(false);
 
     repolish(d->login);
+}
+
+void LoginDialog::validateUserName(QString name)
+{
+    MQ_D(LoginDialog);
+
+    if(d->userIndex(name) == -1){
+        resetDefaultInput();
+    }else{
+        respItemChanged(name);
+    }
+
+    validateInput();
+}
+
+void LoginDialog::validatePassword(QString)
+{
+    validateInput();
 }
 
 void LoginDialog::showNetSettings()
@@ -550,41 +579,43 @@ void LoginDialog::respItemChanged(QString id)
         {
             UserInfoDesc * userInfo = *iter;
             d->userList->hidePopup();
+
+            d->password->clear();
+
             d->userList->setEditText(id);
-            d->password->setText(userInfo->originPassWord);
+            if(userInfo->isRemberPassword)
+                d->password->setText(userInfo->originPassWord);
             d->rememberPassord->setChecked(userInfo->isRemberPassword);
             d->autoLogin->setChecked(userInfo->isAutoLogin);
-            if(userInfo->isSystemPixMap)
+            if(userInfo->isSystemIcon)
             {
-                QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                QPixmap pixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->iconId));
                 if(pixmap.isNull())
                 {
-                    userInfo->pixmap = d->defaultUserIconPath;
-                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                    userInfo->iconId = d->defaultUserIconPath;
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->iconId));
                 }
                 else
                 {
-                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->iconId));
                 }
             }
             else
             {
                 User currUser(id);
-                QString pixmap = currUser.getFileRecvPath()+QDir::separator()+userInfo->pixmap+".png";
+                QString pixmap = currUser.getFileRecvPath()+QDir::separator()+userInfo->iconId;
                 if(QFile(pixmap).exists())
                 {
                     d->userIcon->setPixmap(pixmap);
                 }
                 else
                 {
-                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->pixmap));
+                    d->userIcon->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(userInfo->iconId));
                 }
             }
 
             d->onlineState->setState((OnlineStatus)userInfo->loginState);
             d->isNewUser = false;
-
-            validateInput("");
 
             existed = true;
             break;
@@ -600,16 +631,20 @@ void LoginDialog::respItemChanged(QString id)
 
 void LoginDialog::showRegistDialog()
 {
-    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    MQ_D(LoginDialog);
+    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
 
     RegistDialog * dialog = new RegistDialog(this);
     connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
     dialog->show();
+    d->registView = true;
 }
 
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    MQ_D(LoginDialog);
+    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    d->registView = false;
 }
 
 /*!
@@ -624,6 +659,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
     if(status == LOGIN_SUCCESS)
     {
         int index = -1;
+        UserBaseInfo baseInfo = response.baseInfo;
         if( (index = isContainUser()) >= 0)
         {
             if(index < d->localUserInfo.size())
@@ -635,15 +671,12 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
                 d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
                 d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
-                if(response.baseInfo.customImgId.size()> 0)
-                {
-                    d->localUserInfo.at(index)->isSystemPixMap = false;
-                    d->localUserInfo.at(index)->pixmap = response.baseInfo.customImgId;
-                }
-                else
-                {
-                    d->localUserInfo.at(index)->isSystemPixMap = d->isSystemUserIcon;
-                    d->localUserInfo.at(index)->pixmap = d->defaultUserIconPath;
+
+                d->localUserInfo.at(index)->isSystemIcon = response.baseInfo.isSystemIcon;
+                d->localUserInfo.at(index)->iconId = response.baseInfo.iconId;
+                if(response.baseInfo.iconId.size() == 0){
+                    d->localUserInfo.at(index)->iconId = d->defaultUserIconPath;
+                    baseInfo.iconId = d->localUserInfo.at(index)->iconId;
                 }
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
@@ -658,16 +691,13 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
             desc->isAutoLogin = d->autoLogin->isChecked();
             desc->isRemberPassword = d->rememberPassord->isChecked();
             desc->loginState = (int)d->onlineState->state();
+            desc->isSystemIcon = response.baseInfo.isSystemIcon;
 
-            if(response.baseInfo.customImgId.size() > 0)
-            {
-                desc->isSystemPixMap = false;
-                desc->pixmap = response.baseInfo.customImgId;
-            }
-            else
-            {
-                desc->isSystemPixMap = d->isSystemUserIcon;
-                desc->pixmap = d->defaultUserIconPath;
+            if(response.baseInfo.iconId.size() == 0){
+                desc->iconId = d->defaultUserIconPath;
+                baseInfo.iconId = desc->iconId;
+            }else{
+                desc->iconId = response.baseInfo.iconId;
             }
 
             d->localUserInfo.append(desc);
@@ -677,20 +707,19 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         //TODO 对文件服务器进行重连、状态显示等操作
         FileNetConnector::instance()->connect();
 
-        G_UserBaseInfo = response.baseInfo;
-        G_User = new User(G_UserBaseInfo.accountId);
+        G_User = new User(baseInfo);
 
-        if(G_UserBaseInfo.face <=0 && !QFile(G_User->getFilePath(G_UserBaseInfo.customImgId,"png")).exists() && G_UserBaseInfo.customImgId.size() > 0)
+        if(!baseInfo.isSystemIcon && !QFile(G_User->getFilePath(baseInfo.iconId)).exists() && baseInfo.iconId.size() > 0)
          {
              SimpleFileItemRequest * request = new SimpleFileItemRequest;
              request->control = T_REQUEST;
              request->itemType = FILE_ITEM_USER_DOWN;
-             request->fileId = G_UserBaseInfo.customImgId;
+             request->fileId = QFileInfo(baseInfo.iconId).baseName();
              FileRecvTask::instance()->addRecvItem(request);
          }
 
 //        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-//        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserTempName);
+//        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_User->BaseInfo().accountId).arg(Constant::UserTempName);
 //        RUtil::createDir(G_Temp_Picture_Path);
 
         setVisible(false);
@@ -712,7 +741,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         d->mainDialog->setLogInState(d->onlineState->state());
 
         FriendListRequest * request = new FriendListRequest;
-        request->accountId = G_UserBaseInfo.accountId;
+        request->accountId = baseInfo.accountId;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
     else
@@ -761,10 +790,10 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     info.identityId = RUtil::UUID();
     info.accountId = resp.requestInfo.accountId;
     info.nickName = resp.requestInfo.nickName;
-    info.face = resp.requestInfo.face;
+    info.isSystemIcon = resp.requestInfo.isSystemIcon;
     info.type = NotifySystem;
     info.stype = resp.stype;
-    info.pixmap = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
+    info.iconId = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
     info.ofriendResult = resp.result;
 
     d->notifyWindow->addNotifyInfo(info);
@@ -827,8 +856,8 @@ void LoginDialog::procRecvText(TextRequest response)
                 info.nickName = client->simpleUserInfo.nickName;
                 info.type = NotifyUser;
                 info.stype = response.type;
-                info.face = client->simpleUserInfo.face;
-                info.pixmap = RSingleton<ImageManager>::instance()->getSystemUserIcon();
+                info.isSystemIcon = client->simpleUserInfo.isSystemIcon;
+                info.iconId = RSingleton<ImageManager>::instance()->getSystemUserIcon();
 
                 QString inserInfoId = d->notifyWindow->addNotifyInfo(info);
                 d->notifyWindow->showMe();
@@ -897,7 +926,7 @@ void LoginDialog::processTextReply(TextReply reply)
  */
 void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
 {
-    if(result == STATUS_SUCCESS && response.accountId != G_UserBaseInfo.accountId)
+    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
     {
         UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
         if(client)
@@ -938,29 +967,30 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
                 {
                     case FILE_ITEM_USER_UP:
                             //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
-                            if(fileDesc->otherId == G_UserBaseInfo.accountId)
+                            if(fileDesc->otherId == G_User->BaseInfo().accountId)
                             {
                                 QFileInfo fileInfo(fileDesc->filePath);
-                                QString newPath = G_User->getFileRecvPath()+QDir::separator()+fileDesc->fileId+"."+fileInfo.suffix();
+                                QString newFileName = fileDesc->fileId+"."+fileInfo.suffix();
+                                QString newPath = G_User->getFileRecvPath()+QDir::separator()+newFileName;
                                 if(QFile::copy(fileDesc->filePath,newPath))
                                 {
-                                    G_UserBaseInfo.face = 0;
-                                    G_UserBaseInfo.customImgId = fileDesc->fileId;
+                                    G_User->BaseInfo().isSystemIcon = false;
+                                    G_User->BaseInfo().iconId = newFileName;
                                     RSingleton<Subject>::instance()->notify(MESS_ICON_CHANGE);
 
                                     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
-                                    request->baseInfo.accountId = G_UserBaseInfo.accountId;
-                                    request->baseInfo.nickName = G_UserBaseInfo.nickName;
-                                    request->baseInfo.signName = G_UserBaseInfo.signName;
-                                    request->baseInfo.sexual = G_UserBaseInfo.sexual;
-                                    request->baseInfo.birthday = G_UserBaseInfo.birthday;
-                                    request->baseInfo.address = G_UserBaseInfo.address;
-                                    request->baseInfo.email = G_UserBaseInfo.email;
-                                    request->baseInfo.phoneNumber = G_UserBaseInfo.phoneNumber;
-                                    request->baseInfo.remark = G_UserBaseInfo.remark;
-                                    request->baseInfo.face = 0;
-                                    request->baseInfo.customImgId = fileDesc->fileId;
+                                    request->baseInfo.accountId = G_User->BaseInfo().accountId;
+                                    request->baseInfo.nickName = G_User->BaseInfo().nickName;
+                                    request->baseInfo.signName = G_User->BaseInfo().signName;
+                                    request->baseInfo.sexual = G_User->BaseInfo().sexual;
+                                    request->baseInfo.birthday = G_User->BaseInfo().birthday;
+                                    request->baseInfo.address = G_User->BaseInfo().address;
+                                    request->baseInfo.email = G_User->BaseInfo().email;
+                                    request->baseInfo.phoneNumber = G_User->BaseInfo().phoneNumber;
+                                    request->baseInfo.remark = G_User->BaseInfo().remark;
+                                    request->baseInfo.isSystemIcon = false;
+                                    request->baseInfo.iconId = newFileName;
                                     request->requestType = UPDATE_USER_DETAIL;
 
                                     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -968,10 +998,10 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
                                     QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
                                     while(iter != d->localUserInfo.end())
                                     {
-                                        if((*iter)->accountId == G_UserBaseInfo.accountId)
+                                        if((*iter)->accountId == G_User->BaseInfo().accountId)
                                         {
-                                            (*iter)->isSystemPixMap = false;
-                                            (*iter)->pixmap = fileDesc->fileId;
+                                            (*iter)->isSystemIcon = false;
+                                            (*iter)->iconId = newFileName;
                                             break;
                                         }
                                         iter++;
@@ -1037,7 +1067,7 @@ void LoginDialog::procFileData(QString fileId, QString fileName)
         {
             case FILE_ITEM_USER_DOWN:
                 //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
-                if(fileDesc->otherId == G_UserBaseInfo.accountId)
+                if(fileDesc->otherId == G_User->BaseInfo().accountId)
                 {
                     QString localFileName = G_User->getFileRecvPath()+QDir::separator()+fileName;
                     if(QFile(localFileName).exists())
@@ -1159,6 +1189,22 @@ void LoginDialog::onMessage(MessageType type)
                 d->notifyWindow->showMe();
                 break;
             }
+        case MESS_BASEINFO_UPDATE:
+            {
+                QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
+                while(iter != d->localUserInfo.end())
+                {
+                    if((*iter)->accountId == G_User->BaseInfo().accountId)
+                    {
+                        (*iter)->isSystemIcon = G_User->BaseInfo().isSystemIcon;
+                        (*iter)->iconId = G_User->BaseInfo().iconId;
+                        break;
+                    }
+                    iter++;
+                }
+
+                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+            }
         default:
                 break;
     }
@@ -1191,16 +1237,23 @@ bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
             if(!d->isNewUser && keyEvent->key() == Qt::Key_Backspace)
             {
                 d->password->setText("");
+                validateInput();
+                return true;
             }
-        }
-        //Yang 20171213待实现对输入框键盘事件的捕捉
-        else if(obj == d->userList->lineEdit())
-        {
-
         }
     }
 
     return Widget::eventFilter(obj,event);
+}
+
+void LoginDialog::keyPressEvent(QKeyEvent *event)
+{
+    MQ_D(LoginDialog);
+    if(event->key() == Qt::Key_Return && !d->registView){
+        if(d->login->isEnabled()){
+            login();
+        }
+    }
 }
 
 ComboxItem::ComboxItem(QWidget *parent):QWidget(parent)

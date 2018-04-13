@@ -49,6 +49,8 @@ public:
     void setPixmap(const QString &fileName);    
     void setPixmap(const QPixmap &);
 
+    QString getPixmapName();
+
     QFileInfo getPixmapFileInfo();
 
     void resizeByPixmap(bool flag = true);

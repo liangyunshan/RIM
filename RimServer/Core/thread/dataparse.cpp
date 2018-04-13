@@ -2,7 +2,8 @@
 
 #include <QJsonDocument>
 #include <QJsonParseError>
-#include <QScopedPointer>
+#include <QSharedPointer>
+#include <memory>
 #include <QDebug>
 
 #include "Util/rlog.h"
@@ -172,7 +173,7 @@ void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
 
 void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 {
-    RegistRequest * request = new RegistRequest;
+    std::shared_ptr<RegistRequest> request(new RegistRequest);
     request->nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
 
@@ -181,7 +182,7 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
-    LoginRequest * request = new LoginRequest;
+    QSharedPointer<LoginRequest> request(new LoginRequest);
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
     request->status = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -191,7 +192,7 @@ void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &obj)
 {
-    UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
+    QSharedPointer<UpdateBaseInfoRequest> request (new UpdateBaseInfoRequest);
     request->baseInfo.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->baseInfo.nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->baseInfo.signName = obj.value(JsonKey::key(JsonKey::SignName)).toString();
@@ -201,15 +202,15 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.email = obj.value(JsonKey::key(JsonKey::Email)).toString();
     request->baseInfo.phoneNumber = obj.value(JsonKey::key(JsonKey::Phone)).toString();
     request->baseInfo.remark = obj.value(JsonKey::key(JsonKey::Remark)).toString();
-    request->baseInfo.face = obj.value(JsonKey::key(JsonKey::Face)).toInt();
-    request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
+    request->baseInfo.isSystemIcon = obj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+    request->baseInfo.iconId = obj.value(JsonKey::key(JsonKey::IconId)).toString();
 
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
 }
 
 void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
 {
-    UserStateRequest * request = new UserStateRequest();
+    QSharedPointer<UserStateRequest> request (new UserStateRequest());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->onStatus = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -218,7 +219,7 @@ void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject
 
 void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
 {
-    SearchFriendRequest * request = new SearchFriendRequest;
+    QSharedPointer<SearchFriendRequest> request (new SearchFriendRequest());
     request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
     request->accountOrNickName = obj.value(JsonKey::key(JsonKey::SearchContent)).toString();
 
@@ -227,7 +228,7 @@ void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &ob
 
 void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    OperateFriendRequest * request = new OperateFriendRequest;
+    QSharedPointer<OperateFriendRequest> request (new OperateFriendRequest);
     request->type = (OperateFriend)obj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->result = (ResponseFriendApply)obj.value(JsonKey::key(JsonKey::Result)).toInt();
     request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
@@ -239,7 +240,7 @@ void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject 
 
 void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 {
-    AddFriendRequest * request = new AddFriendRequest;
+    QSharedPointer<AddFriendRequest> request (new AddFriendRequest);
     request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
@@ -249,7 +250,7 @@ void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    FriendListRequest * request = new FriendListRequest;
+    QSharedPointer<FriendListRequest> request (new FriendListRequest);
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
@@ -257,7 +258,7 @@ void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObjec
 
 void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject &dataObj)
 {
-    GroupingFriendRequest * request = new GroupingFriendRequest;
+    QSharedPointer<GroupingFriendRequest> request (new GroupingFriendRequest);
     request->type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
     request->oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
@@ -267,8 +268,8 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
     request->user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->user.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->user.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
-    request->user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
-    request->user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+    request->user.isSystemIcon = simpleObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+    request->user.iconId = simpleObj.value(JsonKey::key(JsonKey::IconId)).toString();
     request->user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
     request->user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -277,7 +278,7 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
 
 void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    GroupingRequest * request = new GroupingRequest;
+    QSharedPointer<GroupingRequest> request (new GroupingRequest);
     request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
     request->groupId = obj.value(JsonKey::key(JsonKey::GroupId)).toString();
     request->gtype = (GroupingType)obj.value(JsonKey::key(JsonKey::GroupType)).toInt();
@@ -289,7 +290,7 @@ void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject 
 
 void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
 {
-    FileItemRequest * request = new FileItemRequest();
+    QSharedPointer<FileItemRequest> request (new FileItemRequest());
 
     int control,itemType;
     if(!obj.read(control))
@@ -330,7 +331,7 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
  */
 void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
 {
-    SimpleFileItemRequest * request = new SimpleFileItemRequest();
+    QSharedPointer<SimpleFileItemRequest> request (new SimpleFileItemRequest());
     int controlType = 0;
     if(!obj.read(controlType))
         return;
@@ -352,7 +353,7 @@ void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
 
 void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
 {
-    FileDataRequest * request = new FileDataRequest();
+    QSharedPointer<FileDataRequest> request (new FileDataRequest());
     request->control =  T_DATA;
 
     if(!obj.read(request->fileId))
