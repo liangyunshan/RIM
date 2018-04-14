@@ -45,8 +45,8 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
     if(G_BaseAccountId == 0)
     {
         RSelect rst(config.table);
-        rst.select(config.value);
-        rst.createCriteria().add(Restrictions::eq(config.name,config.accuoutId));
+        rst.select(config.table,{config.value});
+        rst.createCriteria().add(Restrictions::eq(config.table,config.name,config.accuoutId));
 
         QSqlQuery query(db->sqlDatabase());
         if(query.exec(rst.sql()))
@@ -75,10 +75,10 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
     DataTable::RUser user;
     RPersistence rpc(user.table);
     uuid = RUtil::UUID();
-    rpc.insert(user.id,uuid);
-    rpc.insert(user.account,QString::number(G_BaseAccountId));
-    rpc.insert(user.password,request->password);
-    rpc.insert(user.nickName,request->nickName);
+    rpc.insert({{user.id,uuid},
+                {user.account,QString::number(G_BaseAccountId)},
+                {user.password,request->password},
+                {user.nickName,request->nickName}});
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rpc.sql()))
@@ -86,8 +86,9 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
         id  = QString::number(G_BaseAccountId);
 
         RUpdate rpd(config.table);
-        rpd.update(config.value,G_BaseAccountId);
-        rpd.createCriteria().add(Restrictions::eq(config.name,config.accuoutId));
+        rpd.update(config.table,config.value,G_BaseAccountId).
+                createCriteria().
+                add(Restrictions::eq(config.table,config.name,config.accuoutId));
 
         if(query.exec(rpd.sql()))
         {
@@ -104,9 +105,17 @@ ResponseLogin SQLProcess::processUserLogin(Database * db,const LoginRequest *req
 {
     DataTable::RUser user;
 
+    RPersistence rpc(user.table);
+    QString uuid = RUtil::UUID();
+    rpc.insert({{user.id,uuid},
+                {user.account,QString::number(G_BaseAccountId)},
+                {user.password,request->password},
+                {user.nickName,request->accountId}});
+
     RSelect rst(user.table);
-    rst.select(user.password);
-    rst.createCriteria().add(Restrictions::eq(user.account,request->accountId));
+    rst.select(user.table,{user.password}).
+            createCriteria().
+            add(Restrictions::eq(user.table,user.account,request->accountId));
 
     QSqlQuery query(db->sqlDatabase());
 
@@ -137,18 +146,18 @@ ResponseUpdateUser SQLProcess::processUpdateUserInfo(Database *db, const UpdateB
     DataTable::RUser user;
 
     RUpdate rpd(user.table);
-    rpd.update(user.nickName,request->baseInfo.nickName);
-    rpd.update(user.signName,request->baseInfo.signName);
-    rpd.update(user.gender,(int)request->baseInfo.sexual);
-    rpd.update(user.birthDay,QDate::fromString(request->baseInfo.birthday,Constant::Date_Simple));
-    rpd.update(user.phone,request->baseInfo.phoneNumber);
-    rpd.update(user.address,request->baseInfo.address);
-    rpd.update(user.email,request->baseInfo.email);
-    rpd.update(user.remark,request->baseInfo.remark);
-    rpd.update(user.systemIon,request->baseInfo.isSystemIcon);
-    rpd.update(user.iconId,request->baseInfo.iconId);
-
-    rpd.createCriteria().add(Restrictions::eq(user.account,request->baseInfo.accountId));
+    rpd.update(user.table,{{user.nickName,request->baseInfo.nickName},
+                           {user.signName,request->baseInfo.signName},
+                           {user.gender,(int)request->baseInfo.sexual},
+                           {user.birthDay,QDate::fromString(request->baseInfo.birthday,Constant::Date_Simple)},
+                           {user.phone,request->baseInfo.phoneNumber},
+                           {user.address,request->baseInfo.address},
+                           {user.email,request->baseInfo.email},
+                           {user.remark,request->baseInfo.remark},
+                           {user.systemIon,request->baseInfo.isSystemIcon},
+                           {user.iconId,request->baseInfo.iconId}}).
+            createCriteria().
+            add(Restrictions::eq(user.table,user.account,request->baseInfo.accountId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rpd.sql()))
@@ -167,21 +176,17 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     QString sql;
     if(request->stype == SearchPerson)
     {
-        RSelect rst(user.table);
+        RSelect rst({user.table});
 
-        rst.select(user.account);
-        rst.select(user.nickName);
-        rst.select(user.signName);
-        rst.select(user.systemIon);
-        rst.select(user.iconId);
-        rst.createCriteria().add(Restrictions::eq(user.account,request->accountOrNickName))
-                .orr(Restrictions::like(user.nickName,"%"+request->accountOrNickName+"%"));
+        rst.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId});
+        rst.createCriteria().
+                add(Restrictions::eq(user.table,user.account,request->accountOrNickName)).
+                orr(Restrictions::like(user.table,user.nickName,"%"+request->accountOrNickName+"%"));
 
         sql = rst.sql();
     }
     else
     {
-        RSelect rst(room.table);
     }
 
     QSqlQuery query(db->sqlDatabase());
@@ -224,10 +229,10 @@ ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accou
 
     RPersistence rps(rc.table);
 
-    rps.insert(rc.id,RUtil::UUID());
-    rps.insert(rc.account,accountId);
-    rps.insert(rc.operateId,operateId);
-    rps.insert(rc.type,type);
+    rps.insert({{rc.id,RUtil::UUID()},
+               {rc.account,accountId},
+               {rc.operateId,operateId},
+               {rc.type,type}});
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))
@@ -252,10 +257,10 @@ bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QSt
 
     DataTable::RGroup rgp;
     RPersistence rps(rgp.table);
-    rps.insert(rgp.id,groupId);
-    rps.insert(rgp.name,groupName);
-    rps.insert(rgp.userId,userId);
-    rps.insert(rgp.defaultGroup,(int)isDefault);
+    rps.insert({{rgp.id,groupId},
+                {rgp.name,groupName},
+                {rgp.userId,userId},
+                {rgp.defaultGroup,(int)isDefault}});
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))
@@ -279,9 +284,10 @@ bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
     {
         DataTable::RGroup rgp;
         RUpdate rpd(rgp.table);
-        rpd.update(rgp.name,request->groupName);
-        rpd.createCriteria().add(Restrictions::eq(rgp.id,request->groupId))
-                .add(Restrictions::eq(rgp.userId,request->uuid));
+        rpd.update(rgp.table,rgp.name,request->groupName).
+                createCriteria().
+                add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
+                add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
         sql = rpd.sql();
     }
     else if(request->gtype == GROUPING_GROUP)
@@ -311,8 +317,9 @@ bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
     {
         DataTable::RGroup rgp;
         RDelete rde(rgp.table);
-        rde.createCriteria().add(Restrictions::eq(rgp.id,request->groupId))
-                .add(Restrictions::eq(rgp.userId,request->uuid));
+        rde.createCriteria().
+                add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
+                add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
         sql = rde.sql();
     }
     else if(request->gtype == GROUPING_GROUP)
@@ -345,9 +352,9 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
 
         DataTable::RUser user;
         RSelect rsA(user.table);
-        rsA.select(user.id);
-        rsA.select(user.nickName);
-        rsA.createCriteria().add(Restrictions::eq(user.account,request->accountId));
+        rsA.select(user.table,{user.id,user.nickName}).
+                createCriteria().
+                add(Restrictions::eq(user.table,user.account,request->accountId));
 
         if(!query.exec(rsA.sql()))
         {
@@ -361,9 +368,9 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
         }
 
         RSelect rsB(user.table);
-        rsB.select(user.id);
-        rsB.select(user.nickName);
-        rsB.createCriteria().add(Restrictions::eq(user.account,request->operateId));
+        rsB.select(user.table,{user.id,user.nickName}).
+                createCriteria().
+                add(Restrictions::eq(user.table,user.account,request->operateId));
 
         if(!query.exec(rsB.sql()))
         {
@@ -386,10 +393,10 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
 
         DataTable::RGroup_User rgu;
         RPersistence rpsA(rgu.table);
-        rpsA.insert(rgu.id,RUtil::UUID());
-        rpsA.insert(rgu.groupId,defaultGroupA);
-        rpsA.insert(rgu.userId,idB);
-        rpsA.insert(rgu.remarks,nickNameB);
+        rpsA.insert({{rgu.id,RUtil::UUID()},
+                     {rgu.groupId,defaultGroupA},
+                     {rgu.userId,idB},
+                     {rgu.remarks,nickNameB}});
 
         if(!query.exec(rpsA.sql()))
         {
@@ -397,10 +404,10 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
         }
 
         RPersistence rpsB(rgu.table);
-        rpsB.insert(rgu.id,RUtil::UUID());
-        rpsB.insert(rgu.groupId,defaultGroupB);
-        rpsB.insert(rgu.userId,idA);
-        rpsB.insert(rgu.remarks,nickNameA);
+        rpsB.insert({{rgu.id,RUtil::UUID()},
+                    {rgu.groupId,defaultGroupB},
+                    {rgu.userId,idA},
+                    {rgu.remarks,nickNameA}});
 
         if(!query.exec(rpsB.sql()))
         {
@@ -427,8 +434,9 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
     DataTable::RGroup group;
     DataTable::RGroup_User groupUser;
     RSelect rst(user.table);
-    rst.select(user.id);
-    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+    rst.select(user.table,{user.id}).
+            createCriteria().
+            add(Restrictions::eq(user.table,user.account,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()) && query.next())
@@ -436,7 +444,7 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
         QString uid = query.value(user.id).toString();
 
         RSelect selectGroup(group.table);
-        selectGroup.createCriteria().add(Restrictions::eq(group.userId,uid));
+        selectGroup.createCriteria().add(Restrictions::eq(group.table,group.userId,uid));
 
         if(query.exec(selectGroup.sql()))
         {
@@ -447,11 +455,15 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
                 groupData->groupName = query.value(group.name).toString();
                 groupData->isDefault = query.value(group.defaultGroup).toBool();
 
-                QString sql = QString("select ru.account,ru.nickname,ru.signname,ru.face,ru.faceid,rr.remarks from %1 ru left join"
-                                      " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
+                RSelect select({user.table,groupUser.table});
+                select.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId}).
+                        select(groupUser.table,{groupUser.remarks}).
+                        on(user.table,user.id,groupUser.table,groupUser.userId).
+                        createCriteria().
+                        add(Restrictions::eq(groupUser.table,groupUser.groupId,groupData->groupId));
 
                 QSqlQuery userQuery(db->sqlDatabase());
-                if(userQuery.exec(sql))
+                if(userQuery.exec(select.sql()))
                 {
                     while(userQuery.next())
                     {
@@ -488,7 +500,8 @@ bool SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
     DataTable::RUser user;
 
     RSelect rst(user.table);
-    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+    rst.createCriteria().
+            add(Restrictions::eq(user.table,user.account,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -520,8 +533,9 @@ void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QLi
     DataTable::RGroup group;
     DataTable::RGroup_User groupUser;
     RSelect rst(user.table);
-    rst.select(user.id);
-    rst.createCriteria().add(Restrictions::eq(user.account,accountId));
+    rst.select(user.table,{user.id}).
+            createCriteria().
+            add(Restrictions::eq(user.table,user.account,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()) && query.next())
@@ -529,7 +543,8 @@ void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QLi
         QString uid = query.value(user.id).toString();
 
         RSelect selectGroup(group.table);
-        selectGroup.createCriteria().add(Restrictions::eq(group.userId,uid));
+        selectGroup.createCriteria().
+                add(Restrictions::eq(group.table,group.userId,uid));
 
         if(query.exec(selectGroup.sql()))
         {
@@ -540,11 +555,13 @@ void SQLProcess::getFriendAccountList(Database *db, const QString accountId, QLi
                 groupData->groupName = query.value(group.name).toString();
                 groupData->isDefault = query.value(group.defaultGroup).toBool();
 
-                QString sql = QString("select ru.account from %1 ru left join"
-                                      " %2 rr on ru.id = rr.uid where rr.gid = '%3' ").arg(user.table).arg(groupUser.table).arg(groupData->groupId);
+                RSelect select({user.table,groupUser.table});
+                select.select(user.table,{user.account});
+                select.on(user.table,user.id,groupUser.table,groupUser.userId);
+                select.createCriteria().add(Restrictions::eq(groupUser.table,groupUser.groupId,groupData->groupId));
 
                 QSqlQuery userQuery(db->sqlDatabase());
-                if(userQuery.exec(sql))
+                if(userQuery.exec(select.sql()))
                 {
                     while(userQuery.next())
                     {
@@ -561,10 +578,14 @@ bool SQLProcess::updateGroupFriendInfo(Database *db, GroupingFriendRequest *requ
     DataTable::RGroup_User rgu;
     DataTable::RUser ru;
 
-    QString sql = QString("update %1 ru left join %2 rr on ru.uid = rr.id  set ru.remarks = '%3' where ru.gid = '%4' "
-                          "and rr.account = '%5'").arg(rgu.table,ru.table,request->user.remarks,request->groupId,request->user.accountId);
+    RUpdate rpd({rgu.table,ru.table});
+    rpd.update(rgu.table,rgu.remarks,request->user.remarks).
+            on(rgu.table,rgu.userId,ru.table,ru.id).createCriteria().
+            add(Restrictions::eq(ru.table,ru.account,request->user.accountId)).
+            add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
+
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(rpd.sql()))
     {
         return true;
     }
@@ -576,10 +597,15 @@ bool SQLProcess::updateMoveGroupFriend(Database *db, GroupingFriendRequest *requ
     DataTable::RGroup_User rgu;
     DataTable::RUser ru;
 
-    QString sql = QString("update %1 ru left join %2 rr on ru.uid = rr.id  set ru.gid = '%3' where ru.gid = '%4' "
-                          "and rr.account = '%5'").arg(rgu.table,ru.table,request->groupId,request->oldGroupId,request->user.accountId);
+    RUpdate rpd({rgu.table,ru.table});
+    rpd.update(rgu.table,rgu.groupId,request->groupId).
+            on(rgu.table,rgu.userId,ru.table,ru.id).
+            createCriteria().
+            add(Restrictions::eq(rgu.table,rgu.groupId,request->oldGroupId)).
+            add(Restrictions::eq(ru.table,ru.account,request->user.accountId));
+
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(rpd.sql()))
     {
         return true;
     }
@@ -614,8 +640,8 @@ bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QStri
 
             DataTable::RGroup_User rgu;
             RDelete rde(rgu.table);
-            rde.createCriteria().add(Restrictions::eq(rgu.groupId,request->groupId))
-                    .add(Restrictions::eq(rgu.userId,otherSideUserInfo.uuid));
+            rde.createCriteria().add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId))
+                    .add(Restrictions::eq(rgu.table,rgu.userId,otherSideUserInfo.uuid));
 
             if(!query.exec(rde.sql()))
             {
@@ -625,11 +651,15 @@ bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QStri
             //2.获取自己的ID信息
             DataTable::RGroup rgp;
             DataTable::RUser rus;
-            QString sql = QString("select u.id,u.account from %1 u left join  %2 g on u.id = g.uid where g.id = '%3'")
-                    .arg(rus.table,rgp.table,request->groupId);
+
+            RSelect select({rus.table,rgp.table});
+            select.select(rus.table,{rus.id,rus.account}).
+                    on(rus.table,rus.id,rgp.table,rgp.userId).
+                    createCriteria().
+                    add(Restrictions::eq(rgp.table,rgp.id,request->groupId));
 
             QString userId;
-            if(query.exec(sql) && query.next())
+            if(query.exec(select.sql()) && query.next())
             {
                userId = query.value(rus.id).toString();
                accountId = query.value(rus.account).toString();
@@ -647,16 +677,18 @@ bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QStri
                while(iter != groups.end())
                {
                    RSelect rsg(rgu.table);
-                   rsg.select(rgu.id);
-                   rsg.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
-                           .add(Restrictions::eq(rgu.userId,userId));
+                   rsg.select(rgu.table,{rgu.id});
+                   rsg.createCriteria().
+                           add(Restrictions::eq(rgu.table,rgu.groupId,*iter)).
+                           add(Restrictions::eq(rgu.table,rgu.userId,userId));
 
                    if(query.exec(rsg.sql()) && query.next())
                    {
                        query.clear();
                        rde.clearRestrictions();
-                       rde.createCriteria().add(Restrictions::eq(rgu.groupId,*iter))
-                               .add(Restrictions::eq(rgu.userId,userId));
+                       rde.createCriteria().
+                               add(Restrictions::eq(rgu.table,rgu.groupId,*iter)).
+                               add(Restrictions::eq(rgu.table,rgu.userId,userId));
 
                        otherUserGroupId = *iter;
                        if(!query.exec(rde.sql()))
@@ -705,10 +737,9 @@ bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFrien
 {
     DataTable::RequestCache requestCache;
     RSelect rst(requestCache.table);
-    rst.select(requestCache.account);
-    rst.select(requestCache.operateId);
-    rst.select(requestCache.type);
-    rst.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+    rst.select(requestCache.table,{requestCache.account,requestCache.operateId,requestCache.type}).
+            createCriteria().
+            add(Restrictions::eq(requestCache.table,requestCache.operateId,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -725,7 +756,7 @@ bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFrien
         if(requests.size() > 0)
         {
             RDelete rde(requestCache.table);
-            rde.createCriteria().add(Restrictions::eq(requestCache.operateId,accountId));
+            rde.createCriteria().add(Restrictions::eq(requestCache.table,requestCache.operateId,accountId));
             if(query.exec(rde.sql()))
             {
                 return true;
@@ -749,16 +780,10 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
 {
     DataTable::RUserChatCache userchatcache;
     RSelect rst(userchatcache.table);
-    rst.select(userchatcache.account);
-    rst.select(userchatcache.otherSideId);
-    rst.select(userchatcache.data);
-    rst.select(userchatcache.time);
-    rst.select(userchatcache.msgType);
-    rst.select(userchatcache.textId);
-    rst.select(userchatcache.textType);
-    rst.select(userchatcache.encryption);
-    rst.select(userchatcache.compress);
-    rst.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
+    rst.select(userchatcache.table,{userchatcache.account,userchatcache.otherSideId,userchatcache.data,userchatcache.time,userchatcache.msgType
+               ,userchatcache.textId,userchatcache.textType,userchatcache.encryption,userchatcache.compress}).
+            createCriteria().
+            add(Restrictions::eq(userchatcache.table,userchatcache.otherSideId,accountId));
 
     QSqlQuery query(db->sqlDatabase());
     qDebug()<<rst.sql();
@@ -784,7 +809,7 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
         if(textResponse.size() > 0)
         {
             RDelete rde(userchatcache.table);
-            rde.createCriteria().add(Restrictions::eq(userchatcache.otherSideId,accountId));
+            rde.createCriteria().add(Restrictions::eq(userchatcache.table,userchatcache.otherSideId,accountId));
 //            if(query.exec(rde.sql()))
             {
                 return true;
@@ -805,15 +830,15 @@ bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
 {
     DataTable::RUserChatCache userchatcache;
     RPersistence rps(userchatcache.table);
-    rps.insert(userchatcache.account,request->accountId);
-    rps.insert(userchatcache.otherSideId,request->otherSideId);
-    rps.insert(userchatcache.data,request->sendData);
-    rps.insert(userchatcache.time,request->timeStamp);
-    rps.insert(userchatcache.msgType,request->msgCommand);
-    rps.insert(userchatcache.textId,request->textId);
-    rps.insert(userchatcache.textType,request->textType);
-    rps.insert(userchatcache.encryption,request->isEncryption);
-    rps.insert(userchatcache.compress,request->isCompress);
+    rps.insert({{userchatcache.account,request->accountId},
+               {userchatcache.otherSideId,request->otherSideId},
+               {userchatcache.data,request->sendData},
+               {userchatcache.time,request->timeStamp},
+               {userchatcache.msgType,request->msgCommand},
+               {userchatcache.textId,request->textId},
+               {userchatcache.textType,request->textType},
+               {userchatcache.encryption,request->isEncryption},
+               {userchatcache.compress,request->isCompress}});
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql()))
@@ -839,9 +864,11 @@ bool SQLProcess::addQuoteFile(Database *db, const FileItemRequest *request)
     DataTable::RFile rfile;
 
     RSelect rst(rfile.table);
-    rst.select(rfile.id);
-    rst.createCriteria().add(Restrictions::eq(rfile.src,request->accountId))
-            .add(Restrictions::eq(rfile.dst,request->otherId)).add(Restrictions::eq(rfile.fileName,request->fileName));
+    rst.select(rfile.table,{rfile.id});
+    rst.createCriteria().
+            add(Restrictions::eq(rfile.table,rfile.src,request->accountId)).
+            add(Restrictions::eq(rfile.table,rfile.dst,request->otherId)).
+            add(Restrictions::eq(rfile.table,rfile.fileName,request->fileName));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()) && query.next())
@@ -850,9 +877,8 @@ bool SQLProcess::addQuoteFile(Database *db, const FileItemRequest *request)
     }
 
     RSelect rst1(rfile.table);
-    rst1.select(rfile.id);
-    rst1.select(rfile.quoteNum);
-    rst1.createCriteria().add(Restrictions::eq(rfile.md5,request->md5));
+    rst1.select(rfile.table,{rfile.id,rfile.quoteNum});
+    rst1.createCriteria().add(Restrictions::eq(rfile.table,rfile.md5,request->md5));
     if(query.exec(rst1.sql())&& query.next())
     {
         QString originId = query.value(rfile.id).toString();
@@ -861,20 +887,21 @@ bool SQLProcess::addQuoteFile(Database *db, const FileItemRequest *request)
         if(originId.size() > 0)
         {
             RPersistence rps(rfile.table);
-            rps.insert(rfile.id,request->fileId);
-            rps.insert(rfile.quoteId,originId);
-            rps.insert(rfile.quoteNum,0);
-            rps.insert(rfile.fileName,request->fileName);
-            rps.insert(rfile.src,request->accountId);
-            rps.insert(rfile.dst,request->otherId);
-            rps.insert(rfile.dtime,QDateTime::currentDateTime());
-            rps.insert(rfile.fileSize,request->size);
+            rps.insert({{rfile.id,request->fileId},
+                       {rfile.quoteId,originId},
+                       {rfile.quoteNum,0},
+                       {rfile.fileName,request->fileName},
+                       {rfile.src,request->accountId},
+                       {rfile.dst,request->otherId},
+                       {rfile.dtime,QDateTime::currentDateTime()},
+                       {rfile.fileSize,request->size}});
 
             if(query.exec(rps.sql()))
             {
                 RUpdate rud(rfile.table);
-                rud.update(rfile.quoteNum,quoteNum+1);
-                rud.createCriteria().add(Restrictions::eq(rfile.id,originId));
+                rud.update(rfile.table,rfile.quoteNum,quoteNum+1).
+                        createCriteria().
+                        add(Restrictions::eq(rfile.table,rfile.id,originId));
                 if(query.exec(rud.sql()))
                 {
                     return true;
@@ -898,7 +925,8 @@ bool SQLProcess::queryFile(Database *db, const QString &fileMd5)
     DataTable::RFile rfile;
     RSelect rst(rfile.table);
 
-    rst.createCriteria().add(Restrictions::eq(rfile.md5,fileMd5));
+    rst.createCriteria().
+            add(Restrictions::eq(rfile.table,rfile.md5,fileMd5));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -923,15 +951,15 @@ bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc)
 {
     DataTable::RFile rfile;
     RPersistence rs(rfile.table);
-    rs.insert(rfile.id,desc->fileId);
-    rs.insert(rfile.md5,desc->md5);
-    rs.insert(rfile.quoteNum,0);
-    rs.insert(rfile.fileName,desc->fileName);
-    rs.insert(rfile.src,desc->accountId);
-    rs.insert(rfile.dst,desc->otherId);
-    rs.insert(rfile.dtime,QDateTime::currentDateTime());
-    rs.insert(rfile.fileSize,desc->size);
-    rs.insert(rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH);
+    rs.insert({{rfile.id,desc->fileId},
+              {rfile.md5,desc->md5},
+              {rfile.quoteNum,0},
+              {rfile.fileName,desc->fileName},
+              {rfile.src,desc->accountId},
+              {rfile.dst,desc->otherId},
+              {rfile.dtime,QDateTime::currentDateTime()},
+              {rfile.fileSize,desc->size},
+              {rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH}});
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
@@ -947,7 +975,8 @@ bool SQLProcess::getFileInfo(Database *db, SimpleFileItemRequest *request, FileI
     DataTable::RFile rfile;
     RSelect rst(rfile.table);
 
-    rst.createCriteria().add(Restrictions::eq(rfile.id,request->fileId));
+    rst.createCriteria().
+            add(Restrictions::eq(rfile.table,rfile.id,request->fileId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -977,7 +1006,8 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
     DataTable::RFile rfile;
     RSelect rst(rfile.table);
 
-    rst.createCriteria().add(Restrictions::eq(rfile.id,request->fileId));
+    rst.createCriteria().
+            add(Restrictions::eq(rfile.table,rfile.id,request->fileId));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -997,10 +1027,9 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
             if(itemInfo->md5.size() <= 0 && quoteId.size() > 0)
             {
                 RSelect rst1(rfile.table);
-                rst1.select(rfile.md5);
-                rst1.select(rfile.fileName);
-                rst1.select(rfile.filePath);
-                rst1.createCriteria().add(Restrictions::eq(rfile.id,quoteId));
+                rst1.select(rfile.table,{rfile.md5,rfile.fileName,rfile.filePath}).
+                        createCriteria().
+                        add(Restrictions::eq(rfile.table,rfile.id,quoteId));
                 if(query.exec(rst1.sql()) && query.next())
                 {
                     itemInfo->md5 = query.value(rfile.md5).toString();
@@ -1027,8 +1056,10 @@ QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
     DataTable::RGroup group;
 
     RSelect rs(group.table);
-    rs.select(group.id);
-    rs.createCriteria().add(Restrictions::eq(group.userId,id)).add(Restrictions::eq(group.defaultGroup,1));
+    rs.select(group.table,{group.id});
+    rs.createCriteria().
+            add(Restrictions::eq(group.table,group.userId,id)).
+            add(Restrictions::eq(group.table,group.defaultGroup,1));
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
@@ -1052,11 +1083,15 @@ QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString i
     DataTable::RGroup group;
     DataTable::RUser user;
 
-    QString sql = QString("select g.id from %1 g left join %2 u on g.uid = u.id where %3 = %4 and %5 = 1 ")
-            .arg(group.table,user.table,user.account,id,group.defaultGroup);
+    RSelect select({group.table,user.table});
+    select.select(group.table,{group.id}).
+            on(group.table,group.userId,user.table,user.id).
+            createCriteria().
+            add(Restrictions::eq(user.table,user.account,id)).
+            add(Restrictions::eq(group.table,group.defaultGroup,1));
 
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
+    if(query.exec(select.sql()))
     {
         if(query.next())
         {
@@ -1077,8 +1112,9 @@ QStringList SQLProcess::getGroupsById(Database *db, const QString id)
 {
     DataTable::RGroup group;
     RSelect rst(group.table);
-    rst.select(group.id);
-    rst.createCriteria().add(Restrictions::eq(group.userId,id));
+    rst.select(group.table,{group.id});
+    rst.createCriteria().
+            add(Restrictions::eq(group.table,group.userId,id));
 
     QStringList list;
     QSqlQuery query(db->sqlDatabase());
