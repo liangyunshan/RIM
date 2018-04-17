@@ -52,6 +52,7 @@ public:
     void setChecked(bool flag);
 
     void setStatus(OnlineStatus);
+    bool isOnline()const;
 
     enum ItemState
     {

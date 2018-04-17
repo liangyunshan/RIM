@@ -933,6 +933,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
         {
             client->toolItem->setStatus(response.onStatus);
             client->simpleUserInfo.status = response.onStatus;
+            RSingleton<Subject>::instance()->notify(MESS_FRIEND_STATE_CHANGE);
             if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);

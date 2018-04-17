@@ -46,10 +46,10 @@ UserClient *UserManager::addClient(QString accountId)
 }
 
 /*!
-     * @brief 移除联系人
-     * @param[in] accountId:QString 联系人id
-     * @return 移除联系人结果:bool
-     */
+ * @brief 移除联系人
+ * @param[in] accountId:QString 联系人id
+ * @return 移除联系人结果:bool
+ */
 bool UserManager::removeClient(QString accountId)
 {
     QMutexLocker locker(&mutex);

@@ -37,7 +37,7 @@ public:
     ResponseAddFriend processSearchFriend(Database *db,SearchFriendRequest *request,SearchFriendResponse * response);
     ResponseAddFriend processAddFriendRequest(Database *db,QString accountId,QString operateId,int type);
 
-    bool createGroup(Database *db, QString userId, QString groupName, QString &groupId, bool isDefault = false);
+    bool createGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault = false);
     bool renameGroup(Database *db,GroupingRequest* request);
     bool deleteGroup(Database *db,GroupingRequest* request);
     bool establishRelation(Database *db,OperateFriendRequest *request);

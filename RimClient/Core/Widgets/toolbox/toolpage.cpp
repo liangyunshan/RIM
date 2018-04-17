@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "toolbox.h"
 #include "../actionmanager/actionmanager.h"
+#include "Util/rutil.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -46,16 +47,16 @@ private:
     QWidget * simpleTextWidget;
     QWidget * detailWidget;
 
-    QLabel * iconLabel;
-    QLabel * textLabel;
-    QLabel * descLabel;
+    QLabel * iconLabel;             /*!< 显示页面折叠的图标，三角图标 */
+    QLabel * textLabel;             /*!< 显示分组名称 */
+    QLabel * descLabel;             /*!< 显示分组的描述，若为联系人页面显示[在线/总人数],群页面显示[当前分组群数量] */
 
     QMenu * contextMenu;
 
     QList<ToolItem *> toolItems;
 
     bool expanded;
-   GroupPerson::PersonGroupInfo m_pageInfo;
+    GroupPerson::PersonGroupInfo m_pageInfo;
 };
 
 void ToolPagePrivate::initWidget()
@@ -145,7 +146,7 @@ ToolPage::ToolPage(ToolBox *parent):
     d_ptr->toolBox = parent;
     d_ptr->detailWidget->installEventFilter(this);
     d_ptr->simpleTextWidget->installEventFilter(this);
-    d_ptr->m_pageInfo.uuid = QUuid::createUuid().toString();
+    d_ptr->m_pageInfo.uuid = RUtil::UUID();
 
 }
 
@@ -269,13 +270,13 @@ QList<ToolItem *>& ToolPage::items()
 
 
 /*!
-     * @brief 删除目标item
-     * @param[in] item:ToolItem *待删除的目标item
-     * @return item是否从布局中删除成功
-     * @details 将item从布局中删除、从toolItems列表中移除，但不销毁内存中的数据
-     *          从布局中移除成功后发射itemRemoved(ToolItem*)信号，通知相应的
-     *          ToolBox更新currentItem：ToolItem *
-     */
+ * @brief 删除目标item
+ * @param[in] item:ToolItem *待删除的目标item
+ * @return item是否从布局中删除成功
+ * @details 将item从布局中删除、从toolItems列表中移除，但不销毁内存中的数据
+ *          从布局中移除成功后发射itemRemoved(ToolItem*)信号，通知相应的
+ *          ToolBox更新currentItem：ToolItem *
+ */
 bool ToolPage::removeItem(ToolItem *item)
 {
     MQ_D(ToolPage);
@@ -350,6 +351,12 @@ bool ToolPage::isExpanded() const
 {
     MQ_D(ToolPage);
     return d->expanded;
+}
+
+void ToolPage::setDescInfo(const QString &content)
+{
+    MQ_D(ToolPage);
+    d->descLabel->setText(content);
 }
 
 /*!

@@ -45,7 +45,7 @@ private:
     QScrollArea * scrollArea;
     QWidget * contentWidget;
 
-    QList<ToolPage *> pages;
+    QList<ToolPage *> pages;                        /*!< 装载多个信息页面 */
 
     ToolPage * currentPage;
     ToolItem * currentItem;

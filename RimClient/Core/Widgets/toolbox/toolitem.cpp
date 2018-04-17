@@ -57,6 +57,8 @@ protected:
 
     int notifyCount;                    //作为通知消息时，显示通知消息的数量
 
+    OnlineStatus onlineStatus;          //在线状态
+
     QMenu * contenxMenu;
     bool checked;                       //是否被选中
 };
@@ -334,20 +336,28 @@ void ToolItem::setChecked(bool flag)
 void ToolItem::setStatus(OnlineStatus status)
 {
     MQ_D(ToolItem);
-    if(status == STATUS_OFFLINE || status == STATUS_HIDE)
-    {
-        QImage t_normal = d->iconLabel->pixmap()->toImage();
-        QImage t_grayPic = RUtil::convertToGray(t_normal);
-        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
-        d->onLineStateLabel->setPixmap(QPixmap(""));
-    }
-    else
+    d->onlineStatus = status;
+
+    if(isOnline())
     {
         QString t_filePath = d->iconLabel->getPixmapFileInfo().absoluteFilePath();
         d->iconLabel->setPixmap(QPixmap(t_filePath));
         d->onLineStateLabel->setPixmap(QPixmap(OnLineState::getStatePixmap(status)).scaled(d->onLineStateLabel->width(),
                                                                                            d->onLineStateLabel->height()));
     }
+    else
+    {
+        QImage t_normal = d->iconLabel->pixmap()->toImage();
+        QImage t_grayPic = RUtil::convertToGray(t_normal);
+        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
+        d->onLineStateLabel->setPixmap(QPixmap(""));
+    }
+}
+
+bool ToolItem::isOnline() const
+{
+    MQ_D(ToolItem);
+    return !(d->onlineStatus == STATUS_OFFLINE || d->onlineStatus == STATUS_HIDE);
 }
 
 void ToolItem::cursorHoverIcon(bool flag)

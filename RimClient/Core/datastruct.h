@@ -42,7 +42,8 @@ enum MessageType
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
     MESS_GROUP_DELETE,           /*!< 分组删除消息 */
     MESS_ICON_CHANGE,            /*!< 登陆用户icon改变 */
-    MESS_SCREEN_CHANGE           /*!< 屏幕改变 */
+    MESS_SCREEN_CHANGE,          /*!< 屏幕改变 */
+    MESS_FRIEND_STATE_CHANGE     /*!< 好友状态改变 */
 };
 
 /*!

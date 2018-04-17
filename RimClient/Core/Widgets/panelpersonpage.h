@@ -14,6 +14,7 @@
  *      20180202:LYS:去掉pages与toolItems列表，toolBox中allPages方法与toolPage中items方法代替
  *      20180205:LYS:修复删除分组bug
  *      20180305:LYS:添加创建好友列表或者刷新好友列表标志m_listIsCreated:bool
+ *      20180417:wey:修复删除好友时，全局列表G_FriendList中未删除对应item，造成再次添加时按钮不可用的bug
  */
 #ifndef PANELPERSONPAGE_H
 #define PANELPERSONPAGE_H
@@ -72,6 +73,8 @@ public slots:
 private:
     void createAction();
     void addGroupAndUsers();
+    void updateGroupDescInfo(ToolPage * page);
+    void updateGroupDescInfo();
     ToolItem * ceateItem(SimpleUserInfo *info, ToolPage *page);
     void clearTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);

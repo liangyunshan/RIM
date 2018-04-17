@@ -248,13 +248,12 @@ ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accou
      * @param[in] db 数据库
      * @param[in] userId User表Id
      * @param[in] groupName 分组名
+     * @param[in] groupId isDefault为true时，由服务器端随机产生id；isDefault为false时，由客户都按用户指定id
      * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
      * @return 是否创建成功
      */
-bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QString & groupId, bool isDefault)
+bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QString groupId, bool isDefault)
 {
-    groupId = RUtil::UUID();
-
     DataTable::RGroup rgp;
     RPersistence rps(rgp.table);
     rps.insert({{rgp.id,groupId},

@@ -45,7 +45,7 @@ void DataProcess::processUserRegist(Database *db, int socketId, std::shared_ptr<
     if(regResult == REGISTER_SUCCESS)
     {
         QScopedPointer<RegistResponse> response(new RegistResponse);
-        QString groupId;
+        QString groupId = RUtil::UUID();
         RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),groupId,true);
         response->accountId = registId;
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());

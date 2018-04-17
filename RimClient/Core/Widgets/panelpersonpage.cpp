@@ -5,6 +5,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QLineEdit>
+#include <algorithm>
 
 #include "head.h"
 #include "datastruct.h"
@@ -105,10 +106,8 @@ PanelPersonPage::~PanelPersonPage()
 }
 
 /*!
- * @brief 更新好友列表
+ * @brief 创建/更新好友列表
  * @details 接收数据后，1.创建对应的ToolItem；2.更新对应Client的基本信息。
- * @param[in] 无
- * @return 无
  */
 void PanelPersonPage::addGroupAndUsers()
 {
@@ -127,11 +126,36 @@ void PanelPersonPage::addGroupAndUsers()
             ToolItem * item = ceateItem(userInfo,page);
             page->addItem(item);
         }
+        updateGroupDescInfo(page);
 
         page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
     }
 
     d->m_listIsCreated = true;
+}
+
+/*!
+ * @brief 更新分组人数信息
+ * @details 在添加联系人、删除联系人、联系人状态改变、移动联系人等均调用
+ * @param[in] page 待更新的分组
+ */
+void PanelPersonPage::updateGroupDescInfo(ToolPage *page)
+{
+    int onlineCount = 0;
+    std::count_if(page->items().cbegin(),page->items().cend(),[&onlineCount](const ToolItem *info){
+        if(info->isOnline())
+            onlineCount++;
+        return true;
+    });
+
+    page->setDescInfo(QString("%1/%2").arg(onlineCount).arg(page->items().size()));
+}
+
+void PanelPersonPage::updateGroupDescInfo()
+{
+    MQ_D(PanelPersonPage);
+    std::for_each(d->toolBox->allPages().begin(),d->toolBox->allPages().end(),
+                  [&](ToolPage *page){this->updateGroupDescInfo(page);});
 }
 
 /*!
@@ -185,6 +209,7 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
 
 /*!
  * @brief 接收服务器的消息删除某个分组中的联系人
+ * @attention 从当前列表中移除好友的同时还需从全局好友列表中将此人此账户移除，否则再次添加时不可用。
  * @param[in] info:SimpleUserInfo &，待更新的联系人信息
  * @return 无
  */
@@ -199,16 +224,34 @@ void PanelPersonPage::removeContact(const SimpleUserInfo & info)
         {
             return;
         }
-        ToolPage *t_pageOfItem = d->toolBox->targetPage(t_item);
-        if(t_pageOfItem)
+        ToolPage * pageItem = d->toolBox->targetPage(t_item);
+        if(pageItem)
         {
-            bool t_removeResult = t_pageOfItem->removeItem(t_item);
+            bool t_removeResult = pageItem->removeItem(t_item);
             if(t_removeResult)
             {
                 bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
                 if(t_result)
                 {
                     delete t_item;
+
+                    //从全局列表中移除对应的item
+                    QList<RGroupData *>::iterator iter  = std::find_if(G_FriendList.begin(),G_FriendList.end(),[&pageItem](const RGroupData * data){
+                        if(pageItem->getID() == data->groupId)
+                            return true;
+                        return false;
+                    });
+
+                    if(iter != G_FriendList.end()){
+                        QList<SimpleUserInfo *>::iterator siter = (*iter)->users.begin();
+                        while(siter != (*iter)->users.end()){
+                            if((*siter)->accountId == info.accountId){
+                                delete (*siter);
+                                (*iter)->users.erase(siter);
+                            }
+                            siter++;
+                        }
+                    }
                 }
             }
         }
@@ -320,9 +363,16 @@ void PanelPersonPage::onMessage(MessageType type)
                 updateContactList();
             }
             break;
+
         case MESS_GROUP_DELETE:
             clearTargetGroup(d->m_deleteID);
+            updateGroupDescInfo();
             break;
+
+        case MESS_FRIEND_STATE_CHANGE:
+            updateGroupDescInfo();
+            break;
+
         default:
             break;
     }
@@ -525,6 +575,7 @@ void PanelPersonPage::deleteUser()
 
 /*!
  * @brief 接收分组好友操作结果
+ * @details 处理的类型包括1.创建好友；2.更新好友信息；3.移动好友；4.删除好友
  * @param[in] response 结果信息
  * @return 无
  */
@@ -549,7 +600,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                     }
                     iter++;
                 }
-
+                updateGroupDescInfo();
                 QList<RGroupData *>::iterator groupIter =  G_FriendList.begin();
                 while(groupIter != G_FriendList.end())
                 {
@@ -573,7 +624,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
             }
             else
             {
-
+                //TODO 20180417添加好友失败
             }
             break;
         }
@@ -582,9 +633,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
             if(result == STATUS_SUCCESS)
             {
                updateContactShow(response.user);
-            }
-            else
-            {
+            }else{
 
             }
             break;
@@ -598,15 +647,13 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                 ToolPage * t_sourcePage = d->toolBox->targetPage(t_sourceID);
                 ToolPage * t_targetPage = d->toolBox->targetPage(t_targetID);
                 bool t_rmResult = t_sourcePage->removeItem(d->m_movedItem);
-                if(t_rmResult)
-                {
+                if(t_rmResult){
                     d->toolBox->targetPage(t_targetID)->addItem(d->m_movedItem);
                     disconnect(d->m_movedItem,SIGNAL(updateGroupActions()),t_sourcePage,SLOT(updateGroupActions()));
                     connect(d->m_movedItem,SIGNAL(updateGroupActions()),t_targetPage,SLOT(updateGroupActions()));
+                    updateGroupDescInfo();
                 }
-            }
-            else
-            {
+            }else{
 
             }
             break;
@@ -616,6 +663,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
              if(result == STATUS_SUCCESS)
              {
                  removeContact(response.user);
+                 updateGroupDescInfo();
              }
         }
     default:
@@ -655,7 +703,6 @@ void PanelPersonPage::requestModifyRemark(QString remark)
             SimpleUserInfo t_changedInfo = client->simpleUserInfo;
             t_changedInfo.remarks = remark;
 
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<t_changedInfo.status;
             t_request->user = t_changedInfo;
         }
         else
@@ -733,6 +780,8 @@ void PanelPersonPage::updateContactList()
                     t_targetPage->addItem(t_newItem);
                 }
             }
+
+            updateGroupDescInfo(t_targetPage);
         }
         else
         {
@@ -749,6 +798,7 @@ void PanelPersonPage::updateContactList()
                 ToolItem * t_item = ceateItem(t_userInfo,t_newPage);
                 t_newPage->addItem(t_item);
             }
+            updateGroupDescInfo(t_newPage);
             t_newPage->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
         }
     }
