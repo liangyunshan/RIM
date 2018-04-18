@@ -304,32 +304,106 @@ bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
 }
 
 /*!
-     * @brief 删除用户分组，可分别删除联系人分组和群分组信息
-     * @param[in] db 数据库
-     * @param[in] request 分组操作请求
-     * @return 是否删除成功
-     */
+ * @brief 删除用户分组，可分别删除联系人分组和群分组信息
+ * @details 若删除的分组中包含联系人，则将联系人移动至默认的分组；再执行删除操作；
+ * @param[in] db 数据库
+ * @param[in] request 分组操作请求
+ * @return 是否删除成功
+ */
 bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
 {
-    QString sql;
     if(request->gtype == GROUPING_FRIEND)
     {
-        DataTable::RGroup rgp;
-        RDelete rde(rgp.table);
-        rde.createCriteria().
-                add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
-                add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
-        sql = rde.sql();
-    }
-    else if(request->gtype == GROUPING_GROUP)
-    {
+        QSqlQuery query(db->sqlDatabase());
+
+        //[1]查询分组下联系人数量
+        DataTable::RGroup_User rgu;
+        RSelect rst(rgu.table);
+        rst.select(rgu.table,{rgu.id}).
+                createCriteria().
+                add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
+
+
+        //[2]若存在联系人则将联系人移动至默认分组
+        if(query.exec(rst.sql()) && query.next()){
+            query.clear();
+            QString userDefaultGroupId = getDefaultGroupByUserId(db,request->uuid);
+            if(userDefaultGroupId.size() > 0){
+#if defined(ENABLE_SQL_TRANSACTION)
+                if(db->sqlDatabase().transaction()){
+#endif
+                    RUpdate rpd(rgu.table);
+                    rpd.update(rgu.table,rgu.groupId,userDefaultGroupId).
+                            createCriteria().
+                            add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
+
+                    if(query.exec(rpd.sql())){
+                        //[3]删除分组
+                        DataTable::RGroup rgp;
+                        RDelete rde(rgp.table);
+                        rde.createCriteria().
+                                add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
+                                add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
+
+                        if(query.exec(rde.sql())){
+#if defined(ENABLE_SQL_TRANSACTION)
+                            db->sqlDatabase().commit();
+#endif
+                            return true;
+                        }
+#if defined(ENABLE_SQL_TRANSACTION)
+                        db->sqlDatabase().rollback();
+#endif
+                    }
+            }else{
+                //TODO 20180418
+            }
+        }
+
+    }else if(request->gtype == GROUPING_GROUP){
 
     }
+    return false;
+}
 
-    QSqlQuery query(db->sqlDatabase());
-    if(query.exec(sql))
-    {
-        return true;
+
+/*!
+ * @brief 测试两个联系人是否已经建立关联关系
+ * @details 交替查询A、B双反中是否包含了对方的账号信息;
+ * @param[in] db 数据库
+ * @param[in] request 分组操作请求
+ * @return 连接标识
+ */
+bool SQLProcess::testTstablishRelation(Database *db, OperateFriendRequest *request)
+{
+    QStringList alist = getGroupListByUserAccountId(db,request->accountId);
+    QStringList blist = getGroupListByUserAccountId(db,request->operateId);
+
+    UserBaseInfo ainfo ,binfo;
+    if(getUserInfo(db,request->accountId,ainfo) && getUserInfo(db,request->operateId,binfo)){
+        QSqlQuery query(db->sqlDatabase());
+        DataTable::RGroup_User rgu;
+        foreach(QString s,alist){
+            RSelect rst(rgu.table);
+            rst.select(rgu.table,{rgu.id})
+                    .createCriteria()
+                    .add(Restrictions::eq(rgu.table,rgu.groupId,s))
+                    .add(Restrictions::eq(rgu.table,rgu.userId,binfo.uuid));
+            if(query.exec(rst.sql()) && query.next()){
+                return true;
+            }
+        }
+
+        foreach(QString s,blist){
+            RSelect rst(rgu.table);
+            rst.select(rgu.table,{rgu.id})
+                    .createCriteria()
+                    .add(Restrictions::eq(rgu.table,rgu.groupId,s))
+                    .add(Restrictions::eq(rgu.table,rgu.userId,ainfo.uuid));
+            if(query.exec(rst.sql()) && query.next()){
+                return true;
+            }
+        }
     }
 
     return false;
@@ -1050,14 +1124,14 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
 
 
 //根据User表ID查找用户默认分组
-QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString id)
+QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString uuid)
 {
     DataTable::RGroup group;
 
     RSelect rs(group.table);
     rs.select(group.table,{group.id});
     rs.createCriteria().
-            add(Restrictions::eq(group.table,group.userId,id)).
+            add(Restrictions::eq(group.table,group.userId,uuid)).
             add(Restrictions::eq(group.table,group.defaultGroup,1));
 
     QSqlQuery query(db->sqlDatabase());
@@ -1098,6 +1172,34 @@ QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString i
         }
     }
     return QString();
+}
+
+/*!
+ * @brief 获取指定用户的分组ID
+ * @param[in] db 数据库
+ * @param[in] id user表AccountId
+ * @return 分组列表
+ */
+QStringList SQLProcess::getGroupListByUserAccountId(Database *db, const QString id)
+{
+    QStringList result;
+
+    DataTable::RUser ruser;
+    DataTable::RGroup rgroup;
+    RSelect rst({rgroup.table,ruser.table});
+    rst.select(rgroup.table,{rgroup.id})
+            .on(rgroup.table,rgroup.userId,ruser.table,ruser.id)
+            .createCriteria()
+            .add(Restrictions::eq(ruser.table,ruser.account,id));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql())){
+        while(query.next()){
+            result<<query.value(rgroup.id).toString();
+        }
+    }
+
+    return result;
 }
 
 /*!

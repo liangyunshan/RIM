@@ -27,6 +27,7 @@
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "user/userclient.h"
+#include "user/userfriendcontainer.h"
 #include "panelpersonpage.h"
 #include "media/mediaplayer.h"
 #include "user/user.h"
@@ -330,23 +331,14 @@ void MainDialog::updateEditInstance()
 }
 
 /*!
- * @brief 设置好友列表
+ * @brief 创建好友列表
  * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
  * @param[in] friendList 好友列表
  * @return 无
  */
 void MainDialog::updateFriendList(FriendListResponse *friendList)
 {
-    QList<RGroupData *>::iterator iter = G_FriendList.begin();
-    while(iter != G_FriendList.end())
-    {
-        delete (*iter);
-        iter = G_FriendList.erase(iter);
-    }
-    G_FriendList.clear();
-
-    G_FriendList = friendList->groups;
-
+    RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
     RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
 }
 

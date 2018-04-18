@@ -47,6 +47,7 @@
 #include "notifywindow.h"
 #include "systemnotifyview.h"
 #include "user/userclient.h"
+#include "user/userfriendcontainer.h"
 #include "abstractchatwidget.h"
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
@@ -1112,6 +1113,11 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 
         SystemNotifyView * view = new SystemNotifyView();
         connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
+
+        //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
+        if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
+            reqType = FRIEND_AGREE;
+        }
 
         view->setNotifyType(reqType);
         view->setNotifyInfo(info);

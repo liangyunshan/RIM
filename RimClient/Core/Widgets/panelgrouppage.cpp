@@ -195,11 +195,10 @@ void PanelGroupPage::renameGroup()
 }
 
 /*!
-     * @brief 删除群分组
-     * @param[in] 无
-     * @return 无
-     *
-     */
+ * @brief 删除群分组
+ * @param[in] 无
+ * @return 无
+ */
 void PanelGroupPage::deleteGroup()
 {
     MQ_D(PanelGroupPage);
@@ -445,10 +444,10 @@ void PanelGroupPage::addGroupAndCluster()
 }
 
 /*!
-     * @brief 接收到服务器删除分组成功后更新群分组显示
-     * @param[in] id:QString，待删除的群分组id
-     * @return 无
-     */
+ * @brief 接收到服务器删除分组成功后更新群分组显示
+ * @param[in] id:QString，待删除的群分组id
+ * @return 无
+ */
 void PanelGroupPage::clearTargetGroup(const QString id)
 {
     MQ_D(PanelGroupPage);

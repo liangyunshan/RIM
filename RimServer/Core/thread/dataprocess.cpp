@@ -279,6 +279,8 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
     ResponseFriendApply result = (ResponseFriendApply)request->result;
     if(result == FRIEND_AGREE)
     {
+        if(RSingleton<SQLProcess>::instance()->testTstablishRelation(db,request.data()))
+            return;
         flag = RSingleton<SQLProcess>::instance()->establishRelation(db,request.data());
     }
 

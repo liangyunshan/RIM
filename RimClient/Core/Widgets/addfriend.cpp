@@ -24,6 +24,7 @@
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"
 #include "user/user.h"
+#include "user/userfriendcontainer.h"
 
 #define ADD_FRIEND_WIDTH 380
 #define ADD_FRIEND_HEIGHT 400
@@ -223,7 +224,7 @@ void AddFriend::onMessage(MessageType type)
             {
                 if(d->searchList && d->searchList->selectedItem())
                 {
-                    d->enableSearch(!friendExisted(d->searchList->selectedItem()->getName()));
+                    d->enableSearch(!RSingleton<UserFriendContainer>::instance()->containUser(d->searchList->selectedItem()->getName()));
                 }
                 break;
             }
@@ -372,7 +373,7 @@ void AddFriend::itemSelected(ToolItem * item)
 {
     MQ_D(AddFriend);
 
-    if(item && item->getName() != G_User->BaseInfo().accountId && !friendExisted(item->getName()))
+    if(item && item->getName() != G_User->BaseInfo().accountId && !RSingleton<UserFriendContainer>::instance()->containUser(item->getName()))
     {
         d->enableSearch(true);
     }
@@ -380,25 +381,6 @@ void AddFriend::itemSelected(ToolItem * item)
     {
         d->enableSearch(false);
     }
-}
-
-bool AddFriend::friendExisted(QString accountId)
-{
-    QList<RGroupData *>::iterator iter = G_FriendList.begin();
-    while(iter != G_FriendList.end())
-    {
-        QList<SimpleUserInfo *>::iterator userIter = (*iter)->users.begin();
-        while(userIter != (*iter)->users.end())
-        {
-            if((*userIter)->accountId == accountId)
-            {
-                return true;
-            }
-            userIter++;
-        }
-        iter++;
-    }
-    return false;
 }
 
 void AddFriend::enableInput(bool flag)

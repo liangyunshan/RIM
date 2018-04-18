@@ -91,7 +91,7 @@ struct NotifyInfo
 {
     QString identityId;                     /*!< 消息唯一标识 */
     NotifyType type;                        /*!< 消息类型 */
-    QString accountId;                      /*!< 通知消息所属发放用户ID */
+    QString accountId;                      /*!< 通知消息所属发送方用户ID */
     QString nickName;                       /*!< 用户昵称 */
     bool isSystemIcon;                      /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
     QString iconId;                         /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */

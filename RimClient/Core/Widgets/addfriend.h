@@ -46,7 +46,6 @@ private slots:
 
 private:
     void enableInput(bool flag);
-    bool friendExisted(QString accountId);
 
 private:
     AddFriendPrivate * d_ptr;

@@ -92,13 +92,17 @@ void ToolPagePrivate::initWidget()
     textLabel = new QLabel;
     textLabel->setFont(QFont("微软雅黑",13));
     textLabel->setObjectName("Tool_SimpleTextLabel");
+    //解决在中文分组名称时，与descLabel间空格过大问题
+    textLabel->setStyleSheet("background-color:rgba(0,0,0,0)");
 
     descLabel = new QLabel;
-    textLabel->setObjectName("Tool_DescTextLabel");
+    descLabel->setObjectName("Tool_DescTextLabel");
 
     simpleLayout->addWidget(iconLabel);
     simpleLayout->addWidget(textLabel);
+    simpleLayout->addSpacing(8);
     simpleLayout->addWidget(descLabel);
+    simpleLayout->addStretch();
     simpleTextWidget->setLayout(simpleLayout);
 
     mainLayout->addWidget(contentWidget);
@@ -326,13 +330,10 @@ void ToolPage::setMenu(QMenu *menu)
 }
 
 /*!
-     * @brief 控制分组展开或闭合
-     *
-     * @param[in] ifExpand:const bool
-     *
-     * @return page的展开状态
-     *
-     */
+ * @brief 控制分组展开或闭合
+ * @param[in] ifExpand:const bool
+ * @return page的展开状态
+ */
 void ToolPage::setExpand(bool ifExpand)
 {
     MQ_D(ToolPage);
@@ -340,13 +341,10 @@ void ToolPage::setExpand(bool ifExpand)
 }
 
 /*!
-     * @brief 获取page是否是展开状态
-     *
-     * @param 无
-     *
-     * @return page的展开状态
-     *
-     */
+ * @brief 获取page是否是展开状态
+ * @param 无
+ * @return page的展开状态
+ */
 bool ToolPage::isExpanded() const
 {
     MQ_D(ToolPage);
@@ -360,10 +358,10 @@ void ToolPage::setDescInfo(const QString &content)
 }
 
 /*!
-     * @brief 获取textLabel的显示尺寸
-     * @param 无
-     * @return 无
-     */
+ * @brief 获取textLabel的显示尺寸
+ * @param 无
+ * @return 无
+ */
 QRect ToolPage::textRect() const
 {
     MQ_D(ToolPage);
@@ -377,10 +375,10 @@ QRect ToolPage::titleRect() const
 }
 
 /*!
-     * @brief 获取textLabel的默认固定高度
-     * @param 无
-     * @return textLabel的默认固定高度
-     */
+ * @brief 获取textLabel的默认固定高度
+ * @param 无
+ * @return textLabel的默认固定高度
+ */
 int ToolPage::txtFixedHeight()
 {
     int fixedHeight = TOOL_SIMPLE_HEIGHT;
@@ -388,10 +386,10 @@ int ToolPage::txtFixedHeight()
 }
 
 /*!
-     * @brief 获取page的pageInfo(分组唯一标识、分组序号、分组名称)
-     * @param 无
-     * @return const PersonGroupInfo &
-     */
+ * @brief 获取page的pageInfo(分组唯一标识、分组序号、分组名称)
+ * @param 无
+ * @return const PersonGroupInfo &
+ */
 const PersonGroupInfo & ToolPage::pageInfo()
 {
     MQ_D(ToolPage);
@@ -412,10 +410,10 @@ void ToolPage::highlightShow()
 }
 
 /*!
-     * @brief 取消高亮显示标题框
-     * @param 无
-     * @return 无
-     */
+ * @brief 取消高亮显示标题框
+ * @param 无
+ * @return 无
+ */
 void ToolPage::unHighlightShow()
 {
     MQ_D(ToolPage);
@@ -425,10 +423,10 @@ void ToolPage::unHighlightShow()
 }
 
 /*!
-     * @brief 处理Item的SIGNAL：updateGroupActions()
-     * @param 无
-     * @return 无
-     */
+ * @brief 处理Item的SIGNAL：updateGroupActions()
+ * @param 无
+ * @return 无
+ */
 void ToolPage::updateGroupActions()
 {
     emit updateGroupActions(this);
