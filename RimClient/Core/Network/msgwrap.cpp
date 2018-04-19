@@ -199,6 +199,7 @@ void MsgWrap::handleGroupingOperateRequest(GroupingRequest *packet)
     data.insert(JsonKey::key(JsonKey::GroupType),packet->gtype);
     data.insert(JsonKey::key(JsonKey::Type),packet->type);
     data.insert(JsonKey::key(JsonKey::GroupName),packet->groupName);
+    data.insert(JsonKey::key(JsonKey::Index),packet->groupIndex);
 
     wrappedPack(packet,data);
 }

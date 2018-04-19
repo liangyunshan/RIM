@@ -15,6 +15,7 @@
  *      20180131:LYS:添加获取默认分组方法defaultPage
  *      20180208:LYS:修复移动排序算法问题
  *      20180227:LYS:添加根据Item找到Page的重载方法targetPage(ToolItem *)
+ *      20180419:wey:修复快速拖动分组时分组显示在页面底部()
  *
  */
 #ifndef TOOLBOX_H
@@ -40,6 +41,8 @@ public:
     bool removePage(ToolPage *);
     bool removeFromList(ToolPage *);
 
+    void sortPage(const QString & groupId, int newPageIndex);
+
     ToolPage * selectedPage();
     ToolItem * selectedItem();
 
@@ -56,6 +59,7 @@ public:
 signals:
     void updateGroupActions(ToolPage *);
     void noticePageRemoved(ToolPage *);
+    void pageIndexMoved(int newIndex,QString pageId);
 
 private slots:
     void setSlectedPage(ToolPage*);

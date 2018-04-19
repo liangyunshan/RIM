@@ -63,6 +63,7 @@ public:
         Control,
         Id,
         SystemIcon,
+        Index,
         IconId,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */

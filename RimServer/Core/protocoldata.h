@@ -16,7 +16,6 @@
 
 #include <QString>
 #include <QList>
-#include <QDebug>
 
 /*!
  * @brief 应用层数据传输结构
@@ -211,8 +210,6 @@ enum ResponseRegister
 enum OperateFriend
 {
     FRIEND_APPLY,                /*!< 好友请求 */
-    FRIEND_DELETE,               /*!< 删除好友 */
-    FRIEND_MOVE                  /*!< 移动好友 */
 };
 
 /*!
@@ -328,7 +325,6 @@ class LoginRequest : public MsgPacket
 {
 public:
     LoginRequest();
-    ~LoginRequest(){qDebug()<<"dafasfasdfadfafafds";}
 
     QString accountId;              /*!< 登陆账号 */
     QString password;               /*!< 账号密码，采用密码加密传输 */
@@ -509,9 +505,10 @@ public:
 struct RGroupData
 {
     ~RGroupData();
-    QString groupId;                /*!< 分组ID，可用于判断唯一标识  */
-    QString groupName;              /*!< 分组名称  */
-    bool isDefault;                 /*!< 是否为默认分组  */
+    QString groupId;                  /*!< 分组ID，可用于判断唯一标识  */
+    QString groupName;                /*!< 分组名称  */
+    bool isDefault;                   /*!< 是否为默认分组  */
+    int index;                        /*!< 分组排序 */
     QList<SimpleUserInfo *> users;    /*!< 分组中联系人或群的描述信息  */
 };
 
@@ -611,8 +608,7 @@ public:
     GroupingType gtype;     /*!< 分组类型，参见 @link GroupingType @endlink */
     OperateGrouping type;   /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
     QString groupName;      /*!< 分组名称 */
-
-    //int groupIndex;                       //分组序号
+    int groupIndex;         /*!< 分组序号,分组排序时向服务器发送当前goupid在列表中的位置 */
 };
 
 /*!
@@ -626,6 +622,7 @@ public:
     GroupingType gtype;       /*!< 分组类型，参见 @link GroupingType @endlink */
     QString groupId;          /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
     OperateGrouping type;     /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
+    int groupIndex;           /*!< 分组序号 */
 };
 
 /**********************用户状态变更**********************/

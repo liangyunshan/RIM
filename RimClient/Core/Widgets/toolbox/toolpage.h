@@ -26,8 +26,6 @@
 class ToolBox;
 class ToolPagePrivate;
 
-using namespace GroupPerson;
-
 class ToolPage : public QWidget
 {
     Q_OBJECT

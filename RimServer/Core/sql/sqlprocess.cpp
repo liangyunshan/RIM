@@ -90,8 +90,7 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
                 createCriteria().
                 add(Restrictions::eq(config.table,config.name,config.accuoutId));
 
-        if(query.exec(rpd.sql()))
-        {
+        if(query.exec(rpd.sql())){
 
         }
 
@@ -244,15 +243,15 @@ ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accou
 }
 
 /*!
-     * @brief 创建用户分组
-     * @param[in] db 数据库
-     * @param[in] userId User表Id
-     * @param[in] groupName 分组名
-     * @param[in] groupId isDefault为true时，由服务器端随机产生id；isDefault为false时，由客户都按用户指定id
-     * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
-     * @return 是否创建成功
-     */
-bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QString groupId, bool isDefault)
+ * @brief 创建用户分组
+ * @param[in] db 数据库
+ * @param[in] userId User表Id
+ * @param[in] groupName 分组名
+ * @param[in] groupId isDefault为true时，由服务器端随机产生id；isDefault为false时，由客户都按用户指定id
+ * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
+ * @return 是否创建成功
+ */
+bool SQLProcess::createGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault)
 {
     DataTable::RGroup rgp;
     RPersistence rps(rgp.table);
@@ -271,11 +270,140 @@ bool SQLProcess::createGroup(Database *db, QString userId, QString groupName,QSt
 }
 
 /*!
-     * @brief 更新用户分组，可分别更新联系人分组和群分组信息
-     * @param[in] db 数据库
-     * @param[in] request 分组操作请求
-     * @return 是否更新成功
-     */
+ * @brief 创建分组描述信息表
+ * @param[in] uuid 用户user表ID
+ * @param[in] accountId 用户user表accountid
+ * @param[in] groupId 分组ID
+ * @return 是否插入成功
+ */
+bool SQLProcess::createGroupDesc(Database *db, QString uuid, QString accountId, QString groupId)
+{
+    DataTable::RGroupDesc rgd;
+    RPersistence rps(rgd.table);
+    rps.insert({{rgd.id,uuid},
+                {rgd.account,accountId},
+                {rgd.groupids,groupId},
+                {rgd.groupsize,1}});
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rps.sql()))
+        return true;
+
+    return false;
+}
+
+/*!
+ * @brief 将新创建的分组ID添加至分组信息描述表
+ * @param[in] uuid 用户user表ID
+ * @param[in] groupId 新创建group id
+ * @return 是否插入成功
+ */
+bool SQLProcess::addGroupToGroupDesc(Database *db, QString uuid, QString groupId)
+{
+    DataTable::RGroupDesc rgd;
+    RSelect rst(rgd.table);
+    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
+            .createCriteria()
+            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        QString groupIds = query.value(rgd.groupids).toString();
+        int groupSize = query.value(rgd.groupsize).toInt();
+
+        groupIds += ",";
+        groupIds += groupId;
+
+        RUpdate rud(rgd.table);
+        rud.update(rgd.table,{{rgd.groupids,groupIds},{rgd.groupsize,groupSize + 1}})
+                .createCriteria()
+                .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+        if(query.exec(rud.sql())){
+                return true;
+         }
+    }
+    return false;
+}
+
+/*!
+ * @brief 从分组信息描述表中删除指定的groupId
+ * @attention 默认分组不允许删除，因此默认不处理删除默认分组
+ * @param[in] uuid 用户user表ID
+ * @param[in] groupId 待删除group id
+ * @return 是否删除成功
+ */
+bool SQLProcess::delGroupInGroupDesc(Database *db, QString uuid, QString groupId)
+{
+    DataTable::RGroupDesc rgd;
+    RSelect rst(rgd.table);
+    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
+            .createCriteria()
+            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        QString groupIds = query.value(rgd.groupids).toString();
+        int groupSize = query.value(rgd.groupsize).toInt();
+
+        QStringList groups = groupIds.split(',');
+
+        if(groups.removeOne(groupId)){
+            RUpdate rud(rgd.table);
+            rud.update(rgd.table,{{rgd.groupids,groups.join(',')},{rgd.groupsize,groupSize - 1}})
+                    .createCriteria()
+                    .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+            if(query.exec(rud.sql())){
+                    return true;
+             }
+        }
+    }
+    return true;
+}
+
+/*!
+ * @brief 分组顺序调整
+ * @param[in] uuid 用户user表ID
+ * @param[in] groupId 执行排序的group id
+ * @param[in] pageIndex 对应group id的新序列
+ * @return 是否执行成功
+ */
+bool SQLProcess::sortGroupInGroupDesc(Database *db, QString uuid, QString groupId, int pageIndex)
+{
+    DataTable::RGroupDesc rgd;
+    RSelect rst(rgd.table);
+    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
+            .createCriteria()
+            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        QString groupIds = query.value(rgd.groupids).toString();
+        QStringList groups = groupIds.split(',');
+
+        int oldIndex = groups.indexOf(groupId);
+
+        if(oldIndex >=0 && pageIndex >= 0 && pageIndex < groups.size()){
+            groups.removeAt(oldIndex);
+            groups.insert(pageIndex,groupId);
+
+            RUpdate rud(rgd.table);
+            rud.update(rgd.table,{{rgd.groupids,groups.join(',')}})
+                    .createCriteria()
+                    .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+            if(query.exec(rud.sql())){
+                    return true;
+             }
+        }
+    }
+    return false;
+}
+
+/*!
+ * @brief 更新用户分组，可分别更新联系人分组和群分组信息
+ * @param[in] db 数据库
+ * @param[in] request 分组操作请求
+ * @return 是否更新成功
+ */
 bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
 {
     QString sql;
@@ -323,43 +451,44 @@ bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
                 createCriteria().
                 add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
 
-
-        //[2]若存在联系人则将联系人移动至默认分组
-        if(query.exec(rst.sql()) && query.next()){
-            query.clear();
-            QString userDefaultGroupId = getDefaultGroupByUserId(db,request->uuid);
-            if(userDefaultGroupId.size() > 0){
+        if(query.exec(rst.sql())){
+            //[2]若存在联系人则将联系人移动至默认分组
 #if defined(ENABLE_SQL_TRANSACTION)
-                if(db->sqlDatabase().transaction()){
+            if(db->sqlDatabase().transaction()){
 #endif
-                    RUpdate rpd(rgu.table);
-                    rpd.update(rgu.table,rgu.groupId,userDefaultGroupId).
-                            createCriteria().
-                            add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
-
-                    if(query.exec(rpd.sql())){
-                        //[3]删除分组
-                        DataTable::RGroup rgp;
-                        RDelete rde(rgp.table);
-                        rde.createCriteria().
-                                add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
-                                add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
-
-                        if(query.exec(rde.sql())){
-#if defined(ENABLE_SQL_TRANSACTION)
-                            db->sqlDatabase().commit();
-#endif
-                            return true;
+                if(query.next()){
+                    QString userDefaultGroupId = getDefaultGroupByUserId(db,request->uuid);
+                    if(userDefaultGroupId.size() > 0){
+                        RUpdate rpd(rgu.table);
+                        rpd.update(rgu.table,rgu.groupId,userDefaultGroupId).
+                                createCriteria().
+                                add(Restrictions::eq(rgu.table,rgu.groupId,request->groupId));
+                        if(!query.exec(rpd.sql())){
+                            return false;
                         }
+                    }
+                 }
+
+                //[3]删除分组
+                DataTable::RGroup rgp;
+                RDelete rde(rgp.table);
+                rde.createCriteria().
+                        add(Restrictions::eq(rgp.table,rgp.id,request->groupId)).
+                        add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
+
+                if(query.exec(rde.sql())){
+#if defined(ENABLE_SQL_TRANSACTION)
+                       db->sqlDatabase().commit();
+#endif
+                       return true;
+                 }else{
 #if defined(ENABLE_SQL_TRANSACTION)
                         db->sqlDatabase().rollback();
 #endif
-                    }
+                }
             }else{
                 //TODO 20180418
             }
-        }
-
     }else if(request->gtype == GROUPING_GROUP){
 
     }
@@ -500,11 +629,18 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
     return false;
 }
 
-//获取好友列表
+/*!
+ * @brief 获取登陆好友列表
+ * @param[in] db 数据库
+ * @param[in] accountId 用户账户ID
+ * @param[in] response 用户账户ID
+ * @return 是否获取成功
+ */
 bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListResponse *response)
 {
     DataTable::RUser user;
     DataTable::RGroup group;
+    DataTable::RGroupDesc rgd;
     DataTable::RGroup_User groupUser;
     RSelect rst(user.table);
     rst.select(user.table,{user.id}).
@@ -516,43 +652,51 @@ bool SQLProcess::getFriendList(Database *db, QString accountId, FriendListRespon
     {
         QString uid = query.value(user.id).toString();
 
-        RSelect selectGroup(group.table);
-        selectGroup.createCriteria().add(Restrictions::eq(group.table,group.userId,uid));
+        RSelect selectGroupDesc(rgd.table);
+        selectGroupDesc.select(rgd.table,{rgd.groupids})
+                .createCriteria()
+                .add(Restrictions::eq(rgd.table,rgd.id,uid));
 
-        if(query.exec(selectGroup.sql()))
-        {
-            while(query.next())
-            {
-                RGroupData * groupData = new RGroupData;
-                groupData->groupId = query.value(group.id).toString();
-                groupData->groupName = query.value(group.name).toString();
-                groupData->isDefault = query.value(group.defaultGroup).toBool();
+        if(query.exec(selectGroupDesc.sql()) && query.next()){
+            QStringList groups = query.value(rgd.groupids).toString().split(",");
 
-                RSelect select({user.table,groupUser.table});
-                select.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId}).
-                        select(groupUser.table,{groupUser.remarks}).
-                        on(user.table,user.id,groupUser.table,groupUser.userId).
-                        createCriteria().
-                        add(Restrictions::eq(groupUser.table,groupUser.groupId,groupData->groupId));
+            foreach(QString groupId,groups){
+                RSelect selectGroup(group.table);
+                selectGroup.createCriteria()
+                           .add(Restrictions::eq(group.table,group.id,groupId));
 
-                QSqlQuery userQuery(db->sqlDatabase());
-                if(userQuery.exec(select.sql()))
-                {
-                    while(userQuery.next())
-                    {
-                        SimpleUserInfo * simpleUserInfo = new SimpleUserInfo;
+                if(query.exec(selectGroup.sql())){
+                    while(query.next()){
+                        RGroupData * groupData = new RGroupData;
+                        groupData->groupId = query.value(group.id).toString();
+                        groupData->groupName = query.value(group.name).toString();
+                        groupData->isDefault = query.value(group.defaultGroup).toBool();
 
-                        simpleUserInfo->accountId = userQuery.value(user.account).toString();
-                        simpleUserInfo->nickName = userQuery.value(user.nickName).toString();
-                        simpleUserInfo->signName = userQuery.value(user.signName).toString();
-                        simpleUserInfo->isSystemIcon = userQuery.value(user.systemIon).toBool();
-                        simpleUserInfo->iconId = userQuery.value(user.iconId).toString();
-                        simpleUserInfo->remarks = userQuery.value(groupUser.remarks).toString();
+                        RSelect select({user.table,groupUser.table});
+                        select.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId}).
+                                select(groupUser.table,{groupUser.remarks}).
+                                on(user.table,user.id,groupUser.table,groupUser.userId).
+                                createCriteria().
+                                add(Restrictions::eq(groupUser.table,groupUser.groupId,groupData->groupId));
 
-                        groupData->users.append(simpleUserInfo);
+                        QSqlQuery userQuery(db->sqlDatabase());
+                        if(userQuery.exec(select.sql())){
+                            while(userQuery.next()){
+                                SimpleUserInfo * simpleUserInfo = new SimpleUserInfo;
+
+                                simpleUserInfo->accountId = userQuery.value(user.account).toString();
+                                simpleUserInfo->nickName = userQuery.value(user.nickName).toString();
+                                simpleUserInfo->signName = userQuery.value(user.signName).toString();
+                                simpleUserInfo->isSystemIcon = userQuery.value(user.systemIon).toBool();
+                                simpleUserInfo->iconId = userQuery.value(user.iconId).toString();
+                                simpleUserInfo->remarks = userQuery.value(groupUser.remarks).toString();
+
+                                groupData->users.append(simpleUserInfo);
+                            }
+                        }
+                        response->groups.append(groupData);
                     }
                 }
-                response->groups.append(groupData);
             }
             return true;
         }
@@ -1172,6 +1316,31 @@ QString SQLProcess::getDefaultGroupByUserAccountId(Database *db, const QString i
         }
     }
     return QString();
+}
+
+/*!
+ * @brief 获取指定用户的分组ID
+ * @param[in] db 数据库
+ * @param[in] id user表id
+ * @return 分组列表
+ */
+QStringList SQLProcess::getGroupListByUserId(Database *db, const QString id)
+{
+    QStringList result;
+    DataTable::RGroup rgroup;
+    RSelect rst({rgroup.table});
+    rst.select(rgroup.table,{rgroup.id})
+            .createCriteria()
+            .add(Restrictions::eq(rgroup.table,rgroup.userId,id));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql())){
+        while(query.next()){
+            result<<query.value(rgroup.id).toString();
+        }
+    }
+
+    return result;
 }
 
 /*!

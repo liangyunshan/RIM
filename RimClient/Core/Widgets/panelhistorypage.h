@@ -1,6 +1,7 @@
 ﻿/*!
  *  @brief     历史聊天页面
  *  @details   显示登录用户历史与联系人交流的记录
+ *             [1]聊天数据记录保存至本地的sql文件，
  *  @file      panelhistorypage.h
  *  @author    wey
  *  @version   1.0

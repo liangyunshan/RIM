@@ -11,6 +11,7 @@
  *      20180201:wey:添加对用户分组好友的操作(创建、移动、修改)
  *      20180301:wey:修复查询默认分组时未加入默认分组条件bug
  *      20180418:wey:修复删除分组时，为将分组下联系人移动至默认分组;
+ *      20180419:wey:添加分组排序
  */
 #ifndef SQLPROCESS_H
 #define SQLPROCESS_H
@@ -41,6 +42,12 @@ public:
     bool createGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault = false);
     bool renameGroup(Database *db,GroupingRequest* request);
     bool deleteGroup(Database *db,GroupingRequest* request);
+
+    bool createGroupDesc(Database *db,QString uuid,QString accountId,QString groupId);
+    bool addGroupToGroupDesc(Database *db,QString uuid,QString groupId);
+    bool delGroupInGroupDesc(Database *db,QString uuid,QString groupId);
+    bool sortGroupInGroupDesc(Database *db,QString uuid,QString groupId,int pageIndex);
+
     bool testTstablishRelation(Database *db,OperateFriendRequest *request);
     bool establishRelation(Database *db,OperateFriendRequest *request);
     bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
@@ -64,6 +71,7 @@ public:
 
     QString getDefaultGroupByUserId(Database * db,const QString uuid);
     QString getDefaultGroupByUserAccountId(Database * db,const QString id);
+    QStringList getGroupListByUserId(Database * db,const QString id);
     QStringList getGroupListByUserAccountId(Database * db,const QString id);
 
 private:

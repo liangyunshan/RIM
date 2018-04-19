@@ -276,6 +276,7 @@ QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet)
     obj.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
     obj.insert(JsonKey::key(JsonKey::GroupType),packet->gtype);
     obj.insert(JsonKey::key(JsonKey::Type),packet->type);
+    obj.insert(JsonKey::key(JsonKey::Index),packet->groupIndex);
 
     return wrappedPack(packet,STATUS_SUCCESS,obj);
 }

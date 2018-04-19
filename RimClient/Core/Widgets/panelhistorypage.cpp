@@ -55,9 +55,9 @@ PanelHistoryPage::PanelHistoryPage(QWidget *parent):
     {
         ToolItem * item = new ToolItem(NULL);
         item->setContentMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_HISTORY_TOOLITEM));
-        item->setName(QString(QStringLiteral("徐卫平%1")).arg(i+1));
-        item->setNickName("Weiping Xu");
-        item->setDescInfo(QStringLiteral("崾庅趕緊呿死，崾庅精彩の萿着"));
+        item->setName(QString::number(i));
+        item->setNickName("");
+        item->setDescInfo("");
         d_ptr->listBox->addItem(item);
     }
     d_ptr->listBox->setContextMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_HISTORY_TOOLBOX));
@@ -79,13 +79,8 @@ void PanelHistoryPage::sendInstantMessage()
 }
 
 /*!
-     * @brief 将历史会话记录从会话列表中移除
-     *
-     * @param 无
-     *
-     * @return 无
-     *
-     */
+ * @brief 将历史会话记录从会话列表中移除
+ */
 void PanelHistoryPage::removeSessionFromList()
 {
     MQ_D(PanelHistoryPage);

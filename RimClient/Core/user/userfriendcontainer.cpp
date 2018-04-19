@@ -88,6 +88,77 @@ bool UserFriendContainer::deleteGroup(const QString &groupId)
 }
 
 /*!
+ * @brief 临时存放创建或重命名的容器，待接收服务器反馈后，根据结果，将其移动至friendList或移除出去
+ * @attention 1.保存新创建的分组时，不需释放空间；
+ *            2.保存重命名分组时，需要手动释放空间；
+ * @param[in] id 分组uuid
+ * @param[in] data 分组数据信息
+ */
+void UserFriendContainer::addTmpGroup(const QString id, RGroupData *data)
+{
+    tmpCreateOrRenameMap.insert(id,data);
+}
+
+void UserFriendContainer::addGroup(const QString id, int groupIndex)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    if(tmpCreateOrRenameMap.contains(id)){
+       RGroupData * data = tmpCreateOrRenameMap.value(id);
+       data->index = groupIndex;
+       tmpCreateOrRenameMap.remove(id);
+       friendList.push_back(data);
+    }
+}
+
+/*!
+ * @brief 重命名分组
+ * @param[in] id 待重命名的分组uuid
+ */
+void UserFriendContainer::renameGroup(const QString & id)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    if(tmpCreateOrRenameMap.contains(id)){
+        RGroupData * data = tmpCreateOrRenameMap.value(id);
+        QList<RGroupData *>::iterator iter = std::find_if(friendList.begin(),friendList.end(),[&](const RGroupData * gdata){
+            if(gdata->groupId == data->groupId)
+                return true;
+            return false;
+        });
+
+        if(iter != friendList.end()){
+            (*iter)->groupName = data->groupName;
+        }
+        delete data;
+        tmpCreateOrRenameMap.remove(id);
+    }
+}
+
+/*!
+ * @brief 调整分组顺序
+ * @param[in] pageId 新排序的分组ID
+ * @param[in] newPageIndex 新排序的分组索引
+ * @return 是否插入成功
+ */
+void UserFriendContainer::sortGroup(const QString & groupId, int newPageIndex)
+{
+    lock_guard<mutex> guard(lockMutex);
+    int oldPageIndex = -1;
+    QList<RGroupData *>::iterator iter = std::find_if(friendList.begin(),friendList.end(),[=,&oldPageIndex](const RGroupData * data){
+        ++oldPageIndex;
+        if(data->groupId == groupId)
+            return true;
+        return false;
+    });
+
+    if(iter != friendList.end() && oldPageIndex >=0 && oldPageIndex < friendList.size()){
+        friendList.swap(oldPageIndex,newPageIndex);
+    }
+
+}
+
+/*!
  * @brief 删除指定分组中的指定联系人
  * @param[in] groupId 分组ID
  * @param[in] accountId 待删除的用户ID
@@ -114,6 +185,38 @@ bool UserFriendContainer::deleteUser(const QString groupId, const QString &accou
             siter++;
         }
     }
+    return false;
+}
+
+/*!
+ * @brief 从源分组移动联系人至目的分组
+ * @param[in] srcGroupId 源分组
+ * @param[in] destGroupId 目的分组
+ * @param[in] accountId 待移动用户id
+ * @return 是否移动成功
+ */
+bool UserFriendContainer::moveUser(const QString &srcGroupId, const QString &destGroupId, const QString &accountId)
+{
+    unique_lock<mutex> ul(lockMutex);
+
+    QList<RGroupData *>::iterator srcIter = std::find_if(friendList.begin(),friendList.end(),[&]
+                                                         (RGroupData * groupData){return groupData->groupId == srcGroupId;});
+
+    QList<RGroupData *>::iterator destIter = std::find_if(friendList.begin(),friendList.end(),[&]
+                                                         (RGroupData * groupData){return groupData->groupId == destGroupId;});
+
+    if(srcIter != friendList.end() && destIter != friendList.end()){
+        auto userIter = (*srcIter)->users.begin();
+        while(userIter != (*srcIter)->users.end()){
+            if((*userIter)->accountId == accountId){
+                (*destIter)->users.push_back(*userIter);
+                (*srcIter)->users.erase(userIter);
+                return true;
+            }
+            userIter ++;
+        }
+    }
+
     return false;
 }
 

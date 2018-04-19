@@ -105,6 +105,17 @@ struct NotifyInfo
 
 };
 
+/*!
+ *  @brief  联系人分组信息
+ */
+struct PersonGroupInfo
+{
+    QString uuid;               /*!< 分组ID */
+    QString name;               /*!< 分组名称 */
+    int sortNum;                /*!< 分组序号从0开始 */
+    bool isDefault;             /*!< 是否为默认分组，一个联系人只有一个默认分组，由服务器在创建用户时指定创建 */
+};
+
 namespace TextUnit
 {
     enum ShowType{
@@ -192,15 +203,5 @@ namespace TextUnit
 
     const unsigned short DefaultQueryRow = 5;  //默认查找的记录数
 }
-
-namespace GroupPerson {
-    struct PersonGroupInfo{
-        QString uuid;
-        QString name;
-        int sortNum;
-        bool isDefault;
-    };//联系人分组信息
-}
-
 
 #endif // DATASTRUCT_H

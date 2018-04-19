@@ -31,7 +31,8 @@ public:
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
     void onRecvFriendList(FriendListResponse * response);
-    void onRecvGroupingOperate(GroupingResponse response);
+    void onRecvFriendGroupingOperate(GroupingResponse response);
+    void onRecvGroupGroupingOperate(GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
@@ -52,7 +53,8 @@ signals:
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
     void recvFriendList(FriendListResponse * response);
-    void recvGroupingOperate(GroupingResponse response);
+    void recvFriendGroupingOperate(GroupingResponse response);
+    void recvGroupGroupingOperate(GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
     void recvText(TextRequest request);
     void recvTextReply(TextReply);

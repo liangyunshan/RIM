@@ -57,9 +57,14 @@ void MessDiapatch::onRecvFriendList(FriendListResponse *response)
     emit recvFriendList(response);
 }
 
-void MessDiapatch::onRecvGroupingOperate(GroupingResponse response)
+void MessDiapatch::onRecvFriendGroupingOperate(GroupingResponse response)
 {
-    emit recvGroupingOperate(response);
+    emit recvFriendGroupingOperate(response);
+}
+
+void MessDiapatch::onRecvGroupGroupingOperate(GroupingResponse response)
+{
+    emit recvGroupGroupingOperate(response);
 }
 
 void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)

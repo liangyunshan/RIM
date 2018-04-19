@@ -210,6 +210,7 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
             groupData->groupId = group.value(JsonKey::key(JsonKey::GroupId)).toString();
             groupData->groupName = group.value(JsonKey::key(JsonKey::GroupName)).toString();
             groupData->isDefault = group.value(JsonKey::key(JsonKey::IsDefault)).toBool();
+            groupData->index = group.value(JsonKey::key(JsonKey::Index)).toInt();
 
             QJsonArray users = group.value(JsonKey::key(JsonKey::Users)).toArray();
             for(int j = 0; j < users.size();j++)
@@ -250,7 +251,11 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
         response.type = (OperateGrouping) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
         response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
-        MessDiapatch::instance()->onRecvGroupingOperate(response);
+        response.groupIndex = dataObj.value(JsonKey::key(JsonKey::Index)).toInt();
+        if(response.gtype == GROUPING_FRIEND)
+            MessDiapatch::instance()->onRecvFriendGroupingOperate(response);
+        else if(response.gtype == GROUPING_GROUP)
+            MessDiapatch::instance()->onRecvGroupGroupingOperate(response);
     }
     else
     {

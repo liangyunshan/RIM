@@ -64,6 +64,26 @@ public:
     const QString userCount;                //分组成员数量
     const QString userId;                   //分组所属用户ID(同User中ID)
     const QString defaultGroup;             //默认分组(1表示默认分组，0表示非默认分组)
+    const QString index;                    //分组排序
+};
+
+/*!
+ *  @brief 分组描述表
+ *  @details 描述用户分组的概览信息，方便查找联系人分组信息; @n
+ *           1.创建用户时，同步创建记录; @n
+ *           2.创建分组时，在当前groupids中插入对应group id，并以','分隔; @n
+ *           3.移动分组时，调整groupids中对应group id的顺序; @n
+ *           4.删除分组时，从groupids中移除对应的group id; @n
+ */
+class RGroupDesc
+{
+public:
+    RGroupDesc();
+    const QString table;                    //UUID
+    const QString id;                       //user表id
+    const QString account;                  //user表account
+    const QString groupids;                 //用户拥有group id集合，以','分隔
+    const QString groupsize;                //用户拥有group数量
 };
 
 /*!

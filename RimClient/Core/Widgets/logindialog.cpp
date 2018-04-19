@@ -665,20 +665,27 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         {
             if(index < d->localUserInfo.size())
             {
-                d->localUserInfo.at(index)->userName = response.baseInfo.nickName;
-                d->localUserInfo.at(index)->accountId = response.baseInfo.accountId;
-                d->localUserInfo.at(index)->originPassWord = d->password->text();
-                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
-                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
-                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
-                d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
+                UserInfoDesc * uinfo = d->localUserInfo.at(index);
+                uinfo->userName = response.baseInfo.nickName;
+                uinfo->accountId = response.baseInfo.accountId;
+                uinfo->originPassWord = d->password->text();
+                uinfo->password = RUtil::MD5(d->password->text());
+                uinfo->isAutoLogin =  d->autoLogin->isChecked();
+                uinfo->isRemberPassword = d->rememberPassord->isChecked();
+                uinfo->loginState = (int)d->onlineState->state();
 
-                d->localUserInfo.at(index)->isSystemIcon = response.baseInfo.isSystemIcon;
-                d->localUserInfo.at(index)->iconId = response.baseInfo.iconId;
+                uinfo->isSystemIcon = response.baseInfo.isSystemIcon;
+                uinfo->iconId = response.baseInfo.iconId;
                 if(response.baseInfo.iconId.size() == 0){
-                    d->localUserInfo.at(index)->iconId = d->defaultUserIconPath;
-                    baseInfo.iconId = d->localUserInfo.at(index)->iconId;
+                    uinfo->iconId = d->defaultUserIconPath;
+                    baseInfo.iconId = uinfo->iconId;
                 }
+
+                if(index != 0){
+                    d->localUserInfo.removeAt(index);
+                    d->localUserInfo.prepend(uinfo);
+                }
+
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }
@@ -701,7 +708,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 desc->iconId = response.baseInfo.iconId;
             }
 
-            d->localUserInfo.append(desc);
+            d->localUserInfo.prepend(desc);
             RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
         }
 

@@ -47,6 +47,7 @@ void DataProcess::processUserRegist(Database *db, int socketId, std::shared_ptr<
         QScopedPointer<RegistResponse> response(new RegistResponse);
         QString groupId = RUtil::UUID();
         RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),groupId,true);
+        RSingleton<SQLProcess>::instance()->createGroupDesc(db,uuid,registId,groupId);
         response->accountId = registId;
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
@@ -406,20 +407,14 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
     QScopedPointer<FriendListResponse> response (new FriendListResponse);
     response->accountId = request->accountId;
     bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response.data());
-    if(flag)
-    {
-        for(int i = 0; i < response->groups.size(); i++)
-        {
+    if(flag){
+        for(int i = 0; i < response->groups.size(); i++){
             QList<SimpleUserInfo *>::iterator iter = response->groups.at(i)->users.begin();
-            while(iter != response->groups.at(i)->users.end())
-            {
+            while(iter != response->groups.at(i)->users.end()){
                 TcpClient * client = TcpClientManager::instance()->getClient((*iter)->accountId);
-                if(client)
-                {
+                if(client){
                     (*iter)->status = (OnlineStatus)client->getOnLineState();
-                }
-                else
-                {
+                }else{
                     (*iter)->status = STATUS_OFFLINE;
                 }
                 iter++;
@@ -442,8 +437,7 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
         if(RSingleton<SQLProcess>::instance()->loadSystemCache(db,request->accountId,systemRequest))
         {
             QList<AddFriendRequest>::iterator iter = systemRequest.begin();
-            while(iter != systemRequest.end())
-            {
+            while(iter != systemRequest.end()){
                 SocketOutData reqeuestData;
                 reqeuestData.sockId = socketId;
 
@@ -501,7 +495,9 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
     {
         case GROUPING_CREATE:
             {
-               flag = RSingleton<SQLProcess>::instance()->createGroup(db,request->uuid,request->groupName,groupId);
+               if(RSingleton<SQLProcess>::instance()->createGroup(db,request->uuid,request->groupName,groupId)){
+                    flag = RSingleton<SQLProcess>::instance()->addGroupToGroupDesc(db,request->uuid,groupId);
+               }
             }
             break;
         case GROUPING_RENAME:
@@ -511,30 +507,30 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
             break;
         case GROUPING_DELETE:
             {
-               flag = RSingleton<SQLProcess>::instance()->deleteGroup(db,request.data());
+                if(RSingleton<SQLProcess>::instance()->deleteGroup(db,request.data())){
+                    flag = RSingleton<SQLProcess>::instance()->delGroupInGroupDesc(db,request->uuid,request->groupId);
+                }
             }
             break;
         case GROUPING_SORT:
             {
-                //RSingleton<SQLProcess>::instance()->createGroup(db,socketId,request->groupName);
+                 flag = RSingleton<SQLProcess>::instance()->sortGroupInGroupDesc(db,request->uuid,request->groupId,request->groupIndex);
             }
             break;
         default:
             break;
     }
 
-    if(flag)
-    {
+    if(flag){
         QScopedPointer<GroupingResponse> response (new GroupingResponse);
         response->uuid = request->uuid;
         response->gtype = request->gtype;
         response->type = request->type;
         response->groupId = groupId;
+        response->groupIndex = request->groupIndex;
 
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
-    }
-    else
-    {
+    }else{
 
     }
 

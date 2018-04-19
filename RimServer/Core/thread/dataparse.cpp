@@ -284,6 +284,7 @@ void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject 
     request->gtype = (GroupingType)obj.value(JsonKey::key(JsonKey::GroupType)).toInt();
     request->type = (OperateGrouping)obj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
+    request->groupIndex = obj.value(JsonKey::key(JsonKey::Index)).toInt();
 
     RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
 }

@@ -56,7 +56,7 @@ private:
     QList<ToolItem *> toolItems;
 
     bool expanded;
-    GroupPerson::PersonGroupInfo m_pageInfo;
+    PersonGroupInfo m_pageInfo;
 };
 
 void ToolPagePrivate::initWidget()
@@ -171,10 +171,10 @@ void ToolPage::setToolName(const QString &text)
 }
 
 /*!
-     * @brief 获取textLabel的显示内容
-     * @param 无
-     * @return 无
-     */
+ * @brief 获取textLabel的显示内容
+ * @param 无
+ * @return 无
+ */
 QString ToolPage::toolName() const
 {
     MQ_D(ToolPage);
@@ -182,10 +182,10 @@ QString ToolPage::toolName() const
 }
 
 /*!
-     * @brief 设置page的sortNum(分组排序序号)
-     * @param [in]page的sortNum(分组排序序号)
-     * @return 无
-     */
+ * @brief 设置page的sortNum(分组排序序号)
+ * @param [in]page的sortNum(分组排序序号)
+ * @return 无
+ */
 void ToolPage::setSortNum(const int num)
 {
     MQ_D(ToolPage);
@@ -193,10 +193,10 @@ void ToolPage::setSortNum(const int num)
 }
 
 /*!
-     * @brief 获取page的sortNum(排位顺序)
-     * @param [in]page的sortNum(分组排序序号)
-     * @return 无
-     */
+ * @brief 获取page的sortNum(排位顺序)
+ * @param [in]page的sortNum(分组排序序号)
+ * @return 无
+ */
 int ToolPage::sortNum() const
 {
     MQ_D(ToolPage);
@@ -204,10 +204,10 @@ int ToolPage::sortNum() const
 }
 
 /*!
-     * @brief 设置page的id
-     * @param [in]page的id
-     * @return 无
-     */
+ * @brief 设置page的id
+ * @param [in]page的id
+ * @return 无
+ */
 void ToolPage::setID(const QString & id)
 {
     MQ_D(ToolPage);
@@ -215,10 +215,10 @@ void ToolPage::setID(const QString & id)
 }
 
 /*!
-     * @brief 获取page的id
-     * @param 无
-     * @return page的id
-     */
+ * @brief 获取page的id
+ * @param 无
+ * @return page的id
+ */
 QString ToolPage::getID() const
 {
     MQ_D(ToolPage);
@@ -226,10 +226,10 @@ QString ToolPage::getID() const
 }
 
 /*!
-     * @brief 设置page是否是默认分组
-     * @param [in] isDefault:bool
-     * @return 无
-     */
+ * @brief 设置page是否是默认分组
+ * @param [in] isDefault:bool
+ * @return 无
+ */
 void ToolPage::setDefault(const bool isDefault)
 {
     MQ_D(ToolPage);
@@ -237,10 +237,10 @@ void ToolPage::setDefault(const bool isDefault)
 }
 
 /*!
-     * @brief 获取page是否是默认分组
-     * @param 无
-     * @return page是否是默认分组
-     */
+ * @brief 获取page是否是默认分组
+ * @param 无
+ * @return page是否是默认分组
+ */
 bool ToolPage::isDefault() const
 {
     MQ_D(ToolPage);

@@ -274,11 +274,10 @@ void PanelGroupPage::renameEditFinished()
 }
 
 /*!
-     * @brief 根据触发右键菜单的Item所属的Page来添加“移动群至”菜单中Action
-     * @param[in] page：ToolPage *
-     * @return 无
-     *
-     */
+ * @brief 根据触发右键菜单的Item所属的Page来添加“移动群至”菜单中Action
+ * @param[in] page：ToolPage *
+ * @return 无
+ */
 void PanelGroupPage::updateGroupActions(ToolPage * page)
 {
     MQ_D(PanelGroupPage);

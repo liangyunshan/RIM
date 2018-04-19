@@ -61,7 +61,7 @@ private slots:
     void updateEditInstance();
 
     void updateFriendList(FriendListResponse * friendList);
-    void recvGroupingOperate(GroupingResponse response);
+
     void errorGroupingOperate(OperateGrouping type);
 
     void screenChanged();
