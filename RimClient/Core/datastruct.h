@@ -116,6 +116,31 @@ struct PersonGroupInfo
     bool isDefault;             /*!< 是否为默认分组，一个联系人只有一个默认分组，由服务器在创建用户时指定创建 */
 };
 
+/*!
+ *  @brief 聊天信息中信息类型
+ */
+enum ChatMessageType{
+    CHAT_C2C,                   /*!< 个人消息 */
+    CHAT_C2G,                   /*!< 群消息 */
+    CHAT_SYS                    /*!< 系统消息 */
+};
+
+/*!
+ *  @brief  历史聊天记录信息
+ */
+struct HistoryChatRecord
+{
+    QString id;                       /*!< id,int */
+    ChatMessageType type;             /*!< 记录类型(群、个人、系统通知) */
+    QString accountId;                /*!< 聊天账户 */
+    QString nickName;                 /*!< 个人昵称、群名称 */
+    qint64 dtime;                     /*!< 日期 */
+    QString lastRecord;               /*!< 最后记录 */
+    bool isTop;                       /*!< 是否置顶 */
+    bool systemIon;                   /*!< 是否为系统头像，默认为系统头像true */
+    QString iconId;                   /*!< 图片索引 */
+};
+
 namespace TextUnit
 {
     enum ShowType{

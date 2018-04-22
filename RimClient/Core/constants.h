@@ -181,10 +181,10 @@ const char ACTION_PANEL_PERSON_ADDGROUP[] = "Action_Panel_Person_AddGroup";
 const char ACTION_PANEL_PERSON_RENAME[] = "Action_Panel_Person_Rename";
 const char ACTION_PANEL_PERSON_DELGROUP[] = "Action_Panel_Person_DelGroup";
 
-const char ACTION_PANEL_SENDMESSAGE[] = "Action_Panel_SendPersonMessage";
-const char ACTION_PANEL_VIEWDETAIL[] = "Action_Panel_ViewDetail";
-const char ACTION_PANEL_MODIFYCOMMENTS[] = "Action_Panel_ModifyComments";
-const char ACTION_PANEL_DELPERSON[] = "Action_Panel_DeltePerson";
+const char ACTION_PANEL_SENDMESSAGE[] = "Action_Panel_SendPersonMessage";                       //发送消息
+const char ACTION_PANEL_VIEWDETAIL[] = "Action_Panel_ViewDetail";                               //查看联系人详情
+const char ACTION_PANEL_MODIFYCOMMENTS[] = "Action_Panel_ModifyComments";                       //修改备注
+const char ACTION_PANEL_DELPERSON[] = "Action_Panel_DeltePerson";                               //删除联系人
 const char ACTION_PANEL_MOVEPERSON[] = "Action_Panel_MovePerson";                               //移动联系人至
 
 const char MENU_PANEL_GROUP_TOOLBOX[] = "Menu.Panel.Group.ToolBox";
@@ -207,10 +207,12 @@ const char ACTION_PANEL_GROUP_EXITGROUP[] = "Action_Panel_Group_ExitGroup";     
 const char MENU_PANEL_HISTORY_TOOLBOX[] = "Menu.Panel.History.ToolBox";
 const char MENU_PANEL_HISTORY_TOOLITEM[] = "Menu.Panel.History.ToolItem";
 
+const char ACTION_PANEL_HISTORY_SENDMESSAGE[] = "Action_Panel_History_SendPersonMessage";       //发送即时消息
+const char ACTION_PANEL_HISTORY_VIEWDETAIL[] = "Action_Panel_History_ViewDetail";               //查看联系人详情
+const char ACTION_PANEL_HISTORY_DELPERSON[] = "Action_Panel_History_DeltePerson";               //删除联系人
 const char ACTION_PANEL_HISTORY_CLEARLIST[] = "Action_Panel_History_ClearList";                 //清空会话列表
-
-const char ACTION_PANEL_HISTORY_STICKSESSION[] = "Action_Panel_Group_StickSession";             //会话置顶
-const char ACTION_PANEL_HISTORY_REMOVEFORMLIST[] = "Action_Panel_Group_RemoveFromList";         //从列表中移除
+const char ACTION_PANEL_HISTORY_STICKSESSION[] = "Action_Panel_History_StickSession";           //会话置顶
+const char ACTION_PANEL_HISTORY_REMOVEFORMLIST[] = "Action_Panel_History_RemoveFromList";       //从列表中移除
 
 const char MENU_CHAT_SCREEN_SHOT[] = "Menu.Chat.Screen.Shot";                                   //截图菜单
 

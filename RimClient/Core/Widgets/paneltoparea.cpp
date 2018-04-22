@@ -271,9 +271,3 @@ void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateRespo
     Q_UNUSED(result);
     Q_UNUSED(response);
 }
-
-
-
-
-
-

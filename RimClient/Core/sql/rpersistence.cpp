@@ -99,7 +99,7 @@ QString Criteria::toSql()
     return result;
 }
 
-QString Criteria::toSql(QMap<QString, QString> tableAlias)
+QString Criteria::toSql(QMap<QString, QString> tableAlias,bool isSupportAlias)
 {
     QString result;
     QTextStream stream(&result,QIODevice::ReadWrite);
@@ -116,8 +116,12 @@ QString Criteria::toSql(QMap<QString, QString> tableAlias)
                 default:break;
             }
         }
-        QString alias = tableAlias.value(ctypes.at(i).tableName());
-        stream<<ctypes.at(i).toSql(alias);
+        if(isSupportAlias){
+            QString alias = tableAlias.value(ctypes.at(i).tableName());
+            stream<<ctypes.at(i).toSql(alias,isSupportAlias);
+        }else{
+            stream<<ctypes.at(i).toSql(ctypes.at(i).tableName(),isSupportAlias);
+        }
     }
     stream.flush();
 
@@ -185,15 +189,16 @@ bool Restrictions::operator<(const Restrictions & src)const
     return true;
 }
 
-QString Restrictions::toSql(QString tableAlais) const
+QString Restrictions::toSql(QString tableAlais,bool isSupportAlias) const
 {
     QString result;
     QTextStream stream(&result,QIODevice::ReadWrite);
 
-    if(tableAlais.size() > 0)
+    if(isSupportAlias && tableAlais.size() > 0){
         stream<<spacer<<tableAlais<<spacer<<"."<<name<<spacer;
-    else
+    }else{
         stream<<spacer<<name<<spacer;
+    }
 
     switch(operation)
     {
@@ -288,7 +293,7 @@ QString RPersistence::sql()
     return result;
 }
 
-RUpdate::RUpdate(std::initializer_list<QString> tNames){
+RUpdate::RUpdate(std::initializer_list<QString> tNames):isAlias(true){
     QString alias("T%1");
     int index = 0;
     for(auto p:tNames){
@@ -296,9 +301,15 @@ RUpdate::RUpdate(std::initializer_list<QString> tNames){
     }
 }
 
-RUpdate::RUpdate(const QString tName){
+RUpdate::RUpdate(const QString tName):isAlias(true){
     QString alias("T%1");
     tableNames.insert(tName,alias.arg(0));
+}
+
+RUpdate &RUpdate::enableAlias(bool flag)
+{
+    isAlias = flag;
+    return *this;
 }
 
 RUpdate & RUpdate::update(const QString tName,const QString key, QVariant value)
@@ -329,20 +340,30 @@ QString RUpdate::sql()
 
     if(tableNames.size() > 1){
         for(int i = 0; i < tableNames.size(); i++){
-            stream<<tableNames.keys().at(i)<<spacer<<tableNames.value(tableNames.keys().at(i));
+            stream<<tableNames.keys().at(i);
+            if(isAlias)
+                stream<<spacer<<tableNames.value(tableNames.keys().at(i));
             if(i < tableNames.size() - 1){
                 stream<<spacer<<"LEFT JOIN"<<spacer;
             }
         }
         stream<<spacer<<"ON"<<spacer;
     }
-    else
-        stream<<tableNames.keys().at(0)<<spacer<<tableNames.value(tableNames.keys().at(0))<<spacer;
+    else{
+        stream<<tableNames.keys().at(0);
+        if(isAlias)
+            stream<<spacer<<tableNames.value(tableNames.keys().at(0))<<spacer;
+    }
 
     if(onCondtions.size() > 0){
         for(int i = 0; i < onCondtions.size(); i++){
             OnContion condition = onCondtions.at(i);
-            stream<<tableNames.value(condition.t1)<<"."<<condition.v1<<"="<<tableNames.value(condition.t2)<<"."<<condition.v2;
+            if(isAlias)
+                stream<<tableNames.value(condition.t1)<<".";
+            stream<<condition.v1<<"=";
+            if(isAlias)
+                stream<<tableNames.value(condition.t2)<<".";
+            stream<<condition.v2;
             if(i < onCondtions.size() - 1){
                 stream<<spacer<<"AND"<<spacer;
             }
@@ -354,7 +375,9 @@ QString RUpdate::sql()
     for(int i = 0; i < updateKeys.size(); i++)
     {
         const UpdateKeys & key = updateKeys.at(i);
-        stream<<tableNames.value(key.tname)<<"."<<key.tKey;
+        if(isAlias)
+            stream<<tableNames.value(key.tname)<<".";
+        stream<<key.tKey;
         stream<<spacer<<"="<<spacer;
 
         switch(key.value.type())
@@ -379,7 +402,7 @@ QString RUpdate::sql()
     if(ctia.size() > 0)
     {
         stream<<spacer<<"WHERE"<<spacer;
-        stream<<ctia.toSql(tableNames);
+        stream<<ctia.toSql(tableNames,isAlias);
     }
     stream.flush();
 
@@ -479,7 +502,7 @@ QString RSelect::sql()
     }
 
     if(sortOrders.size() > 0){
-        stream<<spacer<<"GROUP BY"<<spacer;
+        stream<<spacer<<"ORDER BY"<<spacer;
         for(int i = 0; i < sortOrders.size();i++){
             stream<<tableNames.value(sortOrders.at(i).tName)<<"."<<sortOrders.at(i).tkey<<spacer<<odrToString(sortOrders.at(i).odr);
         }

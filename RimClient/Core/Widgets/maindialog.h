@@ -82,7 +82,6 @@ private:
 private:
     static MainDialog * dialog;
     MainDialogPrivate * d_ptr;
-    DatabaseManager *p_dbManager;
 };
 
 #endif // MAINDIALOG_H

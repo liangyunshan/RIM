@@ -2,65 +2,49 @@
 
 namespace DataTable {
 
-RUser::RUser():
-    table("ruser"),id("ID"),account("ACCOUNT"),
-    password("PASSWORD"),nickName("NICKNAME"),signName("SIGNNAME"),
-    gender("GENDER"),birthDay("BIRTHDAY"),phone("PHONE"),address("ADDRESS"),
-    email("EMAIL"),remark("REMARK"),systemIon("SYSTEMICON"),iconId("ICONID")
+// SQLite中主键自增不能使用int类型，需要使用integer类型
+const QString SQLHistoryChat = "CREATE TABLE  IF NOT EXISTS `rhistorychat`("
+                             "`ID`  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                             "`TYPE`  tinyint(2) NOT NULL ,"
+                             "`ACCOUNTID`  varchar(20) NOT NULL ,"
+                             "`NICKNAME`  varchar(50) NULL ,"
+                             "`DTIME`  bigint  NOT NULL ,"
+                             "`ISTOP` tinyint(1) NOT NULL,"
+                             "`LASTRECORD`  varchar(255) NULL ,"
+                             "`SYSTEMICON`  tinyint(1) NOT NULL ,"
+                             "`ICONID`  varchar(50) NOT NULL"
+                             ")";
+
+const QString SQLChatList = "CREATE TABLE  IF NOT EXISTS `rchatlist`("
+                          "`ID`  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                          "`ACCOUNTID`  varchar(50) NOT NULL ,"
+                          "`FTIME`  int(10) NOT NULL"
+                          ")";
+
+const QString SQLChatRecord = "CREATE TABLE  IF NOT EXISTS `rchatrecord`("
+                            "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                            "`ACCOUNTID`  varchar(50) NOT NULL ,"
+                            "`NICKNAME`  varchar(50) NULL ,"
+                            "`TTIME`  int(10) NULL ,"
+                            "`TYPE`  tinyint(2) NULL ,"
+                            "`DATA`  varchar(255) NULL"
+                            ")";
+
+
+RHistoryChat::RHistoryChat():table("rhistorychat"),id("ID"),type("TYPE"),accountId("ACCOUNTID"),nickName("NICKNAME"),
+    dtime("DTIME"),lastRecord("LASTRECORD"),isTop("ISTOP"),systemIon("SYSTEMICON"),iconId("ICONID")
 {
 
 }
 
-RGroup::RGroup():table("rgroup"),
-    id("ID"),name("NAME"),userCount("USER_COUNT"),
-    userId("UID"),defaultGroup("DEFAUL"),index("SINDEX")
+RChatList::RChatList():table("rchatlist"),id("ID"),accountId("ACCOUNTID"),firstChatTime("FTIME")
 {
 
 }
 
-RChatRoom::RChatRoom():
-    table("rchatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+RChatRecord::RChatRecord():table("rchatrecord"),id("ID"),accountId("ACCOUNTID"),nickName("NICKNAME"),time("TTIME"),type("TYPE"),
+    data("DATA")
 {
-
-}
-
-RGroup_User::RGroup_User():table("rgroup_user"),
-    id("ID"),groupId("GID"),userId("UID"),remarks("REMARKS"),visible("VISIBLE")
-{
-
-}
-
-RChatroom_User::RChatroom_User():
-    id("ID"),chatId("CID"),userId("UID")
-{
-
-}
-
-RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
-{
-
-}
-
-RequestCache::RequestCache():table("requestcache"),id("ID"),account("ACCOUNT"),
-    operateId("OPERATEID"),type("TYPE"),time("TIME")
-{
-
-}
-
-RUserChatCache::RUserChatCache():table("ruserchatcache"),id("ID"),account("ACCOUNT"),
-otherSideId("OTHERSIDEID"),data("DATA"),time("TTSTAMP"),msgType("MSGTYPE"),textId("TEXTID"),textType("TEXTTYPE"),encryption("ENCRYPTION"),
-  compress("COMPRESS")
-{
-
-}
-
-RFile::RFile():table("rfile"),id("ID"),md5("MD5"),fileName("FILENAME"),src("SRC"),dst("DST"),dtime("DTIME"),fileSize("FILESIZE"),
-    quoteId("QUOTEID"),quoteNum("QUOTENUM"),filePath("FILEPATH")
-{
-
-}
-
-RGroupDesc::RGroupDesc():table("rgroupdesc"),id("ID"),account("USERID"),groupids("GROUPIDS"),groupsize("GROUPSIZE"){
 
 }
 

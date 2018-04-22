@@ -93,6 +93,13 @@ QSettings *RUtil::globalSettings()
     return gSettings;
 }
 
+/*!
+ * @brief 查询全局ini配置文件中字段内容
+ * @param[in] group 分组名称
+ * @param[in] key 待查询值key
+ * @param[in] defaultValue 默认值，若group下不存在对应的key，使用默认值代替
+ * @return 查询结果
+ */
 QVariant RUtil::getGlobalValue(const QString & group,const QString &key, const QVariant & defaultValue)
 {
     gSettings->beginGroup(group);
@@ -160,6 +167,16 @@ QRect RUtil::screenGeometry()
 qint64 RUtil::currentMSecsSinceEpoch()
 {
     return QDateTime::currentDateTime().currentMSecsSinceEpoch();
+}
+
+/*!
+ * @brief 获取当前时间自格林尼治时间1970-1-1 0:0:0以来的秒数
+ * @details QDateTime会先将两个时间都转换为gmt时间，再做比较。
+ */
+qint64 RUtil::currentSecsSinceEpoch()
+{
+    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    return epochTime.secsTo(QDateTime::currentDateTime());
 }
 
 bool RUtil::validateIpFormat(QString dest)

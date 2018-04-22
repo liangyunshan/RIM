@@ -828,7 +828,7 @@ void LoginDialog::procRecvText(TextRequest response)
         SimpleUserInfo userInfo;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-        SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
+        RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
 
         //【2】判断窗口是否创建或者是否可见
         if(client->chatWidget && client->chatWidget->isVisible())

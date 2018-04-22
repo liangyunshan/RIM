@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QToolButton>
 #include <QPropertyAnimation>
+#include <QSharedPointer>
+#include <QDir>
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
@@ -88,16 +90,17 @@ private:
 MainDialog * MainDialog::dialog = NULL;
 
 MainDialog::MainDialog(QWidget *parent) :
-    d_ptr(new MainDialogPrivate(this)),p_dbManager(nullptr),
+    d_ptr(new MainDialogPrivate(this)),
     Widget(parent)
 {
     setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
     setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
     setMaximumHeight(qApp->desktop()->screen()->height());
 
-    dialog = this;
     RSingleton<Subject>::instance()->attach(this);
+    dialog = this;
     ScreenShot::instance();
+
     initSqlDatabase();
     initWidget();
 
@@ -118,11 +121,6 @@ MainDialog::~MainDialog()
     RSingleton<UserManager>::instance()->closeAllClientWindow();
 
     RSingleton<ShortcutSettings>::instance()->save();
-    if(p_dbManager)
-    {
-        delete p_dbManager;
-        p_dbManager = NULL;
-    }
 }
 
 MainDialog *MainDialog::instance()
@@ -597,7 +595,7 @@ void MainDialog::writeSettings()
  */
 void MainDialog::initSqlDatabase()
 {
-    p_dbManager = new DatabaseManager();
+    QSharedPointer<DatabaseManager> db_ptr(new DatabaseManager());
 
     QString type = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_TYPE,Constant::DEFAULT_SQL_TYPE).toString();
     QString hostName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_HOSTNAME,Constant::DEFAULT_SQL_HOST).toString();
@@ -607,27 +605,51 @@ void MainDialog::initSqlDatabase()
 
     bool useInnerPass = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_INNER_PASSWORD,Constant::DEFAULT_SQL_INNER_PASS).toBool();
     QString password;
-    if(useInnerPass)
-    {
+    if(useInnerPass){
         password = Constant::DEFAULT_SQL_PASSWORD;
-    }
-    else
-    {
+    }else{
         RUtil::globalSettings()->beginGroup(Constant::SYSTEM_DB);
         password = RUtil::globalSettings()->value(Constant::SYSTEM_DB_PASS,"").toString();
         RUtil::globalSettings()->endGroup();
     }
 
-    p_dbManager->setConnectInfo(hostName,databaseName,userName,password,port);
-    p_dbManager->setDatabaseType(type);
-    Database * chatDatabase = p_dbManager->newDatabase(RUtil::UUID());
-    if(!chatDatabase->open())
-    {
-        RMessageBox::warning(this,tr("warning"),tr("Open chat message database error! \n please check database config."),RMessageBox::Yes);
-    }
-    G_User->setDatabase(chatDatabase);
+    if(db_ptr->testSupportDB(type)){
+        if(type.toUpper().contains(SQL_SQLITE)){
+            if(!databaseName.contains("\\.db")){
+                databaseName += ".db";
+            }
+            databaseName = G_User->getUserDatabasePath() +QDir::separator() + databaseName;
+        }
+        db_ptr->setConnectInfo(hostName,databaseName,userName,password,port);
+        db_ptr->setDatabaseType(type);
+        Database * chatDatabase = db_ptr->newDatabase(RUtil::UUID());
+        if(chatDatabase == nullptr){
+            RMessageBox::warning(this,tr("warning"),tr("Open chat message database error! \n please check database config."),RMessageBox::Yes);
+            return;
+        }
+        G_User->setDatabase(chatDatabase);
 
-    SQLProcess::instance()->createTablebUserList(chatDatabase);
+        if(!RSingleton<SQLProcess>::instance()->createTableIfNotExists(chatDatabase))
+            RMessageBox::warning(this,tr("warning"),tr("Database tables create error!"),RMessageBox::Yes);
+
+        /**TEST**/
+            for(int i = 0; i < 5;i++){
+                HistoryChatRecord record;
+                record.accountId = QString("1007%1").arg(i+2);
+                record.nickName = QString("test%1").arg(i);
+                record.dtime = RUtil::currentMSecsSinceEpoch() - 999999 * i;
+                record.lastRecord = "hha";
+                record.type = CHAT_C2C;
+                record.isTop = false;
+                record.systemIon = true;
+                record.iconId = QString("%1.png").arg(i+1);
+                RSingleton<SQLProcess>::instance()->addOneHistoryRecord(chatDatabase,record);
+            }
+        /**TEST**/
+
+    }else{
+        RMessageBox::warning(this,tr("warning"),tr("Don't support database type [%1]!").arg(type),RMessageBox::Yes);
+    }
 }
 
 /*!

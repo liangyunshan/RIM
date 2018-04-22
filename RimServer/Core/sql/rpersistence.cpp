@@ -479,7 +479,7 @@ QString RSelect::sql()
     }
 
     if(sortOrders.size() > 0){
-        stream<<spacer<<"GROUP BY"<<spacer;
+        stream<<spacer<<"ORDER BY"<<spacer;
         for(int i = 0; i < sortOrders.size();i++){
             stream<<tableNames.value(sortOrders.at(i).tName)<<"."<<sortOrders.at(i).tkey<<spacer<<odrToString(sortOrders.at(i).odr);
         }

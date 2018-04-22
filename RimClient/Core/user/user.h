@@ -44,6 +44,7 @@ public:
 
     QString getFilePath(QString id);
     QString getIcon();
+    QString getIcon(bool isSystemIcon,const QString &iconId);
 
     void setDatabase(Database * database);
     Database * database();

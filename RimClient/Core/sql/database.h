@@ -18,6 +18,7 @@ class Database
 {
 public:
     Database(const QString& type, QString connectionName = "");
+    ~Database() = default;
 
     void setDatabaseName(const QString& name);
     void setUserName(const QString& name);
