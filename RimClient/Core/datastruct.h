@@ -130,6 +130,9 @@ enum ChatMessageType{
  */
 struct HistoryChatRecord
 {
+    HistoryChatRecord():isTop(false),systemIon(true){
+
+    }
     QString id;                       /*!< id,int */
     ChatMessageType type;             /*!< 记录类型(群、个人、系统通知) */
     QString accountId;                /*!< 聊天账户 */

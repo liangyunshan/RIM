@@ -38,6 +38,7 @@
 #include "others/msgqueuemanager.h"
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
+#include "messdiapatch.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -653,6 +654,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
+//test
+    //TODO 20180423 向历史会话记录列表插入一条记录
+    HistoryChatRecord record;
+    record.accountId = d->userInfo.accountId;
+    record.nickName = d->userInfo.nickName;
+    record.dtime = RUtil::currentMSecsSinceEpoch();
+    record.lastRecord = RUtil::getTimeStamp();
+    record.systemIon = d->userInfo.isSystemIcon;
+    record.iconId = d->userInfo.iconId;
+    record.type = CHAT_C2C;
+    MessDiapatch::instance()->onAddHistoryItem(record);
+//test
 
 //    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
 //    {

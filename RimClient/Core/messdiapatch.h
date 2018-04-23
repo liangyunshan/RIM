@@ -13,6 +13,7 @@
 
 #include <QObject>
 
+#include "datastruct.h"
 #include "protocoldata.h"
 using namespace ProtocolType;
 
@@ -44,6 +45,8 @@ public:
 
     void onScreenChanged();
 
+    void onAddHistoryItem(HistoryChatRecord &record);
+
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
@@ -65,6 +68,8 @@ signals:
     void recvFileData(QString fileId,QString fileName);
 
     void screenChange();
+
+    void createHisotryItem(HistoryChatRecord);
 
 private:
     MessDiapatch(QObject *parent = 0);

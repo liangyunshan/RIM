@@ -813,8 +813,11 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 //TODO 考虑若未打开窗口，消息如何存储？？
 /*!
  * @brief 接收发送的聊天消息
- * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
- *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+ * @details
+ *          1.存储消息至数据库；
+ *          2.将信息添加至历史会话列表;
+ *          3.  若聊天对象的窗口未创建，则使用系统通知，进行提示；
+ *              若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
  * @param[in] response 消息体内容
  * @return 是否插入成功
  */
@@ -830,32 +833,33 @@ void LoginDialog::procRecvText(TextRequest response)
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
         RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
 
-        //【2】判断窗口是否创建或者是否可见
-        if(client->chatWidget && client->chatWidget->isVisible())
-        {
-            if(response.msgCommand == MSG_TEXT_TEXT)
-            {
+        //TODO 20180423【2】将信息添加至历史会话列表
+        HistoryChatRecord record;
+        record.accountId = client->simpleUserInfo.accountId;
+        record.nickName = client->simpleUserInfo.nickName;
+        record.dtime = RUtil::currentMSecsSinceEpoch();
+        record.lastRecord = RUtil::getTimeStamp();
+        record.systemIon = client->simpleUserInfo.isSystemIcon;
+        record.iconId = client->simpleUserInfo.iconId;
+        record.type = CHAT_C2C;
+        MessDiapatch::instance()->onAddHistoryItem(record);
+
+        //【3】判断窗口是否创建或者是否可见
+        if(client->chatWidget && client->chatWidget->isVisible()){
+            if(response.msgCommand == MSG_TEXT_TEXT){
                 client->chatWidget->showRecentlyChatMsg();
-            }
-            else if(response.msgCommand == MSG_TEXT_SHAKE)
-            {
+            }else if(response.msgCommand == MSG_TEXT_SHAKE){
                 client->chatWidget->shakeWindow();
             }
-        }
-        else
-        {
-            if(response.msgCommand == MSG_TEXT_SHAKE)
-            {
-                if(!client->chatWidget)
-                {
+        }else{
+            if(response.msgCommand == MSG_TEXT_SHAKE){
+                if(!client->chatWidget){
                     client->chatWidget = new AbstractChatWidget();
                     client->chatWidget->setUserInfo(client->simpleUserInfo);
                     client->chatWidget->initChatRecord();
                 }
                 client->chatWidget->show();
-            }
-            else if(response.msgCommand == MSG_TEXT_TEXT)
-            {
+            }else if(response.msgCommand == MSG_TEXT_TEXT){
                 //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();
@@ -1068,7 +1072,6 @@ void LoginDialog::procFileRequest(FileItemRequest response)
  */
 void LoginDialog::procFileData(QString fileId, QString fileName)
 {
-    MQ_D(LoginDialog);
     FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(fileId);
     if(fileDesc != nullptr)
     {

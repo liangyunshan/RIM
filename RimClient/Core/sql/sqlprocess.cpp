@@ -315,12 +315,14 @@ bool SQLProcess::updateOneHistoryRecord(Database *db, const HistoryChatRecord &r
     RUpdate rpd(rhc.table);
     rpd.update(rhc.table,{{rhc.nickName,record.nickName}
                           ,{rhc.dtime,record.dtime}
-                          ,{rhc.isTop,record.isTop}
-                          ,{rhc.systemIon,record.systemIon}
+                          ,{rhc.isTop,(int)record.isTop}
+                          ,{rhc.systemIon,(int)record.systemIon}
+                          ,{rhc.lastRecord,record.lastRecord}
                           ,{rhc.iconId,record.iconId}})
+            .enableAlias(false)
             .createCriteria()
-            .add(Restrictions::eq(rhc.table,rhc.accountId,record.accountId))
-            .orr(Restrictions::eq(rhc.table,rhc.id,record.id));
+            .add(Restrictions::eq(rhc.table,rhc.accountId,record.accountId));
+//            .orr(Restrictions::eq(rhc.table,rhc.id,record.id));
 
     QSqlQuery query(db->sqlDatabase());
 

@@ -34,7 +34,6 @@
 #include "media/mediaplayer.h"
 #include "user/user.h"
 
-#include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
 
 #include "sql/databasemanager.h"
@@ -257,23 +256,6 @@ void MainDialog::blockAutoHidePanel(bool flag)
         {
             hidePanel();
         }
-    }
-}
-
-void MainDialog::showChatWindow(ToolItem * item)
-{
-    UserClient * client = RSingleton<UserManager>::instance()->client(item);
-    if(client->chatWidget)
-    {
-        client->chatWidget->show();
-    }
-    else
-    {
-        AbstractChatWidget * widget = new AbstractChatWidget();
-        widget->setUserInfo(client->simpleUserInfo);
-        widget->initChatRecord();
-        client->chatWidget = widget;
-        widget->show();
     }
 }
 
@@ -633,18 +615,18 @@ void MainDialog::initSqlDatabase()
             RMessageBox::warning(this,tr("warning"),tr("Database tables create error!"),RMessageBox::Yes);
 
         /**TEST**/
-            for(int i = 0; i < 5;i++){
-                HistoryChatRecord record;
-                record.accountId = QString("1007%1").arg(i+2);
-                record.nickName = QString("test%1").arg(i);
-                record.dtime = RUtil::currentMSecsSinceEpoch() - 999999 * i;
-                record.lastRecord = "hha";
-                record.type = CHAT_C2C;
-                record.isTop = false;
-                record.systemIon = true;
-                record.iconId = QString("%1.png").arg(i+1);
-                RSingleton<SQLProcess>::instance()->addOneHistoryRecord(chatDatabase,record);
-            }
+//            for(int i = 4; i < 9;i++){
+//                HistoryChatRecord record;
+//                record.accountId = QString("1000%1").arg(i);
+//                record.nickName = QString("test%1").arg(i);
+//                record.dtime = RUtil::currentMSecsSinceEpoch() - 999999 * i;
+//                record.lastRecord = "hha";
+//                record.type = CHAT_C2C;
+//                record.isTop = false;
+//                record.systemIon = true;
+//                record.iconId = QString("%1.png").arg(i+1);
+//                RSingleton<SQLProcess>::instance()->addOneHistoryRecord(chatDatabase,record);
+//            }
         /**TEST**/
 
     }else{

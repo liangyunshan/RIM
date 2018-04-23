@@ -22,6 +22,7 @@
 #include "contactdetailwindow.h"
 #include "user/user.h"
 #include "user/userfriendcontainer.h"
+#include "abstractchatwidget.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -92,7 +93,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 {
     createAction();
 
-    connect(this,SIGNAL(showChatDialog(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
+    connect(this,SIGNAL(showChatDialog(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
     connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(GroupingResponse)),this,SLOT(recvFriendGroupingOperate(GroupingResponse)));
 
@@ -460,41 +461,99 @@ void PanelPersonPage::sendInstantMessage()
     emit showChatDialog(d->toolBox->selectedItem());
 }
 
+void PanelPersonPage::showChatWindow(ToolItem * item)
+{
+    if(item == nullptr)
+        return;
+
+    UserClient * client = RSingleton<UserManager>::instance()->client(item);
+    showOrCreateChatWindow(client);
+}
+
 /*!
-     * @brief 显示好友资料
-     * @param[in]
-     * @return 无
-     */
+ * @brief 创建来自历史会话操作的聊天对话框
+ * @param[in] messType 信息类型，个人、群、系统消息
+ * @param[in] accountId 对应消息账户ID
+ */
+void PanelPersonPage::showChatWindow(ChatMessageType messType, QString accountId)
+{
+    if(messType == CHAT_C2C){
+        UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
+        showOrCreateChatWindow(client);
+    }
+}
+
+void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
+{
+    if(client == nullptr)
+        return;
+
+    if(client->chatWidget)
+    {
+        client->chatWidget->show();
+    }else{
+        AbstractChatWidget * widget = new AbstractChatWidget();
+        widget->setUserInfo(client->simpleUserInfo);
+        widget->initChatRecord();
+        client->chatWidget = widget;
+        widget->show();
+    }
+}
+
+/*!
+ * @brief 显示好友资料
+ * @param[in]
+ * @return 无
+ */
 void PanelPersonPage::showUserDetail()
 {
     MQ_D(PanelPersonPage);
-    ContactDetailWindow *m_detailWindow = new ContactDetailWindow();
 
     UserClient * client = RSingleton<UserManager>::instance()->client(d->toolBox->selectedItem());
-    if(client)
-    {
-        m_detailWindow->setContactDetail(client->simpleUserInfo);
+    if(client){
+        createDetailView(client);
     }
+}
 
-    QStringList t_groupNames;
-    int t_currentGroup = -1;
-    for(int t_index = 0;t_index<d->toolBox->pageCount();t_index++)
-    {
-        t_groupNames.append(d->toolBox->allPages().at(t_index)->toolName());
-        if(d->pageOfTriggeredItem->toolName() == d->toolBox->allPages().at(t_index)->toolName())
-        {
-            t_currentGroup = t_index;
-        }
+/*!
+ * @brief 显示联系人详细信息
+ * @param[in] messtype 信息类型
+ * @param[in] accountId 对应信息类型ID
+ */
+void PanelPersonPage::showUserDetail(ChatMessageType messtype, QString accountId)
+{
+    if(messtype == CHAT_C2C){
+        UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
+        createDetailView(client);
     }
-    m_detailWindow->setGroups(t_groupNames,t_currentGroup);
+}
+
+void PanelPersonPage::createDetailView(UserClient *client)
+{
+    if(client == nullptr)
+        return;
+
+    ContactDetailWindow * m_detailWindow = new ContactDetailWindow();
+    m_detailWindow->setContactDetail(client->simpleUserInfo);
+
+    QList<QPair<QString,QString>> groupNames = RSingleton<UserFriendContainer>::instance()->groupIdAndNames();
+    QPair<QString,QString> gname = RSingleton<UserFriendContainer>::instance()->groupIdAndName(client->simpleUserInfo.accountId);
+
+    QStringList groups,groupIds;
+    std::for_each(groupNames.cbegin(),groupNames.cend(),[&groups,&groupIds](const QPair<QString,QString> groupName){
+        groups<<groupName.second;
+        groupIds<<groupName.first;
+    });
+
+    m_detailWindow->setGroups(groups,groupIds.indexOf(gname.first));
     m_detailWindow->show();
 }
 
 /*!
-     * @brief 修改好友备注信息
-     * @param[in]
-     * @return 无
-     */
+ * @brief 修改好友备注信息
+ * @param[in]
+ * @return 无
+ */
 void PanelPersonPage::modifyUserInfo()
 {
     MQ_D(PanelPersonPage);
@@ -530,21 +589,41 @@ void PanelPersonPage::deleteUser()
     MQ_D(PanelPersonPage);
 
     ToolItem *t_toRemovedItem = d->toolBox->selectedItem();
-    if(t_toRemovedItem && d->pageOfTriggeredItem)
-    {
-        GroupingFriendRequest * t_request = new GroupingFriendRequest();
-        t_request->type = G_Friend_Delete;
-        t_request->stype = SearchPerson;
-        t_request->groupId = d->pageOfTriggeredItem->getID();
-        t_request->oldGroupId = d->pageOfTriggeredItem->getID();
+    if(t_toRemovedItem && d->pageOfTriggeredItem){
         UserClient * client = RSingleton<UserManager>::instance()->client(t_toRemovedItem);
-        if(client)
-        {
-            t_request->user = client->simpleUserInfo;
+        if(client && d->pageOfTriggeredItem->getID().size() > 0){
+            sendDeleteUserRequest(client,d->pageOfTriggeredItem->getID());
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(t_request);
     }
+}
 
+/*!
+ * @brief 来自历史对话框的删除联系人请求
+ * @param[in] messtype 信息类型
+ * @param[in] accountId 对应信息类型ID
+ */
+void PanelPersonPage::deleteUser(ChatMessageType messtype, QString accountId)
+{
+    if(messtype == CHAT_C2C){
+        QPair<QString,QString> gname = RSingleton<UserFriendContainer>::instance()->groupIdAndName(accountId);
+        UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
+        if(client && gname.first.size() > 0){
+            sendDeleteUserRequest(client,gname.first);
+        }
+    }
+}
+
+void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
+{
+    if(client == nullptr)
+        return;
+    GroupingFriendRequest * t_request = new GroupingFriendRequest();
+    t_request->type = G_Friend_Delete;
+    t_request->stype = SearchPerson;
+    t_request->groupId = groupId;
+    t_request->oldGroupId = groupId;
+    t_request->user = client->simpleUserInfo;
+    RSingleton<MsgWrap>::instance()->handleMsg(t_request);
 }
 
 /*!
@@ -583,9 +662,7 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
                     //1.查找用户界面需要判断此用户是否已经被添加了
                     RSingleton<Subject>::instance()->notify(MESS_RELATION_FRIEND_ADD);
                 }
-            }
-            else
-            {
+            }else{
                 //TODO 20180417添加好友失败
             }
             break;
@@ -622,10 +699,10 @@ void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFrie
         }
     case G_Friend_Delete:
         {
-             if(result == STATUS_SUCCESS)
-             {
+             if(result == STATUS_SUCCESS){
                  removeContact(response.user);
                  updateGroupDescInfo();
+                 emit userDeleted(CHAT_C2C,response.user.accountId);
              }
         }
     default:
@@ -809,7 +886,7 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     ToolItem * item = new ToolItem(page);
     connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
     connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
-    connect(item,SIGNAL(itemDoubleClick(ToolItem*)),MainDialog::instance(),SLOT(showChatWindow(ToolItem*)));
+    connect(item,SIGNAL(itemDoubleClick(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
     connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
     connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
 

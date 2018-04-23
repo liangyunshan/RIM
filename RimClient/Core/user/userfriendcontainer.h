@@ -14,6 +14,7 @@
 #define USERFRIENDCONTAINER_H_2018_04_18
 
 #include <QList>
+#include <QPair>
 #include <QMap>
 #include <mutex>
 using namespace std;
@@ -29,6 +30,12 @@ public:
     void reset(QList<RGroupData *> & list);
 
     int groupSize();
+    QStringList groupNames();
+    QList<QPair<QString,QString>> groupIdAndNames();
+
+    QString groupName(const QString  &userAccountId);
+    QPair<QString,QString> groupIdAndName(const QString & userAccountId);
+
     RGroupData * element(int index);
     RGroupData * element(const QString groupId);
 

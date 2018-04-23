@@ -38,6 +38,80 @@ int UserFriendContainer::groupSize()
     return friendList.size();
 }
 
+QStringList UserFriendContainer::groupNames()
+{
+    unique_lock<mutex> ul(lockMutex);
+
+    QStringList names;
+
+    std::for_each(friendList.begin(),friendList.end(),[&names](const RGroupData * data){
+        names<<data->groupName;
+    });
+
+    return names;
+}
+
+/*!
+ * @brief 获取分组的id和name键值对
+ * @return key：分组ID
+ *         value:分组name
+ */
+QList<QPair<QString, QString> > UserFriendContainer::groupIdAndNames()
+{
+    unique_lock<mutex> ul(lockMutex);
+
+    QList<QPair<QString,QString>> results;
+    std::for_each(friendList.begin(),friendList.end(),[&results](const RGroupData * data){
+        results<<QPair<QString,QString>(data->groupId,data->groupName);
+    });
+    return results;
+}
+
+/*!
+ * @brief 根据用户的id查找所属分组
+ * @param[in] userAccountId 待查找分组的用户
+ * @return 对应用户的分组名称
+ */
+QString UserFriendContainer::groupName(const QString &userAccountId)
+{
+    lock_guard<mutex> lg(lockMutex);
+    QString gname;
+
+    QList<RGroupData *>::const_iterator iter = friendList.cbegin();
+    while(iter != friendList.cend()){
+        auto users = (*iter)->users;
+        auto findIndex = std::find_if(users.cbegin(),users.cend(),[=](const SimpleUserInfo * info){
+            return info->accountId == userAccountId;});
+        if(findIndex != users.cend()){
+            gname = (*iter)->groupName;
+            break;
+        }
+        iter++;
+    }
+
+    return gname;
+}
+
+QPair<QString, QString> UserFriendContainer::groupIdAndName(const QString &userAccountId)
+{
+    lock_guard<mutex> lg(lockMutex);
+    QPair<QString, QString> result;
+
+    QList<RGroupData *>::const_iterator iter = friendList.cbegin();
+    while(iter != friendList.cend()){
+        auto users = (*iter)->users;
+        auto findIndex = std::find_if(users.cbegin(),users.cend(),[=](const SimpleUserInfo * info){
+            return info->accountId == userAccountId;});
+        if(findIndex != users.cend()){
+            result = QPair<QString,QString>((*iter)->groupId,(*iter)->groupName);
+            break;
+        }
+        iter++;
+    }
+
+    return result;
+}
+
 RGroupData *UserFriendContainer::element(int index)
 {
     lock_guard<mutex> guard(lockMutex);

@@ -113,3 +113,8 @@ void MessDiapatch::onScreenChanged()
 {
     emit screenChange();
 }
+
+void MessDiapatch::onAddHistoryItem(HistoryChatRecord &record)
+{
+    emit createHisotryItem(record);
+}

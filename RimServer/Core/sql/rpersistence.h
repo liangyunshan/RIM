@@ -11,6 +11,7 @@
  *             20180413:wey:增强RSelect排序、分页查询;
  *             20180414:wey:增加重载函数，减少重复传入参数;
  *                          将函数调整为链式调用，简单直接。
+ *             20180422:wey:修复sqlite数据库update操作不支持alias别名
  */
 #ifndef RPERSISTENCE_H
 #define RPERSISTENCE_H
@@ -49,7 +50,7 @@ public:
 
     QString tableName()const{return tname;}
 
-    QString toSql(QString tableAlais = "")const;
+    QString toSql(QString tableAlais = "", bool isSupportAlias = true)const;
 private:
     enum OperateType
     {
@@ -83,7 +84,7 @@ public:
     void clear(){restricitinons.clear();}
 
     QString toSql();
-    QString toSql(QMap<QString,QString> tableAlias);
+    QString toSql(QMap<QString,QString> tableAlias, bool isSupportAlias = true);
 
 private:
     enum CriteriaType
@@ -245,6 +246,7 @@ class RUpdate : public SuperCondition
 public:
     explicit RUpdate(std::initializer_list<QString> tNames);
     RUpdate(const QString tName);
+    RUpdate & enableAlias(bool flag);
     RUpdate &update(const QString tName,const QString key,QVariant value);
     RUpdate &update(const QString tName,std::vector<std::pair<QString,QVariant>> list);
     RUpdate& on(const QString & tName1,const QString key1,const QString tName2,const QString value2);
@@ -254,6 +256,7 @@ private:
     QMap<QString,QString> tableNames;                   /*!< 所有连接表名 */
     QVector<OnContion> onCondtions;                     /*!< 连接更新时的条件信息 */
     QVector<UpdateKeys> updateKeys;
+    bool isAlias;                                       /*!< 是否支持别名，sqlite更新操作不支持alias，mysql则支持 */
 };
 
 /*!

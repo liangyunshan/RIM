@@ -24,6 +24,8 @@
 #include "observer.h"
 #include "protocoldata.h"
 
+class UserClient;
+
 namespace ProtocolType
 {
     class FriendListResponse;
@@ -45,6 +47,7 @@ public:
 
 signals:
     void showChatDialog(ToolItem * item);
+    void userDeleted(ChatMessageType messType, QString accountId);
 
 private slots:
     void refreshList();
@@ -57,9 +60,17 @@ private slots:
     void createChatWindow(ToolItem * item);
 
     void sendInstantMessage();
+
+    void showChatWindow(ToolItem*item);
+    void showChatWindow(ChatMessageType messType, QString accountId);
+
     void showUserDetail();
-    void modifyUserInfo();
+    void showUserDetail(ChatMessageType messtype,QString accountId);
+
     void deleteUser();
+    void deleteUser(ChatMessageType messtype,QString accountId);
+
+    void modifyUserInfo();
 
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
     void updateModifyInstance(QObject *);
@@ -84,6 +95,10 @@ private:
     void updateContactShow(const SimpleUserInfo &);
     void removeContact(const SimpleUserInfo &);
     void clearUnrealGroupAndUser();
+
+    void createDetailView(UserClient * client);
+    void showOrCreateChatWindow(UserClient * client);
+    void sendDeleteUserRequest(UserClient * client , QString groupId);
 
 private:
     PanelPersonPagePrivate * d_ptr;
