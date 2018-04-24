@@ -37,9 +37,6 @@ public:
     void setToolName(const QString &text);
     QString toolName()const;
 
-    void setSortNum(const int num);
-    int sortNum()const;
-
     void setID(const QString & id);
     QString getID()const;
 
@@ -47,8 +44,8 @@ public:
     bool isDefault()const;
 
     void addItem(ToolItem *item);
-    QList<ToolItem *> &items();
     bool removeItem(ToolItem * item);
+    QList<ToolItem *> &items();
 
     void setMenu(QMenu * menu);
 

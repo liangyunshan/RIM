@@ -22,7 +22,7 @@
 #include <QDrag>
 #include <QMimeData>
 
-#define TOOL_SIMPLE_HEIGHT  24
+#define TOOL_SIMPLE_HEIGHT  26      //关闭状态下，标签默认高度
 
 class ToolPagePrivate : public GlobalData<ToolPage>
 {
@@ -160,10 +160,9 @@ ToolPage::~ToolPage()
 }
 
 /*!
-     * @brief 设置工具页面内容
-     * @param[in] text 待设置内容
-     * @return 无
-     */
+ * @brief 设置工具页面内容
+ * @param[in] text 待设置内容
+ */
 void ToolPage::setToolName(const QString &text)
 {
     MQ_D(ToolPage);
@@ -172,8 +171,7 @@ void ToolPage::setToolName(const QString &text)
 
 /*!
  * @brief 获取textLabel的显示内容
- * @param 无
- * @return 无
+ * @return 指定页面textLabel内容
  */
 QString ToolPage::toolName() const
 {
@@ -182,31 +180,8 @@ QString ToolPage::toolName() const
 }
 
 /*!
- * @brief 设置page的sortNum(分组排序序号)
- * @param [in]page的sortNum(分组排序序号)
- * @return 无
- */
-void ToolPage::setSortNum(const int num)
-{
-    MQ_D(ToolPage);
-    d->m_pageInfo.sortNum = num;
-}
-
-/*!
- * @brief 获取page的sortNum(排位顺序)
- * @param [in]page的sortNum(分组排序序号)
- * @return 无
- */
-int ToolPage::sortNum() const
-{
-    MQ_D(ToolPage);
-    return d->m_pageInfo.sortNum;
-}
-
-/*!
  * @brief 设置page的id
  * @param [in]page的id
- * @return 无
  */
 void ToolPage::setID(const QString & id)
 {
@@ -216,7 +191,6 @@ void ToolPage::setID(const QString & id)
 
 /*!
  * @brief 获取page的id
- * @param 无
  * @return page的id
  */
 QString ToolPage::getID() const
@@ -228,7 +202,6 @@ QString ToolPage::getID() const
 /*!
  * @brief 设置page是否是默认分组
  * @param [in] isDefault:bool
- * @return 无
  */
 void ToolPage::setDefault(const bool isDefault)
 {
@@ -238,7 +211,6 @@ void ToolPage::setDefault(const bool isDefault)
 
 /*!
  * @brief 获取page是否是默认分组
- * @param 无
  * @return page是否是默认分组
  */
 bool ToolPage::isDefault() const
@@ -251,8 +223,7 @@ void ToolPage::addItem(ToolItem * item)
 {
     MQ_D(ToolPage);
 
-    if(!d->detailWidget->layout())
-    {
+    if(!d->detailWidget->layout()){
         QVBoxLayout * layout = new QVBoxLayout;
         layout->setContentsMargins(0,0,0,0);
         layout->setSpacing(0);
@@ -260,9 +231,7 @@ void ToolPage::addItem(ToolItem * item)
     }
 
     QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->detailWidget->layout());
-
     d->toolItems.append(item);
-
     layout->addWidget(item);
 }
 
@@ -271,7 +240,6 @@ QList<ToolItem *>& ToolPage::items()
     MQ_D(ToolPage);
     return d->toolItems;
 }
-
 
 /*!
  * @brief 删除目标item
@@ -291,27 +259,21 @@ bool ToolPage::removeItem(ToolItem *item)
         if(layout)
         {
             int index = -1;
-            for(int i = 0; i < layout->count();i++)
-            {
-                if(layout->itemAt(i)->widget())
-                {
+            for(int i = 0; i < layout->count();i++){
+                if(layout->itemAt(i)->widget()){
                     ToolItem * tmpItem = dynamic_cast<ToolItem *>(layout->itemAt(i)->widget());
-                    if(tmpItem == item)
-                    {
+                    if(tmpItem == item){
                         index = i;
                         break;
                     }
                 }
             }
 
-            if(index >= 0)
-            {
+            if(index >= 0){
                 QLayoutItem * layItem = layout->takeAt(index);
-                if(layItem->widget())
-                {
+                if(layItem->widget()){
                     bool removeResult = d->toolItems.removeOne(item);
-                    if(removeResult)
-                    {
+                    if(removeResult){
                         emit itemRemoved(item);
                     }
                     return removeResult;
@@ -330,9 +292,8 @@ void ToolPage::setMenu(QMenu *menu)
 }
 
 /*!
- * @brief 控制分组展开或闭合
+ * @brief 设置分组展开或闭合
  * @param[in] ifExpand:const bool
- * @return page的展开状态
  */
 void ToolPage::setExpand(bool ifExpand)
 {
@@ -342,7 +303,6 @@ void ToolPage::setExpand(bool ifExpand)
 
 /*!
  * @brief 获取page是否是展开状态
- * @param 无
  * @return page的展开状态
  */
 bool ToolPage::isExpanded() const
@@ -351,6 +311,10 @@ bool ToolPage::isExpanded() const
     return d->expanded;
 }
 
+/*!
+ * @brief 设置分组描述信息,用于显示联系人在线数量或群数量
+ * @param[in] toolButton 待插入的工具按钮
+ */
 void ToolPage::setDescInfo(const QString &content)
 {
     MQ_D(ToolPage);
@@ -359,8 +323,7 @@ void ToolPage::setDescInfo(const QString &content)
 
 /*!
  * @brief 获取textLabel的显示尺寸
- * @param 无
- * @return 无
+ * @return
  */
 QRect ToolPage::textRect() const
 {
@@ -376,18 +339,15 @@ QRect ToolPage::titleRect() const
 
 /*!
  * @brief 获取textLabel的默认固定高度
- * @param 无
  * @return textLabel的默认固定高度
  */
 int ToolPage::txtFixedHeight()
 {
-    int fixedHeight = TOOL_SIMPLE_HEIGHT;
-    return fixedHeight;
+    return TOOL_SIMPLE_HEIGHT;
 }
 
 /*!
  * @brief 获取page的pageInfo(分组唯一标识、分组序号、分组名称)
- * @param 无
  * @return const PersonGroupInfo &
  */
 const PersonGroupInfo & ToolPage::pageInfo()
@@ -397,10 +357,8 @@ const PersonGroupInfo & ToolPage::pageInfo()
 }
 
 /*!
-     * @brief 高亮显示标题框
-     * @param 无
-     * @return 无
-     */
+ * @brief 高亮显示标题框
+ */
 void ToolPage::highlightShow()
 {
     MQ_D(ToolPage);
@@ -411,8 +369,6 @@ void ToolPage::highlightShow()
 
 /*!
  * @brief 取消高亮显示标题框
- * @param 无
- * @return 无
  */
 void ToolPage::unHighlightShow()
 {
@@ -424,8 +380,6 @@ void ToolPage::unHighlightShow()
 
 /*!
  * @brief 处理Item的SIGNAL：updateGroupActions()
- * @param 无
- * @return 无
  */
 void ToolPage::updateGroupActions()
 {

@@ -46,6 +46,8 @@ private:
     void handleGroupingOperateRequest(GroupingRequest *packet);
     void handleGroupingFriendRequest(GroupingFriendRequest * packet);
 
+    void handleChatGroupListRequest(ChatGroupListRequest * packet);
+
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 
 private:

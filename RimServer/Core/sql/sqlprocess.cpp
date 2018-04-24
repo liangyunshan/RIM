@@ -173,7 +173,7 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     DataTable::RChatRoom room;
 
     QString sql;
-    if(request->stype == SearchPerson)
+    if(request->stype == OperatePerson)
     {
         RSelect rst({user.table});
 
@@ -243,7 +243,7 @@ ResponseAddFriend SQLProcess::processAddFriendRequest(Database *db,QString accou
 }
 
 /*!
- * @brief 创建用户分组
+ * @brief 创建联系人分组
  * @param[in] db 数据库
  * @param[in] userId User表Id
  * @param[in] groupName 分组名
@@ -270,24 +270,37 @@ bool SQLProcess::createGroup(Database *db, QString userId, QString groupName, QS
 }
 
 /*!
- * @brief 创建分组描述信息表
+ * @brief 创建分组(联系人/群分组)描述信息表
  * @param[in] uuid 用户user表ID
  * @param[in] accountId 用户user表accountid
  * @param[in] groupId 分组ID
  * @return 是否插入成功
  */
-bool SQLProcess::createGroupDesc(Database *db, QString uuid, QString accountId, QString groupId)
+bool SQLProcess::createGroupDesc(Database *db, OperateType type, QString uuid, QString accountId, QString groupId)
 {
-    DataTable::RGroupDesc rgd;
-    RPersistence rps(rgd.table);
-    rps.insert({{rgd.id,uuid},
-                {rgd.account,accountId},
-                {rgd.groupids,groupId},
-                {rgd.groupsize,1}});
+    if(type == OperatePerson){
+        DataTable::RGroupDesc rgd;
+        RPersistence rps(rgd.table);
+        rps.insert({{rgd.id,uuid},
+                    {rgd.account,accountId},
+                    {rgd.groupids,groupId},
+                    {rgd.groupsize,1}});
 
-    QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rps.sql()))
-        return true;
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rps.sql()))
+            return true;
+    }else if(type == OperateGroup){
+        DataTable::RChatGroupDesc rgd;
+        RPersistence rps(rgd.table);
+        rps.insert({{rgd.id,uuid},
+                    {rgd.account,accountId},
+                    {rgd.chatgroupids,groupId},
+                    {rgd.chatgroupsize,1}});
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rps.sql()))
+            return true;
+    }
 
     return false;
 }
@@ -298,29 +311,54 @@ bool SQLProcess::createGroupDesc(Database *db, QString uuid, QString accountId, 
  * @param[in] groupId 新创建group id
  * @return 是否插入成功
  */
-bool SQLProcess::addGroupToGroupDesc(Database *db, QString uuid, QString groupId)
+bool SQLProcess::addGroupToGroupDesc(Database *db, GroupingRequest *request, QString groupId)
 {
-    DataTable::RGroupDesc rgd;
-    RSelect rst(rgd.table);
-    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
-            .createCriteria()
-            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
-
-    QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rst.sql()) && query.next()){
-        QString groupIds = query.value(rgd.groupids).toString();
-        int groupSize = query.value(rgd.groupsize).toInt();
-
-        groupIds += ",";
-        groupIds += groupId;
-
-        RUpdate rud(rgd.table);
-        rud.update(rgd.table,{{rgd.groupids,groupIds},{rgd.groupsize,groupSize + 1}})
+    if(request->gtype == OperatePerson){
+        DataTable::RGroupDesc rgd;
+        RSelect rst(rgd.table);
+        rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
                 .createCriteria()
-                .add(Restrictions::eq(rgd.table,rgd.id,uuid));
-        if(query.exec(rud.sql())){
-                return true;
-         }
+                .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rgd.groupids).toString();
+            int groupSize = query.value(rgd.groupsize).toInt();
+
+            groupIds += ",";
+            groupIds += groupId;
+
+            RUpdate rud(rgd.table);
+            rud.update(rgd.table,{{rgd.groupids,groupIds},{rgd.groupsize,groupSize + 1}})
+                    .createCriteria()
+                    .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
+            if(query.exec(rud.sql())){
+                    return true;
+             }
+        }
+    }else if(request->gtype == OperateGroup){
+        DataTable::RChatGroupDesc rcg;
+        RSelect rst(rcg.table);
+        rst.select(rcg.table,{rcg.chatgroupids,rcg.chatgroupsize})
+                .createCriteria()
+                .add(Restrictions::eq(rcg.table,rcg.id,request->uuid));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rcg.chatgroupids).toString();
+            int groupSize = query.value(rcg.chatgroupsize).toInt();
+
+            groupIds += ",";
+            groupIds += groupId;
+
+            RUpdate rud(rcg.table);
+            rud.update(rcg.table,{{rcg.chatgroupids,groupIds},{rcg.chatgroupsize,groupSize + 1}})
+                    .createCriteria()
+                    .add(Restrictions::eq(rcg.table,rcg.id,request->uuid));
+            if(query.exec(rud.sql())){
+                    return true;
+             }
+        }
     }
     return false;
 }
@@ -332,29 +370,56 @@ bool SQLProcess::addGroupToGroupDesc(Database *db, QString uuid, QString groupId
  * @param[in] groupId 待删除group id
  * @return 是否删除成功
  */
-bool SQLProcess::delGroupInGroupDesc(Database *db, QString uuid, QString groupId)
+bool SQLProcess::delGroupInGroupDesc(Database *db, GroupingRequest *request)
 {
-    DataTable::RGroupDesc rgd;
-    RSelect rst(rgd.table);
-    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
-            .createCriteria()
-            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+    if(request->gtype == OperatePerson){
+        DataTable::RGroupDesc rgd;
+        RSelect rst(rgd.table);
+        rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
+                .createCriteria()
+                .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
 
-    QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rst.sql()) && query.next()){
-        QString groupIds = query.value(rgd.groupids).toString();
-        int groupSize = query.value(rgd.groupsize).toInt();
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rgd.groupids).toString();
+            int groupSize = query.value(rgd.groupsize).toInt();
 
-        QStringList groups = groupIds.split(',');
+            QStringList groups = groupIds.split(',');
 
-        if(groups.removeOne(groupId)){
-            RUpdate rud(rgd.table);
-            rud.update(rgd.table,{{rgd.groupids,groups.join(',')},{rgd.groupsize,groupSize - 1}})
-                    .createCriteria()
-                    .add(Restrictions::eq(rgd.table,rgd.id,uuid));
-            if(query.exec(rud.sql())){
-                    return true;
-             }
+            if(groups.removeOne(request->groupId)){
+                RUpdate rud(rgd.table);
+                rud.update(rgd.table,{{rgd.groupids,groups.join(',')},{rgd.groupsize,groupSize - 1}})
+                        .createCriteria()
+                        .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
+                if(query.exec(rud.sql())){
+                        return true;
+                 }
+            }
+        }
+    }
+    else if(request->gtype == OperateGroup){
+        DataTable::RChatGroupDesc rcgd;
+        RSelect rst(rcgd.table);
+        rst.select(rcgd.table,{rcgd.chatgroupids,rcgd.chatgroupsize})
+                .createCriteria()
+                .add(Restrictions::eq(rcgd.table,rcgd.id,request->uuid));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rcgd.chatgroupids).toString();
+            int groupSize = query.value(rcgd.chatgroupsize).toInt();
+
+            QStringList groups = groupIds.split(',');
+
+            if(groups.removeOne(request->groupId)){
+                RUpdate rud(rcgd.table);
+                rud.update(rcgd.table,{{rcgd.chatgroupids,groups.join(',')},{rcgd.chatgroupsize,groupSize - 1}})
+                        .createCriteria()
+                        .add(Restrictions::eq(rcgd.table,rcgd.id,request->uuid));
+                if(query.exec(rud.sql())){
+                        return true;
+                 }
+            }
         }
     }
     return true;
@@ -367,33 +432,89 @@ bool SQLProcess::delGroupInGroupDesc(Database *db, QString uuid, QString groupId
  * @param[in] pageIndex 对应group id的新序列
  * @return 是否执行成功
  */
-bool SQLProcess::sortGroupInGroupDesc(Database *db, QString uuid, QString groupId, int pageIndex)
+bool SQLProcess::sortGroupInGroupDesc(Database *db, GroupingRequest *request)
 {
-    DataTable::RGroupDesc rgd;
-    RSelect rst(rgd.table);
-    rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
-            .createCriteria()
-            .add(Restrictions::eq(rgd.table,rgd.id,uuid));
+    if(request->gtype == OperatePerson){
+        DataTable::RGroupDesc rgd;
+        RSelect rst(rgd.table);
+        rst.select(rgd.table,{rgd.groupids,rgd.groupsize})
+                .createCriteria()
+                .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rgd.groupids).toString();
+            QStringList groups = groupIds.split(',');
+
+            int oldIndex = groups.indexOf(request->groupId);
+
+            if(oldIndex >=0 && request->groupIndex >= 0 && request->groupIndex < groups.size()){
+                groups.removeAt(oldIndex);
+                groups.insert(request->groupIndex,request->groupId);
+
+                RUpdate rud(rgd.table);
+                rud.update(rgd.table,{{rgd.groupids,groups.join(',')}})
+                        .createCriteria()
+                        .add(Restrictions::eq(rgd.table,rgd.id,request->uuid));
+                if(query.exec(rud.sql())){
+                        return true;
+                 }
+            }
+        }
+    }else if(request->gtype == OperateGroup){
+        DataTable::RChatGroupDesc rcgd;
+        RSelect rst(rcgd.table);
+        rst.select(rcgd.table,{rcgd.chatgroupids})
+                .createCriteria()
+                .add(Restrictions::eq(rcgd.table,rcgd.id,request->uuid));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+            QString groupIds = query.value(rcgd.chatgroupids).toString();
+            QStringList groups = groupIds.split(',');
+
+            int oldIndex = groups.indexOf(request->groupId);
+
+            if(oldIndex >=0 && request->groupIndex >= 0 && request->groupIndex < groups.size()){
+                groups.removeAt(oldIndex);
+                groups.insert(request->groupIndex,request->groupId);
+
+                RUpdate rud(rcgd.table);
+                rud.update(rcgd.table,{{rcgd.chatgroupids,groups.join(',')}})
+                        .createCriteria()
+                        .add(Restrictions::eq(rcgd.table,rcgd.id,request->uuid));
+                if(query.exec(rud.sql())){
+                        return true;
+                 }
+            }
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 创建群分组
+ * @param[in] db 数据库
+ * @param[in] userId User表Id
+ * @param[in] groupName 分组名
+ * @param[in] groupId isDefault为true时，由服务器端随机产生id；isDefault为false时，由客户都按用户指定id
+ * @param[in] isDefault 是否为默认分组，一个用户只有一个默认分组，即在创建时自动创建的分组
+ * @return 是否创建成功
+ */
+bool SQLProcess::createChatGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault)
+{
+    DataTable::RChatGroup rcg;
+    RPersistence rps(rcg.table);
+    rps.insert({{rcg.id,groupId},
+                {rcg.name,groupName},
+                {rcg.groupCount,0},
+                {rcg.userId,userId},
+                {rcg.defaultGroup,(int)isDefault}});
 
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rst.sql()) && query.next()){
-        QString groupIds = query.value(rgd.groupids).toString();
-        QStringList groups = groupIds.split(',');
-
-        int oldIndex = groups.indexOf(groupId);
-
-        if(oldIndex >=0 && pageIndex >= 0 && pageIndex < groups.size()){
-            groups.removeAt(oldIndex);
-            groups.insert(pageIndex,groupId);
-
-            RUpdate rud(rgd.table);
-            rud.update(rgd.table,{{rgd.groupids,groups.join(',')}})
-                    .createCriteria()
-                    .add(Restrictions::eq(rgd.table,rgd.id,uuid));
-            if(query.exec(rud.sql())){
-                    return true;
-             }
-        }
+    if(query.exec(rps.sql())){
+        return true;
     }
     return false;
 }
@@ -407,7 +528,7 @@ bool SQLProcess::sortGroupInGroupDesc(Database *db, QString uuid, QString groupI
 bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
 {
     QString sql;
-    if(request->gtype == GROUPING_FRIEND)
+    if(request->gtype == OperatePerson)
     {
         DataTable::RGroup rgp;
         RUpdate rpd(rgp.table);
@@ -417,9 +538,15 @@ bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
                 add(Restrictions::eq(rgp.table,rgp.userId,request->uuid));
         sql = rpd.sql();
     }
-    else if(request->gtype == GROUPING_GROUP)
+    else if(request->gtype == OperateGroup)
     {
-
+        DataTable::RChatGroup rcg;
+        RUpdate rpd(rcg.table);
+        rpd.update(rcg.table,rcg.name,request->groupName)
+                .createCriteria()
+                .add(Restrictions::eq(rcg.table,rcg.id,request->groupId))
+                .add(Restrictions::eq(rcg.table,rcg.userId,request->uuid));
+        sql = rpd.sql();
     }
 
     QSqlQuery query(db->sqlDatabase());
@@ -440,7 +567,7 @@ bool SQLProcess::renameGroup(Database *db, GroupingRequest *request)
  */
 bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
 {
-    if(request->gtype == GROUPING_FRIEND)
+    if(request->gtype == OperatePerson)
     {
         QSqlQuery query(db->sqlDatabase());
 
@@ -457,7 +584,7 @@ bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
             if(db->sqlDatabase().transaction()){
 #endif
                 if(query.next()){
-                    QString userDefaultGroupId = getDefaultGroupByUserId(db,request->uuid);
+                    QString userDefaultGroupId = getDefaultGroupByUserId(db,OperatePerson,request->uuid);
                     if(userDefaultGroupId.size() > 0){
                         RUpdate rpd(rgu.table);
                         rpd.update(rgu.table,rgu.groupId,userDefaultGroupId).
@@ -489,8 +616,54 @@ bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
             }else{
                 //TODO 20180418
             }
-    }else if(request->gtype == GROUPING_GROUP){
+    }else if(request->gtype == OperateGroup){
+        QSqlQuery query(db->sqlDatabase());
 
+        //[1]查询分组下联系群数量
+        DataTable::RChatGroupRoom rcgr;
+        RSelect rst(rcgr.table);
+        rst.select(rcgr.table,{rcgr.id}).
+                createCriteria().
+                add(Restrictions::eq(rcgr.table,rcgr.chatgroupId,request->groupId));
+
+        if(query.exec(rst.sql())){
+            //[2]若存在联系人则将联系人移动至默认分组
+#if defined(ENABLE_SQL_TRANSACTION)
+            if(db->sqlDatabase().transaction()){
+#endif
+                if(query.next()){
+                    QString userDefaultChatGroupId = getDefaultGroupByUserId(db,OperateGroup,request->uuid);
+                    if(userDefaultChatGroupId.size() > 0){
+                        RUpdate rpd(rcgr.table);
+                        rpd.update(rcgr.table,rcgr.chatgroupId,userDefaultChatGroupId)
+                                .createCriteria()
+                                .add(Restrictions::eq(rcgr.table,rcgr.chatgroupId,request->groupId));
+                        if(!query.exec(rpd.sql())){
+                            return false;
+                        }
+                    }
+                 }
+
+                //[3]删除分组
+                DataTable::RChatGroup rcg;
+                RDelete rde(rcg.table);
+                rde.createCriteria().
+                        add(Restrictions::eq(rcg.table,rcg.id,request->groupId)).
+                        add(Restrictions::eq(rcg.table,rcg.userId,request->uuid));
+
+                if(query.exec(rde.sql())){
+#if defined(ENABLE_SQL_TRANSACTION)
+                       db->sqlDatabase().commit();
+#endif
+                       return true;
+                 }else{
+#if defined(ENABLE_SQL_TRANSACTION)
+                        db->sqlDatabase().rollback();
+#endif
+                }
+            }else{
+                //TODO 20180424
+            }
     }
     return false;
 }
@@ -585,8 +758,8 @@ bool SQLProcess::establishRelation(Database *db, OperateFriendRequest *request)
             nickNameB = query.value(user.nickName).toString();
         }
 
-        QString defaultGroupA = getDefaultGroupByUserId(db,idA);
-        QString defaultGroupB = getDefaultGroupByUserId(db,idB);
+        QString defaultGroupA = getDefaultGroupByUserId(db,OperatePerson,idA);
+        QString defaultGroupB = getDefaultGroupByUserId(db,OperatePerson,idB);
 
         if(defaultGroupA.size() <= 0 ||defaultGroupB.size() <= 0)
         {
@@ -943,6 +1116,69 @@ bool SQLProcess::deleteFriend(Database *db, GroupingFriendRequest *request,QStri
 }
 
 /*!
+ * @brief 获取指定用户的群分组列表
+ * @param[in] db 数据库
+ * @param[in] userId 缓存请求容器
+ * @param[in] response 请求的结果列表
+ */
+bool SQLProcess::getGroupList(Database *db, const QString & userId, ChatGroupListResponse *response)
+{
+    DataTable::RChatGroupDesc rcgd;
+    RSelect rst(rcgd.table);
+    rst.select(rcgd.table,{rcgd.chatgroupids})
+            .createCriteria()
+            .add(Restrictions::eq(rcgd.table,rcgd.id,userId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        QStringList groupIds = query.value(rcgd.chatgroupids).toString().split(",");
+
+        foreach(QString gid,groupIds){
+
+            DataTable::RChatGroup rcg;
+            RSelect selectChatGroup(rcg.table);
+            selectChatGroup.createCriteria()
+                    .add(Restrictions::eq(rcg.table,rcg.id,gid));
+
+            if(query.exec(selectChatGroup.sql()) && query.next()){
+                RChatGroupData * groupData = new RChatGroupData;
+                groupData->groupId = query.value(rcg.id).toString();
+                groupData->groupName = query.value(rcg.name).toString();
+                groupData->isDefault = query.value(rcg.defaultGroup).toBool();
+
+                DataTable::RChatGroupRoom rcgr;
+                DataTable::RChatRoom rcr;
+                RSelect selectChatGroupRoom ({rcgr.table,rcr.table});
+                selectChatGroupRoom.select(rcgr.table,{rcgr.chatroomId,rcgr.remarks,rcgr.messNotifyLevel})
+                        .select(rcr.table,{rcr.chatId,rcr.systemIon,rcr.iconId})
+                        .on(rcgr.table,rcgr.chatroomId,rcr.table,rcr.id)
+                        .createCriteria()
+                        .add(Restrictions::eq(rcgr.table,rcgr.chatgroupId,gid));
+
+                if(query.exec(selectChatGroupRoom.sql())){
+                    while(query.next()){
+                        SimpleChatInfo * chatInfo = new SimpleChatInfo;
+                        chatInfo->chatRoomId = query.value(rcgr.chatroomId).toString();
+                        chatInfo->chatId = query.value(rcr.chatId).toString();
+                        chatInfo->remarks = query.value(rcgr.remarks).toString();
+                        chatInfo->messNotifyLevel = (ChatMessNotifyLevel)query.value(rcgr.messNotifyLevel).toInt();
+                        chatInfo->isSystemIcon = query.value(rcr.systemIon).toBool();
+                        chatInfo->iconId = query.value(rcr.iconId).toString();
+
+                        groupData->chatGroups.push_back(chatInfo);
+                    }
+                }
+
+                response->groups.push_back(groupData);
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/*!
  * @brief 加载缓存的系统通知消息
  * @param[in] db 数据库
  * @param[in] accountdId 账户ID
@@ -966,7 +1202,7 @@ bool SQLProcess::loadSystemCache(Database *db, QString accountId, QList<AddFrien
             AddFriendRequest cacheRequest;
             cacheRequest.accountId = query.value(requestCache.account).toString();
             cacheRequest.operateId = query.value(requestCache.operateId).toString();
-            cacheRequest.stype = (SearchType)query.value(requestCache.type).toInt();
+            cacheRequest.stype = (OperateType)query.value(requestCache.type).toInt();
             requests.append(cacheRequest);
         }
 
@@ -1010,7 +1246,7 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
         {
             TextRequest textCache;
             textCache.accountId = query.value(userchatcache.account).toString();
-            textCache.type = SearchPerson;
+            textCache.type = OperatePerson;
             //NOTE 注意
             textCache.otherSideId = query.value(userchatcache.otherSideId).toString();
             textCache.sendData = query.value(userchatcache.data).toString();
@@ -1267,25 +1503,45 @@ bool SQLProcess::getDereferenceFileInfo(Database *db, SimpleFileItemRequest *req
 }
 
 
-//根据User表ID查找用户默认分组
-QString SQLProcess::getDefaultGroupByUserId(Database *db, const QString uuid)
+/*!
+ * @brief 根据User表ID查找用户默认联系人或群分组
+ * @param[in] db:Database * 数据库
+ * @param[in] type:SearchType 操作类型，支持对用户分组或联系人分组
+ * @param[in] userId:QString 用户user id
+ * @return 默认分组ID
+ */
+QString SQLProcess::getDefaultGroupByUserId(Database *db, OperateType type, const QString userId)
 {
-    DataTable::RGroup group;
+    if(type == OperatePerson){
+        DataTable::RGroup group;
 
-    RSelect rs(group.table);
-    rs.select(group.table,{group.id});
-    rs.createCriteria().
-            add(Restrictions::eq(group.table,group.userId,uuid)).
-            add(Restrictions::eq(group.table,group.defaultGroup,1));
+        RSelect rs(group.table);
+        rs.select(group.table,{group.id});
+        rs.createCriteria().
+                add(Restrictions::eq(group.table,group.userId,userId)).
+                add(Restrictions::eq(group.table,group.defaultGroup,1));
 
-    QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rs.sql()))
-    {
-        if(query.next())
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rs.sql())&&query.next())
         {
             return query.value(group.id).toString();
         }
+    }else if(type == OperateGroup){
+        DataTable::RChatGroup group;
+
+        RSelect rs(group.table);
+        rs.select(group.table,{group.id});
+        rs.createCriteria().
+                add(Restrictions::eq(group.table,group.userId,userId)).
+                add(Restrictions::eq(group.table,group.defaultGroup,1));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rs.sql()) && query.next())
+        {
+           return query.value(group.id).toString();
+        }
     }
+
     return QString();
 }
 

@@ -60,8 +60,6 @@ private slots:
     void showPersonalEditWindow();
     void updateEditInstance();
 
-    void updateFriendList(FriendListResponse * friendList);
-
     void errorGroupingOperate(OperateGrouping type);
 
     void screenChanged();

@@ -134,7 +134,7 @@ RGroupData *UserFriendContainer::element(const QString groupId)
 /*!
  * @brief 移除指定的分组，将分组中的子项添加至默认分组
  * @param[in] toolButton 待插入的工具按钮
- * @return 是否插入成功
+ * @return 是否删除成功
  */
 bool UserFriendContainer::deleteGroup(const QString &groupId)
 {
@@ -213,7 +213,7 @@ void UserFriendContainer::renameGroup(const QString & id)
  * @brief 调整分组顺序
  * @param[in] pageId 新排序的分组ID
  * @param[in] newPageIndex 新排序的分组索引
- * @return 是否插入成功
+ * @return 是否排序成功
  */
 void UserFriendContainer::sortGroup(const QString & groupId, int newPageIndex)
 {
@@ -229,7 +229,6 @@ void UserFriendContainer::sortGroup(const QString & groupId, int newPageIndex)
     if(iter != friendList.end() && oldPageIndex >=0 && oldPageIndex < friendList.size()){
         friendList.swap(oldPageIndex,newPageIndex);
     }
-
 }
 
 /*!

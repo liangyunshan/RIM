@@ -751,6 +751,10 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         FriendListRequest * request = new FriendListRequest;
         request->accountId = baseInfo.accountId;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+        ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
+        groupRequest->uuid = baseInfo.uuid;
+        RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
     }
     else
     {

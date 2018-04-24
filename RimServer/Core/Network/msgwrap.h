@@ -43,6 +43,8 @@ private:
     QByteArray handleGroupingResponse(GroupingResponse *packet);
     QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
 
+    QByteArray handleGroupList(ChatGroupListResponse * packet,int result);
+
     QByteArray handleFileControl(SimpleFileItemRequest * packet);
     QByteArray handleFileRequest(FileItemRequest * packet);
 

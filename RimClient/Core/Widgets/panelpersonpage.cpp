@@ -52,6 +52,7 @@ protected:
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
     bool m_listIsCreated;                           //标识好友列表是第一次创建还是刷新显示
+    QString pageNameBeforeRename;                   //重命名前分组名称，为了避免在步修改名称下依然更新服务器
 
     ModifyRemarkWindow *m_modifyWindow;
 
@@ -94,6 +95,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
     createAction();
 
     connect(this,SIGNAL(showChatDialog(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
     connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(GroupingResponse)),this,SLOT(recvFriendGroupingOperate(GroupingResponse)));
 
@@ -120,7 +122,6 @@ void PanelPersonPage::addGroupAndUsers()
             ToolPage * page = d->toolBox->addPage(groupData->groupName);
             page->setID(groupData->groupId);
             page->setDefault(groupData->isDefault);
-            page->setSortNum(groupData->index);
 
             for(int j = 0; j < groupData->users.size(); j++)
             {
@@ -327,14 +328,6 @@ void PanelPersonPage::onMessage(MessageType type)
     MQ_D(PanelPersonPage);
     switch(type)
     {
-        case MESS_FRIENDLIST_UPDATE:
-            if(!d->m_listIsCreated){
-                addGroupAndUsers();
-            }else{
-                updateContactList();
-            }
-            break;
-
         case MESS_FRIEND_STATE_CHANGE:
             updateGroupDescInfo();
             break;
@@ -345,16 +338,34 @@ void PanelPersonPage::onMessage(MessageType type)
 }
 
 /*!
-     * @brief 刷新当前用户列表，重新发送请求至服务器
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 创建好友列表
+ * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
+ * @param[in] friendList 好友列表
+ * @return 无
+ */
+void PanelPersonPage::updateFriendList(FriendListResponse *friendList)
+{
+    MQ_D(PanelPersonPage);
+    RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
+
+    if(!d->m_listIsCreated){
+        addGroupAndUsers();
+    }else{
+        updateContactList();
+    }
+}
+
+/*!
+ * @brief 刷新当前用户列表，重新发送请求至服务器
+ * @param[in] 无
+ * @return 无
+ */
 void PanelPersonPage::refreshList()
 {
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_REFRESH;
-    request->gtype = GROUPING_FRIEND;
+    request->gtype = OperatePerson;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
     //TODO 服务器添加代码处理客户端刷新联系人列表请求
@@ -368,16 +379,19 @@ void PanelPersonPage::refreshList()
 void PanelPersonPage::respGroupCreate()
 {
     MQ_D(PanelPersonPage);
+
     d->groupIsCreate = true;
+
     ToolPage * page = d->toolBox->addPage(QStringLiteral("untitled"));
     page->setDefault(false);
     page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
+
     QRect textRec = d->toolBox->penultimatePage()->textRect();
     QRect pageRec = d->toolBox->penultimatePage()->geometry();
+
     int textY = pageRec.y()+page->txtFixedHeight();
-    if(d->toolBox->penultimatePage()->isExpanded())
-    {
-        textY = pageRec.y()+pageRec.height();
+    if(d->toolBox->penultimatePage()->isExpanded()){
+        textY = pageRec.y() + pageRec.height();
     }
 
     d->tmpNameEdit->raise();
@@ -397,12 +411,12 @@ void PanelPersonPage::respGroupRename()
 {
     MQ_D(PanelPersonPage);
     ToolPage * page = d->toolBox->selectedPage();
-    if(page)
-    {
+    if(page){
         d->groupIsCreate = false;
 
         QRect textRec = page->textRect();
         QRect pageRec = page->geometry();
+        d->pageNameBeforeRename = page->toolName();
         d->tmpNameEdit->raise();
         d->tmpNameEdit->setText(page->toolName());
         d->tmpNameEdit->selectAll();
@@ -424,7 +438,7 @@ void PanelPersonPage::respGroupDeleted()
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_DELETE;
-    request->gtype = GROUPING_FRIEND;
+    request->gtype = OperatePerson;
     request->groupId = t_page->getID();
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -442,7 +456,7 @@ void PanelPersonPage::respGroupMoved(int index, QString pageId)
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_SORT;
-    request->gtype = GROUPING_FRIEND;
+    request->gtype = OperatePerson;
     request->groupName = d->tmpNameEdit->text();
     request->groupId = pageId;
     request->groupIndex = index;
@@ -619,7 +633,7 @@ void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
         return;
     GroupingFriendRequest * t_request = new GroupingFriendRequest();
     t_request->type = G_Friend_Delete;
-    t_request->stype = SearchPerson;
+    t_request->stype = OperatePerson;
     t_request->groupId = groupId;
     t_request->oldGroupId = groupId;
     t_request->user = client->simpleUserInfo;
@@ -733,7 +747,7 @@ void PanelPersonPage::requestModifyRemark(QString remark)
     {
         GroupingFriendRequest * t_request = new GroupingFriendRequest();
         t_request->type = G_Friend_UPDATE;
-        t_request->stype = SearchPerson;
+        t_request->stype = OperatePerson;
         t_request->groupId = d->pageOfTriggeredItem->getID();
         t_request->oldGroupId = d->pageOfTriggeredItem->getID();
         UserClient * client = RSingleton<UserManager>::instance()->client(t_modifyItem);
@@ -909,7 +923,7 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 void PanelPersonPage::renameEditFinished()
 {
     MQ_D(PanelPersonPage);
-    if(d->tmpNameEdit->text() != NULL)
+    if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {
         d->toolBox->selectedPage()->setToolName(d->tmpNameEdit->text());
 
@@ -920,7 +934,7 @@ void PanelPersonPage::renameEditFinished()
         }else{
             request->type = GROUPING_RENAME;
         }
-        request->gtype = GROUPING_FRIEND;
+        request->gtype = OperatePerson;
         request->groupName = d->tmpNameEdit->text();
         request->groupId = d->toolBox->selectedPage()->getID();
 
@@ -991,7 +1005,7 @@ void PanelPersonPage::movePersonTo()
     {
         GroupingFriendRequest * request = new GroupingFriendRequest;
         request->type = G_Friend_MOVE;
-        request->stype = SearchPerson;
+        request->stype = OperatePerson;
         request->groupId = t_targetPage->getID();
         request->oldGroupId = t_sourcePage->getID();
 

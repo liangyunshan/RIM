@@ -1,6 +1,6 @@
 ﻿/*!
  *  @brief     用户联系人
- *  @details   代表当前一个联系人或者一个群，可通过此对象获取所有用户相关的窗口、数据等
+ *  @details   代表当前一个联系人，可通过此对象获取所有用户相关的窗口、数据等
  *  @file      userclient.h
  *  @author    wey
  *  @version   1.0
@@ -47,12 +47,10 @@ public:
     UserClient * client(QString accountId);
 
     void closeAllClientWindow();
-
     int size();
 
 private:
     QHash<QString,UserClient*> clients;
-
     QMutex mutex;
 };
 

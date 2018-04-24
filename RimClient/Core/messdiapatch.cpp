@@ -72,6 +72,11 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
     emit errorGroupingOperate(type);
 }
 
+void MessDiapatch::onRecvGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
+{
+    emit recvGroupList(status,response);
+}
+
 void MessDiapatch::onRecvText(TextRequest response)
 {
     emit recvText(response);
@@ -84,11 +89,11 @@ void MessDiapatch::onRecvTextReply(TextReply reply)
 
 void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFriendResponse response)
 {
-    if(response.stype == SearchPerson)
+    if(response.stype == OperatePerson)
     {
         emit recvRelationFriend(result,response);
     }
-    else if(response.type == SearchGroup)
+    else if(response.type == OperateGroup)
     {
 
     }

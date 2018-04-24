@@ -50,6 +50,7 @@ signals:
     void userDeleted(ChatMessageType messType, QString accountId);
 
 private slots:
+    void updateFriendList(FriendListResponse * friendList);
     void refreshList();
     //分组操作
     void respGroupCreate();

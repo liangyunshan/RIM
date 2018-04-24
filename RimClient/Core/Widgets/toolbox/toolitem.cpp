@@ -366,13 +366,9 @@ void ToolItem::setChecked(bool flag)
     MQ_D(ToolItem);
     d->checked = flag;
     if(flag)
-    {
         setItemState(Mouse_Checked);
-    }
     else
-    {
         setItemState(Mouse_Leave);
-    }
 }
 
 /*!

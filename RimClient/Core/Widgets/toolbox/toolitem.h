@@ -95,7 +95,6 @@ private:
     void setItemState(ItemState state);
 
     ToolItemPrivate * d_ptr;
-
 };
 
 #endif // TOOLITEM_H

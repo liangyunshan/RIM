@@ -245,15 +245,14 @@ const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 }
 
 /*!
- * @brief 倒数第二个page
- * @param[in] 无
+ * @brief 倒数第二个page,插入新page前最后一个page的索引
+ * @warning 联系人分组列表中必须保证有一个默认分组
  * @return 倒数第二个page
  */
 ToolPage *ToolBox::penultimatePage()
 {
     MQ_D(ToolBox);
-    //注：联系人分组列表中必须保证有一个默认分组
-    return d->pages.at(d->pages.count()-2);
+    return d->pages.at(d->pages.count() - 2);
 }
 
 /*!
@@ -390,17 +389,12 @@ void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
     {
        int t_pageIndex = d->pages.indexOf(pageInPos(pos));
        int t_rowHeight = pageInPos(pos)->titleRect().height();
-       if(pos.y()-t_pageIndex*t_rowHeight >= t_rowHeight/2)
-       {
+       if(pos.y()-t_pageIndex*t_rowHeight >= t_rowHeight/2){
            sortedIndex = t_pageIndex+1;
-       }
-       else
-       {
+       }else{
            sortedIndex = t_pageIndex;
        }
-    }
-    else
-    {
+    }else{
         sortedIndex = d->pages.count()-1;
     }
 
@@ -419,14 +413,12 @@ ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
     QList <int> t_expandedPages;
     for(int t_index=0;t_index<pageCount();t_index++)
     {
-        if(d->pages.at(t_index)->isExpanded())
-        {
+        if(d->pages.at(t_index)->isExpanded()){
             t_expandedPages.append(t_index);
             d->pages.at(t_index)->setExpand(false);
         }
 
-        if(d->pages.at(t_index)->geometry().contains(pressedPos))
-        {
+        if(d->pages.at(t_index)->geometry().contains(pressedPos)){
             t_returnPage = d->pages.at(t_index);
             break;
         }
@@ -453,8 +445,7 @@ void ToolBox::highLightTarget(const QPoint & curpos)
 //    std::for_each(d->pages.begin(),d->pages.end(),highLight);
     std::for_each(d->pages.begin(),d->pages.end(),[&](ToolPage * page){page->unHighlightShow();});
 
-    if(t_decoratePage)
-    {
+    if(t_decoratePage){
         t_decoratePage->highlightShow();
     }
 }

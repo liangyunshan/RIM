@@ -42,6 +42,8 @@ public:
     void processGroupingOperate(Database *db, int socketId, QSharedPointer<GroupingRequest> request);
     void processGroupingFriend(Database *db, int socketId, QSharedPointer<GroupingFriendRequest> request);
 
+    void processGroupList(Database *db, int socketId, QSharedPointer<ChatGroupListRequest> request);
+
     void processText(Database *db, int socketId, TextRequest *request);
 
     void processFileRequest(Database *db, int socketId, QSharedPointer<FileItemRequest> request);

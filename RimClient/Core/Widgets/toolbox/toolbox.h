@@ -45,16 +45,16 @@ public:
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();
+    ToolPage * penultimatePage();
+    ToolPage * defaultPage();
+    ToolPage * targetPage(QString &);
+    ToolPage * targetPage(ToolItem *);
 
     int pageCount();
     QList<ToolPage *> & allPages()const;
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
-    ToolPage *penultimatePage();
-    ToolPage *defaultPage();
-    ToolPage *targetPage(QString &);
-    ToolPage *targetPage(ToolItem *);
 
 signals:
     void updateGroupActions(ToolPage *);

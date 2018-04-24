@@ -31,7 +31,6 @@ public:
     QList<ToolItem *> sortedItems()const;
 
     bool reInsert(ToolItem * item,int pos = -1);
-    bool swapItem(int posA,int posB);
 
     bool removeAllItem();
     bool removeItem(ToolItem * item);

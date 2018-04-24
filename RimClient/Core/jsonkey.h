@@ -40,7 +40,7 @@ public:
         Remark,
         Status,
         SearchContent,
-        SearchType,
+        OperateType,
         AddType,
         OperateInfo,
         Result,
@@ -51,7 +51,6 @@ public:
         IsDefault,
         Users,
         Groups,
-        GroupType,
         OtherSideId,
         Time,
         FromId,
@@ -65,6 +64,9 @@ public:
         SystemIcon,
         Index,
         IconId,
+        ChatRoomId,
+        ChatId,
+        NotifyLevel,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

@@ -260,7 +260,7 @@ void AddFriend::startSearch()
 
     SearchFriendRequest * request = new SearchFriendRequest;
     request->accountOrNickName = d->inputEdit->text();
-    request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
+    request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
     d->statusLabel->setText(tr("searching..."));
@@ -284,7 +284,7 @@ void AddFriend::addFriend()
     if(d->searchList->selectedItem())
     {
         AddFriendRequest * request = new AddFriendRequest;
-        request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
+        request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
         request->accountId = G_User->BaseInfo().accountId;
         request->operateId = d->searchList->selectedItem()->getName();
         RSingleton<MsgWrap>::instance()->handleMsg(request);

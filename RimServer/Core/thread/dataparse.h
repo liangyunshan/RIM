@@ -49,6 +49,8 @@ private:
 
     void onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj);
 
+    void onProcessGroupList(Database * db,int socketId,QJsonObject &obj);
+
     void onProcessFileRequest(Database * db, int socketId, RBuffer &obj);
     void onProcessFileControl(Database * db,int socketId,RBuffer &obj);
     void onProcessFileData(Database * db, int socketId, RBuffer &obj);

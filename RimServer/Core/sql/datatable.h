@@ -50,10 +50,9 @@ public:
 };
 
 /*!
-  用户分组表
-  保存用户名下所有的分组信息
-  RUSE (1 - N) RGroup
-*/
+ *  @brief   用户分组表
+    @details 保存用户名下所有的分组信息 RUSER (1 - N) RGroup
+ */
 class RGroup
 {
 public:
@@ -68,7 +67,7 @@ public:
 };
 
 /*!
- *  @brief 分组描述表
+ *  @brief 联系人分组描述表
  *  @details 描述用户分组的概览信息，方便查找联系人分组信息; @n
  *           1.创建用户时，同步创建记录; @n
  *           2.创建分组时，在当前groupids中插入对应group id，并以','分隔; @n
@@ -79,7 +78,7 @@ class RGroupDesc
 {
 public:
     RGroupDesc();
-    const QString table;                    //UUID
+    const QString table;
     const QString id;                       //user表id
     const QString account;                  //user表account
     const QString groupids;                 //用户拥有group id集合，以','分隔
@@ -87,9 +86,9 @@ public:
 };
 
 /*!
-  分组-用户表
-  保存用户分组中联系人的信息，通过RGroup中的id信息，找到该分组下所有的ID信息
-  RGROUP_USER (N - 1) RGroup
+ * @brief 分组-用户表
+ * @details 保存用户分组中联系人的信息，通过RGroup中的id信息，找到该分组下所有的ID信息 @n
+ *          RGROUP_USER (N - N) RGroup
 */
 class RGroup_User
 {
@@ -103,27 +102,88 @@ public:
     const QString visible;                  //可见
 };
 
-//群信息表
+/*!
+ *  @brief 群表
+ *  @details 描述一个群的基本信息，包括群名称，群主等
+ */
 class RChatRoom
 {
 public:
     RChatRoom();
     const QString table;
     const QString id;                       //UUID
+    const QString chatId;                   //群号，可通过此号码搜索(如2xxxx0开始)
     const QString name;                     //群名称
     const QString desc;                     //群描述
     const QString label;                    //群标签
-    const QString userId;                   //群所属用户ID(同User中ID)
+    const QString visible;                  //是否可见(是否允许被搜索到)
+    const QString validate;                 //是否需加群验证 需新建表表示验证信息
+    const QString userId;                   //群所属用户ID即群主ID(同User中ID)
+    const QString systemIon;                //是否为系统头像，默认为系统头像true
+    const QString iconId;                   //图片索引
 };
 
-//用户-群信息表
+/*!
+ *  @brief  群分组描述表
+ *  @details 用户群分组表
+ */
+class RChatGroup
+{
+public:
+    RChatGroup();
+    const QString table;
+    const QString id;                       //UUID
+    const QString name;                     //群分组名
+    const QString groupCount;               //群分组内群成员数量
+    const QString userId;                   //群分组所属用户ID(同User中ID)
+    const QString defaultGroup;             //默认分组(1表示默认分组，0表示非默认分组)
+};
+
+/*!
+ *  @brief 群分组描述表
+ *  @details 整合该用户所具备的群分组，主要便于排序显示
+ */
+class RChatGroupDesc
+{
+public:
+    RChatGroupDesc();
+    const QString table;
+    const QString id;                       //user表id
+    const QString account;                  //user表account
+    const QString chatgroupids;             //用户拥有群group id集合，以','分隔
+    const QString chatgroupsize;            //用户拥有group数量
+};
+
+/*!
+ *  @brief 群分组RChatGroup-群表RChatRoom
+ *  @details 明确了群分组下存在群的信息，即用户加入的群的描述信息
+ */
+class RChatGroupRoom
+{
+public:
+    RChatGroupRoom();
+    const QString table;
+    const QString id;                       //UUID
+    const QString chatroomId;               //群表UUID
+    const QString chatgroupId;              //群分组表UUID
+    const QString remarks;                  //群备注名
+    const QString messNotifyLevel;          //消息通知等级 ChatMessNotifyLevel结构体(接收并提醒/接收不提醒/屏蔽群消息等)
+};
+
+/*!
+ *  @brief 群成员表
+ *  @details 保存该群中群成员基本信息
+ */
 class RChatroom_User
 {
 public:
     RChatroom_User();
+    const QString table;
     const QString id;                       //UUID
-    const QString chatId;                   //对应群ID
-    const QString userId;                   //群成员ID
+    const QString chatroomId;               //对应群ID
+    const QString userId;                   //成员ID(User表Id)
+    const QString manager;                  //是否为管理员(0为普通用户;1为管理员)
+    const QString remarks;                  //群备注(未设置则显示群名称，设置后显示此信息)
 };
 
 //请求缓存表
@@ -157,6 +217,9 @@ public:
     const QString msgType;                  /*!< 消息类型 */
 };
 
+/*!
+ *  @brief 文件信息表
+ */
 class RFile
 {
 public:

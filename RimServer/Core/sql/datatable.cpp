@@ -19,7 +19,20 @@ RGroup::RGroup():table("rgroup"),
 }
 
 RChatRoom::RChatRoom():
-    table("rchatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+    table("rchatroom"),id("ID"),chatId("CHATID"),name("NAME"),desc("DESC"),label("LABEL"),visible("VISIBLE"),
+    validate("VALIDATE"),userId("UID"),systemIon("SYSTEMICON"),iconId("ICONID")
+{
+
+}
+
+RChatGroup::RChatGroup():table("rchatgroup"),id("ID"),name("NAME"),groupCount("GCOUNT"),userId("UID"),defaultGroup("DEFAULTGROUP")
+{
+
+}
+
+
+RChatGroupDesc::RChatGroupDesc():table("rchatgroupdesc"),id("ID"),account("ACCOUNT"),chatgroupids("CHATGROUPIDS"),
+    chatgroupsize("CHATSIZE")
 {
 
 }
@@ -30,8 +43,8 @@ RGroup_User::RGroup_User():table("rgroup_user"),
 
 }
 
-RChatroom_User::RChatroom_User():
-    id("ID"),chatId("CID"),userId("UID")
+RChatroom_User::RChatroom_User():table("rchatroom_user"),
+    id("ID"),chatroomId("CID"),userId("UID"),manager("MANAGER"),remarks("REMARKS")
 {
 
 }
@@ -63,6 +76,14 @@ RFile::RFile():table("rfile"),id("ID"),md5("MD5"),fileName("FILENAME"),src("SRC"
 RGroupDesc::RGroupDesc():table("rgroupdesc"),id("ID"),account("USERID"),groupids("GROUPIDS"),groupsize("GROUPSIZE"){
 
 }
+
+RChatGroupRoom::RChatGroupRoom():table("rchatgrouproom"),id("ID"),chatroomId("CHATROOMID"),chatgroupId("CHATGROUPID"),
+    remarks("REMARKS"),messNotifyLevel("NOTIFYLEVEL")
+{
+
+}
+
+
 
 }
 

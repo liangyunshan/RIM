@@ -29,7 +29,9 @@ DataProcess::DataProcess()
 
 /*!
  * @brief 提供用户注册，返回注册的ID
- * @details  注册成功后，自动为用户创建一个默认的分组，并且名称命名为【我的好友】
+ * @details  注册成功后：
+ *          1.自动为用户创建一个默认的分组，并且名称命名为【我的好友】
+ *          2.自动为用户创建一个默认群分组，并且命名为【我的群】
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
@@ -47,7 +49,12 @@ void DataProcess::processUserRegist(Database *db, int socketId, std::shared_ptr<
         QScopedPointer<RegistResponse> response(new RegistResponse);
         QString groupId = RUtil::UUID();
         RSingleton<SQLProcess>::instance()->createGroup(db,uuid,QStringLiteral("我的好友"),groupId,true);
-        RSingleton<SQLProcess>::instance()->createGroupDesc(db,uuid,registId,groupId);
+        RSingleton<SQLProcess>::instance()->createGroupDesc(db,OperatePerson,uuid,registId,groupId);
+
+        QString chatId = RUtil::UUID();
+        RSingleton<SQLProcess>::instance()->createChatGroup(db,uuid,QStringLiteral("我的群"),chatId,true);
+        RSingleton<SQLProcess>::instance()->createGroupDesc(db,OperateGroup,uuid,registId,chatId);
+
         response->accountId = registId;
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
@@ -495,8 +502,14 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
     {
         case GROUPING_CREATE:
             {
-               if(RSingleton<SQLProcess>::instance()->createGroup(db,request->uuid,request->groupName,groupId)){
-                    flag = RSingleton<SQLProcess>::instance()->addGroupToGroupDesc(db,request->uuid,groupId);
+               if(request->gtype == OperatePerson){
+                   if(RSingleton<SQLProcess>::instance()->createGroup(db,request->uuid,request->groupName,groupId)){
+                        flag = RSingleton<SQLProcess>::instance()->addGroupToGroupDesc(db,request.data(),groupId);
+                   }
+               }else if(request->gtype == OperateGroup){
+                   if(RSingleton<SQLProcess>::instance()->createChatGroup(db,request->uuid,request->groupName,groupId)){
+                        flag = RSingleton<SQLProcess>::instance()->addGroupToGroupDesc(db,request.data(),groupId);
+                   }
                }
             }
             break;
@@ -508,13 +521,13 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
         case GROUPING_DELETE:
             {
                 if(RSingleton<SQLProcess>::instance()->deleteGroup(db,request.data())){
-                    flag = RSingleton<SQLProcess>::instance()->delGroupInGroupDesc(db,request->uuid,request->groupId);
+                    flag = RSingleton<SQLProcess>::instance()->delGroupInGroupDesc(db,request.data());
                 }
             }
             break;
         case GROUPING_SORT:
             {
-                 flag = RSingleton<SQLProcess>::instance()->sortGroupInGroupDesc(db,request->uuid,request->groupId,request->groupIndex);
+                 flag = RSingleton<SQLProcess>::instance()->sortGroupInGroupDesc(db,request.data());
             }
             break;
         default:
@@ -617,6 +630,30 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, QSharedPoint
 }
 
 /*!
+ * @brief 请求群分组列表
+ * @details 登陆成功或者刷新列表时，请求该账户下的群分组信息
+ * @param[in] db 数据库
+ * @param[in] socketId 网络标识
+ * @param[in] request 分组列表请求
+ */
+void DataProcess::processGroupList(Database *db, int socketId, QSharedPointer<ChatGroupListRequest> request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    QScopedPointer<ChatGroupListResponse> response (new ChatGroupListResponse);
+    response->uuid = request->uuid;
+    bool flag = RSingleton<SQLProcess>::instance()->getGroupList(db,request->uuid,response.data());
+    if(flag){
+        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+    }else{
+        responseData.data = RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,(int)STATUS_FAILE);
+    }
+
+    SendData(responseData);
+}
+
+/*!
  * @brief 聊天消息处理
  * @param[in] db 数据库
  * @param[in] socketId 发送方SOCKET标识
@@ -627,7 +664,7 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
 {
     SocketOutData responseData;
 
-    if(request->type == SearchPerson)
+    if(request->type == OperatePerson)
     {
         TcpClient * client = TcpClientManager::instance()->getClient(request->otherSideId);
         if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
@@ -639,13 +676,13 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
         }
         else
         {
-            if(request->type == SearchPerson)
+            if(request->type == OperatePerson)
             {
                 //FIXME 存储消息时，会因存在'和"导致sql执行失败
                 //TODO 扩充数据库表
                 RSingleton<SQLProcess>::instance()->saveUserChat2Cache(db,request);
             }
-            else if(request->type == SearchGroup)
+            else if(request->type == OperateGroup)
             {
 
             }

@@ -35,6 +35,9 @@ public:
     void onRecvFriendGroupingOperate(GroupingResponse response);
     void onRecvGroupGroupingOperate(GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
+
+    void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
@@ -59,6 +62,9 @@ signals:
     void recvFriendGroupingOperate(GroupingResponse response);
     void recvGroupGroupingOperate(GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
+
+    void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);

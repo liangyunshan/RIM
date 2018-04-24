@@ -36,11 +36,8 @@ enum MessageType
     MESS_SHORTCUT,               /*!< 快捷键更新 */
     MESS_SETTINGS,               /*!< 系统设置修改 */
     MESS_BASEINFO_UPDATE,        /*!< 基本信息修改 */
-    MESS_FRIENDLIST_UPDATE,      /*!< 好友列表更新 */
-    MESS_GROUPLIST_UPDATE,       /*!< 群列表更新 */
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
-    MESS_GROUP_DELETE,           /*!< 分组删除消息 */
     MESS_ICON_CHANGE,            /*!< 登陆用户icon改变 */
     MESS_SCREEN_CHANGE,          /*!< 屏幕改变 */
     MESS_FRIEND_STATE_CHANGE     /*!< 好友状态改变 */
@@ -100,7 +97,7 @@ struct NotifyInfo
     MsgCommand msgCommand;                  /*!< 命令类型 */
 
     OperateFriend ofriendType;              /*!< type为NotifySystem时有效 */
-    SearchType stype;                       /*!< 当前请求的类型(人/群) */
+    OperateType stype;                      /*!< 当前请求的类型(人/群) */
     int ofriendResult;                      /*!< 若type为NotifySystem，此结果对应ResponseFriendApply的含义 */
 
 };

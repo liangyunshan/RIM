@@ -173,7 +173,7 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
 
                                 response.accountId = dataobj.value(JsonKey::key(JsonKey::AccountId)).toString();
                                 response.result = dataobj.value(JsonKey::key(JsonKey::Result)).toInt();
-                                response.stype = (SearchType)dataobj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+                                response.stype = (OperateType)dataobj.value(JsonKey::key(JsonKey::OperateType)).toInt();
                                 QJsonObject requestInfo = dataobj.value(JsonKey::key(JsonKey::OperateInfo)).toObject();
                                 if(!requestInfo.isEmpty())
                                 {
@@ -247,14 +247,14 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         GroupingResponse response;
-        response.gtype = (GroupingType)dataObj.value(JsonKey::key(JsonKey::GroupType)).toInt();
+        response.gtype = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
         response.type = (OperateGrouping) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
         response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
         response.groupIndex = dataObj.value(JsonKey::key(JsonKey::Index)).toInt();
-        if(response.gtype == GROUPING_FRIEND)
+        if(response.gtype == OperatePerson)
             MessDiapatch::instance()->onRecvFriendGroupingOperate(response);
-        else if(response.gtype == GROUPING_GROUP)
+        else if(response.gtype == OperateGroup)
             MessDiapatch::instance()->onRecvGroupGroupingOperate(response);
     }
     else
@@ -267,14 +267,14 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
-    SearchType type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
-    if(type == SearchPerson)
+    OperateType type = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
+    if(type == OperatePerson)
     {
         GroupingFriendResponse response;
         response.type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
         response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
         response.oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
-        response.stype = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+        response.stype = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
 
         QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Users)).toObject();
         response.user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
@@ -286,6 +286,45 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
         response.user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
         MessDiapatch::instance()->onRecvGroupingFriend(status,response);
+    }
+}
+
+void DataProcess::proGroupListResponse(QJsonObject &data)
+{
+    MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(result == STATUS_SUCCESS)
+    {
+        QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
+
+        ChatGroupListResponse * response = new ChatGroupListResponse;
+        response->uuid = dataObject.value(JsonKey::key(JsonKey::Uuid)).toString();
+        QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
+        for(int i = 0; i < groups.size(); i++){
+            QJsonObject group = groups.at(i).toObject();
+
+            RChatGroupData * groupData = new RChatGroupData;
+            groupData->groupId = group.value(JsonKey::key(JsonKey::GroupId)).toString();
+            groupData->groupName = group.value(JsonKey::key(JsonKey::GroupName)).toString();
+            groupData->isDefault = group.value(JsonKey::key(JsonKey::IsDefault)).toBool();
+            groupData->index = group.value(JsonKey::key(JsonKey::Index)).toInt();
+
+            QJsonArray chatInfos = group.value(JsonKey::key(JsonKey::Data)).toArray();
+            for(int j = 0;j < chatInfos.size();j++){
+                QJsonObject chatInfo = chatInfos.at(i).toObject();
+
+                SimpleChatInfo * info = new SimpleChatInfo;
+                info->chatRoomId = chatInfo.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+                info->chatId = chatInfo.value(JsonKey::key(JsonKey::ChatId)).toString();
+                info->remarks = chatInfo.value(JsonKey::key(JsonKey::Remark)).toString();
+                info->messNotifyLevel = (ChatMessNotifyLevel)chatInfo.value(JsonKey::key(JsonKey::NotifyLevel)).toInt();
+                info->isSystemIcon = chatInfo.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+                info->iconId = chatInfo.value(JsonKey::key(JsonKey::IconId)).toString();
+
+                groupData->chatGroups.push_back(info);
+            }
+            response->groups.append(groupData);
+        }
+        MessDiapatch::instance()->onRecvGroupList(result,response);
     }
 }
 
@@ -302,7 +341,7 @@ void DataProcess::proText(QJsonObject &data)
         response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
         response.textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
         response.otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
-        response.type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+        response.type = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
         response.timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
         response.isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
         response.isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();

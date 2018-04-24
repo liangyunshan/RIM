@@ -139,25 +139,6 @@ bool ListBox::reInsert(ToolItem *item, int pos)
     return false;
 }
 
-/*!
- * @brief 交换控件排列顺序
- * @param[in] posA 位置a控件
- * @param[in] posB 位置b控件
- * @return 是否交换成功
- */
-bool ListBox::swapItem(int posA, int posB)
-{
-    MQ_D(ListBox);
-    if(posA < 0 || posA >= d->toolItems.size() || posB <0 || posB >= d->toolItems.size()){
-        return false;
-    }
-
-
-
-
-    return true;
-}
-
 bool ListBox::removeAllItem()
 {
     MQ_D(ListBox);

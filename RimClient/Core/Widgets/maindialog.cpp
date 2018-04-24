@@ -103,7 +103,6 @@ MainDialog::MainDialog(QWidget *parent) :
     initSqlDatabase();
     initWidget();
 
-    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
     connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
     connect(MessDiapatch::instance(),SIGNAL(screenChange()),this,SLOT(screenChanged()));
 }
@@ -307,18 +306,6 @@ void MainDialog::updateEditInstance()
 {
    MQ_D(MainDialog);
    d->editWindow = NULL;
-}
-
-/*!
- * @brief 创建好友列表
- * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
- * @param[in] friendList 好友列表
- * @return 无
- */
-void MainDialog::updateFriendList(FriendListResponse *friendList)
-{
-    RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
-    RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
 }
 
 void MainDialog::errorGroupingOperate(OperateGrouping type)

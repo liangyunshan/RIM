@@ -197,7 +197,7 @@ const char ACTION_PANEL_GROUP_ADDGROUPS[] = "Action_Panel_Group_AddGroups";     
 
 const char ACTION_PANEL_GROUP_RENAME[] = "Action_Panel_Group_Rename";                           //重命名分组
 const char ACTION_PANEL_GROUP_DELGROUP[] = "Action_Panel_Group_DelGroup";                       //删除分组
-const char ACTION_PANEL_GROUP_MOVEGROUPTO[] = "Action_Panel_Group_MovGroup";                       //删除分组
+const char ACTION_PANEL_GROUP_MOVEGROUPTO[] = "Action_Panel_Group_MovGroup";                    //移动分组
 
 const char ACTION_PANEL_GROUP_SENDMESS[] = "Action_Panel_Group_SenMessage";                     //发送群消息
 const char ACTION_PANEL_GROUP_VIEWDETAIL[] = "Action_Panel_Group_ViewDetail";                   //查看群资料
