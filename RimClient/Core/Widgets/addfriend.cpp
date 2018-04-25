@@ -188,6 +188,7 @@ AddFriend::AddFriend(QWidget * parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Lookup"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     RSingleton<Subject>::instance()->attach(this);
 

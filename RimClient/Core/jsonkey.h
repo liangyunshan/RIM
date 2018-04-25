@@ -64,9 +64,16 @@ public:
         SystemIcon,
         Index,
         IconId,
+        ChatUuid,
         ChatRoomId,
         ChatId,
         NotifyLevel,
+        Label,
+        Desc,
+        SearchVisible,
+        ValidateAble,
+        Question,
+        Answer,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

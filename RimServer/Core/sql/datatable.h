@@ -25,7 +25,8 @@ public:
     const QString name;
     const QString value;
 
-    const QString accuoutId;                //系统账号基数，每次申请的账号均在此数字上加1。
+    const QString accountId;                //系统个人账号基数，每次申请的账号均在此数字上加1。
+    const QString groupAccoungId;           //系统群账号基数，每次正确申请后在此数字加1
 };
 
 //用户信息表
@@ -118,6 +119,8 @@ public:
     const QString label;                    //群标签
     const QString visible;                  //是否可见(是否允许被搜索到)
     const QString validate;                 //是否需加群验证 需新建表表示验证信息
+    const QString question;                 //验证问题
+    const QString answer;                   //验证答案
     const QString userId;                   //群所属用户ID即群主ID(同User中ID)
     const QString systemIon;                //是否为系统头像，默认为系统头像true
     const QString iconId;                   //图片索引

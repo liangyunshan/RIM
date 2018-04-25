@@ -62,6 +62,9 @@ public:
     bool deleteFriend(Database *db, GroupingFriendRequest * request, QString &accountId, QString &otherUserGroupId);
 
     bool getGroupList(Database * db, const QString &userId, ChatGroupListResponse * response);
+    ResponseRegister registGroup(Database * db, RegistGroupRequest * request,RegistGroupResponse * response);
+    bool addChatGroupToGroup(Database * db,RegistGroupRequest *request, RegistGroupResponse *response);
+    bool getSingleChatGroupInfo(Database * db,RegistGroupResponse * response);
 
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);

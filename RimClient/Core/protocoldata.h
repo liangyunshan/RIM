@@ -354,9 +354,9 @@ public:
     UserBaseInfo baseInfo;          /*!< 登陆用户的个人信息，参见 @link UserBaseInfo @endlink */
 };
 
-/************************注  册**********************/
+/************************注册个人/群账户**********************/
 /*!
- *  @brief  注册请求
+ *  @brief  注册个人账户请求
  */
 class RegistRequest : public MsgPacket
 {
@@ -368,7 +368,7 @@ public:
 };
 
 /*!
- *  @brief  注册响应
+ *  @brief  注册个人账户响应
  */
 class RegistResponse : public MsgPacket
 {
@@ -569,6 +569,7 @@ enum ChatMessNotifyLevel{
  *  @brief 基本群描述信息
  */
 struct SimpleChatInfo{
+    QString id;                     /*!< 分组ID(RChatGroupRoom id) */
     QString chatRoomId;             /*!< 群表ID */
     QString chatId;                 /*!< 群号 */
     QString remarks;                /*!< 群备注名 */
@@ -613,6 +614,38 @@ public:
     ~ChatGroupListResponse();
     QString uuid;                   /*!< user表id */
     QList<RChatGroupData *> groups; /*!< 分组信息  */
+};
+
+
+/*!
+ *  @brief  注册群账户请求
+ */
+class RegistGroupRequest : public MsgPacket
+{
+public:
+    RegistGroupRequest();
+
+    QString groupName;          /*!< 群名称 */
+    QString groupDesc;          /*!< 群描述 */
+    QString groupLabel;         /*!< 群标签 */
+    bool searchVisible;         /*!< 搜索是否可见 */
+    bool validateAble;          /*!< 是否需要验证 */
+    QString validateQuestion;   /*!< 验证问题 */
+    QString validateAnaswer;    /*!< 验证答案 */
+    QString userId;             /*!< 用户uuid */
+    QString accountId;          /*!< 用户账户id */
+};
+
+/*!
+ *  @brief  注册群账户响应
+ */
+class RegistGroupResponse : public MsgPacket
+{
+public:
+    RegistGroupResponse();
+    QString userId;             /*!< 用户uuid */
+    QString groupId;            /*!< 群分组ID，可用于判断唯一标识  */
+    SimpleChatInfo chatInfo;    /*!< 群基本信息 */
 };
 
 /***********************分组联系人/分组群操作**********************/

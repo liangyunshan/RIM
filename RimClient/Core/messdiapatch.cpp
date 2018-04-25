@@ -77,6 +77,16 @@ void MessDiapatch::onRecvGroupList(MsgOperateResponse status, ChatGroupListRespo
     emit recvGroupList(status,response);
 }
 
+void MessDiapatch::onRecvResitGroup(RegistGroupResponse response)
+{
+    emit recvRegistGroup(response);
+}
+
+void MessDiapatch::onRecvResitGroupFailed()
+{
+    emit recvRegistGroupFailed();
+}
+
 void MessDiapatch::onRecvText(TextRequest response)
 {
     emit recvText(response);

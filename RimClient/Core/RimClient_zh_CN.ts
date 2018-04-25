@@ -16,22 +16,22 @@
     <name>AddFriend</name>
     <message>
         <location filename="Widgets/addfriend.cpp" line="189"/>
-        <location filename="Widgets/addfriend.cpp" line="201"/>
+        <location filename="Widgets/addfriend.cpp" line="202"/>
         <source>Lookup</source>
         <translation>查找</translation>
     </message>
     <message>
-        <location filename="Widgets/addfriend.cpp" line="266"/>
+        <location filename="Widgets/addfriend.cpp" line="267"/>
         <source>searching...</source>
         <translation>查询中...</translation>
     </message>
     <message>
-        <location filename="Widgets/addfriend.cpp" line="303"/>
+        <location filename="Widgets/addfriend.cpp" line="304"/>
         <source>input contains space</source>
         <translation>输入了空格符</translation>
     </message>
     <message>
-        <location filename="Widgets/addfriend.cpp" line="309"/>
+        <location filename="Widgets/addfriend.cpp" line="310"/>
         <source>empty input</source>
         <translation>输入为空</translation>
     </message>
@@ -56,7 +56,7 @@
     <name>ContactDetailWindow</name>
     <message>
         <location filename="Widgets/contactdetailwindow.cpp" line="256"/>
-        <location filename="Widgets/contactdetailwindow.cpp" line="266"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="267"/>
         <source>Contact Person Detail</source>
         <translation>联系人资料</translation>
     </message>
@@ -65,17 +65,17 @@
     <name>EditPersonInfoWindow</name>
     <message>
         <location filename="Widgets/editpersoninfowindow.cpp" line="299"/>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="309"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="310"/>
         <source>Edit personal information</source>
         <translation>编辑资料</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="358"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="359"/>
         <source>Local image</source>
         <translation>本地图片</translation>
     </message>
     <message>
-        <location filename="Widgets/editpersoninfowindow.cpp" line="358"/>
+        <location filename="Widgets/editpersoninfowindow.cpp" line="359"/>
         <source>Image Files (*.png)</source>
         <translation>图片文件 (*.png)</translation>
     </message>
@@ -168,30 +168,30 @@
         <translation type="vanished">置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="233"/>
+        <location filename="Widgets/maindialog.cpp" line="232"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="609"/>
-        <location filename="Widgets/maindialog.cpp" line="615"/>
-        <location filename="Widgets/maindialog.cpp" line="633"/>
+        <location filename="Widgets/maindialog.cpp" line="596"/>
+        <location filename="Widgets/maindialog.cpp" line="602"/>
+        <location filename="Widgets/maindialog.cpp" line="620"/>
         <source>warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="609"/>
+        <location filename="Widgets/maindialog.cpp" line="596"/>
         <source>Open chat message database error! 
  please check database config.</source>
         <translation>打开消息存储数据库失败! 请检查数据库连接配置.</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="615"/>
+        <location filename="Widgets/maindialog.cpp" line="602"/>
         <source>Database tables create error!</source>
         <translation>数据表创建失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="633"/>
+        <location filename="Widgets/maindialog.cpp" line="620"/>
         <source>Don&apos;t support database type [%1]!</source>
         <translation>不支持此数据库类型 [%1]!</translation>
     </message>
@@ -204,7 +204,7 @@
         <translation type="vanished">关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="228"/>
+        <location filename="Widgets/maindialog.cpp" line="227"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -323,57 +323,56 @@
 <context>
     <name>PanelGroupPage</name>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="189"/>
         <source>untitled</source>
-        <translation>未知</translation>
+        <translation type="vanished">未知</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="352"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="392"/>
         <source>Search group</source>
         <translation>查找添加群</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="355"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="395"/>
         <source>New group</source>
         <translation>创建一个群</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="358"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="398"/>
         <source>Add groups</source>
         <translation>添加群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="371"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="411"/>
         <source>Rename group</source>
         <translation>重命名群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="374"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="414"/>
         <source>Delete group</source>
         <translation>删除群分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="388"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="428"/>
         <source>Send message</source>
         <translation>发送群消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="391"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="431"/>
         <source>View detail</source>
         <translation>查看群资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="394"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="434"/>
         <source>Modify name</source>
         <translation>修改备注名称</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="397"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="437"/>
         <source>Exit group</source>
         <translation>退出该群</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="400"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="440"/>
         <source>Move Group To</source>
         <translation>移动联系人至</translation>
     </message>
@@ -381,32 +380,32 @@
 <context>
     <name>PanelHistoryPage</name>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="301"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="356"/>
         <source>Clear list</source>
         <translation>清空会话列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="309"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="364"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="312"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="367"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="315"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="370"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="318"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="373"/>
         <source>Top session</source>
         <translation>会话置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/panelhistorypage.cpp" line="321"/>
+        <location filename="Widgets/panelhistorypage.cpp" line="376"/>
         <source>Remove session</source>
         <translation>从会话列表移除</translation>
     </message>
@@ -418,47 +417,47 @@
         <translation type="vanished">未知</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1010"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1029"/>
         <source>Refresh list</source>
         <translation>刷新好友列表</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1013"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1032"/>
         <source>Add group</source>
         <translation>添加分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1025"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1044"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1028"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1047"/>
         <source>Delete group</source>
         <translation>删除分组</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1040"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1059"/>
         <source>Send Instant Message</source>
         <translation>发送即时消息</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1043"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1062"/>
         <source>View Detail</source>
         <translation>查看资料</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1046"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1065"/>
         <source>Modify Comments</source>
         <translation>修改备注</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1049"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1068"/>
         <source>Delete Friend</source>
         <translation>删除好友</translation>
     </message>
     <message>
-        <location filename="Widgets/panelpersonpage.cpp" line="1052"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="1071"/>
         <source>Move Friend To</source>
         <translation>将好友移动至</translation>
     </message>
@@ -526,58 +525,58 @@
         <translation>日志记录模块初始化失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="222"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="223"/>
         <source>Font</source>
         <translation>字体工具栏</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="226"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="227"/>
         <source>FontColor</source>
         <translation>字体颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="230"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="231"/>
         <source>Emoji</source>
         <translation>选择表情</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="234"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="235"/>
         <source>Shake window</source>
         <translation>发送抖动窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="238"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="239"/>
         <source>Image</source>
         <translation>发送图像</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="242"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="243"/>
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="248"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="249"/>
         <source>Hide current window while screenshot </source>
         <translation>截图时隐藏当前窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="260"/>
-        <location filename="Widgets/abstractchatwidget.cpp" line="262"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="261"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="263"/>
         <source>Record data</source>
         <translation>聊天记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="299"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="300"/>
         <source>Close window</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="304"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="305"/>
         <source>Send message</source>
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="530"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="531"/>
         <source>ColorDialog</source>
         <translation>颜色</translation>
     </message>
@@ -593,6 +592,7 @@
     <message>
         <location filename="Widgets/editpersoninfowindow.cpp" line="248"/>
         <location filename="Widgets/logindialog.cpp" line="254"/>
+        <location filename="Widgets/registgroupdialog.cpp" line="211"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -633,12 +633,12 @@
         <translation>输入账号或用户名</translation>
     </message>
     <message>
-        <location filename="Widgets/addfriend.cpp" line="346"/>
+        <location filename="Widgets/addfriend.cpp" line="347"/>
         <source>No result</source>
         <translation>无结果</translation>
     </message>
     <message>
-        <location filename="Widgets/addfriend.cpp" line="350"/>
+        <location filename="Widgets/addfriend.cpp" line="351"/>
         <source>Find failed</source>
         <translation>查找失败</translation>
     </message>
@@ -714,13 +714,13 @@
         <translation>分组</translation>
     </message>
     <message>
-        <location filename="Widgets/contactdetailwindow.cpp" line="377"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="378"/>
         <location filename="Widgets/editpersoninfowindow.cpp" line="152"/>
         <source>Man</source>
         <translation>男</translation>
     </message>
     <message>
-        <location filename="Widgets/contactdetailwindow.cpp" line="381"/>
+        <location filename="Widgets/contactdetailwindow.cpp" line="382"/>
         <location filename="Widgets/editpersoninfowindow.cpp" line="153"/>
         <source>Woman</source>
         <translation>女</translation>
@@ -962,27 +962,27 @@
         <translation>系统设置</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="761"/>
+        <location filename="Widgets/logindialog.cpp" line="765"/>
         <source>User not registered</source>
         <translation>用户未注册</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="764"/>
+        <location filename="Widgets/logindialog.cpp" line="768"/>
         <source>Incorrect password</source>
         <translation>密码错误</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="767"/>
+        <location filename="Widgets/logindialog.cpp" line="771"/>
         <source>Server Unreachable</source>
         <translation>服务器不可达</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="770"/>
+        <location filename="Widgets/logindialog.cpp" line="774"/>
         <source>Account has sign in</source>
         <translation>账号已经登陆</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="1297"/>
+        <location filename="Widgets/logindialog.cpp" line="1305"/>
         <source>Remove account</source>
         <translation>删除账户</translation>
     </message>
@@ -991,7 +991,7 @@
         <translation type="vanished">服务器未连接</translation>
     </message>
     <message>
-        <location filename="Widgets/logindialog.cpp" line="777"/>
+        <location filename="Widgets/logindialog.cpp" line="781"/>
         <source>Login Failed</source>
         <translation>登陆失败</translation>
     </message>
@@ -1089,8 +1089,8 @@
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="Widgets/panelgrouppage.cpp" line="68"/>
-        <location filename="Widgets/panelpersonpage.cpp" line="83"/>
+        <location filename="Widgets/panelgrouppage.cpp" line="74"/>
+        <location filename="Widgets/panelpersonpage.cpp" line="84"/>
         <source>untitled</source>
         <translation>未知</translation>
     </message>
@@ -1156,19 +1156,86 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="331"/>
+        <location filename="Widgets/maindialog.cpp" line="318"/>
         <source>Create group failed!</source>
         <translation>创建分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="336"/>
+        <location filename="Widgets/maindialog.cpp" line="323"/>
         <source>Rename group failed!</source>
         <translation>重命名分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="341"/>
+        <location filename="Widgets/maindialog.cpp" line="328"/>
         <source>Delete group failed!</source>
         <translation>删除分组失败!</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="71"/>
+        <source>Group name:</source>
+        <oldsource>Group name</oldsource>
+        <translation>群名称：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="79"/>
+        <source>Group desc:</source>
+        <oldsource>Group desc</oldsource>
+        <translation>群描述：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="87"/>
+        <source>Group label:</source>
+        <oldsource>Group label</oldsource>
+        <translation>群标签：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="95"/>
+        <source>Search visible:</source>
+        <oldsource>Search visible</oldsource>
+        <translation>搜索可见：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="100"/>
+        <source>visible</source>
+        <translation>可 见</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="104"/>
+        <source>invisible</source>
+        <translation>不可见</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="121"/>
+        <source>Validate:</source>
+        <oldsource>Validate</oldsource>
+        <translation>加群验证：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="126"/>
+        <source>no validate</source>
+        <translation>不需验证</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="130"/>
+        <source>validate</source>
+        <translation>验 证</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="153"/>
+        <source>Question:</source>
+        <oldsource>Question</oldsource>
+        <translation>问 题：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="157"/>
+        <source>Answer:</source>
+        <oldsource>Answer</oldsource>
+        <translation>答 案：</translation>
+    </message>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="206"/>
+        <source>Regist</source>
+        <translation>注 册</translation>
     </message>
 </context>
 <context>
@@ -1306,6 +1373,14 @@
     </message>
 </context>
 <context>
+    <name>RegistGroupDialog</name>
+    <message>
+        <location filename="Widgets/registgroupdialog.cpp" line="254"/>
+        <source>Create Group</source>
+        <translation>创建群</translation>
+    </message>
+</context>
+<context>
     <name>ScreenShot</name>
     <message>
         <location filename="Widgets/screenshot.cpp" line="60"/>
@@ -1438,27 +1513,27 @@
     <name>SystemSettings</name>
     <message>
         <location filename="Widgets/systemsettings.cpp" line="407"/>
-        <location filename="Widgets/systemsettings.cpp" line="415"/>
+        <location filename="Widgets/systemsettings.cpp" line="416"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="497"/>
+        <location filename="Widgets/systemsettings.cpp" line="498"/>
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="497"/>
+        <location filename="Widgets/systemsettings.cpp" line="498"/>
         <source>Use account password to unlock!</source>
         <translation>使用账户密码解锁!</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="507"/>
+        <location filename="Widgets/systemsettings.cpp" line="508"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/systemsettings.cpp" line="507"/>
+        <location filename="Widgets/systemsettings.cpp" line="508"/>
         <source>After setting the chat history will not be retained, whether to continue setting?</source>
         <translation>设置后不会保留聊天记录，是否继续设置？</translation>
     </message>
@@ -1483,7 +1558,7 @@
     <name>SystemUserImageWindow</name>
     <message>
         <location filename="Widgets/systemuserimagewindow.cpp" line="75"/>
-        <location filename="Widgets/systemuserimagewindow.cpp" line="88"/>
+        <location filename="Widgets/systemuserimagewindow.cpp" line="89"/>
         <source>Local Image</source>
         <translation>本地图片</translation>
     </message>
@@ -1502,12 +1577,12 @@
 <context>
     <name>Widget</name>
     <message>
-        <location filename="Widgets/widget.cpp" line="327"/>
+        <location filename="Widgets/widget.cpp" line="332"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/widget.cpp" line="327"/>
+        <location filename="Widgets/widget.cpp" line="332"/>
         <source>System don&apos;t support resize window!</source>
         <translation>系统不支持窗口缩放!</translation>
     </message>

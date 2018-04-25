@@ -219,5 +219,17 @@ ChatGroupListResponse::~ChatGroupListResponse()
     }
 }
 
+RegistGroupRequest::RegistGroupRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
+RegistGroupResponse::RegistGroupResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
 
 } //namespace Protocol

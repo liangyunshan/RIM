@@ -143,7 +143,8 @@ SOURCES += \
     user/userfriendcontainer.cpp \
     sql/datatable.cpp \
     user/userchatcontainer.cpp \
-    user/groupclient.cpp
+    user/groupclient.cpp \
+    Widgets/registgroupdialog.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -230,7 +231,8 @@ HEADERS  += \
     user/userfriendcontainer.h \
     sql/datatable.h \
     user/userchatcontainer.h \
-    user/groupclient.h
+    user/groupclient.h \
+    Widgets/registgroupdialog.h
 
 DISTFILES += \
     Widgets/Widgets.pri

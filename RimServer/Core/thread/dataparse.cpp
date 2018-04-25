@@ -109,6 +109,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
         case MSG_GROUP_LIST:
               onProcessGroupList(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
+        case MSG_GROUP_CREATE:
+              onProcessRegistGroup(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
          default:
              break;
     }
@@ -298,6 +301,22 @@ void DataParse::onProcessGroupList(Database *db, int socketId, QJsonObject &obj)
     request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
 
     RSingleton<DataProcess>::instance()->processGroupList(db,socketId,request);
+}
+
+void DataParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<RegistGroupRequest> request (new RegistGroupRequest);
+    request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
+    request->groupDesc = obj.value(JsonKey::key(JsonKey::Desc)).toString();
+    request->groupLabel = obj.value(JsonKey::key(JsonKey::Label)).toString();
+    request->searchVisible = obj.value(JsonKey::key(JsonKey::SearchVisible)).toBool();
+    request->validateAble = obj.value(JsonKey::key(JsonKey::ValidateAble)).toBool();
+    request->validateQuestion = obj.value(JsonKey::key(JsonKey::Question)).toString();
+    request->validateAnaswer = obj.value(JsonKey::key(JsonKey::Answer)).toString();
+    request->userId = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+
+    RSingleton<DataProcess>::instance()->processRegistGroup(db,socketId,request);
 }
 
 void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)

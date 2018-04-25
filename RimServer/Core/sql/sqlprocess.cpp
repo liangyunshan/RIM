@@ -4,10 +4,11 @@
 #include <QDebug>
 #include <QSqlQuery>
 #include <QSqlResult>
-#include <QMutex>
 #include <QDate>
 #include <QDateTime>
 #include <QSqlRecord>
+
+#include <mutex>
 
 #include "datatable.h"
 #include "sql/database.h"
@@ -18,9 +19,11 @@
 #include "Util/rlog.h"
 #include "global.h"
 
-QMutex ACCOUNT_LOCK;
+std::mutex ACCOUNT_LOCK;
+std::mutex GROUP_ACCOUNT_LOCK;
 
 int G_BaseAccountId = 0;
+int G_BaseGroupAccountId = 0;
 
 #define SQL_ERROR -1
 
@@ -38,38 +41,22 @@ SQLProcess::SQLProcess()
 
 ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest *request, QString &id,QString & uuid)
 {
+    std::lock_guard<std::mutex> lg(ACCOUNT_LOCK);
+
     DataTable::RimConfig config;
-    bool sqlError = true;
-    ACCOUNT_LOCK.lock();
 
     if(G_BaseAccountId == 0)
     {
         RSelect rst(config.table);
         rst.select(config.table,{config.value});
-        rst.createCriteria().add(Restrictions::eq(config.table,config.name,config.accuoutId));
+        rst.createCriteria().add(Restrictions::eq(config.table,config.name,config.accountId));
 
         QSqlQuery query(db->sqlDatabase());
-        if(query.exec(rst.sql()))
-        {
-            if(query.next())
-            {
-               G_BaseAccountId = query.value(0).toInt();
-               sqlError = false;
-            }
+        if(query.exec(rst.sql()) && query.next()){
+           G_BaseAccountId = query.value(0).toInt();
+        }else{
+            return REGISTER_FAILED;
         }
-    }
-    else
-    {
-        sqlError = false;
-    }
-
-    G_BaseAccountId++;
-
-    ACCOUNT_LOCK.unlock();
-
-    if(sqlError)
-    {
-        return REGISTER_FAILED;
     }
 
     DataTable::RUser user;
@@ -86,12 +73,12 @@ ResponseRegister SQLProcess::processUserRegist(Database *db, const RegistRequest
         id  = QString::number(G_BaseAccountId);
 
         RUpdate rpd(config.table);
-        rpd.update(config.table,config.value,G_BaseAccountId).
+        rpd.update(config.table,config.value,G_BaseAccountId + 1).
                 createCriteria().
-                add(Restrictions::eq(config.table,config.name,config.accuoutId));
+                add(Restrictions::eq(config.table,config.name,config.accountId));
 
         if(query.exec(rpd.sql())){
-
+               G_BaseAccountId++;
         }
 
         return REGISTER_SUCCESS;
@@ -1149,7 +1136,7 @@ bool SQLProcess::getGroupList(Database *db, const QString & userId, ChatGroupLis
                 DataTable::RChatGroupRoom rcgr;
                 DataTable::RChatRoom rcr;
                 RSelect selectChatGroupRoom ({rcgr.table,rcr.table});
-                selectChatGroupRoom.select(rcgr.table,{rcgr.chatroomId,rcgr.remarks,rcgr.messNotifyLevel})
+                selectChatGroupRoom.select(rcgr.table,{rcgr.id,rcgr.chatroomId,rcgr.remarks,rcgr.messNotifyLevel})
                         .select(rcr.table,{rcr.chatId,rcr.systemIon,rcr.iconId})
                         .on(rcgr.table,rcgr.chatroomId,rcr.table,rcr.id)
                         .createCriteria()
@@ -1158,6 +1145,7 @@ bool SQLProcess::getGroupList(Database *db, const QString & userId, ChatGroupLis
                 if(query.exec(selectChatGroupRoom.sql())){
                     while(query.next()){
                         SimpleChatInfo * chatInfo = new SimpleChatInfo;
+                        chatInfo->id = query.value(rcgr.id).toString();
                         chatInfo->chatRoomId = query.value(rcgr.chatroomId).toString();
                         chatInfo->chatId = query.value(rcr.chatId).toString();
                         chatInfo->remarks = query.value(rcgr.remarks).toString();
@@ -1175,6 +1163,132 @@ bool SQLProcess::getGroupList(Database *db, const QString & userId, ChatGroupLis
         return true;
     }
 
+    return false;
+}
+
+/*!
+ * @brief 注册群账户信息
+ * @param[in] db 数据库
+ * @param[in] request 请求注册的内容
+ * @param[in] response 注册结果响应
+ * @return 是否注册成功
+ */
+ResponseRegister SQLProcess::registGroup(Database *db, RegistGroupRequest *request, RegistGroupResponse *response)
+{
+    std::unique_lock<std::mutex> ul(GROUP_ACCOUNT_LOCK);
+
+    DataTable::RimConfig config;
+
+    if(G_BaseGroupAccountId == 0)
+    {
+        RSelect rst(config.table);
+        rst.select(config.table,{config.value});
+        rst.createCriteria().add(Restrictions::eq(config.table,config.name,config.groupAccoungId));
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rst.sql()) && query.next()){
+           G_BaseGroupAccountId = query.value(0).toInt();
+        }else{
+            return REGISTER_FAILED;
+        }
+    }
+
+    DataTable::RChatRoom chatroom;
+    RPersistence rpc(chatroom.table);
+    QString uuid = RUtil::UUID();
+    rpc.insert({{chatroom.id,uuid},
+                {chatroom.chatId,QString::number(G_BaseGroupAccountId)},
+                {chatroom.name,request->groupName},
+                {chatroom.desc,request->groupDesc},
+                {chatroom.label,request->groupLabel},
+                {chatroom.visible,(int)request->searchVisible},
+                {chatroom.validate,(int)request->validateAble},
+                {chatroom.question,request->validateQuestion},
+                {chatroom.answer,request->validateAnaswer},
+                {chatroom.userId,request->userId},
+                {chatroom.systemIon,1}});
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rpc.sql()))
+    {
+        response->userId = request->userId;
+        response->chatInfo.chatRoomId = uuid;
+        response->chatInfo.chatId = QString::number(G_BaseGroupAccountId);
+
+        RUpdate rpd(config.table);
+        rpd.update(config.table,config.value,G_BaseGroupAccountId + 1).
+                createCriteria().
+                add(Restrictions::eq(config.table,config.name,config.groupAccoungId));
+
+        if(query.exec(rpd.sql())){
+            G_BaseGroupAccountId++;
+        }
+
+        return REGISTER_SUCCESS;
+    }
+
+    return REGISTER_FAILED;
+}
+
+/*!
+ * @brief 将群加入到用户分组，若没指定分组ID，则加入默认分组
+ * @param[in] db 数据库
+ * @param[in] chatroomId 群uuid
+ * @param[in] roomName 群名称
+ * @param[in] userId 用户uuid
+ * @return 是否加入成功
+ */
+bool SQLProcess::addChatGroupToGroup(Database *db,RegistGroupRequest *request, RegistGroupResponse *response)
+{
+    QString defaultGroupId = getDefaultGroupByUserId(db,OperateGroup,request->userId);
+    if(defaultGroupId.size() > 0){
+        response->groupId = defaultGroupId;
+
+        DataTable::RChatGroupRoom rcgr;
+        RPersistence rps(rcgr.table);
+
+        response->chatInfo.id = RUtil::UUID();
+        rps.insert({{rcgr.id,response->chatInfo.id},
+                   {rcgr.chatroomId,response->chatInfo.chatRoomId},
+                   {rcgr.chatgroupId,defaultGroupId},
+                   {rcgr.remarks,request->groupName},
+                   {rcgr.messNotifyLevel,0}});
+
+        QSqlQuery query(db->sqlDatabase());
+        if(query.exec(rps.sql())){
+            return true;
+        }
+    }
+    return false;
+}
+
+/*!
+ * @brief 获取单条群分组详细信息
+ * @param[in] db 数据库
+ * @param[in] response 响应结果数据
+ * @return 是否执行成功
+ */
+bool SQLProcess::getSingleChatGroupInfo(Database *db, RegistGroupResponse *response)
+{
+    DataTable::RChatGroupRoom rcgr;
+    DataTable::RChatRoom rcr;
+    RSelect selectChatGroupRoom ({rcgr.table,rcr.table});
+    selectChatGroupRoom.select(rcgr.table,{rcgr.chatroomId,rcgr.remarks,rcgr.messNotifyLevel})
+            .select(rcr.table,{rcr.chatId,rcr.systemIon,rcr.iconId})
+            .on(rcgr.table,rcgr.chatroomId,rcr.table,rcr.id)
+            .createCriteria()
+            .add(Restrictions::eq(rcgr.table,rcgr.id,response->chatInfo.id));
+qDebug()<<selectChatGroupRoom.sql();
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(selectChatGroupRoom.sql()) && query.next()){
+        response->chatInfo.chatRoomId = query.value(rcgr.chatroomId).toString();
+        response->chatInfo.chatId = query.value(rcr.chatId).toString();
+        response->chatInfo.remarks = query.value(rcgr.remarks).toString();
+        response->chatInfo.messNotifyLevel = (ChatMessNotifyLevel)query.value(rcgr.messNotifyLevel).toInt();
+        response->chatInfo.isSystemIcon = query.value(rcr.systemIon).toBool();
+        response->chatInfo.iconId = query.value(rcr.iconId).toString();
+        return true;
+    }
     return false;
 }
 

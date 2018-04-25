@@ -37,6 +37,8 @@ public:
     void onErrorGroupingOperate(OperateGrouping type);
 
     void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void onRecvResitGroup(RegistGroupResponse response);
+    void onRecvResitGroupFailed();
 
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
@@ -64,6 +66,8 @@ signals:
     void errorGroupingOperate(OperateGrouping type);
 
     void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void recvRegistGroup(RegistGroupResponse response);
+    void recvRegistGroupFailed();
 
     void recvText(TextRequest request);
     void recvTextReply(TextReply);

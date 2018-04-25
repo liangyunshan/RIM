@@ -29,14 +29,9 @@ class WidgetPrivate : public GlobalData<Widget>
     Q_DECLARE_PUBLIC(Widget)
 
 protected:
-    WidgetPrivate(Widget * q):q_ptr(q)
+    WidgetPrivate(Widget * q):q_ptr(q),isMousePressed(false),stickTopHint(false),
+        isShadowVisible(true),windowMoveable(true),toolBar(nullptr),toolbarMoveable(false)
     {
-        isMousePressed = false;
-        stickTopHint = false;
-        isShadowVisible = true;
-        windowMoveable = true;
-        toolBar = NULL;
-
         contentWidget = new QWidget(q);
         contentWidget->setObjectName("AbstractWidget_ContentWidget");
 
@@ -56,8 +51,9 @@ protected:
     QPoint mousePressPoint;
     bool isMousePressed;
     bool stickTopHint;
-    bool isShadowVisible;
-    bool windowMoveable;
+    bool isShadowVisible;               //边框阴影是否可见
+    bool windowMoveable;                //窗口整体是否可移动(默认为true)
+    bool toolbarMoveable;               //工具栏是否可移动(默认为false，设置为true时，windowMoveable无效，此设置优先级较高)
 };
 
 Widget::Widget(QWidget *parent):
@@ -96,13 +92,25 @@ void Widget::setShadowWindow(bool flag)
 /*!
  * @brief 设置窗口是否可移动
  * @details 默认为true可移动，整个窗口都可以响应移动事件。
- * @param[in] toolButton 待插入的工具按钮
+ * @param[in] flag 状态
  * @return 无
  */
 void Widget::setWindowsMoveable(bool flag)
 {
     MQ_D(Widget);
     d->windowMoveable = flag;
+}
+
+/*!
+ * @brief 设置工具栏可移动，其它部位不可移动
+ * @attention 此设置优先级比设置WindowsMoveable要高，两者最好只设置一个
+ * @param[in] flag 设置移动标识
+ * @return 是否插入成功
+ */
+void Widget::setToolBarMoveable(bool flag)
+{
+    MQ_D(Widget);
+    d->toolbarMoveable = flag;
 }
 
 /*!
@@ -176,14 +184,11 @@ ToolBar * Widget::enableToolBar(bool flag)
 void Widget::enableDefaultSignalConection(bool flag)
 {
     MQ_D(Widget);
-    if(flag)
-    {
+    if(flag){
         connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(showMinimized()));
         connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SLOT(showMaximizedWindow(bool)));
         connect(d->toolBar,SIGNAL(closeWindow()),this,SLOT(close()));
-    }
-    else
-    {
+    }else{
         connect(d->toolBar,SIGNAL(minimumWindow()),this,SIGNAL(minimumWindow()));
         connect(d->toolBar,SIGNAL(maxWindow(bool)),this,SIGNAL(maxWindow(bool)));
         connect(d->toolBar,SIGNAL(closeWindow()),this,SIGNAL(closeWindow()));
@@ -339,35 +344,23 @@ void Widget::mousePressEvent(QMouseEvent *event)
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(Widget);
-    if(d->windowMoveable && d->isMousePressed)
-    {
-        QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
-        move(tempPos);
+    if(d->toolbarMoveable && d->toolBar){
+        if(d->toolBar->geometry().contains(event->pos())){
+            QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
+            move(tempPos);
+        }
+    }else{
+        if(d->windowMoveable && d->isMousePressed)
+        {
+            QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
+            move(tempPos);
+        }
     }
 }
 
 void Widget::mouseReleaseEvent(QMouseEvent *)
 {
     MQ_D(Widget);
-
-    if(d->windowMoveable)
-    {
-//        if(pos().y() <= 0)
-//        {
-//            move(pos().x(),-WINDOW_MARGIN_SIZE);
-//        }
-
-//        if(pos().x() < 0)
-//        {
-//            move(0,pos().y());
-//        }
-
-//        if(pos().x() > qApp->desktop()->geometry().width()  - width() )
-//        {
-//            move(qApp->desktop()->geometry().width() - width(),pos().y());
-//        }
-    }
-
 
     d->isMousePressed = false;
 }

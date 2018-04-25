@@ -56,6 +56,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MSG_GROUP_LIST:
                 handleChatGroupListRequest((ChatGroupListRequest *)packet);
                 break;
+        case MSG_GROUP_CREATE:
+                handleRegistGroupRequest((RegistGroupRequest *)packet);
+                break;
         default:
                 break;
     }
@@ -233,6 +236,22 @@ void MsgWrap::handleChatGroupListRequest(ChatGroupListRequest *packet)
 {
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
+    wrappedPack(packet,data);
+}
+
+void MsgWrap::handleRegistGroupRequest(RegistGroupRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::GroupName),packet->groupName);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->groupDesc);
+    data.insert(JsonKey::key(JsonKey::Label),packet->groupLabel);
+    data.insert(JsonKey::key(JsonKey::SearchVisible),packet->searchVisible);
+    data.insert(JsonKey::key(JsonKey::ValidateAble),packet->validateAble);
+    data.insert(JsonKey::key(JsonKey::Question),packet->validateQuestion);
+    data.insert(JsonKey::key(JsonKey::Answer),packet->validateAnaswer);
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->userId);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+
     wrappedPack(packet,data);
 }
 

@@ -19,8 +19,8 @@ RGroup::RGroup():table("rgroup"),
 }
 
 RChatRoom::RChatRoom():
-    table("rchatroom"),id("ID"),chatId("CHATID"),name("NAME"),desc("DESC"),label("LABEL"),visible("VISIBLE"),
-    validate("VALIDATE"),userId("UID"),systemIon("SYSTEMICON"),iconId("ICONID")
+    table("rchatroom"),id("ID"),chatId("CHATID"),name("NAME"),desc("DESCRIPT"),label("LABEL"),visible("VISIBLE"),
+    validate("VALIDATE"),question("QUESTION"),answer("ANSWER"),userId("UID"),systemIon("SYSTEMICON"),iconId("ICONID")
 {
 
 }
@@ -49,7 +49,8 @@ RChatroom_User::RChatroom_User():table("rchatroom_user"),
 
 }
 
-RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
+RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accountId("ACCOUNT_ID"),
+    groupAccoungId("CHATROOM_ID")
 {
 
 }

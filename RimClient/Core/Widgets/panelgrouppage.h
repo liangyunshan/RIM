@@ -34,6 +34,9 @@ public:
 
     void onMessage(MessageType type);
 
+signals:
+    void registChatGroupResult(bool);
+
 private slots:
     void updateGroupList(MsgOperateResponse status,ChatGroupListResponse* response);
 
@@ -43,7 +46,7 @@ private slots:
     void respGroupMoved(int index,QString pageId);
     void searchGroup();
 
-    void newGroup();
+    void createNewGroup();
 
     void sendMessage();
     void viewDetail();
@@ -51,6 +54,9 @@ private slots:
     void exitGroup();
 
     void recvGroupGroupingOperate(GroupingResponse response);
+    void recvRegistGroup(RegistGroupResponse response);
+    void recvRegistGroupFailed();
+
 public slots:
     void renameEditFinished();
     void updateGroupActions(ToolPage *);

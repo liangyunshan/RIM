@@ -15,6 +15,7 @@
 #include "user/user.h"
 #include "user/groupclient.h"
 #include "user/userchatcontainer.h"
+#include "registgroupdialog.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -85,7 +86,8 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
     connect(MessDiapatch::instance(),SIGNAL(recvGroupList(MsgOperateResponse,ChatGroupListResponse*)),
                             this,SLOT(updateGroupList(MsgOperateResponse,ChatGroupListResponse*)));
     connect(MessDiapatch::instance(),SIGNAL(recvGroupGroupingOperate(GroupingResponse)),this,SLOT(recvGroupGroupingOperate(GroupingResponse)));
-
+    connect(MessDiapatch::instance(),SIGNAL(recvRegistGroup(RegistGroupResponse)),this,SLOT(recvRegistGroup(RegistGroupResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvRegistGroupFailed()),this,SLOT(recvRegistGroupFailed()));
 }
 
 void PanelGroupPage::onMessage(MessageType type)
@@ -116,13 +118,13 @@ void PanelGroupPage::searchGroup()
 }
 
 /*!
- * @brief 创建一个群
- * @param[in] 无
- * @return 无
+ * @brief 创建新群
  */
-void PanelGroupPage::newGroup()
+void PanelGroupPage::createNewGroup()
 {
-
+    RegistGroupDialog * dialog = new RegistGroupDialog();
+    connect(this,SIGNAL(registChatGroupResult(bool)),dialog,SLOT(recvRegistResult(bool)));
+    dialog->show();
 }
 
 /*!
@@ -245,6 +247,10 @@ void PanelGroupPage::exitGroup()
 
 }
 
+/*!
+ * @brief 处理分组操作结果
+ * @param[in] response 操作结果响应
+ */
 void PanelGroupPage::recvGroupGroupingOperate(GroupingResponse response)
 {
     MQ_D(PanelGroupPage);
@@ -272,6 +278,24 @@ void PanelGroupPage::recvGroupGroupingOperate(GroupingResponse response)
         default:break;
     }
     updateGroupDescInfo();
+}
+
+/*!
+ * @brief 处理注册群信息
+ * @param[in] response 成功结果
+ */
+void PanelGroupPage::recvRegistGroup(RegistGroupResponse response)
+{
+    if(response.userId == G_User->BaseInfo().uuid){
+        emit registChatGroupResult(true);
+    }else{
+        emit registChatGroupResult(false);
+    }
+}
+
+void PanelGroupPage::recvRegistGroupFailed()
+{
+    emit registChatGroupResult(false);
 }
 
 /*!
@@ -378,7 +402,7 @@ void PanelGroupPage::createAction()
     QAction * searchGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_GROUP_SEARCHGROUP,this,SLOT(searchGroup()));
     searchGroupAction->setText(tr("Search group"));
 
-    QAction * newGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_GROUP_ADDGROUP,this,SLOT(newGroup()));
+    QAction * newGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_GROUP_ADDGROUP,this,SLOT(createNewGroup()));
     newGroupAction->setText(tr("New group"));
 
     QAction * addGroupAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_GROUP_ADDGROUPS,this,SLOT(respGroupCreate()));
@@ -481,8 +505,8 @@ ToolItem * PanelGroupPage::ceateItem(SimpleChatInfo * chatInfo,ToolPage * page)
 {
     ToolItem * item = new ToolItem(page);
     connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),page,SIGNAL(clearItemSelection(ToolItem*)));
-    connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
-    connect(item,SIGNAL(itemDoubleClick(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
+//    connect(item,SIGNAL(showChatWindow(ToolItem*)),this,SLOT(createChatWindow(ToolItem*)));
+//    connect(item,SIGNAL(itemDoubleClick(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
 //    connect(item,SIGNAL(itemMouseHover(bool,ToolItem*)),MainDialog::instance(),SLOT(showHoverItem(bool,ToolItem*)));
     connect(item,SIGNAL(updateGroupActions()),page,SLOT(updateGroupActions()));
 

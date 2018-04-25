@@ -60,6 +60,9 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
     case MsgCommand::MSG_GROUP_LIST:
         return handleGroupList((ChatGroupListResponse *)packet,result);
 
+    case MsgCommand::MSG_GROUP_CREATE:
+        return handleCreateGroup((RegistGroupResponse *)packet,result);
+
         default:
                 break;
     }
@@ -323,6 +326,7 @@ QByteArray MsgWrap::handleGroupList(ChatGroupListResponse *packet, int result)
         QJsonArray simpleChatArray;
         std::for_each(data->chatGroups.begin(),data->chatGroups.end(),[&](const SimpleChatInfo * sdata){
             QJsonObject chatInfo;
+            chatInfo.insert(JsonKey::key(JsonKey::Id),sdata->id);
             chatInfo.insert(JsonKey::key(JsonKey::ChatRoomId),sdata->chatRoomId);
             chatInfo.insert(JsonKey::key(JsonKey::ChatId),sdata->chatId);
             chatInfo.insert(JsonKey::key(JsonKey::Remark),sdata->remarks);
@@ -338,6 +342,28 @@ QByteArray MsgWrap::handleGroupList(ChatGroupListResponse *packet, int result)
     });
 
     data.insert(JsonKey::key(JsonKey::Groups),groupArray);
+
+    return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
+QByteArray MsgWrap::handleCreateGroup(RegistGroupResponse *packet, int result)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->userId);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+
+    QJsonObject chatInfoObj;
+
+    chatInfoObj.insert(JsonKey::key(JsonKey::Id),packet->chatInfo.id);
+    chatInfoObj.insert(JsonKey::key(JsonKey::ChatRoomId),packet->chatInfo.chatRoomId);
+    chatInfoObj.insert(JsonKey::key(JsonKey::ChatId),packet->chatInfo.chatId);
+    chatInfoObj.insert(JsonKey::key(JsonKey::Remark),packet->chatInfo.remarks);
+    chatInfoObj.insert(JsonKey::key(JsonKey::NotifyLevel),packet->chatInfo.messNotifyLevel);
+    chatInfoObj.insert(JsonKey::key(JsonKey::SystemIcon),packet->chatInfo.isSystemIcon);
+    chatInfoObj.insert(JsonKey::key(JsonKey::IconId),packet->chatInfo.iconId);
+
+    data.insert(JsonKey::key(JsonKey::Data),chatInfoObj);
 
     return wrappedPack(packet,(MsgOperateResponse)result,data);
 }

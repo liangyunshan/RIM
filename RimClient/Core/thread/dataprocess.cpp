@@ -310,9 +310,10 @@ void DataProcess::proGroupListResponse(QJsonObject &data)
 
             QJsonArray chatInfos = group.value(JsonKey::key(JsonKey::Data)).toArray();
             for(int j = 0;j < chatInfos.size();j++){
-                QJsonObject chatInfo = chatInfos.at(i).toObject();
+                QJsonObject chatInfo = chatInfos.at(j).toObject();
 
                 SimpleChatInfo * info = new SimpleChatInfo;
+                info->id = chatInfo.value(JsonKey::key(JsonKey::Id)).toString();
                 info->chatRoomId = chatInfo.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
                 info->chatId = chatInfo.value(JsonKey::key(JsonKey::ChatId)).toString();
                 info->remarks = chatInfo.value(JsonKey::key(JsonKey::Remark)).toString();
@@ -325,6 +326,33 @@ void DataProcess::proGroupListResponse(QJsonObject &data)
             response->groups.append(groupData);
         }
         MessDiapatch::instance()->onRecvGroupList(result,response);
+    }
+}
+
+void DataProcess::proRegistGroupResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        RegistGroupResponse response;
+
+        response.userId = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
+        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+
+        QJsonObject chatInfoObj = dataObj.value(JsonKey::key(JsonKey::Data)).toObject();
+
+        response.chatInfo.id = chatInfoObj.value(JsonKey::key(JsonKey::Id)).toString();
+        response.chatInfo.chatRoomId = chatInfoObj.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+        response.chatInfo.chatId = chatInfoObj.value(JsonKey::key(JsonKey::ChatId)).toString();
+        response.chatInfo.remarks = chatInfoObj.value(JsonKey::key(JsonKey::Remark)).toString();
+        response.chatInfo.messNotifyLevel = (ChatMessNotifyLevel)chatInfoObj.value(JsonKey::key(JsonKey::NotifyLevel)).toInt();
+        response.chatInfo.isSystemIcon = chatInfoObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+        response.chatInfo.iconId = chatInfoObj.value(JsonKey::key(JsonKey::IconId)).toString();
+
+        MessDiapatch::instance()->onRecvResitGroup(response);
+    }else{
+        MessDiapatch::instance()->onRecvResitGroupFailed();
     }
 }
 

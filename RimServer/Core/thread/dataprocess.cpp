@@ -654,6 +654,29 @@ void DataProcess::processGroupList(Database *db, int socketId, QSharedPointer<Ch
 }
 
 /*!
+ * @brief 群账户注册
+ * @details 1.创建一个群，并将此用户作为群主；
+ *          2.将群索引插入至当前用户默认群分组列表中;
+ */
+void DataProcess::processRegistGroup(Database *db, int socketId, QSharedPointer<RegistGroupRequest> request)
+{
+    SocketOutData responseData;
+    responseData.sockId = socketId;
+
+    QScopedPointer<RegistGroupResponse> response (new RegistGroupResponse);
+    ResponseRegister regResult = RSingleton<SQLProcess>::instance()->registGroup(db,request.data(),response.data());
+    if(regResult == REGISTER_SUCCESS){
+        if(RSingleton<SQLProcess>::instance()->addChatGroupToGroup(db,request.data(),response.data()))
+            if(RSingleton<SQLProcess>::instance()->getSingleChatGroupInfo(db,response.data()))
+                responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+    }else{
+        responseData.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,regResult);
+    }
+
+    SendData(responseData);
+}
+
+/*!
  * @brief 聊天消息处理
  * @param[in] db 数据库
  * @param[in] socketId 发送方SOCKET标识
@@ -673,9 +696,7 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
             responseData.data = RSingleton<MsgWrap>::instance()->handleText(request);
 
             SendData(responseData);
-        }
-        else
-        {
+        }else{
             if(request->type == OperatePerson)
             {
                 //FIXME 存储消息时，会因存在'和"导致sql执行失败
