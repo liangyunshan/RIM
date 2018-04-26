@@ -48,6 +48,7 @@
 #include "systemnotifyview.h"
 #include "user/userclient.h"
 #include "user/userfriendcontainer.h"
+#include "user/userchatcontainer.h"
 #include "abstractchatwidget.h"
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
@@ -807,6 +808,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     info.stype = resp.stype;
     info.iconId = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
     info.ofriendResult = resp.result;
+    info.chatId = resp.chatId;
+    info.chatName = resp.chatName;
 
     d->notifyWindow->addNotifyInfo(info);
     d->notifyWindow->showMe();
@@ -1128,13 +1131,17 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
         SystemNotifyView * view = new SystemNotifyView();
         connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
 
-        //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
-        if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
-            reqType = FRIEND_AGREE;
+        if(info.stype == OperatePerson){
+            //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
+            if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
+                reqType = FRIEND_AGREE;
+            }
+        }else if(info.stype == OperateGroup){
+
         }
 
-        view->setNotifyType(reqType);
         view->setNotifyInfo(info);
+        view->setNotifyType(reqType);
         view->show();
     }
     else if(info.type == NotifyUser)

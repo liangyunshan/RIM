@@ -53,7 +53,8 @@ private slots:
     void modifyGroupInfo();
     void exitGroup();
 
-    void recvGroupGroupingOperate(GroupingResponse response);
+    void recvGroupPageOperate(GroupingResponse response);
+    void recvGroupItemOperate(MsgOperateResponse result , GroupingChatResponse response);
     void recvRegistGroup(RegistGroupResponse response);
     void recvRegistGroupFailed();
 
@@ -69,6 +70,7 @@ private:
     void updateGroupDescInfo(ToolPage *page);
     void clearTargetGroup(const QString id);
     ToolItem * ceateItem(SimpleChatInfo * chatInfo, ToolPage * page);
+    void updateChatShow(const SimpleChatInfo & info);
 
 private:
     PanelGroupPagePrivate * d_ptr;

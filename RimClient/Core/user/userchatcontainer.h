@@ -41,6 +41,11 @@ public:
     void renameGroup(const QString &id);
     void sortGroup(const QString & groupId, int newPageIndex);
 
+    bool addChatGroupRoom(const QString groupId, const SimpleChatInfo &chatInfo);
+    bool containChatGroupRoom(const QString chatId);
+    bool deleteChatGroupRoom(const QString groupId, const QString & chatId);
+    bool moveChatGroupRoom(const QString & srcGroupId,const QString &destGroupId,const QString & chatId);
+
 private:
     mutex lockMutex;
     QMap<QString,RChatGroupData*> tmpCreateOrRenameMap;

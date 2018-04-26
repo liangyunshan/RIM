@@ -74,6 +74,7 @@ public:
         ValidateAble,
         Question,
         Answer,
+        ChatName,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

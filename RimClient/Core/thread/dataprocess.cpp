@@ -168,25 +168,27 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
     switch(optype)
     {
         case FRIEND_APPLY:
-                           {
-                                OperateFriendResponse response;
+           {
+                OperateFriendResponse response;
 
-                                response.accountId = dataobj.value(JsonKey::key(JsonKey::AccountId)).toString();
-                                response.result = dataobj.value(JsonKey::key(JsonKey::Result)).toInt();
-                                response.stype = (OperateType)dataobj.value(JsonKey::key(JsonKey::OperateType)).toInt();
-                                QJsonObject requestInfo = dataobj.value(JsonKey::key(JsonKey::OperateInfo)).toObject();
-                                if(!requestInfo.isEmpty())
-                                {
-                                    response.requestInfo.accountId = requestInfo.value(JsonKey::key(JsonKey::AccountId)).toString();
-                                    response.requestInfo.nickName = requestInfo.value(JsonKey::key(JsonKey::NickName)).toString();
-                                    response.requestInfo.signName = requestInfo.value(JsonKey::key(JsonKey::SignName)).toString();
-                                    response.requestInfo.isSystemIcon = requestInfo.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
-                                    response.requestInfo.iconId = requestInfo.value(JsonKey::key(JsonKey::IconId)).toString();
-                                }
+                response.accountId = dataobj.value(JsonKey::key(JsonKey::AccountId)).toString();
+                response.result = dataobj.value(JsonKey::key(JsonKey::Result)).toInt();
+                response.stype = (OperateType)dataobj.value(JsonKey::key(JsonKey::OperateType)).toInt();
+                response.chatId = dataobj.value(JsonKey::key(JsonKey::ChatId)).toString();
+                response.chatName = dataobj.value(JsonKey::key(JsonKey::ChatName)).toString();
+                QJsonObject requestInfo = dataobj.value(JsonKey::key(JsonKey::OperateInfo)).toObject();
+                if(!requestInfo.isEmpty())
+                {
+                    response.requestInfo.accountId = requestInfo.value(JsonKey::key(JsonKey::AccountId)).toString();
+                    response.requestInfo.nickName = requestInfo.value(JsonKey::key(JsonKey::NickName)).toString();
+                    response.requestInfo.signName = requestInfo.value(JsonKey::key(JsonKey::SignName)).toString();
+                    response.requestInfo.isSystemIcon = requestInfo.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
+                    response.requestInfo.iconId = requestInfo.value(JsonKey::key(JsonKey::IconId)).toString();
+                }
 
-                                MessDiapatch::instance()->onRecvFriendRequest(response);
-                           }
-                           break;
+                MessDiapatch::instance()->onRecvFriendRequest(response);
+           }
+           break;
         default:
             break;
     }
@@ -353,6 +355,46 @@ void DataProcess::proRegistGroupResponse(QJsonObject &data)
         MessDiapatch::instance()->onRecvResitGroup(response);
     }else{
         MessDiapatch::instance()->onRecvResitGroupFailed();
+    }
+}
+
+void DataProcess::proSearchGroupResponse(QJsonObject &data)
+{
+    SearchGroupResponse response;
+    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == FIND_FRIEND_FOUND)
+    {
+        QJsonArray dataArray = data.value(JsonKey::key(JsonKey::Data)).toArray();
+        if(!dataArray.isEmpty())
+        {
+            for(int i = 0; i < dataArray.count(); i++){
+                QJsonObject obj = dataArray.at(i).toObject();
+                if(!obj.isEmpty())
+                {
+                    ChatBaseInfo result;
+                    result.uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
+                    result.chatId = obj.value(JsonKey::key(JsonKey::ChatId)).toString();
+                    result.name = obj.value(JsonKey::key(JsonKey::ChatName)).toString();
+                    result.desc = obj.value(JsonKey::key(JsonKey::Desc)).toString();
+                    result.label = obj.value(JsonKey::key(JsonKey::Label)).toString();
+                    result.visible = obj.value(JsonKey::key(JsonKey::SearchVisible)).toBool();
+                    result.validate = obj.value(JsonKey::key(JsonKey::ValidateAble)).toBool();
+                    result.question = obj.value(JsonKey::key(JsonKey::Question)).toString();
+                    result.answer = obj.value(JsonKey::key(JsonKey::Answer)).toString();
+                    result.userId = obj.value(JsonKey::key(JsonKey::Users)).toString();
+                    result.isSystemIcon = obj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+                    result.iconId = obj.value(JsonKey::key(JsonKey::IconId)).toString();
+
+                    response.result.append(result);
+                }
+            }
+
+            MessDiapatch::instance()->onRecvSearchChatroomResponse(FIND_FRIEND_FOUND,response);
+        }
+    }
+    else
+    {
+        ResponseAddFriend rr = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
+        MessDiapatch::instance()->onRecvSearchChatroomResponse(rr,response);
     }
 }
 

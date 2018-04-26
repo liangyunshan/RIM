@@ -96,8 +96,8 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
 
     connect(this,SIGNAL(showChatDialog(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
-    connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)));
-    connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(GroupingResponse)),this,SLOT(recvFriendGroupingOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvFriendItemOperate(MsgOperateResponse,GroupingFriendResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(GroupingResponse)),this,SLOT(recvFriendPageOperate(GroupingResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
 }
@@ -647,7 +647,7 @@ void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
  * @param[in] response 结果信息
  * @return 无
  */
-void PanelPersonPage::recvRelationFriend(MsgOperateResponse result, GroupingFriendResponse response)
+void PanelPersonPage::recvFriendItemOperate(MsgOperateResponse result, GroupingFriendResponse response)
 {
     MQ_D(PanelPersonPage);
     switch(response.type)
@@ -860,7 +860,7 @@ void PanelPersonPage::updateContactList()
  *          4.排序分组：
  * @param[in] response 分组操作结果信息
  */
-void PanelPersonPage::recvFriendGroupingOperate(GroupingResponse response)
+void PanelPersonPage::recvFriendPageOperate(GroupingResponse response)
 {
     MQ_D(PanelPersonPage);
     if(response.uuid != G_User->BaseInfo().uuid)

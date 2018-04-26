@@ -36,6 +36,7 @@ public:
     void onRecvGroupGroupingOperate(GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
 
+    void onRecvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
     void onRecvResitGroup(RegistGroupResponse response);
     void onRecvResitGroupFailed();
@@ -67,10 +68,12 @@ signals:
 
     void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
     void recvRegistGroup(RegistGroupResponse response);
+    void recvGroupItemOperate(MsgOperateResponse result,GroupingChatResponse response);
     void recvRegistGroupFailed();
 
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
+    void recvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void recvFileControl(SimpleFileItemRequest control);

@@ -102,6 +102,8 @@ struct NotifyInfo
     OperateType stype;                      /*!< 当前请求的类型(人/群) */
     int ofriendResult;                      /*!< 若type为NotifySystem，此结果对应ResponseFriendApply的含义 */
 
+    QString chatId;                         /*!< 群账号(stype为OperateGroup可用) */
+    QString chatName;                       /*!< 群名称(stype为OperateGroup可用) */
 };
 
 /*!

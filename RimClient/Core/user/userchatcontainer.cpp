@@ -137,3 +137,91 @@ void UserChatContainer::sortGroup(const QString &groupId, int newPageIndex)
         groupList.swap(oldPageIndex,newPageIndex);
     }
 }
+
+bool UserChatContainer::addChatGroupRoom(const QString groupId,const SimpleChatInfo &chatInfo)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    QList<RChatGroupData *>::iterator groupIter =  groupList.begin();
+    while(groupIter != groupList.end())
+    {
+        if((*groupIter)->groupId == groupId)
+        {
+            SimpleChatInfo * info = new SimpleChatInfo;
+            info->id = chatInfo.id;
+            info->chatRoomId = chatInfo.chatRoomId;
+            info->chatId = chatInfo.chatId;
+            info->remarks = chatInfo.remarks;
+            info->messNotifyLevel = chatInfo.messNotifyLevel;
+            info->isSystemIcon = chatInfo.isSystemIcon;
+            info->iconId = chatInfo.iconId;
+            (*groupIter)->chatGroups.append(info);
+            return true;
+        }
+        groupIter++;
+    }
+
+    return false;
+}
+
+bool UserChatContainer::containChatGroupRoom(const QString chatId)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    auto beg = groupList.begin();
+    while(beg != groupList.end()){
+        if(find_if((*beg)->chatGroups.cbegin(),(*beg)->chatGroups.cend(),[&](const SimpleChatInfo * info){return info->chatId == chatId;}) != (*beg)->chatGroups.cend())
+            return true;
+        beg++;
+    }
+    return false;
+}
+
+bool UserChatContainer::deleteChatGroupRoom(const QString groupId, const QString &chatId)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    QList<RChatGroupData *>::iterator iter  = std::find_if(groupList.begin(),groupList.end(),[&groupId](const RChatGroupData * data){
+        if(groupId == data->groupId)
+            return true;
+        return false;
+    });
+
+    if(iter != groupList.end()){
+        QList<SimpleChatInfo *>::iterator siter = (*iter)->chatGroups.begin();
+        while(siter != (*iter)->chatGroups.end()){
+            if((*siter)->chatId == chatId){
+                delete (*siter);
+                (*iter)->chatGroups.erase(siter);
+                return true;
+            }
+            siter++;
+        }
+    }
+    return false;
+}
+
+bool UserChatContainer::moveChatGroupRoom(const QString &srcGroupId, const QString &destGroupId, const QString &chatId)
+{
+    unique_lock<mutex> ul(lockMutex);
+
+    QList<RChatGroupData *>::iterator srcIter = std::find_if(groupList.begin(),groupList.end(),[&]
+                                                         (RChatGroupData * groupData){return groupData->groupId == srcGroupId;});
+
+    QList<RChatGroupData *>::iterator destIter = std::find_if(groupList.begin(),groupList.end(),[&]
+                                                         (RChatGroupData * groupData){return groupData->groupId == destGroupId;});
+
+    if(srcIter != groupList.end() && destIter != groupList.end()){
+        auto groupIter = (*srcIter)->chatGroups.begin();
+        while(groupIter != (*srcIter)->chatGroups.end()){
+            if((*groupIter)->chatId == chatId){
+                (*destIter)->chatGroups.push_back(*groupIter);
+                (*srcIter)->chatGroups.erase(groupIter);
+                return true;
+            }
+            groupIter ++;
+        }
+    }
+
+    return false;
+}

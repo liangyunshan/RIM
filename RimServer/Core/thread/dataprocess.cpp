@@ -205,25 +205,30 @@ void DataProcess::processSearchFriend(Database * db,int socketId, QSharedPointer
 {
     SocketOutData data;
     data.sockId = socketId;
-    QScopedPointer<SearchFriendResponse> response (new SearchFriendResponse);
 
-    ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchFriend(db,request.data(),response.data());
+    if(request->stype == OperatePerson){
+        QScopedPointer<SearchFriendResponse> response (new SearchFriendResponse);
+        ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchFriend(db,request.data(),response.data());
 
-    if(updateResult == FIND_FRIEND_FOUND)
-    {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
-    }
-    else
-    {
-        data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,updateResult);
+        if(updateResult == FIND_FRIEND_FOUND)
+            data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        else
+            data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,updateResult);
+    }else if(request->stype == OperateGroup){
+        QScopedPointer<SearchGroupResponse> response (new SearchGroupResponse);
+        ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchGroup(db,request.data(),response.data());
+
+        if(updateResult == FIND_FRIEND_FOUND)
+            data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data(),FIND_FRIEND_FOUND);
+        else
+            data.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,MSG_GROUP_SEARCH,updateResult);
     }
 
     SendData(data);
 }
 
-//TODO 找群时，先查找群主信息，查看是否在线
 /*!
- * @brief 处理用户响应好友请求操作
+ * @brief 处理用户响应好友请求操作(添加联系人或群)
  * @details A请求B，B向A回复结果。
  *          根据B的回复结果，若同意请求，则将对方的信息发送给对方，即发送A至B，发送B至A；
  *          若B拒绝请求，则直接将结果发送至A
@@ -235,35 +240,56 @@ void DataProcess::processAddFriend(Database * db,int socketId, QSharedPointer<Ad
     SocketOutData responseData;
     responseData.sockId = socketId;
 
+    bool error = false;
     ResponseAddFriend result = ADD_FRIEND_SENDED;
 
-    TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
-    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
-    {
-        SocketOutData reqeuestData;
-        reqeuestData.sockId = client->socket();
+    QString chatroomId,chatroomName;
 
-        QScopedPointer<OperateFriendResponse> ofresponse (new OperateFriendResponse());
-        ofresponse->type = FRIEND_APPLY;
-        ofresponse->result = (int)FRIEND_REQUEST;
-        ofresponse->stype = request->stype;
-        ofresponse->accountId = client->getAccount();
-
-        UserBaseInfo baseInfo;
-        RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
-        ofresponse->requestInfo.accountId = baseInfo.accountId;
-        ofresponse->requestInfo.nickName = baseInfo.nickName;
-        ofresponse->requestInfo.signName = baseInfo.signName;
-        ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
-        ofresponse->requestInfo.iconId = baseInfo.iconId;
-
-        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
-
-        SendData(reqeuestData);
+    QString operateUserAccountId;
+    if(request->stype == OperateGroup){
+        if(!RSingleton<SQLProcess>::instance()->getUserByChatroomId(db,request->operateId,operateUserAccountId)){
+            result = ADD_FRIEND_SENDED_FAILED;
+            error = true;
+        }else{
+            ChatBaseInfo baseInfo;
+            if(RSingleton<SQLProcess>::instance()->getChatroomInfo(db,request->operateId,baseInfo)){
+                chatroomId = baseInfo.chatId;
+                chatroomName = baseInfo.name;
+            }
+        }
+    }else{
+        operateUserAccountId = request->operateId;
     }
-    else
-    {
-        result = RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)FRIEND_REQUEST);
+
+    if(!error){
+        TcpClient * client = TcpClientManager::instance()->getClient(operateUserAccountId);
+        if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
+        {
+            SocketOutData reqeuestData;
+            reqeuestData.sockId = client->socket();
+
+            QScopedPointer<OperateFriendResponse> ofresponse (new OperateFriendResponse());
+            ofresponse->type = FRIEND_APPLY;
+            ofresponse->result = (int)FRIEND_REQUEST;
+            ofresponse->stype = request->stype;
+            ofresponse->accountId = client->getAccount();
+            ofresponse->chatId = chatroomId;
+            ofresponse->chatName = chatroomName;
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
+            ofresponse->requestInfo.accountId = baseInfo.accountId;
+            ofresponse->requestInfo.nickName = baseInfo.nickName;
+            ofresponse->requestInfo.signName = baseInfo.signName;
+            ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+            ofresponse->requestInfo.iconId = baseInfo.iconId;
+
+            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+
+            SendData(reqeuestData);
+        }else{
+            result = RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)FRIEND_REQUEST);
+        }
     }
 
     responseData.data =  RSingleton<MsgWrap>::instance()->handleErrorSimpleMsg(request->msgType,request->msgCommand,result);
@@ -285,110 +311,199 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
     bool flag = false;
 
     ResponseFriendApply result = (ResponseFriendApply)request->result;
-    if(result == FRIEND_AGREE)
-    {
-        if(RSingleton<SQLProcess>::instance()->testTstablishRelation(db,request.data()))
+    if(result == FRIEND_AGREE){
+        if(RSingleton<SQLProcess>::instance()->testEstablishRelation(db,request.data()))
             return;
         flag = RSingleton<SQLProcess>::instance()->establishRelation(db,request.data());
     }
+    if(request->stype == OperatePerson){
 
-    //【1】向自己发送对方联系人基本信息
-    if(flag)
-    {
-        SocketOutData responseData;
-        responseData.sockId = socketId;
-
-        QScopedPointer<GroupingFriendResponse> responseA (new GroupingFriendResponse);
-        responseA->type = G_Friend_CREATE;
-        responseA->stype = request->stype;
-        responseA->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->accountId);
-
-        UserBaseInfo baseInfo;
-        RSingleton<SQLProcess>::instance()->getUserInfo(db,request->operateId,baseInfo);
-        responseA->user.accountId = baseInfo.accountId;
-        responseA->user.nickName = baseInfo.nickName;
-        responseA->user.signName = baseInfo.signName;
-        responseA->user.isSystemIcon = baseInfo.isSystemIcon;
-        responseA->user.iconId = baseInfo.iconId;
-        responseA->user.remarks = baseInfo.nickName;
-
-        TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
-        if(operateClient)
-        {
-            responseA->user.status = (OnlineStatus)operateClient->getOnLineState();
-        }
-        else
-        {
-            responseA->user.status = STATUS_OFFLINE;
-        }
-
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
-        SendData(responseData);
-    }
-
-    TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
-
-    if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
-    {
-        //【2】向对方发送此次好友请求的处理结果信息
-        int operateSock = client->socket();
-        SocketOutData reqeuestData;
-        reqeuestData.sockId = operateSock;
-
-        QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
-        ofresponse->type = FRIEND_APPLY;
-        ofresponse->result = (int)request->result;
-        ofresponse->stype = request->stype;
-        ofresponse->accountId = client->getAccount();
-
-        UserBaseInfo baseInfo;
-        RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
-        ofresponse->requestInfo.accountId = baseInfo.accountId;
-        ofresponse->requestInfo.nickName = baseInfo.nickName;
-        ofresponse->requestInfo.signName = baseInfo.signName;
-        ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
-        ofresponse->requestInfo.iconId = baseInfo.iconId;
-
-        reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
-
-        SendData(reqeuestData);
-
-        //【3】若同意请求，则再次向对方发送自己的基本信息
-        if(result == FRIEND_AGREE && flag)
+        //【1】向自己发送对方联系人基本信息
+        if(flag)
         {
             SocketOutData responseData;
-            responseData.sockId = operateSock;
+            responseData.sockId = socketId;
 
-            QScopedPointer<GroupingFriendResponse> responseB(new GroupingFriendResponse());
-            responseB->type = G_Friend_CREATE;
-            responseB->stype = request->stype;
+            QScopedPointer<GroupingFriendResponse> responseA (new GroupingFriendResponse);
+            responseA->type = G_Friend_CREATE;
+            responseA->stype = request->stype;
+            responseA->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->accountId);
 
-            responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->operateId,baseInfo);
+            responseA->user.accountId = baseInfo.accountId;
+            responseA->user.nickName = baseInfo.nickName;
+            responseA->user.signName = baseInfo.signName;
+            responseA->user.isSystemIcon = baseInfo.isSystemIcon;
+            responseA->user.iconId = baseInfo.iconId;
+            responseA->user.remarks = baseInfo.nickName;
 
-            responseB->user.accountId = baseInfo.accountId;
-            responseB->user.nickName = baseInfo.nickName;
-            responseB->user.signName = baseInfo.signName;
-            responseB->user.isSystemIcon = baseInfo.isSystemIcon;
-            responseB->user.iconId = baseInfo.iconId;
-            responseB->user.remarks = baseInfo.nickName;
-
-            TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
+            TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
             if(operateClient)
             {
-                responseB->user.status = (OnlineStatus)operateClient->getOnLineState();
+                responseA->user.status = (OnlineStatus)operateClient->getOnLineState();
             }
             else
             {
-                responseB->user.status = STATUS_OFFLINE;
+                responseA->user.status = STATUS_OFFLINE;
             }
 
-            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
             SendData(responseData);
         }
-    }
-    else
-    {
-        RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
+
+        TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
+
+        if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
+        {
+            //【2】向对方发送此次好友请求的处理结果信息
+            int operateSock = client->socket();
+            SocketOutData reqeuestData;
+            reqeuestData.sockId = operateSock;
+
+            QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
+            ofresponse->type = FRIEND_APPLY;
+            ofresponse->result = (int)request->result;
+            ofresponse->stype = request->stype;
+            ofresponse->accountId = client->getAccount();
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
+            ofresponse->requestInfo.accountId = baseInfo.accountId;
+            ofresponse->requestInfo.nickName = baseInfo.nickName;
+            ofresponse->requestInfo.signName = baseInfo.signName;
+            ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+            ofresponse->requestInfo.iconId = baseInfo.iconId;
+
+            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+
+            SendData(reqeuestData);
+
+            //【3】若同意请求，则再次向对方发送自己的基本信息
+            if(result == FRIEND_AGREE && flag)
+            {
+                SocketOutData responseData;
+                responseData.sockId = operateSock;
+
+                QScopedPointer<GroupingFriendResponse> responseB(new GroupingFriendResponse());
+                responseB->type = G_Friend_CREATE;
+                responseB->stype = request->stype;
+
+                responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
+
+                responseB->user.accountId = baseInfo.accountId;
+                responseB->user.nickName = baseInfo.nickName;
+                responseB->user.signName = baseInfo.signName;
+                responseB->user.isSystemIcon = baseInfo.isSystemIcon;
+                responseB->user.iconId = baseInfo.iconId;
+                responseB->user.remarks = baseInfo.nickName;
+
+                TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
+                if(operateClient)
+                    responseB->user.status = (OnlineStatus)operateClient->getOnLineState();
+                else
+                    responseB->user.status = STATUS_OFFLINE;
+
+                responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+                SendData(responseData);
+            }
+        }else{
+            RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
+        }
+    }else if(request->stype == OperateGroup){
+
+        //【1】向自己发送对方联系人基本信息
+        if(flag)
+        {
+            SocketOutData responseData;
+            responseData.sockId = socketId;
+
+            QScopedPointer<GroupingFriendResponse> responseA (new GroupingFriendResponse);
+            responseA->type = G_Friend_CREATE;
+            responseA->stype = request->stype;
+            responseA->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->accountId);
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->operateId,baseInfo);
+            responseA->user.accountId = baseInfo.accountId;
+            responseA->user.nickName = baseInfo.nickName;
+            responseA->user.signName = baseInfo.signName;
+            responseA->user.isSystemIcon = baseInfo.isSystemIcon;
+            responseA->user.iconId = baseInfo.iconId;
+            responseA->user.remarks = baseInfo.nickName;
+
+            TcpClient * operateClient = TcpClientManager::instance()->getClient(request->operateId);
+            if(operateClient)
+            {
+                responseA->user.status = (OnlineStatus)operateClient->getOnLineState();
+            }
+            else
+            {
+                responseA->user.status = STATUS_OFFLINE;
+            }
+
+            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
+            SendData(responseData);
+        }
+
+        TcpClient * client = TcpClientManager::instance()->getClient(request->operateId);
+
+        if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
+        {
+            //【2】向对方发送此次好友请求的处理结果信息
+            int operateSock = client->socket();
+            SocketOutData reqeuestData;
+            reqeuestData.sockId = operateSock;
+
+            QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
+            ofresponse->type = FRIEND_APPLY;
+            ofresponse->result = (int)request->result;
+            ofresponse->stype = request->stype;
+            ofresponse->accountId = client->getAccount();
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,baseInfo);
+            ofresponse->requestInfo.accountId = baseInfo.accountId;
+            ofresponse->requestInfo.nickName = baseInfo.nickName;
+            ofresponse->requestInfo.signName = baseInfo.signName;
+            ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+            ofresponse->requestInfo.iconId = baseInfo.iconId;
+
+            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+
+            SendData(reqeuestData);
+
+            //【3】若同意请求，则再次向对方发送自己的基本信息
+            if(result == FRIEND_AGREE && flag)
+            {
+                SocketOutData responseData;
+                responseData.sockId = operateSock;
+
+                QScopedPointer<GroupingFriendResponse> responseB(new GroupingFriendResponse());
+                responseB->type = G_Friend_CREATE;
+                responseB->stype = request->stype;
+
+                responseB->groupId = RSingleton<SQLProcess>::instance()->getDefaultGroupByUserAccountId(db,request->operateId);
+
+                responseB->user.accountId = baseInfo.accountId;
+                responseB->user.nickName = baseInfo.nickName;
+                responseB->user.signName = baseInfo.signName;
+                responseB->user.isSystemIcon = baseInfo.isSystemIcon;
+                responseB->user.iconId = baseInfo.iconId;
+                responseB->user.remarks = baseInfo.nickName;
+
+                TcpClient * operateClient = TcpClientManager::instance()->getClient(request->accountId);
+                if(operateClient)
+                    responseB->user.status = (OnlineStatus)operateClient->getOnLineState();
+                else
+                    responseB->user.status = STATUS_OFFLINE;
+
+                responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+                SendData(responseData);
+            }
+        }else{
+            RSingleton<SQLProcess>::instance()->processAddFriendRequest(db,request->accountId,request->operateId,(int)request->result);
+        }
     }
 }
 

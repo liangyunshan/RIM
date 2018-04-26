@@ -38,6 +38,7 @@ public:
     ResponseLogin processUserLogin(Database *db, const LoginRequest * request);
     ResponseUpdateUser processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest * request);
     ResponseAddFriend processSearchFriend(Database *db,SearchFriendRequest *request,SearchFriendResponse * response);
+    ResponseAddFriend processSearchGroup(Database *db,SearchFriendRequest *request,SearchGroupResponse * response);
     ResponseAddFriend processAddFriendRequest(Database *db,QString accountId,QString operateId,int type);
 
     bool createGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault = false);
@@ -51,11 +52,12 @@ public:
     bool delGroupInGroupDesc(Database *db,GroupingRequest *request);
     bool sortGroupInGroupDesc(Database *db,GroupingRequest *request);
 
-    bool testTstablishRelation(Database *db,OperateFriendRequest *request);
+    bool testEstablishRelation(Database *db,OperateFriendRequest *request);
     bool establishRelation(Database *db,OperateFriendRequest *request);
     bool getFriendList(Database *db,QString accountId,FriendListResponse * response);
     void getFriendAccountList(Database *db, const QString accountId, QList<QString> &friendList);
     bool getUserInfo(Database *db, const QString accountId, UserBaseInfo &userInfo);
+    bool getUserByChatroomId(Database *db, const QString chatroomId,QString & chatUserId);
 
     bool updateGroupFriendInfo(Database *db,GroupingFriendRequest * request);
     bool updateMoveGroupFriend(Database *db,GroupingFriendRequest * request);
@@ -65,6 +67,7 @@ public:
     ResponseRegister registGroup(Database * db, RegistGroupRequest * request,RegistGroupResponse * response);
     bool addChatGroupToGroup(Database * db,RegistGroupRequest *request, RegistGroupResponse *response);
     bool getSingleChatGroupInfo(Database * db,RegistGroupResponse * response);
+    bool getChatroomInfo(Database * db,const QString chatId,ChatBaseInfo & baseInfo);
 
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);

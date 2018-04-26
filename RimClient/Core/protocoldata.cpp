@@ -231,5 +231,23 @@ RegistGroupResponse::RegistGroupResponse()
     msgCommand = MSG_GROUP_CREATE;
 }
 
+GroupingChatRequest::GroupingChatRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
+GroupingChatResponse::GroupingChatResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
+SearchGroupResponse::SearchGroupResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_SEARCH;
+}
+
 
 } //namespace Protocol

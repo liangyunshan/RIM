@@ -63,6 +63,9 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
     case MsgCommand::MSG_GROUP_CREATE:
         return handleCreateGroup((RegistGroupResponse *)packet,result);
 
+    case MsgCommand::MSG_GROUP_SEARCH:
+        return handleSearchGroup((SearchGroupResponse *)packet,result);
+
         default:
                 break;
     }
@@ -221,6 +224,8 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
     obj.insert(JsonKey::key(JsonKey::Result),packet->result);
     obj.insert(JsonKey::key(JsonKey::OperateType),packet->stype);
     obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    obj.insert(JsonKey::key(JsonKey::ChatId),packet->chatId);
+    obj.insert(JsonKey::key(JsonKey::ChatName),packet->chatName);
 
     QJsonObject requsetInfo;
     requsetInfo.insert(JsonKey::key(JsonKey::AccountId),packet->requestInfo.accountId);
@@ -366,6 +371,31 @@ QByteArray MsgWrap::handleCreateGroup(RegistGroupResponse *packet, int result)
     data.insert(JsonKey::key(JsonKey::Data),chatInfoObj);
 
     return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
+QByteArray MsgWrap::handleSearchGroup(SearchGroupResponse *packet, int result)
+{
+    QJsonArray dataArray;
+    std::for_each(packet->result.cbegin(),packet->result.cend(),[&](const ChatBaseInfo & info){
+        QJsonObject childObj;
+
+        childObj.insert(JsonKey::key(JsonKey::Uuid),info.uuid);
+        childObj.insert(JsonKey::key(JsonKey::ChatId),info.chatId);
+        childObj.insert(JsonKey::key(JsonKey::ChatName),info.name);
+        childObj.insert(JsonKey::key(JsonKey::Desc),info.desc);
+        childObj.insert(JsonKey::key(JsonKey::Label),info.label);
+        childObj.insert(JsonKey::key(JsonKey::SearchVisible),info.visible);
+        childObj.insert(JsonKey::key(JsonKey::ValidateAble),info.validate);
+        childObj.insert(JsonKey::key(JsonKey::Question),info.question);
+        childObj.insert(JsonKey::key(JsonKey::Answer),info.answer);
+        childObj.insert(JsonKey::key(JsonKey::Users),info.userId);
+        childObj.insert(JsonKey::key(JsonKey::SystemIcon),info.isSystemIcon);
+        childObj.insert(JsonKey::key(JsonKey::IconId),info.iconId);
+
+        dataArray.append(childObj);
+    });
+
+    return wrappedPack(packet,result,dataArray);
 }
 
 QByteArray MsgWrap::handleFileControl(SimpleFileItemRequest *packet)

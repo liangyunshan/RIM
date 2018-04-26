@@ -112,8 +112,8 @@ void RegistGroupDialogPrivate::initWidget()
     visbleLayout->setContentsMargins(0,0,0,0);
     visibleWidget->setLayout(visbleLayout);
 
-    visibleGroup->addButton(visibleButt,RegistGroupDialog::S_VISIBLE);
-    visibleGroup->addButton(invisibleButt,RegistGroupDialog::S_INVISIBLE);
+    visibleGroup->addButton(visibleButt,SEARCH_VISIBLE);
+    visibleGroup->addButton(invisibleButt,SEARCH_INVISIBLE);
 
     //验证
     QLabel * validateLabel = new QLabel(bodyWidget);
@@ -175,8 +175,8 @@ void RegistGroupDialogPrivate::initWidget()
     vlayout->addWidget(validateInputWidget);
     validateWidget->setLayout(vlayout);
 
-    validateGroup->addButton(validateButt,RegistGroupDialog::V_VALIDATE);
-    validateGroup->addButton(noValidateButt,RegistGroupDialog::V_NOVALIDATE);
+    validateGroup->addButton(validateButt,JOIN_VALIDATE);
+    validateGroup->addButton(noValidateButt,JOIN_NOVALIDATE);
 
     QGridLayout * gridLayout = new QGridLayout;
     gridLayout->setVerticalSpacing(10);
@@ -267,14 +267,14 @@ void RegistGroupDialog::prepareRegist()
     MQ_D(RegistGroupDialog);
 
     SearchVisible visible = (SearchVisible)d->visibleGroup->checkedId();
-    ValidateAble validate = (ValidateAble)d->validateGroup->checkedId();
+    JoinValidate validate = (JoinValidate)d->validateGroup->checkedId();
 
     RegistGroupRequest * request = new RegistGroupRequest;
     request->groupName = d->groupNameEdit->text();
     request->groupDesc = d->groupDescEdit->text();
     request->groupLabel = d->groupLabelEdit->text();
-    request->searchVisible = visible == S_VISIBLE?true:false;
-    request->validateAble = validate == V_VALIDATE?true:false;
+    request->searchVisible = visible == SEARCH_VISIBLE?true:false;
+    request->validateAble = validate == JOIN_VALIDATE?true:false;
     request->validateQuestion = d->questionCombox->currentText();
     request->validateAnaswer = d->answerEdit->text();
     request->userId = G_User->BaseInfo().uuid;
@@ -294,9 +294,9 @@ void RegistGroupDialog::validateInput(QString)
     if(groupName.size() <= 0 || groupDesc.size() <= 0 || groupLabel.size() <= 0){
         d->createButton->setEnabled(false);
     }else{
-        ValidateAble validate = (ValidateAble)d->validateGroup->checkedId();
+        JoinValidate validate = (JoinValidate)d->validateGroup->checkedId();
         QString question,answer;
-        if(validate == V_VALIDATE){
+        if(validate == JOIN_VALIDATE){
             question = d->questionCombox->currentText();
             answer = d->answerEdit->text();
 

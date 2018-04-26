@@ -73,13 +73,13 @@ private slots:
 
     void modifyUserInfo();
 
-    void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+    void recvFriendItemOperate(MsgOperateResponse result,GroupingFriendResponse response);
     void updateModifyInstance(QObject *);
     void requestModifyRemark(QString remark);
 
     void updateContactList();
 
-    void recvFriendGroupingOperate(GroupingResponse response);
+    void recvFriendPageOperate(GroupingResponse response);
 
 public slots:
     void renameEditFinished();

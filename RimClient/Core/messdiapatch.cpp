@@ -72,6 +72,11 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
     emit errorGroupingOperate(type);
 }
 
+void MessDiapatch::onRecvSearchChatroomResponse(ResponseAddFriend result, SearchGroupResponse response)
+{
+    emit recvSearchChatroomResponse(result,response);
+}
+
 void MessDiapatch::onRecvGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
 {
     emit recvGroupList(status,response);

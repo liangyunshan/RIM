@@ -85,7 +85,8 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
 
     connect(MessDiapatch::instance(),SIGNAL(recvGroupList(MsgOperateResponse,ChatGroupListResponse*)),
                             this,SLOT(updateGroupList(MsgOperateResponse,ChatGroupListResponse*)));
-    connect(MessDiapatch::instance(),SIGNAL(recvGroupGroupingOperate(GroupingResponse)),this,SLOT(recvGroupGroupingOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvGroupGroupingOperate(GroupingResponse)),this,SLOT(recvGroupPageOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvGroupItemOperate(MsgOperateResponse,GroupingChatResponse)),this,SLOT(recvGroupItemOperate(MsgOperateResponse,GroupingChatResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvRegistGroup(RegistGroupResponse)),this,SLOT(recvRegistGroup(RegistGroupResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvRegistGroupFailed()),this,SLOT(recvRegistGroupFailed()));
 }
@@ -248,10 +249,10 @@ void PanelGroupPage::exitGroup()
 }
 
 /*!
- * @brief 处理分组操作结果
+ * @brief 处理分组操作结果(ToolPage)
  * @param[in] response 操作结果响应
  */
-void PanelGroupPage::recvGroupGroupingOperate(GroupingResponse response)
+void PanelGroupPage::recvGroupPageOperate(GroupingResponse response)
 {
     MQ_D(PanelGroupPage);
     if(response.uuid != G_User->BaseInfo().uuid)
@@ -281,6 +282,77 @@ void PanelGroupPage::recvGroupGroupingOperate(GroupingResponse response)
 }
 
 /*!
+ * @brief 处理分组操作结果(ToolItem)
+ * @param[in] result 操作结果
+ * @param[in] response 操作结果响应
+ */
+void PanelGroupPage::recvGroupItemOperate(MsgOperateResponse result, GroupingChatResponse response)
+{
+    MQ_D(PanelGroupPage);
+    switch(response.type)
+    {
+    case G_ChatGroup_CREATE:
+        {
+            if(result == STATUS_SUCCESS)
+            {
+                if(!RSingleton<UserChatContainer>::instance()->containChatGroupRoom(response.chatInfo.chatRoomId)){
+                    QList<ToolPage *>::iterator iter = d->toolBox->allPages().begin();
+
+                    while(iter != d->toolBox->allPages().end()){
+                        if((*iter)->getID() == response.groupId){
+                            ToolItem * item = ceateItem(&(response.chatInfo),(*iter));
+                            (*iter)->addItem(item);
+                            break;
+                        }
+                        iter++;
+                    }
+                    updateGroupDescInfo();
+
+                    RSingleton<UserChatContainer>::instance()->addChatGroupRoom(response.groupId,response.chatInfo);
+
+                    //1.查找用户界面需要判断此用户是否已经被添加了
+//                    RSingleton<Subject>::instance()->notify(MESS_RELATION_FRIEND_ADD);
+                }
+            }else{
+                //TODO 20180417添加好友失败
+            }
+            break;
+        }
+    case G_ChatGroup_UPDATE:
+        {
+            if(result == STATUS_SUCCESS){
+               updateChatShow(response.chatInfo);
+            }else{
+
+            }
+            break;
+        }
+    case G_ChatGroup_MOVE:
+        {
+            if(result == STATUS_SUCCESS){
+                QString t_sourceID = response.oldGroupId;
+                QString t_targetID = response.groupId;
+                ToolPage * t_sourcePage = d->toolBox->targetPage(t_sourceID);
+                ToolPage * t_targetPage = d->toolBox->targetPage(t_targetID);
+                bool t_rmResult = t_sourcePage->removeItem(d->m_movedItem);
+                if(t_rmResult){
+                    d->toolBox->targetPage(t_targetID)->addItem(d->m_movedItem);
+                    disconnect(d->m_movedItem,SIGNAL(updateGroupActions()),t_sourcePage,SLOT(updateGroupActions()));
+                    connect(d->m_movedItem,SIGNAL(updateGroupActions()),t_targetPage,SLOT(updateGroupActions()));
+                    RSingleton<UserChatContainer>::instance()->moveChatGroupRoom(response.oldGroupId,response.groupId,response.chatInfo.chatId);
+                    updateGroupDescInfo();
+                }
+            }else{
+
+            }
+            break;
+        }
+    default:
+        break;
+    }
+}
+
+/*!
  * @brief 处理注册群信息
  * @param[in] response 成功结果
  */
@@ -288,6 +360,7 @@ void PanelGroupPage::recvRegistGroup(RegistGroupResponse response)
 {
     if(response.userId == G_User->BaseInfo().uuid){
         emit registChatGroupResult(true);
+        RSingleton<UserChatContainer>::instance()->addChatGroupRoom(response.groupId,response.chatInfo);
     }else{
         emit registChatGroupResult(false);
     }
@@ -379,17 +452,8 @@ void PanelGroupPage::moveGroupTo()
     if(!t_targetPage||!t_sourcePage||!d->m_movedItem)
         return;
 
-    GroupingFriendRequest * request = new GroupingFriendRequest;
-    request->type = G_Friend_MOVE;
-    request->stype = OperateGroup;
-    request->groupId = t_targetPage->getID();
-    request->oldGroupId = t_sourcePage->getID();
 
-    UserClient * client = RSingleton<UserManager>::instance()->client(d->m_movedItem);
-    if(client)
-        request->user = client->simpleUserInfo;
-
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+//    RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 void PanelGroupPage::createAction()
@@ -563,6 +627,20 @@ void PanelGroupPage::clearTargetGroup(const QString id)
     d->toolBox->removePage(t_delPage);
     d->toolBox->removeFromList(t_delPage);
     d->m_deleteID = QString();
+}
+
+/*!
+ * @brief 接收服务器的消息更新联系人分组在线联系人数目
+ * @param[in] info:SimpleUserInfo &，待更新的联系人信息
+ * @return 无
+ */
+void PanelGroupPage::updateChatShow(const SimpleChatInfo & info)
+{
+    ToolItem * t_item = RSingleton<GroupManager>::instance()->client(info.chatId)->toolItem;
+    if(!t_item){
+        return;
+    }
+    t_item->setName(info.remarks);
 }
 
 PanelGroupPage::~PanelGroupPage()

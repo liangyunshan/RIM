@@ -159,25 +159,16 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
     DataTable::RUser user;
     DataTable::RChatRoom room;
 
-    QString sql;
-    if(request->stype == OperatePerson)
-    {
-        RSelect rst({user.table});
+    RSelect rst({user.table});
 
-        rst.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId});
-        rst.createCriteria().
-                add(Restrictions::eq(user.table,user.account,request->accountOrNickName)).
-                orr(Restrictions::like(user.table,user.nickName,"%"+request->accountOrNickName+"%"));
-
-        sql = rst.sql();
-    }
-    else
-    {
-    }
+    rst.select(user.table,{user.account,user.nickName,user.signName,user.systemIon,user.iconId});
+    rst.createCriteria().
+            add(Restrictions::eq(user.table,user.account,request->accountOrNickName)).
+            orr(Restrictions::like(user.table,user.nickName,"%"+request->accountOrNickName+"%"));
 
     QSqlQuery query(db->sqlDatabase());
 
-    if(query.exec(sql))
+    if(query.exec(rst.sql()))
     {
         if(query.numRowsAffected() > 0)
         {
@@ -189,6 +180,49 @@ ResponseAddFriend SQLProcess::processSearchFriend(Database *db, SearchFriendRequ
                 result.signName = query.value(user.signName).toString();
                 result.isSystemIcon = query.value(user.systemIon).toBool();
                 result.iconId = query.value(user.iconId).toString();
+                response->result.append(result);
+            }
+            return FIND_FRIEND_FOUND;
+        }
+        else
+        {
+            return FIND_FRIEND_NOT_FOUND;
+        }
+    }
+    return FIND_FRIEND_FAILED;
+}
+
+ResponseAddFriend SQLProcess::processSearchGroup(Database *db, SearchFriendRequest *request, SearchGroupResponse *response)
+{
+    DataTable::RChatRoom chatroom;
+    RSelect rst({chatroom.table});
+
+    rst.createCriteria()
+            .add(Restrictions::eq(chatroom.table,chatroom.chatId,request->accountOrNickName))
+            .orr(Restrictions::like(chatroom.table,chatroom.name,"%"+request->accountOrNickName+"%"))
+            .add(Restrictions::eq(chatroom.table,chatroom.visible,SEARCH_VISIBLE));
+qDebug()<<rst.sql();
+    QSqlQuery query(db->sqlDatabase());
+
+    if(query.exec(rst.sql()))
+    {
+        if(query.numRowsAffected() > 0)
+        {
+            while(query.next())
+            {
+                ChatBaseInfo result;
+                result.uuid = query.value(chatroom.id).toString();
+                result.chatId = query.value(chatroom.chatId).toString();
+                result.name = query.value(chatroom.name).toString();
+                result.desc = query.value(chatroom.desc).toString();
+                result.label = query.value(chatroom.label).toString();
+                result.visible = query.value(chatroom.visible).toBool();
+                result.validate = query.value(chatroom.validate).toBool();
+                result.question = query.value(chatroom.question).toString();
+                result.answer = query.value(chatroom.answer).toString();
+                result.userId = query.value(chatroom.userId).toString();
+                result.isSystemIcon = query.value(chatroom.systemIon).toBool();
+                result.iconId = query.value(chatroom.iconId).toString();
                 response->result.append(result);
             }
             return FIND_FRIEND_FOUND;
@@ -655,46 +689,48 @@ bool SQLProcess::deleteGroup(Database *db, GroupingRequest *request)
     return false;
 }
 
-
 /*!
- * @brief 测试两个联系人是否已经建立关联关系
+ * @brief [1]测试两个联系人是否已经建立关联关系;[2]测试群中是否加入了指定联系人
  * @details 交替查询A、B双反中是否包含了对方的账号信息;
  * @param[in] db 数据库
  * @param[in] request 分组操作请求
  * @return 连接标识
  */
-bool SQLProcess::testTstablishRelation(Database *db, OperateFriendRequest *request)
+bool SQLProcess::testEstablishRelation(Database *db, OperateFriendRequest *request)
 {
-    QStringList alist = getGroupListByUserAccountId(db,request->accountId);
-    QStringList blist = getGroupListByUserAccountId(db,request->operateId);
+    if(request->stype == OperatePerson){
+        QStringList alist = getGroupListByUserAccountId(db,request->accountId);
+        QStringList blist = getGroupListByUserAccountId(db,request->operateId);
 
-    UserBaseInfo ainfo ,binfo;
-    if(getUserInfo(db,request->accountId,ainfo) && getUserInfo(db,request->operateId,binfo)){
-        QSqlQuery query(db->sqlDatabase());
-        DataTable::RGroup_User rgu;
-        foreach(QString s,alist){
-            RSelect rst(rgu.table);
-            rst.select(rgu.table,{rgu.id})
-                    .createCriteria()
-                    .add(Restrictions::eq(rgu.table,rgu.groupId,s))
-                    .add(Restrictions::eq(rgu.table,rgu.userId,binfo.uuid));
-            if(query.exec(rst.sql()) && query.next()){
-                return true;
+        UserBaseInfo ainfo ,binfo;
+        if(getUserInfo(db,request->accountId,ainfo) && getUserInfo(db,request->operateId,binfo)){
+            QSqlQuery query(db->sqlDatabase());
+            DataTable::RGroup_User rgu;
+            foreach(QString s,alist){
+                RSelect rst(rgu.table);
+                rst.select(rgu.table,{rgu.id})
+                        .createCriteria()
+                        .add(Restrictions::eq(rgu.table,rgu.groupId,s))
+                        .add(Restrictions::eq(rgu.table,rgu.userId,binfo.uuid));
+                if(query.exec(rst.sql()) && query.next()){
+                    return true;
+                }
+            }
+
+            foreach(QString s,blist){
+                RSelect rst(rgu.table);
+                rst.select(rgu.table,{rgu.id})
+                        .createCriteria()
+                        .add(Restrictions::eq(rgu.table,rgu.groupId,s))
+                        .add(Restrictions::eq(rgu.table,rgu.userId,ainfo.uuid));
+                if(query.exec(rst.sql()) && query.next()){
+                    return true;
+                }
             }
         }
+    }else if(request->stype == OperateGroup){
 
-        foreach(QString s,blist){
-            RSelect rst(rgu.table);
-            rst.select(rgu.table,{rgu.id})
-                    .createCriteria()
-                    .add(Restrictions::eq(rgu.table,rgu.groupId,s))
-                    .add(Restrictions::eq(rgu.table,rgu.userId,ainfo.uuid));
-            if(query.exec(rst.sql()) && query.next()){
-                return true;
-            }
-        }
     }
-
     return false;
 }
 
@@ -901,6 +937,31 @@ bool SQLProcess::getUserInfo(Database *db,const QString accountId, UserBaseInfo 
             return true;
         }
     }
+    return false;
+}
+
+/*!
+ * @brief 根据群id，获取群主ID
+ * @param[in] db 数据库
+ * @param[in] chatroomId 群ID
+ * @param[out] chatUserId  群主user表iD
+ */
+bool SQLProcess::getUserByChatroomId(Database *db, const QString chatroomId, QString &chatUserId)
+{
+    DataTable::RUser rus;
+    DataTable::RChatRoom rcr;
+    RSelect rst({rus.table,rcr.table});
+    rst.select(rus.table,{rus.account})
+            .on(rus.table,rus.id,rcr.table,rcr.userId)
+            .createCriteria()
+            .add(Restrictions::eq(rcr.table,rcr.chatId,chatroomId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        chatUserId = query.value(rus.account).toString();
+        return true;
+    }
+
     return false;
 }
 
@@ -1278,7 +1339,7 @@ bool SQLProcess::getSingleChatGroupInfo(Database *db, RegistGroupResponse *respo
             .on(rcgr.table,rcgr.chatroomId,rcr.table,rcr.id)
             .createCriteria()
             .add(Restrictions::eq(rcgr.table,rcgr.id,response->chatInfo.id));
-qDebug()<<selectChatGroupRoom.sql();
+
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(selectChatGroupRoom.sql()) && query.next()){
         response->chatInfo.chatRoomId = query.value(rcgr.chatroomId).toString();
@@ -1287,6 +1348,39 @@ qDebug()<<selectChatGroupRoom.sql();
         response->chatInfo.messNotifyLevel = (ChatMessNotifyLevel)query.value(rcgr.messNotifyLevel).toInt();
         response->chatInfo.isSystemIcon = query.value(rcr.systemIon).toBool();
         response->chatInfo.iconId = query.value(rcr.iconId).toString();
+        return true;
+    }
+    return false;
+}
+
+/*!
+ * @brief 获取群详细信息
+ * @param[in] db 数据库
+ * @param[in] chatId 群账号(2xxxx)
+ * @param[in] baseInfo 群信息容器
+ * @return 是否插入成功
+ */
+bool SQLProcess::getChatroomInfo(Database *db, const QString chatId, ChatBaseInfo &baseInfo)
+{
+    DataTable::RChatRoom rcgr;
+    RSelect rst(rcgr.table);
+    rst.createCriteria()
+            .add(Restrictions::eq(rcgr.table,rcgr.chatId,chatId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next()){
+        baseInfo.uuid = query.value(rcgr.id).toString();
+        baseInfo.chatId = query.value(rcgr.chatId).toString();
+        baseInfo.name = query.value(rcgr.name).toString();
+        baseInfo.desc = query.value(rcgr.desc).toString();
+        baseInfo.label = query.value(rcgr.label).toString();
+        baseInfo.visible = query.value(rcgr.visible).toBool();
+        baseInfo.validate = query.value(rcgr.validate).toBool();
+        baseInfo.question = query.value(rcgr.question).toString();
+        baseInfo.answer = query.value(rcgr.answer).toString();
+        baseInfo.userId = query.value(rcgr.userId).toString();
+        baseInfo.isSystemIcon = query.value(rcgr.systemIon).toBool();
+        baseInfo.iconId = query.value(rcgr.iconId).toString();
         return true;
     }
     return false;
