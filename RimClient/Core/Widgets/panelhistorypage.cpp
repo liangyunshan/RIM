@@ -157,6 +157,7 @@ void PanelHistoryPage::userDeleted(ChatMessageType type, QString groupId)
     if(findIndex != d->itemsMap.end()){
        removeHistoryItem((*findIndex).first);
     }
+    Q_UNUSED(type);
 }
 
 void PanelHistoryPage::removeHistoryItem(ToolItem *item)

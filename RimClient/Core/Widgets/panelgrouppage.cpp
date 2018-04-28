@@ -97,7 +97,7 @@ PanelGroupPage::PanelGroupPage(QWidget *parent) : QWidget(parent),
 
 void PanelGroupPage::onMessage(MessageType type)
 {
-    MQ_D(PanelGroupPage);
+    Q_UNUSED(type)
 }
 
 void PanelGroupPage::updateGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
@@ -114,6 +114,7 @@ void PanelGroupPage::updateGroupList(MsgOperateResponse status, ChatGroupListRes
     }else{
         RMessageBox::warning(this,QObject::tr("warning"),tr("Get groupList failed!"),RMessageBox::Yes);
     }
+    Q_UNUSED(status);
 }
 
 void PanelGroupPage::searchGroup()

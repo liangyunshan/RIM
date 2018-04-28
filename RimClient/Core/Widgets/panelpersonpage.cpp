@@ -333,12 +333,7 @@ void PanelPersonPage::clearUnrealGroupAndUser()
 
 void PanelPersonPage::onMessage(MessageType type)
 {
-    MQ_D(PanelPersonPage);
-    switch(type)
-    {
-        default:
-            break;
-    }
+    Q_UNUSED(type)
 }
 
 /*!

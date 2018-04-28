@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT  += core gui
+QT  += xml
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 

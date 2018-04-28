@@ -517,6 +517,18 @@ QString RSelect::sql()
     return result;
 }
 
+void RSelect::clear()
+{
+    SuperCondition::clear();
+    tableNames.clear();
+    selectedKeys.clear();
+    onCondtions.clear();
+    sortOrders.clear();
+    limitStart = -1;
+    limitCount = -1;
+    isSetLimit = false;
+}
+
 RDelete::RDelete(const QString tableName):
     tableName(tableName)
 {
@@ -537,4 +549,9 @@ QString RDelete::sql()
         result += ctia.toSql();
     }
     return result;
+}
+
+void SuperCondition::clear()
+{
+    ctia.clear();
 }

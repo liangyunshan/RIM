@@ -170,6 +170,7 @@ void DataProcess::processUserStateChanged(Database *db, int socketId, QSharedPoi
  */
 void DataProcess::pushFriendMyStatus(Database *db, int socketId, QString accountId,OnlineStatus onStatus)
 {
+    Q_UNUSED(socketId);
     QList<QString> friendList;
     RSingleton<SQLProcess>::instance()->getFriendAccountList(db,accountId,friendList);
 

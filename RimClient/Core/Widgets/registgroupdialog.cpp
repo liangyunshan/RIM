@@ -313,6 +313,7 @@ void RegistGroupDialog::validateInput(QString)
 
 void RegistGroupDialog::respValidateChanged(bool flag)
 {
+    Q_UNUSED(flag);
     validateInput("");
 }
 
