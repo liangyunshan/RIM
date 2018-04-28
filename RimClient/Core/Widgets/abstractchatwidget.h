@@ -30,10 +30,8 @@ public:
     void showRecentlyChatMsg(int count=1);
     void setUserInfo(SimpleUserInfo info);
     void initChatRecord();
-
-    void shakeWindow();
-
     void onMessage(MessageType type);
+    void shakeWindow();
 
 public slots:
     void slot_UpdateKeySequence();
@@ -51,6 +49,7 @@ private slots:
     void slot_ButtClick_SendMsg(bool flag);
     void slot_CheckSendEnter();
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
+    void finishLoadHTML(bool);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

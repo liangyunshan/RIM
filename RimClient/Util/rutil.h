@@ -48,6 +48,12 @@ public:
 
     static QImage convertToGray(const QImage &);
 
+    static void setRelativeImgPath(QString &targetHtml,QString userID);
+
+    static void escapeQuote(QString &targetHtml);
+
+    static void removeEccapeQuote(QString &targetHtml);
+
 private:
     static QSettings * gSettings;
 };

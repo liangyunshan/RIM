@@ -25,9 +25,10 @@ public:
 
     QString toChatFormaText();
     void insertChatFormatText(const QString &text);
-
-    int insertCopyImage(QImage &image);
+    void insertCopyImage(QImage &image);
     void setInputTextColor(QColor Color);
+    void getInputedImgs(QStringList &imgDirs);
+    void clearInputImg();
 
 protected:
     bool eventFilter(QObject *, QEvent *);
@@ -35,6 +36,9 @@ protected:
 protected:
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
+
+private:
+    QStringList m_inputImgs;
 
 };
 

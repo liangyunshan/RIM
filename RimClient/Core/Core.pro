@@ -8,6 +8,7 @@ QT       += core gui
 QT       += xml
 QT       += sql
 QT       += multimedia
+QT       += webenginewidgets
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 

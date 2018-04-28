@@ -42,8 +42,11 @@ public:
     QVariant getSettingValue(const QString & group,const QString &key,QVariant defaultValue);
     void setSettingValue(const QString & group,const QString &key,QVariant value);
 
-    QString getFilePath(QString id);
+    QString getFilePath(QString fileId);
     QString getIcon();
+
+    QString getChatImgPath();
+    void setChatImgPath(const QString &path);
 
     void setDatabase(Database * database);
     Database * database();
@@ -61,6 +64,7 @@ private:
     QString userHome;
     QString userDBPath;
     QString userFilePath;
+    QString chatImgPath;    //聊天对话中图片存储路径
 
     QSettings * userSettings;
 

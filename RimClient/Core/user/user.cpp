@@ -21,13 +21,14 @@ User::User(const QString userId)
 
 bool User::createUserHome(const QString id)
 {
-    userHome = QDir::currentPath() + Constant::PATH_UserPath + QDir::separator() + id;
+    userHome = QDir::currentPath() + QDir::separator() + Constant::PATH_UserPath + QDir::separator() + id;
     userDBPath = userHome + QDir::separator() + Constant::USER_DBDirName;
     userFilePath = userHome + QDir::separator() + Constant::USER_RecvFileDirName;
-
+    chatImgPath = userFilePath + QDir::separator() + Constant::USER_ChatImageDirName;   //创建当前登录id聊天对话图片保存路径
     if(RUtil::createDir(userHome))
         if(RUtil::createDir(userDBPath))
             if(RUtil::createDir(userFilePath))
+                if(RUtil::createDir(chatImgPath))
                 return true;
 
     return  false;
@@ -110,12 +111,12 @@ void User::setSettingValue(const QString &group, const QString &key, QVariant va
 
 /*!
  * @brief 获取接收目录下指定文件的全路径
- * @param[in] id 文件ID
+ * @param[in] fileId 文件ID
  * @return 是否插入成功
  */
-QString User::getFilePath(QString id)
+QString User::getFilePath(QString fileId)
 {
-    QString tmp = userFilePath + QDir::separator() + id;
+    QString tmp = userFilePath + QDir::separator() + fileId;
     return tmp;
 }
 
@@ -137,6 +138,24 @@ QString User::getIcon()
         return tmpIconPath;
     else
         return RSingleton<ImageManager>::instance()->getSystemUserIcon();
+}
+
+/*!
+ * @brief User::getChatImgPath 获取保存聊天图片的文件夹路径
+ * @return 返回当前登录用户的聊天图片文件夹路径
+ */
+QString User::getChatImgPath()
+{
+    return chatImgPath;
+}
+
+/*!
+ * @brief User::setChatImgPath 设置保存聊天图片的文件夹路径
+ * @param path 待设置的保存聊天图片的文件夹路径
+ */
+void User::setChatImgPath(const QString &path)
+{
+    chatImgPath = path;
 }
 
 void User::setDatabase(Database *database)

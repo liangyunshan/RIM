@@ -1094,6 +1094,7 @@ void LoginDialog::procFileData(QString fileId, QString fileName)
                 break;
         }
     }
+    Q_UNUSED(d);
 }
 
 /*!

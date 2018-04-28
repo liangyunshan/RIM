@@ -20,6 +20,9 @@
 #include <QMimeData>
 #include <QPalette>
 #include <QPropertyAnimation>
+#include <QWebEngineView>
+#include <QWebEnginePage>
+#include <QImage>
 
 #include "head.h"
 #include "global.h"
@@ -33,7 +36,6 @@
 #include "Util/imagemanager.h"
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"
-#include "slidebar.h"
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
@@ -59,6 +61,8 @@
 #define CHAT_SHAKE_DURATION 200             //窗口抖动动画持续时间
 #define CHAT_SHAKE_LOOPCOUNT 2              //窗口抖动动画循环次数
 #define CHAT_SHAKE_RANGE 6                  //窗口抖动幅度
+#define SHOTIMAGE_WIDTH 80                  //截图显示宽度
+#define SHOTIMAGE_HEIGHT 80                 //截图显示高度
 
 class AbstractChatWidgetPrivate : public GlobalData<AbstractChatWidget>
 {
@@ -90,7 +94,6 @@ protected:
     SimpleUserInfo userInfo;               //用户基本信息
 
     ToolBar * toolBar;                     //工具栏
-    SlideBar * slideBar;
 
     QSplitter * chatSplitter;
     QWidget * bodyWidget;
@@ -98,7 +101,7 @@ protected:
     QWidget * rightWidget;                 //右侧
 
     QWidget * chatWidget;                  //聊天区域
-    ComplexTextEdit * chatArea;            //对话信息区域
+    QWebEngineView * view;                 //加载html视图
     ToolBar * chatToolBar;                 //聊天工具栏
     SimpleTextEdit * chatInputArea;        //信息输入框
     QWidget * buttonWidget;                //关闭、发送等按钮栏
@@ -195,16 +198,15 @@ void AbstractChatWidgetPrivate::initWidget()
     tmpLayout->setContentsMargins(0,0,0,0);
     tmpLayout->setSpacing(0);
 
-    chatArea = new ComplexTextEdit(leftWidget);
-    chatArea->setReadOnly(true);
-    QObject::connect(chatArea,SIGNAL(sig_QueryRecordTask(int,int)),q_ptr,SLOT(slot_QueryHistoryRecords(int,int)));
+    QWebEnginePage *page = new QWebEnginePage(chatWidget);
+    view = new QWebEngineView(chatWidget);
+    view->setPage(page);
+    QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
+    QVBoxLayout * webLayout =  new QVBoxLayout;
+    webLayout->addWidget(view);
+    chatWidget->setLayout(webLayout);
 
-    slideBar = new SlideBar(contentWidget);
-    slideBar->setFixedWidth(10);
-
-    tmpLayout->addWidget(chatArea);
-    tmpLayout->addWidget(slideBar);
-    chatWidget->setLayout(tmpLayout);
+//    chatWidget->setLayout(tmpLayout);
 
     QWidget * chatInputContainter = new QWidget(leftWidget);
     chatInputContainter->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -247,7 +249,8 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * screenShotButt = new RToolButton();
     screenShotButt->setObjectName(Constant::Tool_Chat_ScreenShot);
     screenShotButt->setToolTip(QObject::tr("Screenshot"));
-    screenShotButt->setPopupMode(QToolButton::InstantPopup);
+    screenShotButt->setPopupMode(QToolButton::MenuButtonPopup);
+    QObject::connect(screenShotButt,SIGNAL(clicked()),G_pScreenShotAction,SIGNAL(triggered()));
 
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
@@ -346,8 +349,6 @@ void AbstractChatWidgetPrivate::initWidget()
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
 
-    QObject::connect(slideBar,SIGNAL(slideStateChanged(bool)),q_ptr,SLOT(setSideVisible(bool)));
-
     layout->addWidget(leftWidget);
     layout->addWidget(rightWidget);
 
@@ -382,7 +383,9 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
-//    d_ptr->chatInputArea->setFocus();
+
+    d_ptr->view->load(QUrl("qrc:/html/resource/html/chatRecord.html"));
+    d_ptr->view->show();
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
@@ -416,7 +419,7 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
     int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
@@ -424,7 +427,7 @@ void AbstractChatWidget::showRecentlyChatMsg(int count)
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
     int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -433,8 +436,25 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     d->userInfo = info;
     d->userInfo_NameLabel->setText(info.nickName);
     setWindowTitle(info.nickName);
+}
 
-    d->chatArea->setSimpleUserInfo(info);
+void AbstractChatWidget::initChatRecord()
+{
+    MQ_D(AbstractChatWidget);
+    d->p_DatabaseThread = new DatabaseThread(this);
+    d->p_DatabaseThread->setDatabase(G_User->database());
+
+    connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
+            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
+    connect(d->p_DatabaseThread,SIGNAL(finished()),
+            d->p_DatabaseThread,SLOT(deleteLater()));
+    d->p_DatabaseThread->start();
+
+    int user_query_id = d->userInfo.accountId.toInt();
+    bool ret = SQLProcess::instance()->initTableUser_id(G_User->database(),d->userInfo);
+    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+    Q_UNUSED(ret);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -448,6 +468,27 @@ void AbstractChatWidget::onMessage(MessageType type)
         default:
                 break;
     }
+}
+
+//窗口抖动
+void AbstractChatWidget::shakeWindow()
+{
+    QPoint pos = this->pos();
+    QPropertyAnimation *pAnimation = new QPropertyAnimation(this, "pos");
+    pAnimation->setDuration(CHAT_SHAKE_DURATION);
+    pAnimation->setLoopCount(CHAT_SHAKE_LOOPCOUNT);
+    pAnimation->setStartValue(pos);
+    pAnimation->setKeyValueAt(0.1,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.2,pos + QPoint(-CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.3,pos + QPoint(-CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.4,pos + QPoint(0,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.5,pos + QPoint(CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.6,pos + QPoint(CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.7,pos + QPoint(CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.8,pos + QPoint(0,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.9,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setEndValue(pos);
+    pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 //更新快捷键
@@ -475,11 +516,11 @@ void AbstractChatWidget::resizeOnce()
     setSideVisible(false);
 }
 
+//控制历史消息记录窗口弹出与隐藏
 void AbstractChatWidget::setSideVisible(bool flag)
 {
     MQ_D(AbstractChatWidget);
 
-    d->slideBar->setState(flag);
     d->leftWidget->setProperty("SideBarVisible",flag);
     d->rightWidget->setProperty("SideBarVisible",flag);
 
@@ -542,26 +583,6 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     shakeWindow();
 }
 
-void AbstractChatWidget::shakeWindow()
-{
-    QPoint pos = this->pos();
-    QPropertyAnimation *pAnimation = new QPropertyAnimation(this, "pos");
-    pAnimation->setDuration(CHAT_SHAKE_DURATION);
-    pAnimation->setLoopCount(CHAT_SHAKE_LOOPCOUNT);
-    pAnimation->setStartValue(pos);
-    pAnimation->setKeyValueAt(0.1,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.2,pos + QPoint(-CHAT_SHAKE_RANGE,0));
-    pAnimation->setKeyValueAt(0.3,pos + QPoint(-CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.4,pos + QPoint(0,CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.5,pos + QPoint(CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.6,pos + QPoint(CHAT_SHAKE_RANGE,0));
-    pAnimation->setKeyValueAt(0.7,pos + QPoint(CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.8,pos + QPoint(0,-CHAT_SHAKE_RANGE));
-    pAnimation->setKeyValueAt(0.9,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
-    pAnimation->setEndValue(pos);
-    pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
-}
-
 //截图完成
 void AbstractChatWidget::slot_ScreenShot_Ready(bool)
 {
@@ -618,40 +639,57 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
 
-//    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
-//    {
-//        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
-//        return ;
-//    }
-//    TextUnit::ChatInfoUnit unit;
-//    d_ptr->chatInputArea->transTextToUnit(unit);
+    QString t_simpleHtml = QString("");
+    d->chatInputArea->extractPureHtml(t_simpleHtml);
+
+
+    //修改原始Html格式文本框内容，将其中img标签路径属性值设置为用户的相对路径
+    QString t_localHtml = t_simpleHtml;
+    RUtil::setRelativeImgPath(t_localHtml,G_User->BaseInfo().accountId);
+    //TODO 拼接调用JS执行的脚本内容，并调用JS函数执行
+//    QString t_Script = QString("%1").arg(t_simpleHtml);
+//    d->view->page()->runJavaScript(t_Script);
 
     FileNetConnector::instance()->connect();
 
-//    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
-//    TextRequest * request = new TextRequest;
-//    request->type = SearchPerson;
-//    request->textId = RUtil::UUID();
-//    request->isEncryption = false;
-//    request->isCompress = false;
-//    request->textType = TEXT_NORAML;
-//    request->otherSideId = d->userInfo.accountId;
-//    request->accountId = G_UserBaseInfo.accountId;
-//    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
-//    request->timeStamp = RUtil::timeStamp();
-//    RSingleton<MsgWrap>::instance()->hanleText(request);
-//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+    //转义原始Html
+    QString t_sendHtml = t_simpleHtml;
+    RUtil::escapeQuote(t_sendHtml);
+    //发送Html内容给联系人
+    TextRequest * request = new TextRequest;
+    request->type = SearchPerson;
+    request->textId = RUtil::UUID();
+    request->isEncryption = false;
+    request->isCompress = false;
+    request->textType = TEXT_NORAML;
+    request->otherSideId = d->userInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->sendData = t_sendHtml;
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
-    //TODO 对图片进行测试
-//    QString fileName = "e:/test2.chm";
-//    FileItemDesc * desc = new FileItemDesc;
-//    desc->id = RUtil::UUID();
-//    desc->fullPath = fileName;
-//    desc->fileSize = QFileInfo(fileName).size();
-//    desc->otherSideId = d->userInfo.accountId;
-//    desc->itemType = FILE_ITEM_CHAT_UP;
-//    FileRecvTask::instance()->addSendItem(desc);
+    //分开发送输入框中的图片
+    QStringList t_imgDirs;
+    d->chatInputArea->getInputedImgs(t_imgDirs);
+    if(!t_imgDirs.isEmpty())
+    {
+        for(int imgIndex=0;imgIndex<t_imgDirs.count();imgIndex++)
+        {
+            QString t_imgPath = t_imgDirs.at(imgIndex);
 
+            QString fileName = t_imgPath;
+            FileItemDesc * desc = new FileItemDesc;
+            desc->id = RUtil::UUID();
+            desc->fullPath = fileName;
+            desc->fileSize = QFileInfo(fileName).size();
+            desc->otherSideId = d->userInfo.accountId;
+            desc->itemType = FILE_ITEM_CHAT_UP;
+            FileRecvTask::instance()->addSendItem(desc);
+
+            Q_UNUSED(t_imgPath);
+        }
+    }
 
     //文件下载
 //    SimpleFileItemRequest * request = new SimpleFileItemRequest;
@@ -676,8 +714,21 @@ void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatI
     MQ_D(AbstractChatWidget);
     foreach(TextUnit::ChatInfoUnit unit,list)
     {
-        d->chatArea->insertChatText(unit);
+        //TODO LYS-20180413 查询数据库获取聊天记录并显示最近的聊天信息
+        //获取收到的Html消息,进行处理后显示在聊天记录中
+        QString t_recvedMsg = QString("");
+        RUtil::setRelativeImgPath(t_recvedMsg,G_User->BaseInfo().accountId);
+        RUtil::removeEccapeQuote(t_recvedMsg);
+        //使用收到的Html消息拼接调用JS执行的脚本内容，并调用JS函数执行
+        QString t_showMsgScript = QString("");;
+        d->view->page()->runJavaScript(t_showMsgScript);
     }
+}
+
+//QWebEngineView加载HTML文件完成
+void AbstractChatWidget::finishLoadHTML(bool)
+{
+    qDebug()<<"finishLoadHTML";
 }
 
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
@@ -732,24 +783,5 @@ void AbstractChatWidget::switchWindowSize()
     d->isMaxSize = !d->isMaxSize;
 
     setShadowWindow(!isMaximized());
-}
-
-void AbstractChatWidget::initChatRecord()
-{
-    MQ_D(AbstractChatWidget);
-    d_ptr->p_DatabaseThread = new DatabaseThread(this);
-    d_ptr->p_DatabaseThread->setDatabase(G_User->database());
-
-    connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
-            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
-    connect(d->p_DatabaseThread,SIGNAL(finished()),
-            d->p_DatabaseThread,SLOT(deleteLater()));
-    d->p_DatabaseThread->start();
-
-    int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = SQLProcess::instance()->initTableUser_id(G_User->database(),d->userInfo);
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
-    Q_UNUSED(ret);
 }
 

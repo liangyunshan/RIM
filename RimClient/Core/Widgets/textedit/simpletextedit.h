@@ -25,6 +25,7 @@ public:
     void setInputFont(QFont);
     void updateInputInfo();
     void clear();
+    void extractPureHtml(QString &content);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -40,6 +41,7 @@ private:
     QFont  m_inputFont;
     QStyle *p_initStyle;
     bool b_isSendStatus;
+    QStringList imgTypes;
 };
 
 #endif // SIMPLETEXTEDIT_H

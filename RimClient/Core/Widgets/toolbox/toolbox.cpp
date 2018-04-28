@@ -564,6 +564,10 @@ void ToolBox::dropEvent(QDropEvent *event)
     if(t_movedPage)
     {
         int t_movedIndex = -1;
+        if(pageInPos(event->pos()) == t_movedPage)
+        {
+            return;
+        }
         indexInLayout(event->pos(),t_movedIndex);
         if(t_movedIndex != -1)
         {

@@ -82,4 +82,7 @@
         <file>resource/icon/state/STATE_OFFLINE.png</file>
         <file>resource/icon/state/STATE_ONLINE.png</file>
     </qresource>
+    <qresource prefix="/html">
+        <file>resource/html/chatRecord.html</file>
+    </qresource>
 </RCC>

@@ -41,8 +41,11 @@ const char CONFIG_LocalePath[] = "/translations";
 const char CONFIG_StylePath[] = "/style";
 const char CONFIG_SountPath[] = "/sound";
 
-const char PATH_UserPath[] = "/../users";
+const char PATH_UserPath[] = "../users";
 const char USER_RecvFileDirName[] = "ChatRecvFile";
+const char USER_ChatImageDirName[] = "Image";
+const char USER_C2CDirName[] = "C2C";
+const char USER_GroupDirName[] = "Group";
 const char USER_DBDirName[] = "ChatLog";
 const char USER_DBFileName[] = "chatlog.db";
 const char USER_ConfigName[] = "userconfg.ini";

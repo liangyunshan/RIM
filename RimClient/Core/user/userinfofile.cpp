@@ -2,6 +2,7 @@
 
 #include <QDataStream>
 #include <QApplication>
+#include <QDir>
 
 #include "Core/constants.h"
 #include "Core/head.h"
@@ -9,12 +10,13 @@
 UserInfoFile::UserInfoFile():
     QObject()
 {
-    fileName = qApp->applicationDirPath() + QString(Constant::PATH_UserPath) + "/users.bin";
+    fileName = qApp->applicationDirPath() + QDir::separator()+ QString(Constant::PATH_UserPath) + "/users.bin";
 }
 
 bool UserInfoFile::readUsers(QList<UserInfoDesc *> &users)
 {
     QFile file;
+
     file.setFileName(fileName);
     if(file.open(QFile::ReadOnly))
     {

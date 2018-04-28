@@ -367,6 +367,7 @@ void EditPersonInfoWindow::openLocalImage()
 
         FileRecvTask::instance()->addSendItem(desc);
     }
+    Q_UNUSED(d);
 }
 
 /*!
