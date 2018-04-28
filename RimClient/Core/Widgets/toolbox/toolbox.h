@@ -8,13 +8,14 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
- *      date:20180129   content:添加获取倒数第二个page方法penultimatePage   name:LYS
- *      date:20180129   content:添加根据目标uuid获取目标page的方法targetPage   name:LYS
- *      date:20180129   content:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数   name:LYS
- *      date:20180131   content:添加移除分组方法removePage   name:LYS
- *      date:20180131   content:添加获取默认分组方法defaultPage   name:LYS
- *      date:20180208   content:修复移动排序算法问题   name:LYS
- *      date:20180227   content:添加根据Item找到Page的重载方法targetPage(ToolItem *)   name:LYS
+ *      20180129:LYS:添加获取倒数第二个page方法penultimatePage
+ *      20180129:LYS:添加根据目标uuid获取目标page的方法targetPage
+ *      20180129:LYS:添加处理page的SIGNAL：itemRemoved(ToolItem*)的槽函数
+ *      20180131:LYS:添加移除分组方法removePage
+ *      20180131:LYS:添加获取默认分组方法defaultPage
+ *      20180208:LYS:修复移动排序算法问题
+ *      20180227:LYS:添加根据Item找到Page的重载方法targetPage(ToolItem *)
+ *      20180419:wey:修复快速拖动分组时分组显示在页面底部()
  *
  */
 #ifndef TOOLBOX_H
@@ -40,22 +41,25 @@ public:
     bool removePage(ToolPage *);
     bool removeFromList(ToolPage *);
 
+    void sortPage(const QString & groupId, int newPageIndex);
+
     ToolPage * selectedPage();
     ToolItem * selectedItem();
+    ToolPage * penultimatePage();
+    ToolPage * defaultPage();
+    ToolPage * targetPage(QString &);
+    ToolPage * targetPage(ToolItem *);
 
     int pageCount();
     QList<ToolPage *> & allPages()const;
 
     void setContextMenu(QMenu * menu);
     const QList<PersonGroupInfo> toolPagesinfos();
-    ToolPage *penultimatePage();
-    ToolPage *defaultPage();
-    ToolPage *targetPage(QString &);
-    ToolPage *targetPage(ToolItem *);
 
 signals:
     void updateGroupActions(ToolPage *);
     void noticePageRemoved(ToolPage *);
+    void pageIndexMoved(int newIndex,QString pageId);
 
 private slots:
     void setSlectedPage(ToolPage*);

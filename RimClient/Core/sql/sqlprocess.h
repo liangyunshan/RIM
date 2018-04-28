@@ -26,14 +26,21 @@ public:
     ~SQLProcess();
     static SQLProcess *instance();
 
+    bool createTableIfNotExists(Database * db);
+
+    bool loadChatHistoryChat(Database * db,QList<HistoryChatRecord> & list);
+    bool addOneHistoryRecord(Database * db,const HistoryChatRecord & record);
+    bool updateOneHistoryRecord(Database * db,const HistoryChatRecord & record);
+    bool containHistoryRecord(Database * db,const QString recordId);
+    bool removeOneHistoryRecord(Database * db,QString recordId);
+    bool removeAllHistoryRecord(Database * db);
+    bool topHistoryRecord(Database * db,QString recordId,bool isTop);
 
     QString querryRecords(int userid, int currRow=0, int queryRows= TextUnit::DefaultQueryRow);
     int queryTotleRecord(Database * db,int id);
 
-    bool createTablebUserList(Database * db);
     bool queryUser(Database * db, int tgtUserId);
     bool insertTgtUser(Database * db, int tgtUserId, QString name);
-    bool createTableUser_id(Database * db, int tgtUserId);
     bool insertTableUserChatInfo(Database * db, TextUnit::ChatInfoUnit unit,SimpleUserInfo userInfo);
 
     bool initTableUser_id(Database * db,SimpleUserInfo userInfo);

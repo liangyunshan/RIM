@@ -14,6 +14,8 @@
  *      20180202:LYS:去掉pages与toolItems列表，toolBox中allPages方法与toolPage中items方法代替
  *      20180205:LYS:修复删除分组bug
  *      20180305:LYS:添加创建好友列表或者刷新好友列表标志m_listIsCreated:bool
+ *      20180417:wey:修复删除好友时，全局列表UserFriendContainter中未删除对应item，造成再次添加时按钮不可用的bug
+ *      20180419:wey:添加分组移动排序操作
  */
 #ifndef PANELPERSONPAGE_H
 #define PANELPERSONPAGE_H
@@ -21,6 +23,8 @@
 #include <QWidget>
 #include "observer.h"
 #include "protocoldata.h"
+
+class UserClient;
 
 namespace ProtocolType
 {
@@ -43,26 +47,39 @@ public:
 
 signals:
     void showChatDialog(ToolItem * item);
+    void userDeleted(ChatMessageType messType, QString accountId);
 
 private slots:
+    void updateFriendList(FriendListResponse * friendList);
     void refreshList();
-    void addGroup();
-    void renameGroup();
-    void delGroup();
+    //分组操作
+    void respGroupCreate();
+    void respGroupRename();
+    void respGroupDeleted();
+    void respGroupMoved(int index,QString pageId);
 
     void createChatWindow(ToolItem * item);
 
     void sendInstantMessage();
+
+    void showChatWindow(ToolItem*item);
+    void showChatWindow(ChatMessageType messType, QString accountId);
+
     void showUserDetail();
-    void modifyUserInfo();
+    void showUserDetail(ChatMessageType messtype,QString accountId);
+
     void deleteUser();
+    void deleteUser(ChatMessageType messtype,QString accountId);
+
+    void modifyUserInfo();
 
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
     void updateModifyInstance(QObject *);
     void requestModifyRemark(QString remark);
 
-    void updateDetailInstance(QObject *);
     void updateContactList();
+
+    void recvFriendGroupingOperate(GroupingResponse response);
 
 public slots:
     void renameEditFinished();
@@ -72,11 +89,17 @@ public slots:
 private:
     void createAction();
     void addGroupAndUsers();
+    void updateGroupDescInfo(ToolPage * page);
+    void updateGroupDescInfo();
     ToolItem * ceateItem(SimpleUserInfo *info, ToolPage *page);
     void clearTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);
     void removeContact(const SimpleUserInfo &);
     void clearUnrealGroupAndUser();
+
+    void createDetailView(UserClient * client);
+    void showOrCreateChatWindow(UserClient * client);
+    void sendDeleteUserRequest(UserClient * client , QString groupId);
 
 private:
     PanelPersonPagePrivate * d_ptr;

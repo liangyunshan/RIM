@@ -44,6 +44,7 @@ public:
 
     QString getFilePath(QString fileId);
     QString getIcon();
+    QString getIcon(bool isSystemIcon,const QString &iconId);
 
     QString getChatImgPath();
     void setChatImgPath(const QString &path);

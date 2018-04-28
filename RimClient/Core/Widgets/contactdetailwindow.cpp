@@ -255,6 +255,7 @@ ContactDetailWindow::ContactDetailWindow(QWidget *parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Contact Person Detail"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -309,10 +310,10 @@ void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 }
 
 /*!
-     * @brief 在分组下拉框中填充当前全部的分组名称并设置联系人所属分组
-     * @param[in] groups:QStringList,全部分组名称;current:int,当前分组索引值
-     * @return 无
-     */
+ * @brief 在分组下拉框中填充当前全部的分组名称并设置联系人所属分组
+ * @param[in] groups:QStringList,全部分组名称;current:int,当前分组索引值
+ * @return 无
+ */
 void ContactDetailWindow::setGroups(QStringList groups, int current)
 {
     MQ_D(ContactDetailWindow);

@@ -41,6 +41,7 @@
 #include "others/msgqueuemanager.h"
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
+#include "messdiapatch.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -418,16 +419,16 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -451,9 +452,9 @@ void AbstractChatWidget::initChatRecord()
     d->p_DatabaseThread->start();
 
     int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = SQLProcess::instance()->initTableUser_id(G_User->database(),d->userInfo);
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+    bool ret = RSingleton<SQLProcess>::instance()->initTableUser_id(G_User->database(),d->userInfo);
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow));
     Q_UNUSED(ret);
 }
 
@@ -501,7 +502,7 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
     MQ_D(AbstractChatWidget);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -638,6 +639,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
+//test
+    //TODO 20180423 向历史会话记录列表插入一条记录
+    HistoryChatRecord record;
+    record.accountId = d->userInfo.accountId;
+    record.nickName = d->userInfo.nickName;
+    record.dtime = RUtil::currentMSecsSinceEpoch();
+    record.lastRecord = RUtil::getTimeStamp();
+    record.systemIon = d->userInfo.isSystemIcon;
+    record.iconId = d->userInfo.iconId;
+    record.type = CHAT_C2C;
+    MessDiapatch::instance()->onAddHistoryItem(record);
+//test
 
     QString t_simpleHtml = QString("");
     d->chatInputArea->extractPureHtml(t_simpleHtml);
@@ -656,40 +669,40 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
     //发送Html内容给联系人
-    TextRequest * request = new TextRequest;
-    request->type = SearchPerson;
-    request->textId = RUtil::UUID();
-    request->isEncryption = false;
-    request->isCompress = false;
-    request->textType = TEXT_NORAML;
-    request->otherSideId = d->userInfo.accountId;
-    request->accountId = G_User->BaseInfo().accountId;
-    request->sendData = t_sendHtml;
-    request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
-    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+//    TextRequest * request = new TextRequest;
+//    request->type = OperatePerson;
+//    request->textId = RUtil::UUID();
+//    request->isEncryption = false;
+//    request->isCompress = false;
+//    request->textType = TEXT_NORAML;
+//    request->otherSideId = d->userInfo.accountId;
+//    request->accountId = G_User->BaseInfo().accountId;
+//    request->sendData = t_sendHtml;
+//    request->timeStamp = RUtil::timeStamp();
+//    RSingleton<MsgWrap>::instance()->hanleText(request);
+//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片
-    QStringList t_imgDirs;
-    d->chatInputArea->getInputedImgs(t_imgDirs);
-    if(!t_imgDirs.isEmpty())
-    {
-        for(int imgIndex=0;imgIndex<t_imgDirs.count();imgIndex++)
-        {
-            QString t_imgPath = t_imgDirs.at(imgIndex);
+//    QStringList t_imgDirs;
+//    d->chatInputArea->getInputedImgs(t_imgDirs);
+//    if(!t_imgDirs.isEmpty())
+//    {
+//        for(int imgIndex=0;imgIndex<t_imgDirs.count();imgIndex++)
+//        {
+//            QString t_imgPath = t_imgDirs.at(imgIndex);
 
-            QString fileName = t_imgPath;
-            FileItemDesc * desc = new FileItemDesc;
-            desc->id = RUtil::UUID();
-            desc->fullPath = fileName;
-            desc->fileSize = QFileInfo(fileName).size();
-            desc->otherSideId = d->userInfo.accountId;
-            desc->itemType = FILE_ITEM_CHAT_UP;
-            FileRecvTask::instance()->addSendItem(desc);
+//            QString fileName = t_imgPath;
+//            FileItemDesc * desc = new FileItemDesc;
+//            desc->id = RUtil::UUID();
+//            desc->fullPath = fileName;
+//            desc->fileSize = QFileInfo(fileName).size();
+//            desc->otherSideId = d->userInfo.accountId;
+//            desc->itemType = FILE_ITEM_CHAT_UP;
+//            FileRecvTask::instance()->addSendItem(desc);
 
-            Q_UNUSED(t_imgPath);
-        }
-    }
+//            Q_UNUSED(t_imgPath);
+//        }
+//    }
 
     //文件下载
 //    SimpleFileItemRequest * request = new SimpleFileItemRequest;
@@ -698,11 +711,11 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //    request->fileId = "f5a7c4c5e9574d31bb37723945b5d6a3";
 //    FileRecvTask::instance()->addRecvItem(request);
 
-//    SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
+//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
 
 //    int user_query_id = d->userInfo.accountId.toInt();
-//    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+//    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 
     d->chatInputArea->clear();
 }
@@ -784,4 +797,3 @@ void AbstractChatWidget::switchWindowSize()
 
     setShadowWindow(!isMaximized());
 }
-

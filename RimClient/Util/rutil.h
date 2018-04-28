@@ -43,6 +43,7 @@ public:
     static QRect screenGeometry();
 
     static qint64 currentMSecsSinceEpoch();
+    static qint64 currentSecsSinceEpoch();
 
     static bool validateIpFormat(QString dest);
 

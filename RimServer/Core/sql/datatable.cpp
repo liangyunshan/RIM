@@ -13,13 +13,26 @@ RUser::RUser():
 
 RGroup::RGroup():table("rgroup"),
     id("ID"),name("NAME"),userCount("USER_COUNT"),
-    userId("UID"),defaultGroup("DEFAUL")
+    userId("UID"),defaultGroup("DEFAUL"),index("SINDEX")
 {
 
 }
 
 RChatRoom::RChatRoom():
-    table("rchatroom"),id("ID"),name("NAME"),desc("DESC"),label("LABEL"),userId("UID")
+    table("rchatroom"),id("ID"),chatId("CHATID"),name("NAME"),desc("DESCRIPT"),label("LABEL"),visible("VISIBLE"),
+    validate("VALIDATE"),question("QUESTION"),answer("ANSWER"),userId("UID"),systemIon("SYSTEMICON"),iconId("ICONID")
+{
+
+}
+
+RChatGroup::RChatGroup():table("rchatgroup"),id("ID"),name("NAME"),groupCount("GCOUNT"),userId("UID"),defaultGroup("DEFAULTGROUP")
+{
+
+}
+
+
+RChatGroupDesc::RChatGroupDesc():table("rchatgroupdesc"),id("ID"),account("ACCOUNT"),chatgroupids("CHATGROUPIDS"),
+    chatgroupsize("CHATSIZE")
 {
 
 }
@@ -30,13 +43,14 @@ RGroup_User::RGroup_User():table("rgroup_user"),
 
 }
 
-RChatroom_User::RChatroom_User():
-    id("ID"),chatId("CID"),userId("UID")
+RChatroom_User::RChatroom_User():table("rchatroom_user"),
+    id("ID"),chatroomId("CID"),userId("UID"),manager("MANAGER"),remarks("REMARKS")
 {
 
 }
 
-RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accuoutId("ACCOUNT_ID")
+RimConfig::RimConfig():table("RimConfig"),name("NAME"),value("VALUE"),accountId("ACCOUNT_ID"),
+    groupAccoungId("CHATROOM_ID")
 {
 
 }
@@ -59,6 +73,18 @@ RFile::RFile():table("rfile"),id("ID"),md5("MD5"),fileName("FILENAME"),src("SRC"
 {
 
 }
+
+RGroupDesc::RGroupDesc():table("rgroupdesc"),id("ID"),account("USERID"),groupids("GROUPIDS"),groupsize("GROUPSIZE"){
+
+}
+
+RChatGroupRoom::RChatGroupRoom():table("rchatgrouproom"),id("ID"),chatroomId("CHATROOMID"),chatgroupId("CHATGROUPID"),
+    remarks("REMARKS"),messNotifyLevel("NOTIFYLEVEL")
+{
+
+}
+
+
 
 }
 

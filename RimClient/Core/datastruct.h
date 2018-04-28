@@ -36,13 +36,13 @@ enum MessageType
     MESS_SHORTCUT,               /*!< 快捷键更新 */
     MESS_SETTINGS,               /*!< 系统设置修改 */
     MESS_BASEINFO_UPDATE,        /*!< 基本信息修改 */
-    MESS_FRIENDLIST_UPDATE,      /*!< 好友列表更新 */
-    MESS_GROUPLIST_UPDATE,       /*!< 群列表更新 */
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
-    MESS_GROUP_DELETE,           /*!< 分组删除消息 */
     MESS_ICON_CHANGE,            /*!< 登陆用户icon改变 */
-    MESS_SCREEN_CHANGE           /*!< 屏幕改变 */
+    MESS_SCREEN_CHANGE,          /*!< 屏幕改变 */
+    MESS_CHATGROUP_REGIST_SUCCESS,      /*!< 群账户注册成功 */
+    MESS_CHATGROUP_REGIST_FAILED,       /*!< 群账户注册失败 */
+    MESS_FRIEND_STATE_CHANGE     /*!< 好友状态改变 */
 };
 
 /*!
@@ -90,7 +90,7 @@ struct NotifyInfo
 {
     QString identityId;                     /*!< 消息唯一标识 */
     NotifyType type;                        /*!< 消息类型 */
-    QString accountId;                      /*!< 通知消息所属发放用户ID */
+    QString accountId;                      /*!< 通知消息所属发送方用户ID */
     QString nickName;                       /*!< 用户昵称 */
     bool isSystemIcon;                      /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
     QString iconId;                         /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
@@ -99,9 +99,48 @@ struct NotifyInfo
     MsgCommand msgCommand;                  /*!< 命令类型 */
 
     OperateFriend ofriendType;              /*!< type为NotifySystem时有效 */
-    SearchType stype;                       /*!< 当前请求的类型(人/群) */
+    OperateType stype;                      /*!< 当前请求的类型(人/群) */
     int ofriendResult;                      /*!< 若type为NotifySystem，此结果对应ResponseFriendApply的含义 */
 
+};
+
+/*!
+ *  @brief  联系人分组信息
+ */
+struct PersonGroupInfo
+{
+    QString uuid;               /*!< 分组ID */
+    QString name;               /*!< 分组名称 */
+    int sortNum;                /*!< 分组序号从0开始 */
+    bool isDefault;             /*!< 是否为默认分组，一个联系人只有一个默认分组，由服务器在创建用户时指定创建 */
+};
+
+/*!
+ *  @brief 聊天信息中信息类型
+ */
+enum ChatMessageType{
+    CHAT_C2C,                   /*!< 个人消息 */
+    CHAT_C2G,                   /*!< 群消息 */
+    CHAT_SYS                    /*!< 系统消息 */
+};
+
+/*!
+ *  @brief  历史聊天记录信息
+ */
+struct HistoryChatRecord
+{
+    HistoryChatRecord():isTop(false),systemIon(true){
+
+    }
+    QString id;                       /*!< id,int */
+    ChatMessageType type;             /*!< 记录类型(群、个人、系统通知) */
+    QString accountId;                /*!< 聊天账户 */
+    QString nickName;                 /*!< 个人昵称、群名称 */
+    qint64 dtime;                     /*!< 日期 */
+    QString lastRecord;               /*!< 最后记录 */
+    bool isTop;                       /*!< 是否置顶 */
+    bool systemIon;                   /*!< 是否为系统头像，默认为系统头像true */
+    QString iconId;                   /*!< 图片索引 */
 };
 
 namespace TextUnit
@@ -191,15 +230,5 @@ namespace TextUnit
 
     const unsigned short DefaultQueryRow = 5;  //默认查找的记录数
 }
-
-namespace GroupPerson {
-    struct PersonGroupInfo{
-        QString uuid;
-        QString name;
-        int sortNum;
-        bool isDefault;
-    };//联系人分组信息
-}
-
 
 #endif // DATASTRUCT_H

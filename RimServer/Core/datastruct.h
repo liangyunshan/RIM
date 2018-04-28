@@ -46,7 +46,7 @@ enum DatabaseType
 /*!
  * @brief 解析结果
  */
-enum OperateType
+enum ResultType
 {
     PARSE_ERROR,            /*!< 发生错误*/
     VIEW_PROGRAM,           /*!< 查看程序信息*/
@@ -66,7 +66,7 @@ struct CommandParameter
     ServiceType serviceType;
     TransmissionMode  transMode;
     DatabaseType dbType;
-    OperateType parseResult;
+    ResultType parseResult;
 };
 
 struct FileItemInfo

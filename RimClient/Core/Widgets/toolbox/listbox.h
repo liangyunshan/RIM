@@ -28,7 +28,11 @@ public:
 
     void addItem(ToolItem * item);
     QList<ToolItem *> items()const;
+    QList<ToolItem *> sortedItems()const;
 
+    bool reInsert(ToolItem * item,int pos = -1);
+
+    bool removeAllItem();
     bool removeItem(ToolItem * item);
     void clear();
 

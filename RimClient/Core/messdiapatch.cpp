@@ -57,14 +57,34 @@ void MessDiapatch::onRecvFriendList(FriendListResponse *response)
     emit recvFriendList(response);
 }
 
-void MessDiapatch::onRecvGroupingOperate(GroupingResponse response)
+void MessDiapatch::onRecvFriendGroupingOperate(GroupingResponse response)
 {
-    emit recvGroupingOperate(response);
+    emit recvFriendGroupingOperate(response);
+}
+
+void MessDiapatch::onRecvGroupGroupingOperate(GroupingResponse response)
+{
+    emit recvGroupGroupingOperate(response);
 }
 
 void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
 {
     emit errorGroupingOperate(type);
+}
+
+void MessDiapatch::onRecvGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
+{
+    emit recvGroupList(status,response);
+}
+
+void MessDiapatch::onRecvResitGroup(RegistGroupResponse response)
+{
+    emit recvRegistGroup(response);
+}
+
+void MessDiapatch::onRecvResitGroupFailed()
+{
+    emit recvRegistGroupFailed();
 }
 
 void MessDiapatch::onRecvText(TextRequest response)
@@ -79,11 +99,11 @@ void MessDiapatch::onRecvTextReply(TextReply reply)
 
 void MessDiapatch::onRecvGroupingFriend(MsgOperateResponse result, GroupingFriendResponse response)
 {
-    if(response.stype == SearchPerson)
+    if(response.stype == OperatePerson)
     {
         emit recvRelationFriend(result,response);
     }
-    else if(response.type == SearchGroup)
+    else if(response.type == OperateGroup)
     {
 
     }
@@ -107,4 +127,9 @@ void MessDiapatch::onRecvFileData(QString fileId,QString fileName)
 void MessDiapatch::onScreenChanged()
 {
     emit screenChange();
+}
+
+void MessDiapatch::onAddHistoryItem(HistoryChatRecord &record)
+{
+    emit createHisotryItem(record);
 }

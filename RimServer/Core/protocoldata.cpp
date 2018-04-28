@@ -187,5 +187,49 @@ FileDataRequest::FileDataRequest()
     msgCommand = MSG_FILE_DATA;
 }
 
+RChatGroupData::~RChatGroupData()
+{
+    QList<SimpleChatInfo *>::iterator iter = chatGroups.begin();
+    while(iter != chatGroups.end())
+    {
+        delete (*iter);
+        iter = chatGroups.erase(iter);
+    }
+}
+
+ChatGroupListRequest::ChatGroupListRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_LIST;
+}
+
+ChatGroupListResponse::ChatGroupListResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_LIST;
+}
+
+ChatGroupListResponse::~ChatGroupListResponse()
+{
+    QList<RChatGroupData *>::iterator iter = groups.begin();
+    while((iter != groups.end()))
+    {
+        delete (*iter);
+        iter = groups.erase(iter);
+    }
+}
+
+RegistGroupRequest::RegistGroupRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
+RegistGroupResponse::RegistGroupResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_CREATE;
+}
+
 
 } //namespace Protocol

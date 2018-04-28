@@ -126,16 +126,27 @@ QString User::getFilePath(QString fileId)
  */
 QString User::getIcon()
 {
+    return getIcon(userBaseInfo.isSystemIcon,userBaseInfo.iconId);
+}
+
+/*!
+ * @brief 获取图标路径
+ * @param[in] isSystemIcon 是否为系统图标
+ * @param[in] iconId 图标名称
+ * @return 图标路径
+ */
+QString User::getIcon(bool isSystemIcon, const QString &iconId)
+{
     QString tmpIconPath;
-    if(userBaseInfo.isSystemIcon){
-        tmpIconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(userBaseInfo.iconId);
+    if(isSystemIcon){
+        tmpIconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(iconId);
     }else{
-        tmpIconPath = userFilePath + QDir::separator() + userBaseInfo.iconId;
+        tmpIconPath = getFileRecvPath() + QDir::separator() + iconId;
     }
 
     QFileInfo fileInfo(tmpIconPath);
     if(fileInfo.exists())
-        return tmpIconPath;
+        return(tmpIconPath);
     else
         return RSingleton<ImageManager>::instance()->getSystemUserIcon();
 }
