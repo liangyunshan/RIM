@@ -98,6 +98,7 @@ void PanelGroupPage::onMessage(MessageType type)
         default:
             break;
     }
+    Q_UNUSED(d);
 }
 
 void PanelGroupPage::updateGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
@@ -110,6 +111,7 @@ void PanelGroupPage::updateGroupList(MsgOperateResponse status, ChatGroupListRes
     }else{
 //        updateContactList();
     }
+    Q_UNUSED(status);
 }
 
 void PanelGroupPage::searchGroup()
