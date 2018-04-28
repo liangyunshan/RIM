@@ -43,7 +43,8 @@ void DataProcess::proRegistResponse(QJsonObject & data)
 void DataProcess::proLoginResponse(QJsonObject &data)
 {
     LoginResponse response;
-    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == LOGIN_SUCCESS)
+    ResponseLogin rr = (ResponseLogin)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(rr == LOGIN_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
@@ -60,21 +61,17 @@ void DataProcess::proLoginResponse(QJsonObject &data)
             response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
             response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
             response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
-
-            MessDiapatch::instance()->onRecvLoginResponse(LOGIN_SUCCESS,response);
         }
     }
-    else
-    {
-        ResponseLogin rr = (ResponseLogin)data.value(JsonKey::key(JsonKey::Status)).toInt();
-        MessDiapatch::instance()->onRecvLoginResponse(rr,response);
-    }
+
+    MessDiapatch::instance()->onRecvLoginResponse(rr,response);
 }
 
 void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
 {
     UpdateBaseInfoResponse response;
-    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == UPDATE_USER_SUCCESS)
+    ResponseUpdateUser status = (ResponseUpdateUser)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == UPDATE_USER_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
@@ -91,40 +88,33 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
             response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
             response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
             response.reponseType = (OperateContact)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
-            MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(UPDATE_USER_SUCCESS,response);
         }
     }
-    else
-    {
-        ResponseUpdateUser rr = (ResponseUpdateUser)data.value(JsonKey::key(JsonKey::Status)).toInt();
-        MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(rr,response);
-    }
+
+    MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(status,response);
 }
 
 void DataProcess::proUserStateChanged(QJsonObject &data)
 {
     UserStateResponse response;
-    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == STATUS_SUCCESS)
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == STATUS_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
         {
             response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
             response.onStatus = (OnlineStatus)dataObj.value(JsonKey::key(JsonKey::Status)).toInt();
-
-            MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_SUCCESS,response);
         }
     }
-    else
-    {
-        MessDiapatch::instance()->onRecvUserStateChangedResponse(STATUS_FAILE,response);
-    }
+    MessDiapatch::instance()->onRecvUserStateChangedResponse(status,response);
 }
 
 void DataProcess::proSearchFriendResponse(QJsonObject &data)
 {
     SearchFriendResponse response;
-    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == FIND_FRIEND_FOUND)
+    ResponseAddFriend status = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == FIND_FRIEND_FOUND)
     {
         QJsonArray dataArray = data.value(JsonKey::key(JsonKey::Data)).toArray();
         if(!dataArray.isEmpty())
@@ -145,14 +135,10 @@ void DataProcess::proSearchFriendResponse(QJsonObject &data)
                 }
             }
 
-            MessDiapatch::instance()->onRecvSearchFriendResponse(FIND_FRIEND_FOUND,response);
         }
     }
-    else
-    {
-        ResponseAddFriend rr = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
-        MessDiapatch::instance()->onRecvSearchFriendResponse(rr,response);
-    }
+
+    MessDiapatch::instance()->onRecvSearchFriendResponse(status,response);
 }
 
 void DataProcess::proAddFriendResponse(QJsonObject &data)
@@ -197,11 +183,12 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
 void DataProcess::proFriendListResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    FriendListResponse * response = nullptr;
     if(status == STATUS_SUCCESS)
     {
         QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
 
-        FriendListResponse * response = new FriendListResponse;
+        response = new FriendListResponse;
         response->accountId = dataObject.value(JsonKey::key(JsonKey::AccountId)).toString();
         QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
         for(int i = 0; i < groups.size(); i++)
@@ -233,13 +220,8 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
 
             response->groups.append(groupData);
         }
-
-        MessDiapatch::instance()->onRecvFriendList(response);
     }
-    else
-    {
-
-    }
+    MessDiapatch::instance()->onRecvFriendList(status,response);
 }
 
 void DataProcess::proGroupingOperateResponse(QJsonObject &data)
@@ -255,12 +237,16 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
         response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
         response.groupIndex = dataObj.value(JsonKey::key(JsonKey::Index)).toInt();
         if(response.gtype == OperatePerson)
-            MessDiapatch::instance()->onRecvFriendGroupingOperate(response);
+            MessDiapatch::instance()->onRecvFriendGroupingOperate(STATUS_SUCCESS,response);
         else if(response.gtype == OperateGroup)
-            MessDiapatch::instance()->onRecvGroupGroupingOperate(response);
-    }
-    else
-    {
+            MessDiapatch::instance()->onRecvGroupGroupingOperate(STATUS_SUCCESS,response);
+    }else{
+        OperateType type = (OperateType)data.value(JsonKey::key(JsonKey::SubCmd)).toInt();
+        GroupingResponse response;
+        if(type == OperatePerson)
+            MessDiapatch::instance()->onRecvFriendGroupingOperate(STATUS_FAILE,response);
+        else if(type == OperateGroup)
+            MessDiapatch::instance()->onRecvGroupGroupingOperate(STATUS_FAILE,response);
 
     }
 }
@@ -294,11 +280,12 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
 void DataProcess::proGroupListResponse(QJsonObject &data)
 {
     MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    ChatGroupListResponse * response = nullptr;
     if(result == STATUS_SUCCESS)
     {
         QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
 
-        ChatGroupListResponse * response = new ChatGroupListResponse;
+        response = new ChatGroupListResponse;
         response->uuid = dataObject.value(JsonKey::key(JsonKey::Uuid)).toString();
         QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
         for(int i = 0; i < groups.size(); i++){
@@ -327,17 +314,17 @@ void DataProcess::proGroupListResponse(QJsonObject &data)
             }
             response->groups.append(groupData);
         }
-        MessDiapatch::instance()->onRecvGroupList(result,response);
     }
+    MessDiapatch::instance()->onRecvGroupList(result,response);
 }
 
 void DataProcess::proRegistGroupResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    RegistGroupResponse response;
     if(status == STATUS_SUCCESS)
     {
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
-        RegistGroupResponse response;
 
         response.userId = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
         response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
@@ -351,17 +338,15 @@ void DataProcess::proRegistGroupResponse(QJsonObject &data)
         response.chatInfo.messNotifyLevel = (ChatMessNotifyLevel)chatInfoObj.value(JsonKey::key(JsonKey::NotifyLevel)).toInt();
         response.chatInfo.isSystemIcon = chatInfoObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
         response.chatInfo.iconId = chatInfoObj.value(JsonKey::key(JsonKey::IconId)).toString();
-
-        MessDiapatch::instance()->onRecvResitGroup(response);
-    }else{
-        MessDiapatch::instance()->onRecvResitGroupFailed();
     }
+    MessDiapatch::instance()->onRecvResitGroup(status,response);
 }
 
 void DataProcess::proSearchGroupResponse(QJsonObject &data)
 {
     SearchGroupResponse response;
-    if(data.value(JsonKey::key(JsonKey::Status)).toInt() == FIND_FRIEND_FOUND)
+    ResponseAddFriend status = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == FIND_FRIEND_FOUND)
     {
         QJsonArray dataArray = data.value(JsonKey::key(JsonKey::Data)).toArray();
         if(!dataArray.isEmpty())
@@ -387,14 +372,58 @@ void DataProcess::proSearchGroupResponse(QJsonObject &data)
                     response.result.append(result);
                 }
             }
-
-            MessDiapatch::instance()->onRecvSearchChatroomResponse(FIND_FRIEND_FOUND,response);
         }
     }
-    else
+
+    MessDiapatch::instance()->onRecvSearchChatroomResponse(status,response);
+}
+
+void DataProcess::proOpreateGroupResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    GroupingChatResponse response;
+    if(status == STATUS_SUCCESS)
     {
-        ResponseAddFriend rr = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
-        MessDiapatch::instance()->onRecvSearchChatroomResponse(rr,response);
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+
+        response.type = (OperateGroupingChatRoom)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+        response.oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
+
+        QJsonObject chatInfoObj = dataObj.value(JsonKey::key(JsonKey::Data)).toObject();
+
+        response.chatInfo.id = chatInfoObj.value(JsonKey::key(JsonKey::Id)).toString();
+        response.chatInfo.chatRoomId = chatInfoObj.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+        response.chatInfo.chatId = chatInfoObj.value(JsonKey::key(JsonKey::ChatId)).toString();
+        response.chatInfo.remarks = chatInfoObj.value(JsonKey::key(JsonKey::Remark)).toString();
+        response.chatInfo.messNotifyLevel = (ChatMessNotifyLevel)chatInfoObj.value(JsonKey::key(JsonKey::NotifyLevel)).toInt();
+        response.chatInfo.isSystemIcon = chatInfoObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+        response.chatInfo.iconId = chatInfoObj.value(JsonKey::key(JsonKey::IconId)).toString();
+    }
+
+    MessDiapatch::instance()->onRecvOpreateGroup(status,response);
+}
+
+void DataProcess::proGroupCommandResponse(QJsonObject &data)
+{
+    MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
+    if(status == STATUS_SUCCESS)
+    {
+        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+        GroupingCommandResponse response;
+
+        response.respType = (MsgResponseType)dataObj.value(JsonKey::key(JsonKey::RType)).toInt();
+        response.type = (OperateGroupingChat)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+        response.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+        response.chatRoomId = dataObj.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+        response.operateId = dataObj.value(JsonKey::key(JsonKey::OperateId)).toString();
+
+        MessDiapatch::instance()->onRecvGroupCommand(STATUS_SUCCESS,response);
+    }else{
+        GroupingCommandResponse response;
+        response.type = (OperateGroupingChat)data.value(JsonKey::key(JsonKey::SubCmd)).toInt();
+        MessDiapatch::instance()->onRecvGroupCommand(STATUS_FAILE,response);
     }
 }
 

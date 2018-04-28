@@ -39,11 +39,12 @@ class GroupManager
 public:
     explicit GroupManager();
 
-    GroupClient * addClient(QString accountId);
-    bool removeClient(QString accountId);
+    GroupClient * addClient(QString chatId);
+    bool removeClient(QString chatId);
 
     GroupClient * client(ToolItem * item);
-    GroupClient * client(QString accountId);
+    GroupClient * client(QString chatId);
+    GroupClient * clientByChatRoomId(QString chatRoomId);
 
     void closeAllClientWindow();
     int size();

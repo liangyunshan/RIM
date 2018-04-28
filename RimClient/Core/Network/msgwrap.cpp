@@ -59,6 +59,9 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MSG_GROUP_CREATE:
                 handleRegistGroupRequest((RegistGroupRequest *)packet);
                 break;
+        case MSG_GROUP_COMMAND:
+                handleGroupCommandRequest((GroupingCommandRequest *)packet);
+                break;
         default:
                 break;
     }
@@ -179,6 +182,8 @@ void MsgWrap::handleAddFriendRequest(AddFriendRequest * packet)
 void MsgWrap::handleOperateFriendRequest(OperateFriendRequest * packet)
 {
     QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::ChatId),packet->chatId);
+    data.insert(JsonKey::key(JsonKey::ChatName),packet->chatName);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
     data.insert(JsonKey::key(JsonKey::Result),packet->result);
@@ -251,6 +256,18 @@ void MsgWrap::handleRegistGroupRequest(RegistGroupRequest *packet)
     data.insert(JsonKey::key(JsonKey::Answer),packet->validateAnaswer);
     data.insert(JsonKey::key(JsonKey::Uuid),packet->userId);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+
+    wrappedPack(packet,data);
+}
+
+void MsgWrap::handleGroupCommandRequest(GroupingCommandRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::ChatRoomId),packet->chatRoomId);
+    data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
 
     wrappedPack(packet,data);
 }

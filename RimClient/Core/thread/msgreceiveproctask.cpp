@@ -132,6 +132,12 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_GROUP_SEARCH:
                 RSingleton<DataProcess>::instance()->proSearchGroupResponse(obj);
                 break;
+        case MSG_GROUP_OPERATE:
+                RSingleton<DataProcess>::instance()->proOpreateGroupResponse(obj);
+                break;
+        case MSG_GROUP_COMMAND:
+                RSingleton<DataProcess>::instance()->proGroupCommandResponse(obj);
+                break;
         default:break;
     };
 }

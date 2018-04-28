@@ -306,8 +306,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
-    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
-            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procFileRequest(FileItemRequest)));
@@ -933,31 +932,6 @@ void LoginDialog::processTextReply(TextReply reply)
              break;
         default:
             break;
-    }
-}
-
-/*!
- * @brief 响应好友状态更新
- * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
- * @param[in] result 操作结果
- * @param[in] response 好友状态信息
- * @return 无
- */
-void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
-{
-    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
-    {
-        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
-        if(client)
-        {
-            client->toolItem->setStatus(response.onStatus);
-            client->simpleUserInfo.status = response.onStatus;
-            RSingleton<Subject>::instance()->notify(MESS_FRIEND_STATE_CHANGE);
-            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
-            {
-                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
-            }
-        }
     }
 }
 

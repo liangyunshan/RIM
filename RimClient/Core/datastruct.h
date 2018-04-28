@@ -37,12 +37,14 @@ enum MessageType
     MESS_SETTINGS,               /*!< 系统设置修改 */
     MESS_BASEINFO_UPDATE,        /*!< 基本信息修改 */
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
+    MESS_RELATION_GROUP_ADD,     /*!< 群分组中添加新群 */
     MESS_NOTIFY_WINDOWS,         /*!< 显示消息通知窗口 */
     MESS_ICON_CHANGE,            /*!< 登陆用户icon改变 */
     MESS_SCREEN_CHANGE,          /*!< 屏幕改变 */
     MESS_CHATGROUP_REGIST_SUCCESS,      /*!< 群账户注册成功 */
     MESS_CHATGROUP_REGIST_FAILED,       /*!< 群账户注册失败 */
-    MESS_FRIEND_STATE_CHANGE     /*!< 好友状态改变 */
+    MESS_FRIEND_STATE_CHANGE,     /*!< 好友状态改变 */
+    MESS_ADD_FRIEND_WINDOWS      /*!< 打开添加好友 */
 };
 
 /*!
@@ -131,7 +133,7 @@ enum ChatMessageType{
  */
 struct HistoryChatRecord
 {
-    HistoryChatRecord():isTop(false),systemIon(true){
+    HistoryChatRecord():isTop(false),systemIon(true),status(STATUS_OFFLINE){
 
     }
     QString id;                       /*!< id,int */
@@ -143,6 +145,7 @@ struct HistoryChatRecord
     bool isTop;                       /*!< 是否置顶 */
     bool systemIon;                   /*!< 是否为系统头像，默认为系统头像true */
     QString iconId;                   /*!< 图片索引 */
+    OnlineStatus status;              /*!< 在线状态 */
 };
 
 namespace TextUnit

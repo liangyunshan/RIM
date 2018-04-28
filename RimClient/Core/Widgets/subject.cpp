@@ -7,7 +7,7 @@
 #include "head.h"
 #include "observer.h"
 
-QReadWriteLock lock;
+QReadWriteLock lock(QReadWriteLock::Recursive);
 
 Subject::Subject()
 {

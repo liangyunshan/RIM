@@ -307,10 +307,11 @@ void SystemNotifyView::sendResponse(ResponseFriendApply result)
     request->stype = d->notifyInfo.stype;
     request->result = (int)result;
     request->accountId = G_User->BaseInfo().accountId;
-    if(d->notifyInfo.stype == OperatePerson)
-        request->operateId = d->notifyInfo.accountId;
-    else if(d->notifyInfo.stype == OperateGroup)
-        request->operateId = d->notifyInfo.chatId;
+    request->operateId = d->notifyInfo.accountId;
+    if(d->notifyInfo.stype == OperateGroup){
+        request->chatId = d->notifyInfo.chatId;
+        request->chatName = d->notifyInfo.chatName;
+    }
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }

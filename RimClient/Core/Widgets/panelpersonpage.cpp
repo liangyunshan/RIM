@@ -23,6 +23,8 @@
 #include "user/user.h"
 #include "user/userfriendcontainer.h"
 #include "abstractchatwidget.h"
+#include "widget/rmessagebox.h"
+#include "media/mediaplayer.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -95,9 +97,13 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
     createAction();
 
     connect(this,SIGNAL(showChatDialog(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
-    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(MsgOperateResponse,FriendListResponse*)),
+            this,SLOT(updateFriendList(MsgOperateResponse,FriendListResponse*)));
     connect(MessDiapatch::instance(),SIGNAL(recvRelationFriend(MsgOperateResponse,GroupingFriendResponse)),this,SLOT(recvFriendItemOperate(MsgOperateResponse,GroupingFriendResponse)));
-    connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(GroupingResponse)),this,SLOT(recvFriendPageOperate(GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFriendGroupingOperate(MsgOperateResponse,GroupingResponse)),
+            this,SLOT(recvFriendPageOperate(MsgOperateResponse,GroupingResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
+            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
 }
@@ -211,6 +217,8 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
     t_item->setNickName(info.nickName);
     t_item->setDescInfo(info.signName);
     t_item->setStatus(info.status);
+
+    emit userInfoChanged(info.remarks,info.accountId);
 }
 
 /*!
@@ -328,10 +336,6 @@ void PanelPersonPage::onMessage(MessageType type)
     MQ_D(PanelPersonPage);
     switch(type)
     {
-        case MESS_FRIEND_STATE_CHANGE:
-            updateGroupDescInfo();
-            break;
-
         default:
             break;
     }
@@ -343,15 +347,19 @@ void PanelPersonPage::onMessage(MessageType type)
  * @param[in] friendList 好友列表
  * @return 无
  */
-void PanelPersonPage::updateFriendList(FriendListResponse *friendList)
+void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListResponse *friendList)
 {
     MQ_D(PanelPersonPage);
-    RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
+    if(status == STATUS_SUCCESS){
+        RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
 
-    if(!d->m_listIsCreated){
-        addGroupAndUsers();
+        if(!d->m_listIsCreated){
+            addGroupAndUsers();
+        }else{
+            updateContactList();
+        }
     }else{
-        updateContactList();
+        RMessageBox::warning(this,QObject::tr("warning"),tr("Get friendList failed!"),RMessageBox::Yes);
     }
 }
 
@@ -860,33 +868,37 @@ void PanelPersonPage::updateContactList()
  *          4.排序分组：
  * @param[in] response 分组操作结果信息
  */
-void PanelPersonPage::recvFriendPageOperate(GroupingResponse response)
+void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingResponse response)
 {
     MQ_D(PanelPersonPage);
-    if(response.uuid != G_User->BaseInfo().uuid)
-        return;
+    if(status == STATUS_SUCCESS){
+        if(response.uuid != G_User->BaseInfo().uuid)
+            return;
 
-    switch(response.type){
-        case GROUPING_CREATE:{
-                RSingleton<UserFriendContainer>::instance()->addGroup(response.groupId,response.groupIndex);
-            }
-            break;
-        case GROUPING_RENAME:{
-                RSingleton<UserFriendContainer>::instance()->renameGroup(response.groupId);
-            }
-            break;
-        case GROUPING_DELETE:{
-                clearTargetGroup(d->m_deleteID);
-            }
-            break;
-        case GROUPING_SORT:{
-                d->toolBox->sortPage(response.groupId,response.groupIndex);
-                RSingleton<UserFriendContainer>::instance()->sortGroup(response.groupId,response.groupIndex);
-            }
-            break;
-        default:break;
+        switch(response.type){
+            case GROUPING_CREATE:{
+                    RSingleton<UserFriendContainer>::instance()->addGroup(response.groupId,response.groupIndex);
+                }
+                break;
+            case GROUPING_RENAME:{
+                    RSingleton<UserFriendContainer>::instance()->renameGroup(response.groupId);
+                }
+                break;
+            case GROUPING_DELETE:{
+                    clearTargetGroup(d->m_deleteID);
+                }
+                break;
+            case GROUPING_SORT:{
+                    d->toolBox->sortPage(response.groupId,response.groupIndex);
+                    RSingleton<UserFriendContainer>::instance()->sortGroup(response.groupId,response.groupIndex);
+                }
+                break;
+            default:break;
+        }
+        updateGroupDescInfo();
+    }else{
+        RMessageBox::warning(this,QObject::tr("warning"),tr("Opearate failed!"),RMessageBox::Yes);
     }
-    updateGroupDescInfo();
 }
 
 /*!
@@ -909,6 +921,8 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     item->setNickName(userInfo->nickName);
     item->setDescInfo(userInfo->signName);
     item->setStatus(userInfo->status);
+
+    emit userStateChanged(userInfo->status,userInfo->accountId);
 
     UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
     client->simpleUserInfo = *userInfo;
@@ -1015,6 +1029,32 @@ void PanelPersonPage::movePersonTo()
             request->user = client->simpleUserInfo;
         }
         RSingleton<MsgWrap>::instance()->handleMsg(request);
+    }
+}
+
+/*!
+ * @brief 响应好友状态更新
+ * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @param[in] result 操作结果
+ * @param[in] response 好友状态信息
+ * @return 无
+ */
+void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
+{
+    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
+    {
+        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+        if(client)
+        {
+            client->toolItem->setStatus(response.onStatus);
+            client->simpleUserInfo.status = response.onStatus;
+            updateGroupDescInfo();
+            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+            {
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+            }
+            emit userStateChanged(response.onStatus,response.accountId);
+        }
     }
 }
 

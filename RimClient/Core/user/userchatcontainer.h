@@ -34,6 +34,8 @@ public:
 
     RChatGroupData * element(int index);
     RChatGroupData * element(const QString groupId);
+    QString getChatGroupId(const QString chatRoomId);
+    QString getChatId(const QString chatRoomId);
 
     bool deleteGroup(const QString & groupId);
     void addTmpGroup(const QString id, RChatGroupData *data);

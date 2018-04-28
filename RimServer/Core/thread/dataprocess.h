@@ -44,6 +44,7 @@ public:
 
     void processGroupList(Database *db, int socketId, QSharedPointer<ChatGroupListRequest> request);
     void processRegistGroup(Database *db, int socketId, QSharedPointer<RegistGroupRequest> request);
+    void processGroupCommand(Database *db, int socketId, QSharedPointer<GroupingCommandRequest> request);
 
     void processText(Database *db, int socketId, TextRequest *request);
 

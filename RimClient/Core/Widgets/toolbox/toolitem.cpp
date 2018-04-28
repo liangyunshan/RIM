@@ -234,6 +234,8 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
                 setItemState(Mouse_Leave);
                 return true;
             }
+        }else if(event->type() == QEvent::MouseButtonPress){
+            emit itemButtonClick(QEvent::MouseButtonPress,this);
         }else if(event->type() == QEvent::MouseButtonRelease){
             QMouseEvent * e = dynamic_cast<QMouseEvent *>(event);
             if(e->button() == Qt::LeftButton || e->button() == Qt::RightButton)
@@ -246,6 +248,7 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
             if(d->contenxMenu)
             {
                 emit updateGroupActions();
+                emit itemButtonClick(QEvent::ContextMenu,this);
                 d->contenxMenu->exec(QCursor::pos());
                 return true;
             }

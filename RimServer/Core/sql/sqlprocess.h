@@ -34,13 +34,14 @@ class SQLProcess
 public:
     SQLProcess();
 
-    ResponseRegister processUserRegist(Database *db, const RegistRequest * request, QString & id, QString &uuid);
+    ResponseRegister processUserRegist(Database *db, const RegistRequest * request, QString & accountId, QString &userId);
     ResponseLogin processUserLogin(Database *db, const LoginRequest * request);
     ResponseUpdateUser processUpdateUserInfo(Database *db, const UpdateBaseInfoRequest * request);
     ResponseAddFriend processSearchFriend(Database *db,SearchFriendRequest *request,SearchFriendResponse * response);
     ResponseAddFriend processSearchGroup(Database *db,SearchFriendRequest *request,SearchGroupResponse * response);
     ResponseAddFriend processAddFriendRequest(Database *db,QString accountId,QString operateId,int type);
 
+    bool createGroupAndGroupDesc(Database *db, OperateType type, QString userId, QString accountId, QString groupId, QString groupName, bool isDefault = false);
     bool createGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault = false);
     bool createChatGroup(Database *db, QString userId, QString groupName, QString groupId, bool isDefault = false);
 
@@ -48,7 +49,7 @@ public:
     bool deleteGroup(Database *db,GroupingRequest* request);
 
     bool createGroupDesc(Database *db,OperateType type, QString uuid,QString accountId,QString groupId);
-    bool addGroupToGroupDesc(Database *db,GroupingRequest *request,QString groupId);
+    bool addGroupToGroupDesc(Database *db, OperateType gtype, const QString &userId, QString groupId);
     bool delGroupInGroupDesc(Database *db,GroupingRequest *request);
     bool sortGroupInGroupDesc(Database *db,GroupingRequest *request);
 
@@ -68,6 +69,9 @@ public:
     bool addChatGroupToGroup(Database * db,RegistGroupRequest *request, RegistGroupResponse *response);
     bool getSingleChatGroupInfo(Database * db,RegistGroupResponse * response);
     bool getChatroomInfo(Database * db,const QString chatId,ChatBaseInfo & baseInfo);
+    bool getSimpleChatInfoByChatroomId(Database * db, QString groupId, SimpleChatInfo & chatInfo);
+
+    bool exitGroupChat(Database * db, GroupingCommandRequest * request);
 
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);
@@ -81,7 +85,7 @@ public:
     bool getDereferenceFileInfo(Database * db, SimpleFileItemRequest *request, Datastruct::FileItemInfo *itemInfo);
 
     QString getDefaultGroupByUserId(Database * db, OperateType type, const QString userId);
-    QString getDefaultGroupByUserAccountId(Database * db,const QString id);
+    QString getDefaultGroupByUserAccountId(Database * db,OperateType type,const QString id);
     QStringList getGroupListByUserId(Database * db,const QString id);
     QStringList getGroupListByUserAccountId(Database * db,const QString id);
 

@@ -231,11 +231,17 @@ void AddFriend::onMessage(MessageType type)
         case MESS_RELATION_FRIEND_ADD:
             {
                 if(d->searchList && d->searchList->selectedItem())
-                {
                     d->enableAdd(!RSingleton<UserFriendContainer>::instance()->containUser(d->searchList->selectedItem()->getName()));
-                }
                 break;
             }
+        case MESS_RELATION_GROUP_ADD:
+        {
+            if(d->searchList && d->searchList->selectedItem())
+                d->enableAdd(!RSingleton<UserChatContainer>::instance()
+                             ->containChatGroupRoom(d->searchList->selectedItem()
+                                                    ->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data()).toString()));
+            break;
+        }
         default:
             break;
     }
@@ -294,6 +300,12 @@ void AddFriend::addFriend()
     if(d->group_Radio->isChecked()){
         ToolItem * selectedItem = d->searchList->selectedItem();
         if(selectedItem){
+
+            if(RSingleton<UserChatContainer>::instance()->containChatGroupRoom(selectedItem->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data()).toString())){
+                itemSelected(selectedItem);
+                return;
+            }
+
             auto findIndex = std::find_if(d->groupChatBaseInfos.cbegin(),d->groupChatBaseInfos.cend(),[&](const ChatBaseInfo & chatInfo){
                 return chatInfo.chatId == selectedItem->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data());
             });
@@ -458,4 +470,3 @@ void AddFriend::errorSearchResult(ResponseAddFriend status)
     enableInput(true);
     d->statusLabel->setText(errorInfo);
 }
-

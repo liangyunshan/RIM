@@ -664,6 +664,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     record.systemIon = d->userInfo.isSystemIcon;
     record.iconId = d->userInfo.iconId;
     record.type = CHAT_C2C;
+    record.status = d->userInfo.status;
     MessDiapatch::instance()->onAddHistoryItem(record);
 //test
 

@@ -110,7 +110,6 @@ private slots:
     void openChatDialog(QString accountId);
     void procRecvText(TextRequest response);
     void processTextReply(TextReply reply);
-    void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
     void procFileControl(SimpleFileItemRequest request);
     void procFileRequest(FileItemRequest response);
     void procFileData(QString fileId,QString fileName);

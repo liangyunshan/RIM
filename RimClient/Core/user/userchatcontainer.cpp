@@ -46,6 +46,51 @@ RChatGroupData *UserChatContainer::element(const QString groupId)
 }
 
 /*!
+ * @brief 通过群UUID查找对应分组ID
+ * @param[in] chatRoomId 群uuid
+ * @return 分组ID
+ */
+QString UserChatContainer::getChatGroupId(const QString chatRoomId)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    QList<RChatGroupData *>::iterator iter = find_if(groupList.begin(),groupList.end(),[&](const RChatGroupData * data){
+        foreach(const SimpleChatInfo * cinfo,data->chatGroups){
+            if(cinfo->chatRoomId == chatRoomId)
+                return true;
+        }
+        return false;
+    });
+    if(iter != groupList.end())
+        return (*iter)->groupId;
+
+    return QString("");
+}
+
+/*!
+ * @brief 通过群UUID查找群ID
+ * @param[in] chatRoomId 群uuid
+ * @return 群ID
+ */
+QString UserChatContainer::getChatId(const QString chatRoomId)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    QString chatId;
+    QList<RChatGroupData *>::iterator iter = find_if(groupList.begin(),groupList.end(),[&](const RChatGroupData * data){
+        foreach(const SimpleChatInfo * cinfo,data->chatGroups){
+            if(cinfo->chatRoomId == chatRoomId){
+                chatId = cinfo->chatId;
+                return true;
+            }
+        }
+        return false;
+    });
+
+    return chatId;
+}
+
+/*!
  * @brief 移除指定的分组，将分组中的子项添加至默认分组
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否删除成功
@@ -133,7 +178,8 @@ void UserChatContainer::sortGroup(const QString &groupId, int newPageIndex)
         return false;
     });
 
-    if(iter != groupList.end() && oldPageIndex >=0 && oldPageIndex < groupList.size()){
+    if(iter != groupList.end() && oldPageIndex >=0 && oldPageIndex < groupList.size()
+            && newPageIndex >=0  && newPageIndex < groupList.size()){
         groupList.swap(oldPageIndex,newPageIndex);
     }
 }

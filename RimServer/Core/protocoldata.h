@@ -39,7 +39,8 @@
  * {
  *     'type'   :   MsgType,
  *     'cmd'    :   MsgCommand,
- *     'status' :   value,                          //若是操作性质,返回操作成功与否标志,部分不会返回data段
+ *     'status' :   value,                      //若是单操作性质,返回操作成功与否标志,部分不会返回data段
+ *                                              //若是聚合操作命令，根据MsgResponseType来判断是回复还是处理。
  *     'data'   :
  *                  {
  *
@@ -73,6 +74,18 @@ enum MsgType
 };
 
 /*!
+ *  @brief 消息回复类型
+ *  @details 有的消息属于聚合操作类型，一个消息内部根据不同的type，有不同的操作：如MSG_GROUP_COMMAND、MSG_RELATION_GROUPING_FRIEND
+ *          当客户端接收到这些消息后，有的用于对自身操作的回馈；有的则用于处理服务器转发其它用户操作；
+ *       例：A向server发送退出消息时，server处理后，需要给A回复一个处理结果；此时server还需要向群内其它在线用户发送A退出的消息，以便在群列表中
+ *          将A的信息移除。
+ */
+enum MsgResponseType{
+    MSG_REPLY,             /*!< 消息用于回复对应的操作,客户端先前发送了此commadType的request操作 */
+    MSG_EXE                /*!< 命令执行消息，接收到response后，用于执行对应类型的操作*/
+};
+
+/*!
  *  @brief  命令类型
  *  @details 根据不同的MstType，命令的表示范围是不一致的;
  *  \parblock
@@ -103,10 +116,8 @@ enum MsgCommand
 
     MSG_GROUP_SEARCH = 0x31,                           /*!< 查找群 */
     MSG_GROUP_CREATE,                                  /*!< 创建群 */
-    MSG_GROUP_JOIN,                                    /*!< 加入群 */
-    MSG_GROUP_EXIT,                                    /*!< 退出群 */
-    MSG_GROUP_REMOVE,                                  /*!< 移除群 */
-    MSG_GROUP_DISSOLUTION,                             /*!< 解散群 */
+    MSG_GROUP_OPERATE,                                 /*!< 群分组操作 @link OperateGroupingChatRoom @endlink  */
+    MSG_GROUP_COMMAND,                                 /*!< 群操作命令 @link OperateGroupingChat @endlink */
     MSG_GROUP_VIEW_INFO,                               /*!< 查看群信息 */
     MSG_GROUP_UPDATE_INFO,                             /*!< 更新群信息 */
     MSG_GROUP_LIST,                                    /*!< 群列表请求 */
@@ -517,6 +528,8 @@ public:
     int result;                         /*!< @parblock  当type为 @link FRIEND_APPLY @endlink 时，对应 @link ResponseFriendApply @endlink \n*/
     QString accountId;                  /*!< 用户账号 */
     QString operateId;                  /*!< 待操作的好友ID */
+    QString chatId;                     /*!< 群号(2xxxx)此值只在stype为OperateGroup时有效 */
+    QString chatName;                   /*!< 群名称(stype为OperateGroup可用) */
 };
 
 /*!
@@ -838,6 +851,35 @@ public:
     SimpleChatInfo chatInfo;        /*!< 联系人基本信息, @link SimpleChatInfo @endlink  */
 };
 
+/***********************群命令操作**********************/
+/*!
+ *  @brief  群命令操作请求
+ */
+class GroupingCommandRequest : public MsgPacket
+{
+public:
+    GroupingCommandRequest();
+    OperateGroupingChat type;       /*!< 参见 @link OperateGroupingChat @endlink */
+    QString accountId;              /*!< 发起命令用户账户id */
+    QString groupId;                /*!< 分组ID; */
+    QString chatRoomId;             /*!< 群号uuid  */
+    QString operateId;              /*!< 待命令操作用户账户ID  */
+};
+
+/*!
+ *  @brief  群命令操作响应
+ */
+class GroupingCommandResponse : public MsgPacket
+{
+public:
+    GroupingCommandResponse();
+    MsgResponseType respType;       /*!< 回复类型 */
+    OperateGroupingChat type;       /*!< 参见 @link OperateGroupingChat @endlink */
+    QString accountId;              /*!< 发起命令用户账户id */
+    QString groupId;                /*!< 分组ID; */
+    QString chatRoomId;             /*!< 群号uuid  */
+    QString operateId;              /*!< 待命令操作用户账户ID  */
+};
 
 /******************************************************【聊天信息和窗口抖动操作】*****************************************************************/
 /*!

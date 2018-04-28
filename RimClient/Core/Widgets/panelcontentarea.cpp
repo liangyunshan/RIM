@@ -261,6 +261,8 @@ void PanelContentArea::initWidget()
     connect(d->historyWidget,SIGNAL(showUserDetail(ChatMessageType,QString)),d->personWidget,SLOT(showUserDetail(ChatMessageType,QString)));
     connect(d->historyWidget,SIGNAL(deleteUser(ChatMessageType,QString)),d->personWidget,SLOT(deleteUser(ChatMessageType,QString)));
     connect(d->personWidget,SIGNAL(userDeleted(ChatMessageType,QString)),d->historyWidget,SLOT(userDeleted(ChatMessageType,QString)));
+    connect(d->personWidget,SIGNAL(userStateChanged(OnlineStatus,QString)),d->historyWidget,SLOT(userStateChanged(OnlineStatus,QString)));
+    connect(d->personWidget,SIGNAL(userInfoChanged(QString,QString)),d->historyWidget,SLOT(userInfoChanged(QString,QString)));
 
     d->panelTabBar->setCurrentIndex(0);
 

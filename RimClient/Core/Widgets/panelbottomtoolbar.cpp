@@ -103,9 +103,15 @@ PanelBottomToolBar::~PanelBottomToolBar()
     delete d_ptr;
 }
 
-void PanelBottomToolBar::onMessage(MessageType)
+void PanelBottomToolBar::onMessage(MessageType mtype)
 {
-
+    switch(mtype){
+        case MESS_ADD_FRIEND_WINDOWS:
+                showAddFriendPanel();
+            break;
+        default:
+            break;
+    }
 }
 
 void PanelBottomToolBar::showAddFriendPanel()

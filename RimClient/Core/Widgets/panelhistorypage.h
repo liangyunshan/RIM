@@ -12,6 +12,7 @@
           20180422:wey:增加置顶操作，同步至数据库;
                        增加日期显示(根据最后一次聊天时间，显示日期或时间)
           20180423:wey:增加从item直接打开聊天、查看用户信息、删除联系人功能;
+          20180428:wey:同步联系人状态，响应状态变更
  */
 #ifndef PANELHISTORYPAGE_H
 #define PANELHISTORYPAGE_H
@@ -47,6 +48,8 @@ private slots:
     void setTopSession();
     void removeSessionFromList();
     void clearList();
+    void userStateChanged(OnlineStatus status,QString accountId);
+    void userInfoChanged(QString remarks,QString accountId);
 
     void respItemDoubleClick(ToolItem * item);
 

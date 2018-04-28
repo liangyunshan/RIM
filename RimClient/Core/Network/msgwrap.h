@@ -48,6 +48,7 @@ private:
 
     void handleChatGroupListRequest(ChatGroupListRequest * packet);
     void handleRegistGroupRequest( RegistGroupRequest * packet);
+    void handleGroupCommandRequest(GroupingCommandRequest *packet);
 
     void wrappedPack(MsgPacket * packet, QJsonObject &data);
 

@@ -27,7 +27,7 @@ public:
     explicit PanelBottomToolBar(QWidget * parent = 0);
     ~PanelBottomToolBar();
 
-    void onMessage(MessageType type);
+    void onMessage(MessageType mtype);
 
 signals:
     void showSearchPerson();

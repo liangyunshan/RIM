@@ -26,7 +26,9 @@ public:
     {
         Uuid,
         Type,
+        RType,
         Command,
+        SubCmd,
         Data,
         NickName,
         Pass,

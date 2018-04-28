@@ -233,6 +233,44 @@ void PanelHistoryPage::clearList()
 }
 
 /*!
+ * @brief 用户状态改变，改变item在线状态
+ * @param[in] status 联系人状态
+ * @param[in] accountId 联系人账号
+ */
+void PanelHistoryPage::userStateChanged(OnlineStatus status, QString accountId)
+{
+    MQ_D(PanelHistoryPage);
+
+    auto findIndex = std::find_if(d->itemsMap.begin(),d->itemsMap.end(),[&](const std::pair<ToolItem *,std::shared_ptr<HistoryChatRecord>> & item){
+        return item.second->accountId == accountId;
+    });
+
+    if(findIndex != d->itemsMap.end()){
+        (*findIndex).first->setStatus(status);
+    }
+}
+
+/*!
+ * @brief 联系人备注修改
+ * @param[in] remarks 新备注名称
+ * @param[in] accountId 待更新联系人账号
+ */
+void PanelHistoryPage::userInfoChanged(QString remarks, QString accountId)
+{
+    MQ_D(PanelHistoryPage);
+
+    auto findIndex = std::find_if(d->itemsMap.begin(),d->itemsMap.end(),[&](const std::pair<ToolItem *,std::shared_ptr<HistoryChatRecord>> & item){
+        return item.second->accountId == accountId;
+    });
+
+    if(findIndex != d->itemsMap.end()){
+        (*findIndex).first->setName(remarks);
+        (*findIndex).second->nickName = remarks;
+        RSingleton<SQLProcess>::instance()->updateOneHistoryRecord(G_User->database(),*((*findIndex).second));
+    }
+}
+
+/*!
  * @brief 将历史会话记录从会话列表中移除,同时从数据表HistoryChat表中移除对应记录
  */
 void PanelHistoryPage::removeSessionFromList()
@@ -342,6 +380,7 @@ void PanelHistoryPage::setItemInfo(ToolItem *item, HistoryChatRecord &record)
 
     if(record.type == CHAT_C2C){
         item->setIcon(G_User->getIcon(record.systemIon,record.iconId));
+        item->setStatus(record.status);
     }else{
 
     }
