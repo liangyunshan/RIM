@@ -9,6 +9,7 @@
 #include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QMetaEnum>
+#include <QPainter>
 #include <QImage>
 
 #include "head.h"
@@ -26,13 +27,9 @@ class ToolItemPrivate : public GlobalData<ToolItem>
 {
     Q_DECLARE_PUBLIC(ToolItem)
 
-protected:
-    ToolItemPrivate(ToolItem * q):q_ptr(q)
-    {
+private:
+    ToolItemPrivate(ToolItem * q):q_ptr(q),contenxMenu(nullptr),notifyCount(0),checked(false),topView(false){
         initWidget();
-        checked = false;
-        contenxMenu = NULL;
-        notifyCount = 0;
     }
 
     void updateNotifyInfoCount()
@@ -52,10 +49,15 @@ protected:
     QLabel * nameLabel;                 //个人、群组、历史聊天的用户名
     QLabel * nickLabel;                 //个人昵称、群组成员数量
     QLabel * descLabel;                 //个人签名、群组和历史聊天的聊天记录信息
-    QLabel * infoLabel;                 //群组和历史聊天的日期或作为通知时的条数信息
+    QLabel * infoLabel;                 //作为通知时的条数信息
+    QLabel * timeLabel;                 //群组和历史聊天的日期
     QLabel * onLineStateLabel;          //联系人在线状态、群消息状态(屏蔽等).
+    QLabel * topViewLabel;              //置顶显示状态，在topView为true时使用paint事件绘制状态效果
 
     int notifyCount;                    //作为通知消息时，显示通知消息的数量
+    bool topView;                       //置顶显示，默认为false;置顶时提供角标显示其状态
+
+    OnlineStatus onlineStatus;          //在线状态
 
     QMenu * contenxMenu;
     bool checked;                       //是否被选中
@@ -131,24 +133,40 @@ void ToolItemPrivate::initWidget()
 
     QMetaEnum metaEnum = QMetaEnum::fromType<ToolItem::ItemInfoLabelType>();
 
+    QWidget * infoWidget = new QWidget();
+
+    timeLabel = new QLabel(nameWidget);
+    timeLabel->setFixedWidth(40);
+
     infoLabel = new QLabel(contentWidget);
     infoLabel->setObjectName("Tool_Item_InfoLabel");
     infoLabel->setProperty(metaEnum.name(),metaEnum.key(ToolItem::ItemTextInfo));
-    infoLabel->setFixedSize(TOOL_ITEM_INFOLABEL_WIDTH,TOOL_ITEM_INFOLABEL_WIDTH);
+    infoLabel->setMinimumWidth(TOOL_ITEM_INFOLABEL_WIDTH);
+
+    QVBoxLayout * infoLayout = new QVBoxLayout;
+    infoLayout->setContentsMargins(0,0,0,0);
+    infoLayout->addWidget(timeLabel);
+    infoLayout->addWidget(infoLabel);
+    infoWidget->setLayout(infoLayout);
 
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSpacing(3);
     gridLayout->setRowStretch(0,1);
     gridLayout->addWidget(iconWidget,1,0,1,1);
     gridLayout->addWidget(middleWidget,1,1,1,1);
-    gridLayout->addWidget(infoLabel,1,2,1,1);
+    gridLayout->addWidget(infoWidget,1,2,1,1);
     gridLayout->setRowStretch(3,1);
+
+    topViewLabel = new QLabel(contentWidget);
+    topViewLabel->setFixedSize(10,10);
+    topViewLabel->move(0,0);
 
     contentWidget->setLayout(gridLayout);
     mainLayout->addWidget(contentWidget);
     q_ptr->setLayout(mainLayout);
 
     contentWidget->installEventFilter(q_ptr);
+    topViewLabel->installEventFilter(q_ptr);
 }
 
 ToolItem::ToolItem(ToolPage *page, QWidget *parent) :
@@ -205,24 +223,18 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
     MQ_D(ToolItem);
     if(watched == d->contentWidget)
     {
-        if(event->type() == QEvent::Enter)
-        {
-            if(!d->checked)
-            {
+        if(event->type() == QEvent::Enter){
+            if(!d->checked){
                 setItemState(Mouse_Enter);
                 return true;
             }
-        }
-        else if(event->type() == QEvent::Leave)
-        {
+        }else if(event->type() == QEvent::Leave){
             if(!d->checked)
             {
                 setItemState(Mouse_Leave);
                 return true;
             }
-        }
-        else if(event->type() == QEvent::MouseButtonRelease)
-        {
+        }else if(event->type() == QEvent::MouseButtonRelease){
             QMouseEvent * e = dynamic_cast<QMouseEvent *>(event);
             if(e->button() == Qt::LeftButton || e->button() == Qt::RightButton)
             {
@@ -230,20 +242,30 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
                 emit clearSelectionOthers(this);
                 return true;
             }
-        }
-        else if(event->type() == QEvent::ContextMenu)
-        {
+        }else if(event->type() == QEvent::ContextMenu){
             if(d->contenxMenu)
             {
                 emit updateGroupActions();
                 d->contenxMenu->exec(QCursor::pos());
                 return true;
             }
-        }
-        else if(event->type() == QEvent::MouseButtonDblClick)
-        {
+        }else if(event->type() == QEvent::MouseButtonDblClick){
             emit itemDoubleClick(this);
             return true;
+        }
+    }else if(watched == d->topViewLabel){
+        if(event->type() == QEvent::Paint){
+            if(d->topView){
+                QPainter painter(d->topViewLabel);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(Qt::red);
+                QPolygon polygon(3);
+                polygon.setPoint(0,QPoint(0,0));
+                polygon.setPoint(2,QPoint(d->topViewLabel->width(),0));
+                polygon.setPoint(1,QPoint(0,d->topViewLabel->height()));
+                painter.drawPolygon(polygon);
+                return true;
+            }
         }
     }
     return QWidget::eventFilter(watched,event);
@@ -282,11 +304,21 @@ void ToolItem::setContentMenu(QMenu *contentMenu)
 }
 
 /*!
-     * @brief 添加一条消息显示
-     * @details 当ToolItem作为NotifyWindow中显示通知消息，infoLabel用于记录当前联系人消息的数量
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief item为历史记录时，设置infoLabel显示日期
+ * @param[in] desc 待显示的日期内容
+ */
+void ToolItem::setDate(QString desc)
+{
+    MQ_D(ToolItem);
+    d->timeLabel->setText(desc);
+}
+
+/*!
+ * @brief 添加一条消息显示
+ * @details 当ToolItem作为NotifyWindow中显示通知消息，infoLabel用于记录当前联系人消息的数量
+ * @param[in] 无
+ * @return 无
+ */
 void ToolItem::addNotifyInfo()
 {
     MQ_D(ToolItem);
@@ -312,18 +344,31 @@ bool ToolItem::isChecked()
     return d->checked;
 }
 
+/*!
+ * @brief 设置item置顶显示
+ * @param[in] flag 设置置顶状态
+ */
+void ToolItem::setTop(bool flag)
+{
+    MQ_D(ToolItem);
+    d->topView = flag;
+    update();
+}
+
+bool ToolItem::isTop()
+{
+    MQ_D(ToolItem);
+    return d->topView;
+}
+
 void ToolItem::setChecked(bool flag)
 {
     MQ_D(ToolItem);
     d->checked = flag;
     if(flag)
-    {
         setItemState(Mouse_Checked);
-    }
     else
-    {
         setItemState(Mouse_Leave);
-    }
 }
 
 /*!
@@ -334,20 +379,28 @@ void ToolItem::setChecked(bool flag)
 void ToolItem::setStatus(OnlineStatus status)
 {
     MQ_D(ToolItem);
-    if(status == STATUS_OFFLINE || status == STATUS_HIDE)
-    {
-        QImage t_normal = d->iconLabel->pixmap()->toImage();
-        QImage t_grayPic = RUtil::convertToGray(t_normal);
-        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
-        d->onLineStateLabel->setPixmap(QPixmap(""));
-    }
-    else
+    d->onlineStatus = status;
+
+    if(isOnline())
     {
         QString t_filePath = d->iconLabel->getPixmapFileInfo().absoluteFilePath();
         d->iconLabel->setPixmap(QPixmap(t_filePath));
         d->onLineStateLabel->setPixmap(QPixmap(OnLineState::getStatePixmap(status)).scaled(d->onLineStateLabel->width(),
                                                                                            d->onLineStateLabel->height()));
     }
+    else
+    {
+        QImage t_normal = d->iconLabel->pixmap()->toImage();
+        QImage t_grayPic = RUtil::convertToGray(t_normal);
+        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
+        d->onLineStateLabel->setPixmap(QPixmap(""));
+    }
+}
+
+bool ToolItem::isOnline() const
+{
+    MQ_D(ToolItem);
+    return !(d->onlineStatus == STATUS_OFFLINE || d->onlineStatus == STATUS_HIDE);
 }
 
 void ToolItem::cursorHoverIcon(bool flag)

@@ -40,11 +40,11 @@ private:
 
     QWidget * contentWidget;
 
-    RIconLabel * userIconLabel;
-    QLabel * userNikcNameLabel;
-    RLineEdit * userSignNameEdit;
-    QWidget * extendToolWiget;
-    OnLineState * onlineState;
+    RIconLabel * userIconLabel;                     /*!< 用户头像 */
+    QLabel * userNikcNameLabel;                     /*!< 用户昵称 */
+    RLineEdit * userSignNameEdit;                   /*!< 用户签名 */
+    QWidget * extendToolWiget;                      /*!< 扩展工具 */
+    OnLineState * onlineState;                      /*!< 在线状态 */
 
     QLineEdit * searchLineEdit;
 };
@@ -234,6 +234,7 @@ void PanelTopArea::updateUserInfo()
 {
     MQ_D(PanelTopArea);
     d->userSignNameEdit->setText(G_User->BaseInfo().signName);
+    d->userNikcNameLabel->setText(G_User->BaseInfo().nickName);
 
     QString t_iconPath;
     if(G_User->BaseInfo().isSystemIcon)
@@ -270,9 +271,3 @@ void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateRespo
     Q_UNUSED(result);
     Q_UNUSED(response);
 }
-
-
-
-
-
-

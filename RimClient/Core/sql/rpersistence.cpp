@@ -1,6 +1,9 @@
 ﻿#include "rpersistence.h"
 
 #include <QDebug>
+#include <QTextStream>
+
+const QString spacer = " ";
 
 QString parseMap(QMap<QString,QVariant> & maps)
 {
@@ -49,10 +52,8 @@ QString parseList(QList<QString> & selectKeys)
               result += ",";
          }
     }
-
     return result;
 }
-
 
 Criteria::Criteria()
 {
@@ -76,6 +77,7 @@ Criteria & Criteria::orr(Restrictions rest)
 QString Criteria::toSql()
 {
     QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
 
     QList<Restrictions> ctypes = restricitinons.keys();
 
@@ -85,61 +87,91 @@ QString Criteria::toSql()
         {
             switch(restricitinons.value(ctypes.at(i)))
             {
-                case CADD: result += (" and ");break;
-                case COR: result += (" or ");break;
+                case CADD: stream<<spacer<<"AND"<<spacer;break;
+                case COR: stream<<spacer<<"OR"<<spacer;break;
                 default:break;
             }
         }
-        result += ctypes.at(i).toSql();
+        stream<<ctypes.at(i).toSql();
     }
+    stream.flush();
 
     return result;
 }
 
-Restrictions::Restrictions(QString name, QVariant value, OperateType type):
-    name(name),value(value),operation(type)
+QString Criteria::toSql(QMap<QString, QString> tableAlias,bool isSupportAlias)
+{
+    QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
+    QList<Restrictions> ctypes = restricitinons.keys();
+
+    for(int i = 0; i < ctypes.size(); i++)
+    {
+        if(i > 0)
+        {
+            switch(restricitinons.value(ctypes.at(i)))
+            {
+                case CADD: stream<<"AND"<<spacer;break;
+                case COR: stream<<"OR"<<spacer;break;
+                default:break;
+            }
+        }
+        if(isSupportAlias){
+            QString alias = tableAlias.value(ctypes.at(i).tableName());
+            stream<<ctypes.at(i).toSql(alias,isSupportAlias);
+        }else{
+            stream<<ctypes.at(i).toSql(ctypes.at(i).tableName(),isSupportAlias);
+        }
+    }
+    stream.flush();
+
+    return result;
+}
+
+Restrictions::Restrictions(QString tName ,QString key,QVariant value,OperateType type):
+    name(key),value(value),operation(type),tname(tName)
 {
 
 }
 
-Restrictions Restrictions::eq(QString name, QVariant value)
+Restrictions Restrictions::eq(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::EQ);
+    return Restrictions(tName,key,value,OperateType::EQ);
 }
 
-Restrictions Restrictions::gt(QString name, QVariant value)
+Restrictions Restrictions::gt(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::GT);
+    return Restrictions(tName,key,value,OperateType::GT);
 }
 
-Restrictions Restrictions::ge(QString name, QVariant value)
+Restrictions Restrictions::ge(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::GE);
+    return Restrictions(tName,key,value,OperateType::GE);
 }
 
-Restrictions Restrictions::lt(QString name, QVariant value)
+Restrictions Restrictions::lt(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::LT);
+    return Restrictions(tName,key,value,OperateType::LT);
 }
 
-Restrictions Restrictions::le(QString name, QVariant value)
+Restrictions Restrictions::le(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::LE);
+    return Restrictions(tName,key,value,OperateType::LE);
 }
 
-Restrictions Restrictions::ne(QString name, QVariant value)
+Restrictions Restrictions::ne(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::NE);
+    return Restrictions(tName,key,value,OperateType::NE);
 }
 
-Restrictions Restrictions::like(QString name, QVariant value)
+Restrictions Restrictions::like(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::LIKE);
+    return Restrictions(tName,key,value,OperateType::LIKE);
 }
 
-Restrictions Restrictions::in(QString name, QVariant value)
+Restrictions Restrictions::in(QString tName,QString key,QVariant value)
 {
-    return Restrictions(name,value,OperateType::IN);
+    return Restrictions(tName,key,value,OperateType::IN);
 }
 
 bool Restrictions::operator<(const Restrictions & src)const
@@ -157,22 +189,27 @@ bool Restrictions::operator<(const Restrictions & src)const
     return true;
 }
 
-QString Restrictions::toSql() const
+QString Restrictions::toSql(QString tableAlais,bool isSupportAlias) const
 {
     QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
 
-    result +=(" " + name + " ");
+    if(isSupportAlias && tableAlais.size() > 0){
+        stream<<spacer<<tableAlais<<spacer<<"."<<name<<spacer;
+    }else{
+        stream<<spacer<<name<<spacer;
+    }
 
     switch(operation)
     {
-        case EQ: result += " = ";break;
-        case GT: result += " > ";break;
-        case GE: result += " >= ";break;
-        case LT: result += " < ";break;
-        case LE: result += " <= ";break;
-        case NE: result += " != ";break;
-        case LIKE: result += " like ";break;
-        case IN: result += " in ";break;
+        case EQ: stream<<spacer<<"="<<spacer;break;
+        case GT: stream<<spacer<<">"<<spacer;break;
+        case GE: stream<<spacer<<">="<<spacer;break;
+        case LT: stream<<spacer<<"<"<<spacer;break;
+        case LE: stream<<spacer<<"<="<<spacer;break;
+        case NE: stream<<spacer<<"!="<<spacer;break;
+        case LIKE: stream<<spacer<<"like"<<spacer;break;
+        case IN: stream<<spacer<<"in"<<spacer;break;
         default:break;
     }
 
@@ -181,12 +218,14 @@ QString Restrictions::toSql() const
          case QVariant::Date:
          case QVariant::DateTime:
          case QVariant::String:
-                                 result += (" '" + value.toString() + "' ");
+                                 stream<<spacer<<"'"<<value.toString()<<"'"<<spacer;
                                  break;
          default:
-                                 result += value.toString();
+                                 stream<<value.toString();
                                  break;
     }
+
+    stream.flush();
 
     return result;
 }
@@ -197,21 +236,33 @@ RPersistence::RPersistence(const QString tableName):
 
 }
 
-void RPersistence::insert(const QString key, QVariant value)
+RPersistence & RPersistence::insert(const QString key, QVariant value)
 {
     maps.insert(key,value);
+    return *this;
+}
+
+RPersistence &RPersistence::insert(std::vector<std::pair<QString, QVariant> > list)
+{
+    std::for_each(list.begin(),list.end(),[&](const std::pair<QString,QVariant> & pair){
+        this->maps.insert(pair.first,pair.second);
+    });
+    return *this;
 }
 
 QString RPersistence::sql()
 {
-    QString result = "insert into ";
-    result += tableName;
-    result += " ( ";
+    QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
+    stream<<"INSERT INTO"<<spacer;
+
+    stream<<tableName;
+    stream<<spacer<<"("<<spacer;
 
     QList<QString> keys = maps.keys();
 
     result += parseList(keys);
-    result += " ) values ( ";
+    stream<<spacer<<") VALUES ("<<spacer;
 
     for(int i = 0; i < keys.size(); i++)
     {
@@ -222,83 +273,247 @@ QString RPersistence::sql()
             case QVariant::Date:
             case QVariant::DateTime:
             case QVariant::String:
-                                    result += (" '" + val.toString() + "' ");
+                                    stream<<spacer<<"'"<<val.toString()<<"'"<<spacer;
                                     break;
             default:
-                                    result += val.toString();
+                                    stream<<val.toString();
                                     break;
        }
        if(i < keys.size() - 1)
        {
-           result += ", ";
+           stream<<","<<spacer;
        }
        else
        {
-           result += " )";
+           stream<<spacer<<")"<<spacer;
        }
     }
+    stream.flush();
 
     return result;
 }
 
-RUpdate::RUpdate(const QString tableName):
-    tableName(tableName)
-{
-
+RUpdate::RUpdate(std::initializer_list<QString> tNames):isAlias(true){
+    QString alias("T%1");
+    int index = 0;
+    for(auto p:tNames){
+        tableNames.insert(p,alias.arg(index++));
+    }
 }
 
-void RUpdate::update(const QString key, QVariant value)
+RUpdate::RUpdate(const QString tName):isAlias(true){
+    QString alias("T%1");
+    tableNames.insert(tName,alias.arg(0));
+}
+
+RUpdate &RUpdate::enableAlias(bool flag)
 {
-    maps.insert(key,value);
+    isAlias = flag;
+    return *this;
+}
+
+RUpdate & RUpdate::update(const QString tName,const QString key, QVariant value)
+{
+    updateKeys.push_back(UpdateKeys{tName,key,value});
+    return *this;
+}
+
+RUpdate &RUpdate::update(const QString tName, std::vector<std::pair<QString, QVariant> > list)
+{
+    std::for_each(list.begin(),list.end(),[&](const std::pair<QString,QVariant> & item){
+        this->updateKeys.push_back(UpdateKeys{tName,item.first,item.second});
+    });
+    return *this;
+}
+
+RUpdate &RUpdate::on(const QString &tName1, const QString key1, const QString tName2, const QString value2)
+{
+    onCondtions.push_back({tName1,key1,tName2,value2});
+    return *this;
 }
 
 QString RUpdate::sql()
 {
-    QString result = " update ";
-    result += tableName;
-    result += " set ";
+    QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
+    stream<<"UPDATE"<<spacer;
 
-    result += parseMap(maps);
+    if(tableNames.size() > 1){
+        for(int i = 0; i < tableNames.size(); i++){
+            stream<<tableNames.keys().at(i);
+            if(isAlias)
+                stream<<spacer<<tableNames.value(tableNames.keys().at(i));
+            if(i < tableNames.size() - 1){
+                stream<<spacer<<"LEFT JOIN"<<spacer;
+            }
+        }
+        stream<<spacer<<"ON"<<spacer;
+    }
+    else{
+        stream<<tableNames.keys().at(0);
+        if(isAlias)
+            stream<<spacer<<tableNames.value(tableNames.keys().at(0))<<spacer;
+    }
+
+    if(onCondtions.size() > 0){
+        for(int i = 0; i < onCondtions.size(); i++){
+            OnContion condition = onCondtions.at(i);
+            if(isAlias)
+                stream<<tableNames.value(condition.t1)<<".";
+            stream<<condition.v1<<"=";
+            if(isAlias)
+                stream<<tableNames.value(condition.t2)<<".";
+            stream<<condition.v2;
+            if(i < onCondtions.size() - 1){
+                stream<<spacer<<"AND"<<spacer;
+            }
+        }
+    }
+
+    stream<<spacer<<"SET"<<spacer;
+
+    for(int i = 0; i < updateKeys.size(); i++)
+    {
+        const UpdateKeys & key = updateKeys.at(i);
+        if(isAlias)
+            stream<<tableNames.value(key.tname)<<".";
+        stream<<key.tKey;
+        stream<<spacer<<"="<<spacer;
+
+        switch(key.value.type())
+        {
+             case QVariant::Date:
+             case QVariant::DateTime:
+             case QVariant::String:
+                                     stream<<spacer<<"'"<<key.value.toString()<<"'"<<spacer;
+                                     break;
+             default:
+                                     stream<<key.value.toString();
+                                     break;
+        }
+
+        if(i < updateKeys.size() - 1){
+            stream<<spacer<<","<<spacer;
+        }else{
+            stream<<spacer;
+        }
+    }
 
     if(ctia.size() > 0)
     {
-        result += " where ";
-        result += ctia.toSql();
+        stream<<spacer<<"WHERE"<<spacer;
+        stream<<ctia.toSql(tableNames,isAlias);
     }
+    stream.flush();
+
     return result;
 }
 
-RSelect::RSelect(const QString tableName):tableName(tableName)
+RSelect::RSelect(std::initializer_list<QString> tNames):limitStart(-1),limitCount(-1),isSetLimit(false)
 {
-
+    QString alias("T%1");
+    int index = 0;
+    for(auto p:tNames){
+        tableNames.insert(p,alias.arg(index++));
+    }
 }
 
-void RSelect::select(const QString key)
+RSelect::RSelect(QString tName):limitStart(-1),limitCount(-1),isSetLimit(false)
 {
-    selectKeys.append(key);
+    QString alias("T%1");
+    tableNames.insert(tName,alias.arg(0));
+}
+
+RSelect& RSelect::select(const QString &tName, std::initializer_list<QString> keys)
+{
+    for(auto key : keys)
+        selectedKeys.push_back(Keys{tName,key});
+    return *this;
+}
+
+RSelect &RSelect::on(const QString &tName1, const QString key1, const QString tName2, const QString value2)
+{
+    onCondtions.push_back({tName1,key1,tName2,value2});
+    return *this;
+}
+
+bool RSelect::limit(unsigned int start, unsigned int count)
+{
+    isSetLimit = false;
+    if(start >= 0 && count > 0){
+        limitStart = start;
+        limitCount = count;
+        isSetLimit = true;
+    }
+    return isSetLimit;
+}
+
+RSelect &RSelect::orderBy(const QString &tName, const QString key, SuperCondition::SOrder odr)
+{
+    sortOrders.push_back(Orders{tName,key,odr});
+    return *this;
 }
 
 QString RSelect::sql()
 {
-    QString result = " select ";
+    QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
+    stream<<spacer<<"SELECT"<<spacer;
 
-    if(selectKeys.size() == 0)
-    {
-        result += " * ";
+    if(selectedKeys.size() > 0){
+        for(int i = 0;i < selectedKeys.size(); i++){
+            stream<<tableNames.value(selectedKeys.at(i).tname)<<"."<<selectedKeys.at(i).tkey;
+            if(i != selectedKeys.size() - 1){
+                stream<<spacer<<","<<spacer;
+            }
+        }
+    }else{
+        stream<<spacer<<"*"<<spacer;
+    }
+
+    stream<<spacer<<"from"<<spacer;
+
+    if(tableNames.size() > 1){
+        for(int i = 0; i < tableNames.size(); i++){
+            stream<<tableNames.keys().at(i)<<spacer<<tableNames.value(tableNames.keys().at(i));
+            if(i < tableNames.size() - 1){
+                stream<<spacer<<"LEFT JOIN"<<spacer;
+            }
+        }
+        stream<<spacer<<"ON"<<spacer;
     }
     else
-    {
-        result += parseList(selectKeys);
-    }
+        stream<<tableNames.keys().at(0)<<spacer<<tableNames.value(tableNames.keys().at(0))<<spacer;
 
-    result += " from ";
-    result += tableName;
+    if(onCondtions.size() > 0){
+        for(int i = 0; i < onCondtions.size(); i++){
+            OnContion condition = onCondtions.at(i);
+            stream<<tableNames.value(condition.t1)<<"."<<condition.v1<<"="<<tableNames.value(condition.t2)<<"."<<condition.v2;
+            if(i < onCondtions.size() - 1){
+                stream<<spacer<<"AND"<<spacer;
+            }
+        }
+    }
 
     if(ctia.size() > 0)
     {
-        result += " where ";
-        result += ctia.toSql();
+        stream<<spacer<<"WHERE"<<spacer;
+        stream<<ctia.toSql(tableNames);
     }
+
+    if(sortOrders.size() > 0){
+        stream<<spacer<<"ORDER BY"<<spacer;
+        for(int i = 0; i < sortOrders.size();i++){
+            stream<<tableNames.value(sortOrders.at(i).tName)<<"."<<sortOrders.at(i).tkey<<spacer<<odrToString(sortOrders.at(i).odr);
+        }
+    }
+
+    if(isSetLimit){
+        stream<<spacer<<"LIMIT"<<spacer<<limitStart<<spacer+","<<spacer<<limitCount;
+    }
+
+    stream.flush();
+
     return result;
 }
 
@@ -310,13 +525,15 @@ RDelete::RDelete(const QString tableName):
 
 QString RDelete::sql()
 {
-    QString result = " delete from ";
+    QString result;
+    QTextStream stream(&result,QIODevice::ReadWrite);
+    stream<<"DELETE FROM"<<spacer;
 
-    result += tableName;
+    stream<<tableName<<spacer;
 
     if(ctia.size() > 0)
     {
-        result += " where ";
+        stream<<spacer<<"WHERE"<<spacer;
         result += ctia.toSql();
     }
     return result;

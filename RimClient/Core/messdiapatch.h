@@ -13,6 +13,7 @@
 
 #include <QObject>
 
+#include "datastruct.h"
 #include "protocoldata.h"
 using namespace ProtocolType;
 
@@ -31,8 +32,14 @@ public:
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
     void onRecvFriendList(FriendListResponse * response);
-    void onRecvGroupingOperate(GroupingResponse response);
+    void onRecvFriendGroupingOperate(GroupingResponse response);
+    void onRecvGroupGroupingOperate(GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
+
+    void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void onRecvResitGroup(RegistGroupResponse response);
+    void onRecvResitGroupFailed();
+
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
@@ -43,6 +50,8 @@ public:
 
     void onScreenChanged();
 
+    void onAddHistoryItem(HistoryChatRecord &record);
+
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
@@ -52,8 +61,14 @@ signals:
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
     void recvFriendList(FriendListResponse * response);
-    void recvGroupingOperate(GroupingResponse response);
+    void recvFriendGroupingOperate(GroupingResponse response);
+    void recvGroupGroupingOperate(GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
+
+    void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void recvRegistGroup(RegistGroupResponse response);
+    void recvRegistGroupFailed();
+
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
@@ -63,6 +78,8 @@ signals:
     void recvFileData(QString fileId,QString fileName);
 
     void screenChange();
+
+    void createHisotryItem(HistoryChatRecord);
 
 private:
     MessDiapatch(QObject *parent = 0);

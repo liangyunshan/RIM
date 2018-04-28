@@ -139,7 +139,12 @@ SOURCES += \
     file/filedesc.cpp \
     file/filemanager.cpp \
     user/user.cpp \
-    sql/rpersistence.cpp
+    sql/rpersistence.cpp \
+    user/userfriendcontainer.cpp \
+    sql/datatable.cpp \
+    user/userchatcontainer.cpp \
+    user/groupclient.cpp \
+    Widgets/registgroupdialog.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -222,7 +227,12 @@ HEADERS  += \
     file/filedesc.h \
     file/filemanager.h \
     user/user.h \
-    sql/rpersistence.h
+    sql/rpersistence.h \
+    user/userfriendcontainer.h \
+    sql/datatable.h \
+    user/userchatcontainer.h \
+    user/groupclient.h \
+    Widgets/registgroupdialog.h
 
 DISTFILES += \
     Widgets/Widgets.pri

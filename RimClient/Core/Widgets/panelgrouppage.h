@@ -1,6 +1,7 @@
 ﻿/*!
  *  @brief     群信息界面
  *  @details   显示登录用户群信息
+ *  @attention 此功能页面与PanelPersonPage页面功能相似，代码可参考
  *  @file      panelgrouppage.h
  *  @author    wey
  *  @version   1.0
@@ -8,8 +9,9 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @change
- *      date:20180122 content:添加群分组重命名 name:LYS
- *      date:20180202 content:添加增加群分组功能 name:LYS
+ *      date:20180122:LYS:添加群分组重命名
+ *      date:20180202:LYS:添加增加群分组功能
+ *           20180424:wey:完善分组功能操作(新建分组、重命名、删除、移动分组，并且与服务器同步)
  */
 #ifndef PANELGROUPPAGE_H
 #define PANELGROUPPAGE_H
@@ -32,18 +34,28 @@ public:
 
     void onMessage(MessageType type);
 
-private slots:
-    void searchGroup();
-    void newGroup();
-    void addGroups();
+signals:
+    void registChatGroupResult(bool);
 
-    void renameGroup();
-    void deleteGroup();
+private slots:
+    void updateGroupList(MsgOperateResponse status,ChatGroupListResponse* response);
+
+    void respGroupCreate();
+    void respGroupRename();
+    void respGroupDeleted();
+    void respGroupMoved(int index,QString pageId);
+    void searchGroup();
+
+    void createNewGroup();
 
     void sendMessage();
     void viewDetail();
     void modifyGroupInfo();
     void exitGroup();
+
+    void recvGroupGroupingOperate(GroupingResponse response);
+    void recvRegistGroup(RegistGroupResponse response);
+    void recvRegistGroupFailed();
 
 public slots:
     void renameEditFinished();
@@ -52,12 +64,14 @@ public slots:
 
 private:
     void createAction();
-    void addGroupAndCluster();
+    void createGroup();
+    void updateGroupDescInfo();
+    void updateGroupDescInfo(ToolPage *page);
     void clearTargetGroup(const QString id);
+    ToolItem * ceateItem(SimpleChatInfo * chatInfo, ToolPage * page);
 
 private:
     PanelGroupPagePrivate * d_ptr;
-
 };
 
 #endif // PANELGROUPPAGE_H

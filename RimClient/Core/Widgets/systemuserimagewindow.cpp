@@ -74,6 +74,7 @@ SystemUserImageWindow::SystemUserImageWindow(QWidget *parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Local Image"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     const int width = 500;
     const int height = 600;

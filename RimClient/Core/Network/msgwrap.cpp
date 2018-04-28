@@ -53,6 +53,12 @@ void MsgWrap::handleMsg(MsgPacket *packet)
         case MsgCommand::MSG_RELATION_GROUPING_FRIEND:
                 handleGroupingFriendRequest((GroupingFriendRequest *)packet);
                 break;
+        case MSG_GROUP_LIST:
+                handleChatGroupListRequest((ChatGroupListRequest *)packet);
+                break;
+        case MSG_GROUP_CREATE:
+                handleRegistGroupRequest((RegistGroupRequest *)packet);
+                break;
         default:
                 break;
     }
@@ -65,7 +71,7 @@ void MsgWrap::hanleText(TextRequest *packet)
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     data.insert(JsonKey::key(JsonKey::TextId),packet->textId);
     data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
-    data.insert(JsonKey::key(JsonKey::SearchType),packet->type);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->type);
     data.insert(JsonKey::key(JsonKey::Time),packet->timeStamp);
     data.insert(JsonKey::key(JsonKey::Encryption),packet->isEncryption);
     data.insert(JsonKey::key(JsonKey::Compress),packet->isCompress);
@@ -152,7 +158,7 @@ void MsgWrap::handleUserStateRequest(UserStateRequest * request)
 void MsgWrap::handleSearchFriendRequest(SearchFriendRequest * packet)
 {
     QJsonObject data;
-    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->stype);
     data.insert(JsonKey::key(JsonKey::SearchContent),packet->accountOrNickName);
 
     wrappedPack(packet,data);
@@ -177,7 +183,7 @@ void MsgWrap::handleOperateFriendRequest(OperateFriendRequest * packet)
     data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
     data.insert(JsonKey::key(JsonKey::Result),packet->result);
     data.insert(JsonKey::key(JsonKey::Type),packet->type);
-    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->stype);
 
     wrappedPack(packet,data);
 }
@@ -196,9 +202,10 @@ void MsgWrap::handleGroupingOperateRequest(GroupingRequest *packet)
     QJsonObject data;
     data.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
     data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
-    data.insert(JsonKey::key(JsonKey::GroupType),packet->gtype);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->gtype);
     data.insert(JsonKey::key(JsonKey::Type),packet->type);
     data.insert(JsonKey::key(JsonKey::GroupName),packet->groupName);
+    data.insert(JsonKey::key(JsonKey::Index),packet->groupIndex);
 
     wrappedPack(packet,data);
 }
@@ -209,7 +216,7 @@ void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
     data.insert(JsonKey::key(JsonKey::Type),packet->type);
     data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
     data.insert(JsonKey::key(JsonKey::OldGroupId),packet->oldGroupId);
-    data.insert(JsonKey::key(JsonKey::SearchType),packet->stype);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->stype);
 
     QJsonObject user;
     user.insert(JsonKey::key(JsonKey::AccountId),packet->user.accountId);
@@ -221,6 +228,29 @@ void MsgWrap::handleGroupingFriendRequest(GroupingFriendRequest * packet)
     user.insert(JsonKey::key(JsonKey::Status),packet->user.status);
 
     data.insert(JsonKey::key(JsonKey::Users),user);
+
+    wrappedPack(packet,data);
+}
+
+void MsgWrap::handleChatGroupListRequest(ChatGroupListRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
+    wrappedPack(packet,data);
+}
+
+void MsgWrap::handleRegistGroupRequest(RegistGroupRequest *packet)
+{
+    QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::GroupName),packet->groupName);
+    data.insert(JsonKey::key(JsonKey::Desc),packet->groupDesc);
+    data.insert(JsonKey::key(JsonKey::Label),packet->groupLabel);
+    data.insert(JsonKey::key(JsonKey::SearchVisible),packet->searchVisible);
+    data.insert(JsonKey::key(JsonKey::ValidateAble),packet->validateAble);
+    data.insert(JsonKey::key(JsonKey::Question),packet->validateQuestion);
+    data.insert(JsonKey::key(JsonKey::Answer),packet->validateAnaswer);
+    data.insert(JsonKey::key(JsonKey::Uuid),packet->userId);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
 
     wrappedPack(packet,data);
 }
@@ -238,9 +268,7 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     QByteArray array = document.toJson(QJsonDocument::Compact);
 
     if(packet->isAutoDelete)
-    {
         delete packet;
-    }
 
     G_TextSendMutex.lock();
     G_TextSendBuffs.enqueue(array);

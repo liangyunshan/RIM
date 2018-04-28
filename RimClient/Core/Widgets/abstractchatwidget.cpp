@@ -38,6 +38,7 @@
 #include "others/msgqueuemanager.h"
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
+#include "messdiapatch.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -424,16 +425,16 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -469,7 +470,7 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 //响应聊天框的历史信息查询
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -653,6 +654,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
+//test
+    //TODO 20180423 向历史会话记录列表插入一条记录
+    HistoryChatRecord record;
+    record.accountId = d->userInfo.accountId;
+    record.nickName = d->userInfo.nickName;
+    record.dtime = RUtil::currentMSecsSinceEpoch();
+    record.lastRecord = RUtil::getTimeStamp();
+    record.systemIon = d->userInfo.isSystemIcon;
+    record.iconId = d->userInfo.iconId;
+    record.type = CHAT_C2C;
+    MessDiapatch::instance()->onAddHistoryItem(record);
+//test
 
 //    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
 //    {
@@ -696,11 +709,11 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //    request->fileId = "f5a7c4c5e9574d31bb37723945b5d6a3";
 //    FileRecvTask::instance()->addRecvItem(request);
 
-//    SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
+//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
 
 //    int user_query_id = d->userInfo.accountId.toInt();
-//    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+//    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 
     d_ptr->chatInputArea->clear();
 }
@@ -784,9 +797,9 @@ void AbstractChatWidget::initChatRecord()
     d_ptr->p_DatabaseThread->start();
 
     int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = SQLProcess::instance()->initTableUser_id(G_User->database(),d->userInfo);
-    int lastRow = SQLProcess::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
+    bool ret = RSingleton<SQLProcess>::instance()->initTableUser_id(G_User->database(),d->userInfo);
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow));
     Q_UNUSED(ret);
 }
 

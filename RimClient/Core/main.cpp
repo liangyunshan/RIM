@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<FileItemRequest>("FileItemRequest");
     qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
+    qRegisterMetaType<RegistGroupResponse>("RegistGroupResponse");
 
     RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
     RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());

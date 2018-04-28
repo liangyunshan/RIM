@@ -4,10 +4,8 @@
 
 #include "../Widgets/abstractchatwidget.h"
 
-UserClient::UserClient()
+UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
 {
-    toolItem = NULL;
-    chatWidget = NULL;
 }
 
 UserClient::~UserClient()
@@ -26,18 +24,16 @@ UserManager::UserManager()
 }
 
 /*!
-     * @brief 添加联系人
-     * @param[in] accountId:QString 联系人id
-     * @return 联系人:UserClient *
-     */
+ * @brief 添加联系人
+ * @param[in] accountId:QString 联系人id
+ * @return 联系人:UserClient *
+ */
 UserClient *UserManager::addClient(QString accountId)
 {
     QMutexLocker locker(&mutex);
 
     if(clients.contains(accountId))
-    {
         return clients.value(accountId);
-    }
 
     UserClient * client = new UserClient;
     clients.insert(accountId,client);
@@ -46,10 +42,10 @@ UserClient *UserManager::addClient(QString accountId)
 }
 
 /*!
-     * @brief 移除联系人
-     * @param[in] accountId:QString 联系人id
-     * @return 移除联系人结果:bool
-     */
+ * @brief 移除联系人
+ * @param[in] accountId:QString 联系人id
+ * @return 移除联系人结果:bool
+ */
 bool UserManager::removeClient(QString accountId)
 {
     QMutexLocker locker(&mutex);
@@ -58,8 +54,7 @@ bool UserManager::removeClient(QString accountId)
     {
         delete clients.value(accountId);
         int t_result = clients.remove(accountId);
-        if(t_result != 0)
-        {
+        if(t_result != 0){
             t_removeResult = true;
         }
     }
@@ -73,9 +68,7 @@ UserClient *UserManager::client(ToolItem *item)
     while(iter != clients.end())
     {
         if(iter.value()->toolItem == item)
-        {
             return iter.value();
-        }
         iter++;
     }
 
@@ -89,9 +82,7 @@ UserClient *UserManager::client(QString accountId)
     while(iter != clients.end())
     {
         if(iter.value()->simpleUserInfo.accountId == accountId)
-        {
             return iter.value();
-        }
         iter++;
     }
 

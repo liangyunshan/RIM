@@ -22,8 +22,6 @@
 #include "constants.h"
 #include "datastruct.h"
 
-using namespace GroupPerson;
-
 class ToolBoxPrivate : public GlobalData<ToolBox>
 {
     Q_DECLARE_PUBLIC(ToolBox)
@@ -45,7 +43,7 @@ private:
     QScrollArea * scrollArea;
     QWidget * contentWidget;
 
-    QList<ToolPage *> pages;
+    QList<ToolPage *> pages;                        /*!< 装载多个信息页面 */
 
     ToolPage * currentPage;
     ToolItem * currentItem;
@@ -176,6 +174,27 @@ bool ToolBox::removeFromList(ToolPage *targetPage)
     return t_result;
 }
 
+/*!
+ * @brief 重新排列d->pages的顺序
+ * @attention 此方法需要在移动分组后，接收服务器响应后更新本地的page中的分组。
+ * @param[in] groupId 待排序的分组id
+ * @param[in] newPageIndex 已排的序号
+ */
+void ToolBox::sortPage(const QString &groupId, int newPageIndex)
+{
+    MQ_D(ToolBox);
+    int index = -1;
+    QList<ToolPage *>::iterator iter = std::find_if(d->pages.begin(),d->pages.end(),[&](ToolPage * page){
+        index++;
+        return page->pageInfo().uuid == groupId;
+    });
+
+    if(iter != d->pages.end() && index >=0 && index < d->pages.size() && newPageIndex < d->pages.size()){
+        ToolPage * tmpPage = d->pages.takeAt(index);
+        d->pages.insert(newPageIndex,tmpPage);
+    }
+}
+
 ToolPage *ToolBox::selectedPage()
 {
     MQ_D(ToolBox);
@@ -210,12 +229,10 @@ void ToolBox::setContextMenu(QMenu *menu)
 }
 
 /*!
-     * @brief 获取所有分组名称
-     * @param[in] 无
-     * @return 包含所有分组名称的QStringList
-     *
-     */
-
+ * @brief 获取所有分组名称
+ * @param[in] 无
+ * @return 包含所有分组名称的QStringList
+ */
 const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 {
     MQ_D(ToolBox);
@@ -228,25 +245,21 @@ const QList<PersonGroupInfo> ToolBox::toolPagesinfos()
 }
 
 /*!
-     * @brief 倒数第二个page
-     * @param[in] 无
-     * @return 倒数第二个page
-     *
-     */
+ * @brief 倒数第二个page,插入新page前最后一个page的索引
+ * @warning 联系人分组列表中必须保证有一个默认分组
+ * @return 倒数第二个page
+ */
 ToolPage *ToolBox::penultimatePage()
 {
     MQ_D(ToolBox);
-    //注：联系人分组列表中必须保证有一个默认分组
-    return d->pages.at(d->pages.count()-2);
+    return d->pages.at(d->pages.count() - 2);
 }
 
-
 /*!
-     * @brief 获取默认分组page
-     * @param 无
-     * @return 默认分组page
-     *
-     */
+ * @brief 获取默认分组page
+ * @param 无
+ * @return 默认分组page
+ */
 ToolPage *ToolBox::defaultPage()
 {
     MQ_D(ToolBox);
@@ -263,33 +276,31 @@ ToolPage *ToolBox::defaultPage()
 }
 
 /*!
-     * @brief 获取目标uuid的page
-     * @param[in] 无
-     * @return 匹配目标uuid的page
-     *
-     */
+ * @brief 获取目标uuid的page
+ * @param[in] 无
+ * @return 匹配目标uuid的page
+ */
 ToolPage *ToolBox::targetPage(QString &target)
 {
     MQ_D(ToolBox);
     ToolPage * targetPage= NULL;
-    for(int index=0;index<d->pages.count();index++)
-    {
-        QString t_uuid = d->pages.at(index)->pageInfo().uuid;
 
-        if(target == t_uuid)
-        {
-            targetPage = d->pages.at(index);
-        }
-    }
+    QList<ToolPage *>::iterator iter = std::find_if(d->pages.begin(),d->pages.end(),[&target](ToolPage * page){
+        return page->pageInfo().uuid == target;
+    });
+
+    if(iter != d->pages.end())
+        targetPage = (*iter);
+
     return targetPage;
 }
 
 /*!
-     * @brief 获取包含item的page
-     * @param[in] 无
-     * @return 包含目标item的page
-     *
-     */
+ * @brief 获取包含item的page
+ * @param[in] 无
+ * @return 包含目标item的page
+ *
+ */
 ToolPage *ToolBox::targetPage(ToolItem * item)
 {
     MQ_D(ToolBox);
@@ -331,22 +342,18 @@ void ToolBox::clearItemSelection(ToolItem * item)
 }
 
 /*!
-     * @brief 处理page的SIGNAL：updateGroupActions(ToolPage *)
-     * @param[in] page:ToolPage *,信源page
-     * @return
-     *
-     */
+ * @brief 处理page的SIGNAL：updateGroupActions(ToolPage *)
+ * @param[in] page:ToolPage *,信源page
+ */
 void ToolBox::setGroupActions(ToolPage *page)
 {
     emit updateGroupActions(page);
 }
 
 /*!
-     * @brief 处理page的SIGNAL：itemRemoved(ToolItem*)
-     * @param[in] removedItem:ToolItem *,被删除的item
-     * @return
-     *
-     */
+ * @brief 处理page的SIGNAL：itemRemoved(ToolItem*)
+ * @param[in] removedItem:ToolItem *,被删除的item
+ */
 void ToolBox::itemRemoved(ToolItem * removedItem)
 {
     MQ_D(ToolBox);
@@ -357,11 +364,9 @@ void ToolBox::itemRemoved(ToolItem * removedItem)
 }
 
 /*!
-     * @brief 处理page的SIGNAL：pageRemoved(ToolPage*)
-     * @param[in] removedPage:ToolPage *,被删除的page
-     * @return
-     *
-     */
+ * @brief 处理page的SIGNAL：pageRemoved(ToolPage*)
+ * @param[in] removedPage:ToolPage *,被删除的page
+ */
 void ToolBox::pageRemoved(ToolPage * removedPage)
 {
     MQ_D(ToolBox);
@@ -372,12 +377,11 @@ void ToolBox::pageRemoved(ToolPage * removedPage)
 }
 
 /*!
-     * @brief 根据给定鼠标拖动释放的位置判断page应该在布局中插入的位置
-     *
-     * @param[in] pos:QPoint,鼠标拖动释放的位置；
-     *            sortedIndex：int&，保存page应该在布局中插入的位置
-     * @return 无
-     */
+ * @brief 根据给定鼠标拖动释放的位置判断page应该在布局中插入的位置
+ * @param[in] pos:QPoint,鼠标拖动释放的位置；
+ *            sortedIndex：int&，保存page应该在布局中插入的位置
+ * @return 无
+ */
 void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
 {
     MQ_D(ToolBox);
@@ -385,29 +389,23 @@ void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
     {
        int t_pageIndex = d->pages.indexOf(pageInPos(pos));
        int t_rowHeight = pageInPos(pos)->titleRect().height();
-       if(pos.y()-t_pageIndex*t_rowHeight >= t_rowHeight/2)
-       {
+       if(pos.y()-t_pageIndex*t_rowHeight >= t_rowHeight/2){
            sortedIndex = t_pageIndex+1;
-       }
-       else
-       {
+       }else{
            sortedIndex = t_pageIndex;
        }
-    }
-    else
-    {
+    }else{
         sortedIndex = d->pages.count()-1;
     }
 
 }
 
 /*!
-     * @brief 判断鼠标拖拽时是否是page,是则返回page，否则返回NULL
-     * @param[in] pressedPos:const QPoint &(鼠标拖拽时点击的位置)
-     * @details 将展开的page暂时闭合，结束取值后再展开
-     * @return 鼠标拖拽的是page则返回page，否则返回NULL
-     *
-     */
+ * @brief 判断鼠标拖拽时是否是page,是则返回page，否则返回NULL
+ * @param[in] pressedPos:const QPoint &(鼠标拖拽时点击的位置)
+ * @details 将展开的page暂时闭合，结束取值后再展开
+ * @return 鼠标拖拽的是page则返回page，否则返回NULL
+ */
 ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
 {
     MQ_D(ToolBox);
@@ -415,14 +413,12 @@ ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
     QList <int> t_expandedPages;
     for(int t_index=0;t_index<pageCount();t_index++)
     {
-        if(d->pages.at(t_index)->isExpanded())
-        {
+        if(d->pages.at(t_index)->isExpanded()){
             t_expandedPages.append(t_index);
             d->pages.at(t_index)->setExpand(false);
         }
 
-        if(d->pages.at(t_index)->geometry().contains(pressedPos))
-        {
+        if(d->pages.at(t_index)->geometry().contains(pressedPos)){
             t_returnPage = d->pages.at(t_index);
             break;
         }
@@ -431,25 +427,25 @@ ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
     {
         d->pages.at(t_expandedPages.at(t_index))->setExpand(true);
     }
+
     return t_returnPage;
 }
 
 /*!
-     * @brief 仅高亮显示curpos表示的当前位置的page
-     * @param[in] curpos:QPoint &,当前目标点
-     * @return 无
-     *
-     */
+ * @brief 仅高亮显示curpos表示的当前位置的page
+ * @param[in] curpos:QPoint &,当前目标点
+ * @return 无
+ */
 void ToolBox::highLightTarget(const QPoint & curpos)
 {
     MQ_D(ToolBox);
     ToolPage * t_decoratePage = pageInPos(curpos);
-    for(int t_index=0;t_index<d->pages.count();t_index++)
-    {
-        d->pages.at(t_index)->unHighlightShow();
-    }
-    if(t_decoratePage)
-    {
+
+//    auto highLight = [&](ToolPage * page){page->unHighlightShow();};
+//    std::for_each(d->pages.begin(),d->pages.end(),highLight);
+    std::for_each(d->pages.begin(),d->pages.end(),[&](ToolPage * page){page->unHighlightShow();});
+
+    if(t_decoratePage){
         t_decoratePage->highlightShow();
     }
 }
@@ -529,20 +525,14 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
 
 void ToolBox::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (event->mimeData()->hasText())
-    {
-        if(event->source() == this )
-        {
+    if(event->mimeData()->hasText()){
+        if(event->source() == this){
             event->setDropAction(Qt::MoveAction);
             event->accept();
+        }else{
+            event->acceptProposedAction();
         }
-        else
-        {
-                event->acceptProposedAction();
-        }
-    }
-    else
-    {
+    }else{
         QWidget::dragEnterEvent(event);
     }
 }
@@ -550,13 +540,19 @@ void ToolBox::dragEnterEvent(QDragEnterEvent *event)
 void ToolBox::dragMoveEvent(QDragMoveEvent *event)
 {
     MQ_D(ToolBox);
-    if(d->m_leftPressed)
-    {
+    if(d->m_leftPressed){
         highLightTarget(event->pos());
+        event->acceptProposedAction();
+    }else{
+        QWidget::dragMoveEvent(event);
     }
-    QWidget::dragMoveEvent(event);
 }
 
+/*!
+ * @brief 响应分组放下操作
+ * @note 20180419:【现象】修复快速拖动分组时分组显示在页面底部
+ *                【原因】未判断事件源(t_movedPage)和目标事件(pageInPos())是否不一致，造成事件源自身捕获了事件
+ */
 void ToolBox::dropEvent(QDropEvent *event)
 {
     MQ_D(ToolBox);
@@ -564,6 +560,10 @@ void ToolBox::dropEvent(QDropEvent *event)
     if(t_movedPage)
     {
         int t_movedIndex = -1;
+
+        if(pageInPos(event->pos()) == t_movedPage)
+            return;
+
         indexInLayout(event->pos(),t_movedIndex);
         if(t_movedIndex != -1)
         {
@@ -571,15 +571,18 @@ void ToolBox::dropEvent(QDropEvent *event)
             QVBoxLayout * t_layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
             if(t_layout)
             {
+                if(t_movedIndex >= t_layout->count())
+                    t_movedIndex -= 1;
+
                 t_layout->insertWidget(t_movedIndex,t_movedPage);
+                emit pageIndexMoved(t_movedIndex,t_movedPage->getID());
             }
         }
     }
 
     d->m_leftPressed = false;
 
-    for(int t_index=0;t_index<d->m_laterExpandPages.count();t_index++)
-    {
+    for(int t_index=0;t_index<d->m_laterExpandPages.count();t_index++){
         d->pages.at(d->m_laterExpandPages.at(t_index))->setExpand(true);
     }
     d->m_laterExpandPages.clear();

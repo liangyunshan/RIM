@@ -47,6 +47,7 @@
 #include "notifywindow.h"
 #include "systemnotifyview.h"
 #include "user/userclient.h"
+#include "user/userfriendcontainer.h"
 #include "abstractchatwidget.h"
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
@@ -664,20 +665,27 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         {
             if(index < d->localUserInfo.size())
             {
-                d->localUserInfo.at(index)->userName = response.baseInfo.nickName;
-                d->localUserInfo.at(index)->accountId = response.baseInfo.accountId;
-                d->localUserInfo.at(index)->originPassWord = d->password->text();
-                d->localUserInfo.at(index)->password = RUtil::MD5(d->password->text());
-                d->localUserInfo.at(index)->isAutoLogin =  d->autoLogin->isChecked();
-                d->localUserInfo.at(index)->isRemberPassword = d->rememberPassord->isChecked();
-                d->localUserInfo.at(index)->loginState = (int)d->onlineState->state();
+                UserInfoDesc * uinfo = d->localUserInfo.at(index);
+                uinfo->userName = response.baseInfo.nickName;
+                uinfo->accountId = response.baseInfo.accountId;
+                uinfo->originPassWord = d->password->text();
+                uinfo->password = RUtil::MD5(d->password->text());
+                uinfo->isAutoLogin =  d->autoLogin->isChecked();
+                uinfo->isRemberPassword = d->rememberPassord->isChecked();
+                uinfo->loginState = (int)d->onlineState->state();
 
-                d->localUserInfo.at(index)->isSystemIcon = response.baseInfo.isSystemIcon;
-                d->localUserInfo.at(index)->iconId = response.baseInfo.iconId;
+                uinfo->isSystemIcon = response.baseInfo.isSystemIcon;
+                uinfo->iconId = response.baseInfo.iconId;
                 if(response.baseInfo.iconId.size() == 0){
-                    d->localUserInfo.at(index)->iconId = d->defaultUserIconPath;
-                    baseInfo.iconId = d->localUserInfo.at(index)->iconId;
+                    uinfo->iconId = d->defaultUserIconPath;
+                    baseInfo.iconId = uinfo->iconId;
                 }
+
+                if(index != 0){
+                    d->localUserInfo.removeAt(index);
+                    d->localUserInfo.prepend(uinfo);
+                }
+
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
         }
@@ -700,7 +708,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
                 desc->iconId = response.baseInfo.iconId;
             }
 
-            d->localUserInfo.append(desc);
+            d->localUserInfo.prepend(desc);
             RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
         }
 
@@ -743,6 +751,10 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         FriendListRequest * request = new FriendListRequest;
         request->accountId = baseInfo.accountId;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+        ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
+        groupRequest->uuid = baseInfo.uuid;
+        RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
     }
     else
     {
@@ -805,8 +817,11 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 //TODO 考虑若未打开窗口，消息如何存储？？
 /*!
  * @brief 接收发送的聊天消息
- * @details 若聊天对象的窗口未创建，则使用系统通知，进行提示；
- *          若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+ * @details
+ *          1.存储消息至数据库；
+ *          2.将信息添加至历史会话列表;
+ *          3.  若聊天对象的窗口未创建，则使用系统通知，进行提示；
+ *              若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
  * @param[in] response 消息体内容
  * @return 是否插入成功
  */
@@ -820,34 +835,35 @@ void LoginDialog::procRecvText(TextRequest response)
         SimpleUserInfo userInfo;
         userInfo.accountId = "0";
         ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-        SQLProcess::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
+        RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
 
-        //【2】判断窗口是否创建或者是否可见
-        if(client->chatWidget && client->chatWidget->isVisible())
-        {
-            if(response.msgCommand == MSG_TEXT_TEXT)
-            {
+        //TODO 20180423【2】将信息添加至历史会话列表
+        HistoryChatRecord record;
+        record.accountId = client->simpleUserInfo.accountId;
+        record.nickName = client->simpleUserInfo.nickName;
+        record.dtime = RUtil::currentMSecsSinceEpoch();
+        record.lastRecord = RUtil::getTimeStamp();
+        record.systemIon = client->simpleUserInfo.isSystemIcon;
+        record.iconId = client->simpleUserInfo.iconId;
+        record.type = CHAT_C2C;
+        MessDiapatch::instance()->onAddHistoryItem(record);
+
+        //【3】判断窗口是否创建或者是否可见
+        if(client->chatWidget && client->chatWidget->isVisible()){
+            if(response.msgCommand == MSG_TEXT_TEXT){
                 client->chatWidget->showRecentlyChatMsg();
-            }
-            else if(response.msgCommand == MSG_TEXT_SHAKE)
-            {
+            }else if(response.msgCommand == MSG_TEXT_SHAKE){
                 client->chatWidget->shakeWindow();
             }
-        }
-        else
-        {
-            if(response.msgCommand == MSG_TEXT_SHAKE)
-            {
-                if(!client->chatWidget)
-                {
+        }else{
+            if(response.msgCommand == MSG_TEXT_SHAKE){
+                if(!client->chatWidget){
                     client->chatWidget = new AbstractChatWidget();
                     client->chatWidget->setUserInfo(client->simpleUserInfo);
                     client->chatWidget->initChatRecord();
                 }
                 client->chatWidget->show();
-            }
-            else if(response.msgCommand == MSG_TEXT_TEXT)
-            {
+            }else if(response.msgCommand == MSG_TEXT_TEXT){
                 //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();
@@ -933,6 +949,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
         {
             client->toolItem->setStatus(response.onStatus);
             client->simpleUserInfo.status = response.onStatus;
+            RSingleton<Subject>::instance()->notify(MESS_FRIEND_STATE_CHANGE);
             if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
             {
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
@@ -1059,7 +1076,6 @@ void LoginDialog::procFileRequest(FileItemRequest response)
  */
 void LoginDialog::procFileData(QString fileId, QString fileName)
 {
-    MQ_D(LoginDialog);
     FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(fileId);
     if(fileDesc != nullptr)
     {
@@ -1111,6 +1127,11 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 
         SystemNotifyView * view = new SystemNotifyView();
         connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
+
+        //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
+        if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
+            reqType = FRIEND_AGREE;
+        }
 
         view->setNotifyType(reqType);
         view->setNotifyInfo(info);

@@ -140,7 +140,7 @@ NotifyWindow::NotifyWindow(QWidget *parent):
     d_ptr(new NotifyWindowPrivate(this))
 {
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
-
+    setToolBarMoveable(true);
     d_ptr->toolBar = enableToolBar(true);
     enableDefaultSignalConection(false);
     if(d_ptr->toolBar)
