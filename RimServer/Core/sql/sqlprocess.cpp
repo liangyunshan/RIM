@@ -1635,7 +1635,7 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
  * @param[in] request 文本请求
  * @return 是否保存成功
  */
-bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
+bool SQLProcess::saveUserChat2Cache(Database *db, QSharedPointer<TextRequest> request)
 {
     DataTable::RUserChatCache userchatcache;
     RPersistence rps(userchatcache.table);
@@ -1648,10 +1648,9 @@ bool SQLProcess::saveUserChat2Cache(Database *db, TextRequest *request)
                {userchatcache.textType,request->textType},
                {userchatcache.encryption,request->isEncryption},
                {userchatcache.compress,request->isCompress}});
-
+qDebug()<<rps.sql();
     QSqlQuery query(db->sqlDatabase());
-    if(query.exec(rps.sql()))
-    {
+    if(query.exec(rps.sql())){
         return true;
     }
 

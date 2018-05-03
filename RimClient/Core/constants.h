@@ -97,6 +97,9 @@ const char USER_SETTING_SOUND_AVAILABLE[] = "Sounds";
 const char USER_SETTING_SYSTEM_LOCK[] = "SystemLock";
 const char USER_SETTING_EXIT_DELRECORD[] = "ExitDelRecord";
 
+const char USER_SETTING_TEXT_ENCRYPTION[] = "TextEncryption";
+const char USER_SETTING_TEXT_COMPRESSION[] = "TextCompression";
+
 const char USER_SETTING_SOUND_GROUP[] = "Sound";
 
 const QString DEFAULT_NETWORK_TEXT_IP = "127.0.0.1";
@@ -155,6 +158,8 @@ const char TOOL_PANEL_FRONT[] = "Tool_Panel_Front";
 const char TOOL_PANEL_TOOL[] = "Tool_Panel_Tool";
 const char TOOL_PANEL_ADDPERSON[] = "Tool_Panel_AddPerson";
 const char TOOL_PANEL_NOTIFY[] = "Tool_Panel_Notify";
+const char TOOL_PANEL_FILESERVER[] = "Tool_Panel_FILE_SERVER_OK";
+const char TOOL_PANEL_FILESERVER_ERROR[] = "Tool_Panel_FILE_SERVER_ERROR";
 
 const char Tool_Chat_Call[] = "Tool_Chat_Call";
 const char Tool_Chat_Min[] = "Tool_Chat_Min";

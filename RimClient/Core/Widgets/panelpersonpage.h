@@ -104,6 +104,8 @@ private:
     void showOrCreateChatWindow(UserClient * client);
     void sendDeleteUserRequest(UserClient * client , QString groupId);
 
+    void networkIsConnected(bool isConnected);
+
 private:
     PanelPersonPagePrivate * d_ptr;
 };

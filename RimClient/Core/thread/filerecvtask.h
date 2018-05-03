@@ -25,6 +25,7 @@ class FileRecvTask : public ClientNetwork::RTask
     Q_OBJECT
 public:
     FileRecvTask();
+    ~FileRecvTask();
 
     enum WorkMode
     {

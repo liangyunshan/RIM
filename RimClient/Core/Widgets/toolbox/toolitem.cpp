@@ -393,9 +393,7 @@ void ToolItem::setStatus(OnlineStatus status)
     }
     else
     {
-        QImage t_normal = d->iconLabel->pixmap()->toImage();
-        QImage t_grayPic = RUtil::convertToGray(t_normal);
-        d->iconLabel->setPixmap(QPixmap::fromImage(t_grayPic));
+        d->iconLabel->setGray(true);
         d->onLineStateLabel->setPixmap(QPixmap(""));
     }
 }

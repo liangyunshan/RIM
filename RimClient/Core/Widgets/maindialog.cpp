@@ -33,6 +33,7 @@
 #include "panelpersonpage.h"
 #include "media/mediaplayer.h"
 #include "user/user.h"
+#include "thread/taskmanager.h"
 
 #include "itemhoverinfo.h"
 
@@ -62,7 +63,6 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
-        m_autoHideSetting = G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool();
     }
 
 private:
@@ -80,7 +80,6 @@ private:
     EditPersonInfoWindow * editWindow;
 
     bool m_bIsAutoHide;
-    bool m_autoHideSetting;
     Direction m_enDriection;
 
     MainDialog * q_ptr;
@@ -111,8 +110,10 @@ MainDialog::~MainDialog()
 {
     MQ_D(MainDialog);
     RSingleton<Subject>::instance()->detach(this);
-    if(d->editWindow)
-    {
+
+    RSingleton<TaskManager>::instance()->removeAll();
+
+    if(d->editWindow){
         delete d->editWindow;
     }
 
@@ -132,8 +133,8 @@ void MainDialog::onMessage(MessageType type)
     {
         case MESS_SETTINGS:
         {
-            makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
-            blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
+            makeWindowFront(G_User->systemSettings()->keepFront);
+            blockAutoHidePanel();
         }
         break;
         case MESS_SCREEN_CHANGE:
@@ -173,7 +174,7 @@ void MainDialog::leaveEvent(QEvent *event)
 {
     MQ_D(MainDialog);
     isAutoHide();
-    if(d->m_bIsAutoHide && d->m_autoHideSetting)
+    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
     {
         hidePanel();
     }
@@ -183,7 +184,7 @@ void MainDialog::leaveEvent(QEvent *event)
 void MainDialog::enterEvent(QEvent *event)
 {
     MQ_D(MainDialog);
-    if(d->m_bIsAutoHide && d->m_autoHideSetting)
+    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
     {
         showPanel();
     }
@@ -207,14 +208,10 @@ void MainDialog::updateWidgetGeometry()
 
 void MainDialog::closeWindow()
 {
-    if(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,false).toBool())
-    {
+    if(G_User->systemSettings()->exitSystem)
         this->close();
-    }
     else
-    {
         this->hide();
-    }
 }
 
 void MainDialog::makeWindowFront(bool flag)
@@ -237,12 +234,11 @@ void MainDialog::makeWindowFront(bool flag)
     show();
 }
 
-void MainDialog::blockAutoHidePanel(bool flag)
+void MainDialog::blockAutoHidePanel()
 {
     MQ_D(MainDialog);
-    d->m_autoHideSetting = flag;
     isAutoHide();
-    if(!d->m_autoHideSetting)
+    if(!G_User->systemSettings()->hidePanel)
     {
         if(d->m_bIsAutoHide)
         {
@@ -314,20 +310,20 @@ void MainDialog::errorGroupingOperate(OperateGrouping type)
     switch(type)
     {
         case GROUPING_CREATE:
-                            {
-                                errorInfo = QObject::tr("Create group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Create group failed!");
+            }
+            break;
         case GROUPING_RENAME:
-                            {
-                                errorInfo = QObject::tr("Rename group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Rename group failed!");
+            }
+            break;
         case GROUPING_DELETE:
-                            {
-                                errorInfo = QObject::tr("Delete group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Delete group failed!");
+            }
+            break;
         default:break;
     }
 
@@ -337,6 +333,9 @@ void MainDialog::errorGroupingOperate(OperateGrouping type)
 void MainDialog::initWidget()
 {
     MQ_D(MainDialog);
+
+    readSettings();
+
     d->MainPanel = new QWidget(this);
     d->MainPanel->setObjectName("MainPanel");
 
@@ -365,8 +364,6 @@ void MainDialog::initWidget()
     connect(SystemTrayIcon::instance(),SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 
-    readSettings();
-
     d->toolBar = new ToolBar(d->MainPanel);
     d->toolBar->setToolFlags(ToolBar::TOOL_ICON|ToolBar::TOOL_MIN|ToolBar::TOOL_CLOSE|ToolBar::TOOL_SPACER);
     connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(hide()));
@@ -379,8 +376,8 @@ void MainDialog::initWidget()
     d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
     //读取个人配置信息设置系统功能
-    makeWindowFront(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,true).toBool());
-    blockAutoHidePanel(G_User->getSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,false).toBool());
+    makeWindowFront(G_User->systemSettings()->keepFront);
+    blockAutoHidePanel();
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -444,6 +441,25 @@ void MainDialog::readSettings()
     int y = settings->value(Constant::USER_BASIC_Y).toInt();
     int w = settings->value(Constant::USER_BASIC_WIDTH).toInt();
     int h = settings->value(Constant::USER_BASIC_HEIGHT).toInt();
+    settings->endGroup();
+
+    settings->beginGroup(Constant::USER_SETTING_GROUP);
+
+    G_User->systemSettings()->autoStartUp = settings->value(Constant::USER_SETTING_AUTO_STARTUP,false).toBool();
+    G_User->systemSettings()->autoLogin = settings->value(Constant::USER_SETTING_AUTO_LOGIN,false).toBool();
+
+    G_User->systemSettings()->keepFront = settings->value(Constant::USER_SETTING_TOPHINT,false).toBool();
+    G_User->systemSettings()->exitSystem = settings->value(Constant::USER_SETTING_EXIT_SYSTEM,true).toBool();
+    G_User->systemSettings()->hidePanel = settings->value(Constant::USER_SETTING_HIDEPANEL,true).toBool();
+    G_User->systemSettings()->trayIcon = settings->value(Constant::SETTING_TRAYICON,true).toBool();
+
+    G_User->systemSettings()->windowShaking = settings->value(Constant::USER_SETTING_WINDOW_SHAKE,true).toBool();
+    G_User->systemSettings()->soundAvailable = settings->value(Constant::USER_SETTING_SOUND_AVAILABLE,true).toBool();
+    G_User->systemSettings()->lockCheck = settings->value(Constant::USER_SETTING_SYSTEM_LOCK,false).toBool();
+    G_User->systemSettings()->recordCheck = settings->value(Constant::USER_SETTING_EXIT_DELRECORD,false).toBool();
+    G_User->systemSettings()->encryptionCheck = settings->value(Constant::USER_SETTING_TEXT_ENCRYPTION,false).toBool();
+    G_User->systemSettings()->compressCheck = settings->value(Constant::USER_SETTING_TEXT_COMPRESSION,false).toBool();
+
     settings->endGroup();
 
     changeGeometry(x,y,w,h);
@@ -600,22 +616,6 @@ void MainDialog::initSqlDatabase()
 
         if(!RSingleton<SQLProcess>::instance()->createTableIfNotExists(chatDatabase))
             RMessageBox::warning(this,tr("warning"),tr("Database tables create error!"),RMessageBox::Yes);
-
-        /**TEST**/
-//            for(int i = 4; i < 9;i++){
-//                HistoryChatRecord record;
-//                record.accountId = QString("1000%1").arg(i);
-//                record.nickName = QString("test%1").arg(i);
-//                record.dtime = RUtil::currentMSecsSinceEpoch() - 999999 * i;
-//                record.lastRecord = "hha";
-//                record.type = CHAT_C2C;
-//                record.isTop = false;
-//                record.systemIon = true;
-//                record.iconId = QString("%1.png").arg(i+1);
-//                RSingleton<SQLProcess>::instance()->addOneHistoryRecord(chatDatabase,record);
-//            }
-        /**TEST**/
-
     }else{
         RMessageBox::warning(this,tr("warning"),tr("Don't support database type [%1]!").arg(type),RMessageBox::Yes);
     }

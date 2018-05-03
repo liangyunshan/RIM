@@ -16,6 +16,7 @@ MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
 
 MsgReceiveProcTask::~MsgReceiveProcTask()
 {
+    stopMe();
     wait();
 }
 
@@ -39,7 +40,7 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(G_TextRecvBuffs.isEmpty())
+        while(runningFlag && G_TextRecvBuffs.isEmpty())
         {
             G_TextRecvMutex.lock();
             G_TextRecvCondition.wait(&G_TextRecvMutex);

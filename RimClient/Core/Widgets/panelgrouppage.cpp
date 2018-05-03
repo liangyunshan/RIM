@@ -204,6 +204,7 @@ void PanelGroupPage::respGroupRename()
  */
 void PanelGroupPage::respGroupDeleted()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelGroupPage);
 
     ToolPage *t_page = d->toolBox->selectedPage();
@@ -229,6 +230,7 @@ void PanelGroupPage::respGroupDeleted()
  */
 void PanelGroupPage::respGroupMoved(int index, QString pageId)
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelGroupPage);
 
     GroupingRequest * request = new GroupingRequest();
@@ -264,6 +266,7 @@ void PanelGroupPage::modifyGroupInfo()
  */
 void PanelGroupPage::exitGroup()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelGroupPage);
 
     GroupClient * client = RSingleton<GroupManager>::instance()->client(d->toolBox->selectedItem());
@@ -509,6 +512,7 @@ void PanelGroupPage::respItemButtonClick(QEvent::Type type, ToolItem *item)
  */
 void PanelGroupPage::renameEditFinished()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelGroupPage);
     if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {

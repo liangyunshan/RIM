@@ -22,13 +22,7 @@
 using namespace ProtocolType;
 
 class MainDialogPrivate;
-class ToolBar;
-class PanelBottomToolBar;
-class PanelContentArea;
-class PanelTopArea;
 class ToolItem;
-class DatabaseManager;
-class UserClient;
 
 class MainDialog : public Widget,public Observer
 {
@@ -53,7 +47,7 @@ private slots:
     void updateWidgetGeometry();
     void closeWindow();
     void makeWindowFront(bool flag);
-    void blockAutoHidePanel(bool flag);
+    void blockAutoHidePanel();
 
     void showHoverItem(bool,ToolItem*);
 
@@ -61,7 +55,6 @@ private slots:
     void updateEditInstance();
 
     void errorGroupingOperate(OperateGrouping type);
-
     void screenChanged();
 
 private:

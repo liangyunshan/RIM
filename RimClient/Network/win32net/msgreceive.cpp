@@ -48,7 +48,7 @@ void RecveiveTask::run()
     lastRecvBuff.clear();
 
     char recvBuff[MSG_RECV_BUFF] = {0};
-
+    tcpSocket->setBlock(false);
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);
@@ -74,13 +74,14 @@ void RecveiveTask::run()
                 recvData(recvBuff,recvLen);
             }
         }
-        else
-        {
-            RLOG_ERROR("receive a pack not completely %d",tcpSocket->getLastError());
-            tcpSocket->closeSocket();
-            emit socketError(tcpSocket->getLastError());
-            break;
-        }
+
+//        else
+//        {
+//            RLOG_ERROR("receive a pack not completely %d",tcpSocket->getLastError());
+//            tcpSocket->closeSocket();
+//            emit socketError(tcpSocket->getLastError());
+//            break;
+//        }
     }
 
     runningFlag = false;
@@ -218,7 +219,8 @@ TextReceive::TextReceive(QObject *parent):
 
 TextReceive::~TextReceive()
 {
-
+    stopMe();
+    wait();
 }
 
 void TextReceive::processData(QByteArray &data)
@@ -238,7 +240,8 @@ FileReceive::FileReceive(QObject *parent):
 
 FileReceive::~FileReceive()
 {
-
+    stopMe();
+    wait();
 }
 
 void FileReceive::processData(QByteArray &data)

@@ -19,8 +19,9 @@ class QSettings;
 class Database;
 
 #include "protocoldata.h"
-
 using namespace ProtocolType;
+
+#include "datastruct.h"
 
 class User
 {
@@ -52,6 +53,14 @@ public:
     void setDatabase(Database * database);
     Database * database();
 
+    void setTextOnline(bool flag = true);
+    bool isTextOnLine();
+
+    void setFileOnline(bool flag = true);
+    bool isFileOnLine();
+
+    SystemSettingKey * systemSettings(){return this->systemSetting;}
+
     UserBaseInfo & BaseInfo(){return userBaseInfo;}
 
 private:
@@ -61,6 +70,8 @@ private:
     static User * puser;
 
     UserBaseInfo userBaseInfo;       /*!< 用户基本数据信息 */
+    bool textOnLine;                 /*!< 信息服务器在线 */
+    bool fileOnLine;                 /*!< 文件服务器在线 */
 
     QString userHome;
     QString userDBPath;
@@ -70,6 +81,8 @@ private:
     QSettings * userSettings;
 
     Database * chatDatabase;            /*!< 数据库连接 */
+
+    SystemSettingKey * systemSetting;   /*!< 系统设置 */
 };
 
 #endif // USER_H

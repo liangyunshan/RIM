@@ -76,7 +76,7 @@ public:
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);
 
-    bool saveUserChat2Cache(Database * db, TextRequest * request);
+    bool saveUserChat2Cache(Database * db, QSharedPointer<TextRequest> request);
 
     bool addQuoteFile(Database * db,const FileItemRequest * request);
     bool queryFile(Database * db,const QString & fileMd5);

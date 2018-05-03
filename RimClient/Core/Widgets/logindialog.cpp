@@ -294,6 +294,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
     //在多屏状态下，默认选择第一个屏幕
     QSize size = qApp->desktop()->screen()->size();
 
+    G_User = nullptr;
+
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -302,7 +304,9 @@ LoginDialog::LoginDialog(QWidget *parent) :
     loadLocalSettings();
 
     connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respTextSocketError()));
     connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
+    connect(FileNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respFileSocketError()));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
@@ -314,44 +318,80 @@ LoginDialog::LoginDialog(QWidget *parent) :
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
+/*!
+ * @brief 响应连接文字服务器状态
+ * @details 1.程序登陆或注册时会先执行连接；
+ *          2.程序掉线后，手动的切换在线状态来实现重连，也会执行连接；
+ * @param[in] flag:bool 文字服务器连接状态
+ */
 void LoginDialog::respTextConnect(bool flag)
 {
     MQ_D(LoginDialog);
 
-    if(flag)
-    {
-#ifndef __NO_SERVER__
-        LoginRequest * request = new LoginRequest();
-        request->accountId = d->userList->currentText();
-        request->password = RUtil::MD5( d->password->text());
-        request->status = d->onlineState->state();
-        G_OnlineStatus = d->onlineState->state();
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
-#else
-        recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
-#endif
+    if(G_User){
+        G_User->setTextOnline(flag);
     }
-    else
+
+    if(!flag)
     {
         RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+    }else{
+        //若G_User为NULL，则说明还未登陆过
+        if(!G_User){
+#ifndef __NO_SERVER__
+            LoginRequest * request = new LoginRequest();
+            request->accountId = d->userList->currentText();
+            request->password = RUtil::MD5( d->password->text());
+            request->status = d->onlineState->state();
+            G_OnlineStatus = d->onlineState->state();
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+#else
+            recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
+#endif
+        }
+        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
     }
+
+    enableInput(true);
+}
+
+void LoginDialog::respTextSocketError()
+{
+    G_User->setTextOnline(false);
+    RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
 }
 
 void LoginDialog::respFileConnect(bool flag)
 {
+    if(G_User){
+        G_User->setFileOnline(flag);
+    }
     if(flag)
     {
 #ifndef __NO_SERVER__
         qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
 #endif
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
+    }else{
+        RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
     }
+}
+
+void LoginDialog::respFileSocketError()
+{
+    G_User->setFileOnline(false);
+    RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
 }
 
 void LoginDialog::login()
 {
+    MQ_D(LoginDialog);
 #ifndef __NO_SERVER__
     TextNetConnector::instance()->connect();
+    enableInput(false);
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -374,7 +414,6 @@ void LoginDialog::minsize()
 
 void LoginDialog::closeWindow()
 {
-    qDebug()<<__LINE__<<__FUNCTION__;
     RSingleton<TaskManager>::instance()->removeAll();
     this->close();
 }
@@ -517,6 +556,22 @@ void LoginDialog::validateUserName(QString name)
     }
 
     validateInput();
+}
+
+void LoginDialog::enableInput(bool flag)
+{
+    MQ_D(LoginDialog);
+    d->login->setEnabled(flag);
+    d->password->setEnabled(flag);
+    d->userList->setEnabled(flag);
+    d->rememberPassord->setEnabled(flag);
+    d->autoLogin->setEnabled(flag);
+
+    repolish(d->login);
+    repolish(d->password);
+    repolish(d->userList);
+    repolish(d->rememberPassord);
+    repolish(d->autoLogin);
 }
 
 void LoginDialog::validatePassword(QString)
@@ -716,6 +771,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         FileNetConnector::instance()->connect();
 
         G_User = new User(baseInfo);
+        G_User->setTextOnline(true);
 
         if(!baseInfo.isSystemIcon && !QFile(G_User->getFilePath(baseInfo.iconId)).exists() && baseInfo.iconId.size() > 0)
          {
@@ -796,7 +852,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
     MQ_D(LoginDialog);
 
-    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
+    if(G_User->systemSettings()->soundAvailable)
+        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
 
     NotifyInfo  info;
     info.identityId = RUtil::UUID();
@@ -855,7 +912,8 @@ void LoginDialog::procRecvText(TextRequest response)
             if(response.msgCommand == MSG_TEXT_TEXT){
                 client->chatWidget->showRecentlyChatMsg();
             }else if(response.msgCommand == MSG_TEXT_SHAKE){
-                client->chatWidget->shakeWindow();
+                if(G_User->systemSettings()->windowShaking)
+                    client->chatWidget->shakeWindow();
             }
         }else{
             if(response.msgCommand == MSG_TEXT_SHAKE){
@@ -890,13 +948,11 @@ void LoginDialog::procRecvText(TextRequest response)
             }
         }
 
-        if(response.msgCommand == MSG_TEXT_TEXT)
-        {
-            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
-        }
-        else if(response.msgCommand == MSG_TEXT_SHAKE)
-        {
-            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
+        if(G_User->systemSettings()->soundAvailable){
+            if(response.msgCommand == MSG_TEXT_TEXT)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
         }
     }
 }
@@ -945,6 +1001,7 @@ void LoginDialog::processTextReply(TextReply reply)
  */
 void LoginDialog::procFileControl(SimpleFileItemRequest request)
 {
+    R_CHECK_ONLINE;
     MQ_D(LoginDialog);
     if(FileRecvTask::instance()->containsTask(request.fileId))
     {
@@ -1173,6 +1230,11 @@ LoginDialog::~LoginDialog()
     {
        delete d->trayIcon;
        d->trayIcon = NULL;
+    }
+
+    if(d->notifyWindow){
+        delete d->notifyWindow;
+        d->notifyWindow = NULL;
     }
 }
 

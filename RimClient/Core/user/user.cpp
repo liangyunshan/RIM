@@ -12,6 +12,7 @@
 User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr)
 {
     createUserHome(baseInfo.accountId);
+    systemSetting = new SystemSettingKey;
 }
 
 User::User(const QString userId)
@@ -178,4 +179,24 @@ Database *User::database()
 {
     Q_ASSERT_X(chatDatabase != nullptr,__FUNCTION__,"chat database is null");
     return chatDatabase;
+}
+
+void User::setTextOnline(bool flag)
+{
+    textOnLine = flag;
+}
+
+bool User::isTextOnLine()
+{
+    return textOnLine;
+}
+
+void User::setFileOnline(bool flag)
+{
+    fileOnLine = flag;
+}
+
+bool User::isFileOnLine()
+{
+    return fileOnLine;
 }

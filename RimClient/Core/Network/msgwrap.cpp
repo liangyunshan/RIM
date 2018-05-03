@@ -71,14 +71,14 @@ void MsgWrap::hanleText(TextRequest *packet)
 {
     QJsonObject data;
 
-    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     data.insert(JsonKey::key(JsonKey::TextId),packet->textId);
-    data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
-    data.insert(JsonKey::key(JsonKey::OperateType),packet->type);
     data.insert(JsonKey::key(JsonKey::Time),packet->timeStamp);
+    data.insert(JsonKey::key(JsonKey::Type),packet->textType);
     data.insert(JsonKey::key(JsonKey::Encryption),packet->isEncryption);
     data.insert(JsonKey::key(JsonKey::Compress),packet->isCompress);
-    data.insert(JsonKey::key(JsonKey::Type),packet->textType);
+    data.insert(JsonKey::key(JsonKey::OperateType),packet->type);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
     //TODO 数据压缩
     data.insert(JsonKey::key(JsonKey::Data),packet->sendData);
 

@@ -35,6 +35,10 @@ enum MessageType
     MESS_STYLE,                  /*!< 样式更新 */
     MESS_SHORTCUT,               /*!< 快捷键更新 */
     MESS_SETTINGS,               /*!< 系统设置修改 */
+    MESS_TEXT_NET_ERROR,         /*!< 信息信息服务器错误 */
+    MESS_TEXT_NET_OK,            /*!< 信息信息服务器正常 */
+    MESS_FILE_NET_ERROR,         /*!< 文件信息服务器错误 */
+    MESS_FILE_NET_OK,            /*!< 文件信息服务器正常 */
     MESS_BASEINFO_UPDATE,        /*!< 基本信息修改 */
     MESS_RELATION_FRIEND_ADD,    /*!< 分组中添加好友 */
     MESS_RELATION_GROUP_ADD,     /*!< 群分组中添加新群 */
@@ -146,6 +150,28 @@ struct HistoryChatRecord
     bool systemIon;                   /*!< 是否为系统头像，默认为系统头像true */
     QString iconId;                   /*!< 图片索引 */
     OnlineStatus status;              /*!< 在线状态 */
+};
+
+/*!
+ *  @brief 系统设置页面
+ */
+struct SystemSettingKey
+{
+    bool autoStartUp;
+    bool autoLogin;
+
+    bool keepFront;
+    bool exitSystem;
+    bool trayIcon;
+    bool hidePanel;
+
+    bool windowShaking;
+
+    bool soundAvailable;
+    bool lockCheck;
+    bool recordCheck;
+    bool encryptionCheck;
+    bool compressCheck;
 };
 
 namespace TextUnit

@@ -27,4 +27,12 @@
 #define MQ_D(Class) Class##Private * const d = dynamic_cast<Class##Private *>(d_ptr)
 #define MQ_Q(class) Class * const q = q_ptr;
 
+/*在线检测，主动检测，
+ *[1]在发送消息前进行网络状态检测，会存在G_User->isTextOnLine()返回true，但服务器已经关闭，此时会触发send发送返回结果为-1，
+ *客户端会更新G_User->setTextOnline(false)，主动设置为离线。这样避免在离线状态下多次进行数据操作。
+ *[2]在第一次登陆、用户注册、第一次发送好友列表、第一次发送群列表请求时，无需调用此函数验证；
+ *[3]【若为在线状态，下拉列表改变执行状态更新操作；若为离线状态，下拉列表切换执行重连操作】；
+*/
+#define R_CHECK_ONLINE if(!G_User->isTextOnLine()) return
+
 #endif // HEAD_H

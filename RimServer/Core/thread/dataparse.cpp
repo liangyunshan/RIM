@@ -132,7 +132,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
     if(!dataObj.isEmpty())
     {
-        TextRequest * request = new TextRequest;
+        QSharedPointer<TextRequest> request(new TextRequest);
         request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
 
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();

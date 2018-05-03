@@ -824,7 +824,7 @@ void DataProcess::processGroupCommand(Database *db, int socketId, QSharedPointer
  * @param[in] socketId 发送方SOCKET标识
  * @param[in] request 聊天信息主体
  */
-void DataProcess::processText(Database *db, int socketId, TextRequest * request)
+void DataProcess::processText(Database *db, int socketId, QSharedPointer<TextRequest> request)
 {
     SocketOutData responseData;
 
@@ -834,13 +834,12 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
         if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
         {
             responseData.sockId = client->socket();
-            responseData.data = RSingleton<MsgWrap>::instance()->handleText(request);
+            responseData.data = RSingleton<MsgWrap>::instance()->handleText(request.data());
 
             SendData(responseData);
         }else{
             if(request->type == OperatePerson)
             {
-                //FIXME 存储消息时，会因存在'和"导致sql执行失败
                 //TODO 扩充数据库表
                 RSingleton<SQLProcess>::instance()->saveUserChat2Cache(db,request);
             }
@@ -861,8 +860,6 @@ void DataProcess::processText(Database *db, int socketId, TextRequest * request)
     replyData.data = RSingleton<MsgWrap>::instance()->handleTextReply(reply.data());
 
     SendData(replyData);
-
-    delete request;
 }
 
 /*!

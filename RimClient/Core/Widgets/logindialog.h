@@ -102,7 +102,9 @@ private slots:
     void respItemChanged(QString id);
     void showRegistDialog();
     void respTextConnect(bool flag);
+    void respTextSocketError();
     void respFileConnect(bool flag);
+    void respFileSocketError();
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
@@ -120,6 +122,7 @@ private:
     int isContainUser();
     void resetDefaultInput();
     void resetDefaultPixmap();
+    void enableInput(bool flag);
 
 private:
     LoginDialogPrivate * d_ptr;

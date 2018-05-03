@@ -333,7 +333,13 @@ void PanelPersonPage::clearUnrealGroupAndUser()
 
 void PanelPersonPage::onMessage(MessageType type)
 {
-    Q_UNUSED(type)
+    switch (type) {
+    case MESS_TEXT_NET_ERROR:
+            networkIsConnected(false);
+        break;
+    default:
+        break;
+    }
 }
 
 /*!
@@ -365,6 +371,7 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
  */
 void PanelPersonPage::refreshList()
 {
+    R_CHECK_ONLINE;
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_User->BaseInfo().uuid;
     request->type = GROUPING_REFRESH;
@@ -431,12 +438,12 @@ void PanelPersonPage::respGroupRename()
 
 void PanelPersonPage::respGroupDeleted()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
     ToolPage *t_page = d->toolBox->selectedPage();
     if(t_page->isDefault())
-    {
         return;
-    }
+
     d->m_deleteID = t_page->getID();
     GroupingRequest * request = new GroupingRequest();
     request->uuid = G_User->BaseInfo().uuid;
@@ -454,6 +461,7 @@ void PanelPersonPage::respGroupDeleted()
  */
 void PanelPersonPage::respGroupMoved(int index, QString pageId)
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
 
     GroupingRequest * request = new GroupingRequest();
@@ -632,6 +640,7 @@ void PanelPersonPage::deleteUser(ChatMessageType messtype, QString accountId)
 
 void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
 {
+    R_CHECK_ONLINE;
     if(client == nullptr)
         return;
     GroupingFriendRequest * t_request = new GroupingFriendRequest();
@@ -641,6 +650,27 @@ void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
     t_request->oldGroupId = groupId;
     t_request->user = client->simpleUserInfo;
     RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+}
+
+/*!
+ * @brief 根据网络状态设置列表是否为灰色
+ * @param[in] isConnected 网络是否连接
+ */
+void PanelPersonPage::networkIsConnected(bool isConnected)
+{
+    MQ_D(PanelPersonPage);
+    if(isConnected){
+
+    }else{
+        for(int i = 0;i<d->toolBox->allPages().size();i++){
+            ToolPage * page = d->toolBox->allPages().at(i);
+            std::for_each(page->items().cbegin(),page->items().cend(),[](ToolItem *info){
+                info->setStatus(STATUS_OFFLINE);
+            });
+        }
+    }
+
+    updateGroupDescInfo();
 }
 
 /*!
@@ -743,6 +773,7 @@ void PanelPersonPage::updateModifyInstance(QObject *)
  */
 void PanelPersonPage::requestModifyRemark(QString remark)
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
 
     ToolItem *t_modifyItem = d->toolBox->selectedItem();
@@ -931,6 +962,7 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
  */
 void PanelPersonPage::renameEditFinished()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
     if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {
@@ -999,6 +1031,7 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
  */
 void PanelPersonPage::movePersonTo()
 {
+    R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
 
     QAction * target = qobject_cast<QAction *>(QObject::sender());
@@ -1046,7 +1079,8 @@ void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateR
             updateGroupDescInfo();
             if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
             {
-                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+                if(G_User->systemSettings()->soundAvailable)
+                    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
             }
             emit userStateChanged(response.onStatus,response.accountId);
         }

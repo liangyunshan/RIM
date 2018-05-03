@@ -664,24 +664,34 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //    QString t_Script = QString("%1").arg(t_simpleHtml);
 //    d->view->page()->runJavaScript(t_Script);
 
-    FileNetConnector::instance()->connect();
+//    FileNetConnector::instance()->connect();
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
+
     //发送Html内容给联系人
-//    TextRequest * request = new TextRequest;
-//    request->type = OperatePerson;
-//    request->textId = RUtil::UUID();
-//    request->isEncryption = false;
-//    request->isCompress = false;
-//    request->textType = TEXT_NORAML;
-//    request->otherSideId = d->userInfo.accountId;
-//    request->accountId = G_User->BaseInfo().accountId;
-//    request->sendData = t_sendHtml;
-//    request->timeStamp = RUtil::timeStamp();
-//    RSingleton<MsgWrap>::instance()->hanleText(request);
-//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+    TextRequest * request = new TextRequest;
+    request->type = OperatePerson;
+    request->textId = RUtil::UUID();
+
+    if(G_User->systemSettings()->encryptionCheck){
+        //TODO 数据加密
+    }
+    request->isEncryption = G_User->systemSettings()->encryptionCheck;
+
+    if(G_User->systemSettings()->compressCheck){
+        //TODO 数据压缩
+    }
+    request->isCompress = G_User->systemSettings()->compressCheck;
+
+    request->textType = TEXT_NORAML;
+    request->otherSideId = d->userInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->sendData = t_sendHtml;
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片
 //    QStringList t_imgDirs;
