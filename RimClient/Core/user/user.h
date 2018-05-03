@@ -8,7 +8,8 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
- *       20180322:wey:整个个人信息访问接口
+ *       20180322:wey:调整个个人信息访问接口
+ *       20180503:wey:调整用户文件、音频保存目录结构
  */
 #ifndef USER_H_2018_03_22
 #define USER_H_2018_03_22
@@ -30,6 +31,10 @@ public:
     User(const QString userId);
     ~User();
 
+public:
+    enum ChatT{C_C2C,C_GROUP};
+    enum ChatK{C_Image,C_Audio};
+
     QString getUserHome()const;
 
     QString getUserDatabasePath();
@@ -38,14 +43,19 @@ public:
     QString getFileRecvPath();
     void setFileRecvPath(const QString & path);
 
+    QString getC2CImagePath();
+    QString getGroupImagePath();
+    QString getC2CAudioPath();
+    QString getGroupAudioPath();
+
     QSettings * getSettings();
 
     QVariant getSettingValue(const QString & group,const QString &key,QVariant defaultValue);
     void setSettingValue(const QString & group,const QString &key,QVariant value);
 
-    QString getFilePath(QString fileId);
-    QString getIcon();
-    QString getIcon(bool isSystemIcon,const QString &iconId);
+    QString getFilePath(QString fileId,ChatT group = C_C2C,ChatK type = C_Image);
+    QString getIcon(ChatT group = C_C2C);
+    QString getIcon(bool isSystemIcon,const QString &iconId,ChatT group = C_C2C);
 
     QString getChatImgPath();
     void setChatImgPath(const QString &path);
@@ -64,7 +74,7 @@ public:
     UserBaseInfo & BaseInfo(){return userBaseInfo;}
 
 private:
-    bool createUserHome(const QString id);
+    void createUserHome(const QString id);
 
 private:
     static User * puser;
@@ -76,7 +86,8 @@ private:
     QString userHome;
     QString userDBPath;
     QString userFilePath;
-    QString chatImgPath;    //聊天对话中图片存储路径
+    QString chatImgPath;            /*!< 聊天对话中图片存储路径 */
+    QString audioPath;              /*!< 聊天对话中音频存储路径 */
 
     QSettings * userSettings;
 

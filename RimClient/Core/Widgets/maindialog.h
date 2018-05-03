@@ -62,6 +62,7 @@ private:
     void readSettings();
     void writeSettings();
     void initSqlDatabase();
+    void initMedia();
     void isAutoHide();
     void hidePanel();
     void showPanel();

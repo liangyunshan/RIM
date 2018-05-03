@@ -9,6 +9,7 @@
 #include <QToolButton>
 #include <QPropertyAnimation>
 #include <QSharedPointer>
+#include <QAudioFormat>
 #include <QDir>
 
 #include "systemtrayicon.h"
@@ -34,6 +35,8 @@
 #include "media/mediaplayer.h"
 #include "user/user.h"
 #include "thread/taskmanager.h"
+#include "media/audioinput.h"
+#include "media/audiooutput.h"
 
 #include "itemhoverinfo.h"
 
@@ -100,6 +103,7 @@ MainDialog::MainDialog(QWidget *parent) :
     ScreenShot::instance();
 
     initSqlDatabase();
+    initMedia();
     initWidget();
 
     connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
@@ -619,6 +623,20 @@ void MainDialog::initSqlDatabase()
     }else{
         RMessageBox::warning(this,tr("warning"),tr("Don't support database type [%1]!").arg(type),RMessageBox::Yes);
     }
+}
+
+void MainDialog::initMedia()
+{
+    QAudioFormat format;
+    format.setSampleRate(8000);
+    format.setChannelCount(1);
+    format.setSampleSize(8);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::UnSignedInt);
+
+    RSingleton<AudioInput>::instance()->setAudioFormat(format);
+    RSingleton<AudioOutput>::instance()->setAudioFormat(format);
 }
 
 /*!

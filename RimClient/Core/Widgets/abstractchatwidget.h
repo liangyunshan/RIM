@@ -50,6 +50,9 @@ private slots:
     void slot_CheckSendEnter();
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     void finishLoadHTML(bool);
+    void respShowAudioArea(bool);
+    void prepareSendAudio();
+    void preapreCancelAudio();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

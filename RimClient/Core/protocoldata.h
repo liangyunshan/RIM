@@ -1059,7 +1059,7 @@ public:
 
 /*!
  *  @brief 简单文件传输控制请求
- *  @details 在简历传输连接后，用于客户端和服务器端传输文件控制命令.
+ *  @details 在建立传输连接后，用于客户端和服务器端传输文件控制命令.
  */
 class SimpleFileItemRequest : public MsgPacket
 {

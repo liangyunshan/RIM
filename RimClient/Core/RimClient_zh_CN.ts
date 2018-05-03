@@ -2,6 +2,19 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>AbstractChatWidget</name>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="785"/>
+        <source>warning</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="785"/>
+        <source>Other window is recording,please try later!</source>
+        <translation>其它对话框正在录音,请稍后再试!</translation>
+    </message>
+</context>
+<context>
     <name>AbstractWidget</name>
     <message>
         <source>Warning</source>
@@ -51,6 +64,14 @@
     <message>
         <source>%1 - %2</source>
         <translation type="vanished">%1 - %2</translation>
+    </message>
+</context>
+<context>
+    <name>ChatAudioArea</name>
+    <message>
+        <location filename="Widgets/chataudioarea.cpp" line="129"/>
+        <source>Recording...%1s</source>
+        <translation>录音...%1s</translation>
     </message>
 </context>
 <context>
@@ -214,30 +235,30 @@
         <translation type="vanished">置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="229"/>
+        <location filename="Widgets/maindialog.cpp" line="233"/>
         <source>Stick</source>
         <translation>置顶</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="612"/>
-        <location filename="Widgets/maindialog.cpp" line="618"/>
-        <location filename="Widgets/maindialog.cpp" line="620"/>
+        <location filename="Widgets/maindialog.cpp" line="616"/>
+        <location filename="Widgets/maindialog.cpp" line="622"/>
+        <location filename="Widgets/maindialog.cpp" line="624"/>
         <source>warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="612"/>
+        <location filename="Widgets/maindialog.cpp" line="616"/>
         <source>Open chat message database error! 
  please check database config.</source>
         <translation>打开消息存储数据库失败! 请检查数据库连接配置.</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="618"/>
+        <location filename="Widgets/maindialog.cpp" line="622"/>
         <source>Database tables create error!</source>
         <translation>数据表创建失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="620"/>
+        <location filename="Widgets/maindialog.cpp" line="624"/>
         <source>Don&apos;t support database type [%1]!</source>
         <translation>不支持此数据库类型 [%1]!</translation>
     </message>
@@ -250,7 +271,7 @@
         <translation type="vanished">关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="224"/>
+        <location filename="Widgets/maindialog.cpp" line="228"/>
         <source>Unstick</source>
         <translation>取消置顶</translation>
     </message>
@@ -661,58 +682,63 @@
         <translation>日志记录模块初始化失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="228"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="239"/>
         <source>Font</source>
         <translation>字体工具栏</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="234"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="245"/>
         <source>FontColor</source>
         <translation>字体颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="239"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="250"/>
         <source>Emoji</source>
         <translation>选择表情</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="243"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="254"/>
         <source>Shake window</source>
         <translation>发送抖动窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="248"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="259"/>
         <source>Image</source>
         <translation>发送图像</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="252"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="263"/>
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="259"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="269"/>
+        <source>Audio</source>
+        <translation>语音</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatwidget.cpp" line="275"/>
         <source>Hide current window while screenshot </source>
         <translation>截图时隐藏当前窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="272"/>
-        <location filename="Widgets/abstractchatwidget.cpp" line="274"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="288"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="290"/>
         <source>Record data</source>
         <translation>聊天记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="304"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="321"/>
         <source>Close window</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="309"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="326"/>
         <source>Send message</source>
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatwidget.cpp" line="567"/>
+        <location filename="Widgets/abstractchatwidget.cpp" line="584"/>
         <source>ColorDialog</source>
         <translation>颜色</translation>
     </message>
@@ -1272,6 +1298,12 @@
         <translation>确定</translation>
     </message>
     <message>
+        <location filename="Widgets/chataudioarea.cpp" line="54"/>
+        <source>Send</source>
+        <translation>发送</translation>
+    </message>
+    <message>
+        <location filename="Widgets/chataudioarea.cpp" line="58"/>
         <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
         <location filename="Widgets/netsettings.cpp" line="116"/>
         <source>Cancel</source>
@@ -1364,17 +1396,17 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="314"/>
+        <location filename="Widgets/maindialog.cpp" line="318"/>
         <source>Create group failed!</source>
         <translation>创建分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="319"/>
+        <location filename="Widgets/maindialog.cpp" line="323"/>
         <source>Rename group failed!</source>
         <translation>重命名分组失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/maindialog.cpp" line="324"/>
+        <location filename="Widgets/maindialog.cpp" line="328"/>
         <source>Delete group failed!</source>
         <translation>删除分组失败!</translation>
     </message>

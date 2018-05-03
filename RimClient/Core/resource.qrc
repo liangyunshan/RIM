@@ -75,6 +75,7 @@
         <file>resource/icon/Detail_Remark.png</file>
         <file>resource/icon/Tool_Panel_FILE_SERVER_ERROR.png</file>
         <file>resource/icon/Tool_Panel_FILE_SERVER_OK.png</file>
+        <file>resource/icon/Tool_Chat_Audio.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

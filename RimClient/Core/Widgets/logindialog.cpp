@@ -659,7 +659,7 @@ void LoginDialog::respItemChanged(QString id)
             else
             {
                 User currUser(id);
-                QString pixmap = currUser.getFileRecvPath()+QDir::separator()+userInfo->iconId;
+                QString pixmap = currUser.getC2CImagePath()+QDir::separator()+userInfo->iconId;
                 if(QFile(pixmap).exists())
                 {
                     d->userIcon->setPixmap(pixmap);
@@ -1022,7 +1022,7 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
                             {
                                 QFileInfo fileInfo(fileDesc->filePath);
                                 QString newFileName = fileDesc->fileId+"."+fileInfo.suffix();
-                                QString newPath = G_User->getFileRecvPath()+QDir::separator()+newFileName;
+                                QString newPath = G_User->getC2CImagePath()+QDir::separator()+newFileName;
                                 if(QFile::copy(fileDesc->filePath,newPath))
                                 {
                                     G_User->BaseInfo().isSystemIcon = false;
@@ -1089,7 +1089,7 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
  */
 void LoginDialog::procFileRequest(FileItemRequest response)
 {
-    if(RSingleton<FileManager>::instance()->addFile(response,G_User->getFileRecvPath()))
+    if(RSingleton<FileManager>::instance()->addFile(response,G_User->getC2CImagePath()))
     {
 //        qDebug()<<response.accountId<<"_"<<response.otherId<<"_"<<response.fileName;
         SimpleFileItemRequest * request = new SimpleFileItemRequest;
@@ -1119,11 +1119,11 @@ void LoginDialog::procFileData(QString fileId, QString fileName)
                 //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
                 if(fileDesc->otherId == G_User->BaseInfo().accountId)
                 {
-                    QString localFileName = G_User->getFileRecvPath()+QDir::separator()+fileName;
+                    QString localFileName = G_User->getC2CImagePath()+QDir::separator()+fileName;
                     if(QFile(localFileName).exists())
                     {
                         QFileInfo fileInfo(localFileName);
-                        QString newName = G_User->getFileRecvPath()+QDir::separator() + fileId + "." + fileInfo.suffix();
+                        QString newName = G_User->getC2CImagePath()+QDir::separator() + fileId + "." + fileInfo.suffix();
 
                         QFile::rename(localFileName,newName);
 
