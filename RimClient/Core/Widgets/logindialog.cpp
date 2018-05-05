@@ -849,21 +849,31 @@ void LoginDialog::procRecvText(TextRequest response)
         MessDiapatch::instance()->onAddHistoryItem(record);
 
         //【3】判断窗口是否创建或者是否可见
-        if(client->chatWidget && client->chatWidget->isVisible()){
-            if(response.msgCommand == MSG_TEXT_TEXT){
-                client->chatWidget->showRecentlyChatMsg();
-            }else if(response.msgCommand == MSG_TEXT_SHAKE){
+        if(client->chatWidget && client->chatWidget->isVisible())
+        {
+            if(response.msgCommand == MSG_TEXT_TEXT)
+            {
+                client->chatWidget->appendRecvMsg(response);
+            }
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
                 client->chatWidget->shakeWindow();
             }
-        }else{
-            if(response.msgCommand == MSG_TEXT_SHAKE){
-                if(!client->chatWidget){
+        }
+        else
+        {
+            if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
+                if(!client->chatWidget)
+                {
                     client->chatWidget = new AbstractChatWidget();
                     client->chatWidget->setUserInfo(client->simpleUserInfo);
                     client->chatWidget->initChatRecord();
                 }
                 client->chatWidget->show();
-            }else if(response.msgCommand == MSG_TEXT_TEXT){
+            }
+            else if(response.msgCommand == MSG_TEXT_TEXT)
+            {
                 //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();

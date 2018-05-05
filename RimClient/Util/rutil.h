@@ -51,6 +51,8 @@ public:
 
     static void setRelativeImgPath(QString &targetHtml,QString userID);
 
+    static void setAbsoulteImgPath(QString &targetHtml,QString userID);
+
     static void escapeQuote(QString &targetHtml);
 
     static void removeEccapeQuote(QString &targetHtml);

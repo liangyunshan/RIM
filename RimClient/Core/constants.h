@@ -42,6 +42,7 @@ const char CONFIG_StylePath[] = "/style";
 const char CONFIG_SountPath[] = "/sound";
 
 const char PATH_UserPath[] = "../users";
+const char PATH_UserDirName[] = "users";
 const char USER_RecvFileDirName[] = "ChatRecvFile";
 const char USER_ChatImageDirName[] = "Image";
 const char USER_C2CDirName[] = "C2C";

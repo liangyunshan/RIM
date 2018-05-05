@@ -22,6 +22,23 @@ class AbstractChatWidget : public Widget , public Observer
     Q_OBJECT
     Q_DECLARE_PRIVATE(AbstractChatWidget)
 public:
+    enum msgTarget
+    {        
+        SEND,   //发出信息
+        RECV    //收到信息
+    };
+    enum noticeType
+    {
+        FAULT,      //错误
+        NORMAL,     //正常
+        INFO,       //普通提示
+        NONOTICE    //无标识
+    };
+    enum timeFormat
+    {
+        TIME,       //时间
+        DATETIME    //日期+时间
+    };
     AbstractChatWidget(QWidget * parent = 0);
     ~AbstractChatWidget();
 
@@ -32,6 +49,7 @@ public:
     void initChatRecord();
     void onMessage(MessageType type);
     void shakeWindow();
+    void appendRecvMsg(TextRequest recvMsg);
 
 public slots:
     void slot_UpdateKeySequence();
@@ -50,6 +68,7 @@ private slots:
     void slot_CheckSendEnter();
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     void finishLoadHTML(bool);
+    void noticeWebViewShift(bool);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -57,6 +76,11 @@ protected:
 
 private:
     void switchWindowSize();
+    void appendChatRecord(msgTarget source, const TextUnit::ChatInfoUnit &unitMsg);
+    void setFontIconFilePath();
+    void appendChatTimeNote(QDateTime content,timeFormat format = TIME);
+    void appendChatNotice(QString content,noticeType type = NONOTICE);
+    void appendVoiceMsg(msgTarget source);
 
 private:
     AbstractChatWidgetPrivate * d_ptr;
