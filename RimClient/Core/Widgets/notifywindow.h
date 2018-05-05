@@ -9,6 +9,7 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note      20180127:wey:添加状态机显示，并支持双击查看通知信息；
+ *             20180426:wey:修复添加显示系统信息时未考虑群请求特殊情况
  */
 #ifndef NOTIFYWINDOW_H
 #define NOTIFYWINDOW_H

@@ -26,7 +26,9 @@ public:
     {
         Uuid,
         Type,
+        RType,
         Command,
+        SubCmd,
         Data,
         NickName,
         Pass,
@@ -74,6 +76,7 @@ public:
         ValidateAble,
         Question,
         Answer,
+        ChatName,
         Encryption,                          /*!< 是否加密 */
         Compress                             /*!< 是否压缩 */
     };

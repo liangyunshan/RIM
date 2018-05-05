@@ -159,6 +159,7 @@ protected:
             case DESC: return "DESC";break;
             default:break;
         }
+        return QString("");
     }
 
 };

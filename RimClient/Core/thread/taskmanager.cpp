@@ -63,7 +63,7 @@ void TaskManager::removeAll()
     {
         if(tasks.at(i)->running())
         {
-            tasks.at(i)->stopMe();
+            delete tasks.at(i);
         }
     }
 

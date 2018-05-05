@@ -31,14 +31,16 @@ public:
     void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
-    void onRecvFriendList(FriendListResponse * response);
-    void onRecvFriendGroupingOperate(GroupingResponse response);
-    void onRecvGroupGroupingOperate(GroupingResponse response);
+    void onRecvFriendList(MsgOperateResponse status, FriendListResponse * response);
+    void onRecvFriendGroupingOperate(MsgOperateResponse status, GroupingResponse response);
+    void onRecvGroupGroupingOperate(MsgOperateResponse status,GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
 
+    void onRecvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
-    void onRecvResitGroup(RegistGroupResponse response);
-    void onRecvResitGroupFailed();
+    void onRecvResitGroup(MsgOperateResponse status, RegistGroupResponse response);
+    void onRecvOpreateGroup(MsgOperateResponse status, GroupingChatResponse response);
+    void onRecvGroupCommand(MsgOperateResponse status, GroupingCommandResponse response);
 
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
@@ -60,17 +62,20 @@ signals:
     void recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
-    void recvFriendList(FriendListResponse * response);
-    void recvFriendGroupingOperate(GroupingResponse response);
-    void recvGroupGroupingOperate(GroupingResponse response);
+    void recvFriendList(MsgOperateResponse status,FriendListResponse * response);
+    void recvFriendGroupingOperate(MsgOperateResponse status,GroupingResponse response);
+    void recvGroupGroupingOperate(MsgOperateResponse status,GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
 
     void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
-    void recvRegistGroup(RegistGroupResponse response);
+    void recvRegistGroup(MsgOperateResponse status,RegistGroupResponse response);
+    void recvGroupItemOperate(MsgOperateResponse result,GroupingChatResponse response);
     void recvRegistGroupFailed();
+    void recvGroupCommand(MsgOperateResponse result,GroupingCommandResponse response);
 
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
+    void recvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void recvFileControl(SimpleFileItemRequest control);

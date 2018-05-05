@@ -7,6 +7,8 @@
 #include "rsingleton.h"
 #include "dataprocess.h"
 
+#include <QDebug>
+
 FileReceiveProcTask::FileReceiveProcTask(QObject *parent):
     RTask(parent)
 {
@@ -15,6 +17,7 @@ FileReceiveProcTask::FileReceiveProcTask(QObject *parent):
 
 FileReceiveProcTask::~FileReceiveProcTask()
 {
+    stopMe();
     wait();
 }
 
@@ -45,7 +48,7 @@ void FileReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(G_FileRecvBuffs.isEmpty())
+        while(runningFlag && G_FileRecvBuffs.isEmpty())
         {
             G_FileRecvMutex.lock();
             G_FileRecvCondition.wait(&G_FileRecvMutex);

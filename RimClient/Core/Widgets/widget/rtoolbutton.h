@@ -30,6 +30,8 @@ public:
     void setToolTip(const QString & toolTipInfo);
     void setObjectName(QString objName);
 
+    void setIcon(QString id);
+
     void removeIcon();
 
 protected:

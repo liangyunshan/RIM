@@ -25,7 +25,7 @@ public:
     QByteArray handleMsg(MsgPacket * packet, int result = 0);
     QByteArray handleText(TextRequest * request);
     QByteArray handleTextReply(TextReply * response);
-    QByteArray handleErrorSimpleMsg(MsgType type,MsgCommand command,int errorCode);
+    QByteArray handleMsgReply(MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 
     QByteArray handleFile(MsgPacket *response);
 
@@ -45,6 +45,9 @@ private:
 
     QByteArray handleGroupList(ChatGroupListResponse * packet,int result);
     QByteArray handleCreateGroup(RegistGroupResponse *packet,int result);
+    QByteArray handleSearchGroup(SearchGroupResponse *packet,int result);
+    QByteArray handleOpreateGroup(GroupingChatResponse *packet,int result);
+    QByteArray handleOpreateCommand(GroupingCommandResponse *packet,int result);
 
     QByteArray handleFileControl(SimpleFileItemRequest * packet);
     QByteArray handleFileRequest(FileItemRequest * packet);

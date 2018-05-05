@@ -134,12 +134,9 @@ void BaseTextEdit::insertCopyImage(QImage &image)
     t_imgName.append(imgId.toHex());
     t_imgName += QString(".png");
 
-    QString imgAbsoultPath = G_User->getChatImgPath();//获取保存图片的父文件夹
-    imgAbsoultPath = imgAbsoultPath + QDir::separator()+ Constant::USER_C2CDirName;
-    RUtil::createDir(imgAbsoultPath);//创建C2C文件夹
-
     //保存图片到本地
-    imgAbsoultPath = imgAbsoultPath + QDir::separator() + t_imgName;
+    QString imgAbsoultPath = G_User->getC2CImagePath() + QDir::separator() + t_imgName;
+
     QFileInfo fileinfo(imgAbsoultPath);
     if(!fileinfo.exists())
     {

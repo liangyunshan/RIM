@@ -142,7 +142,11 @@ void SystemNotifyViewPrivate::setType(ResponseFriendApply type)
         case FRIEND_REQUEST:
                 {
                     applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_STAR,ImageManager::ICON_32));
-                    tipLabel->setText(QObject::tr("Request to add as a friend"));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Request to add as a friend"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Apply for Group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
+
                     agreeButt = new RButton(toolWidget);
                     agreeButt->setText(QObject::tr("Agree"));
 
@@ -164,7 +168,11 @@ void SystemNotifyViewPrivate::setType(ResponseFriendApply type)
         case FRIEND_AGREE:
                 {
                     applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SUCCESS,ImageManager::ICON_32));
-                    tipLabel->setText(QObject::tr("Agree with the request"));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Agree with the request"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Agree with the apply for group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
+
                     chatButt = new RButton(toolWidget);
                     chatButt->setText(QObject::tr("Chat"));
 
@@ -175,7 +183,11 @@ void SystemNotifyViewPrivate::setType(ResponseFriendApply type)
         case FRIEND_REFUSE:
                 {
                     applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_ERROR,ImageManager::ICON_32));
-                    tipLabel->setText(QObject::tr("Refuse with the request"));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Refuse the request"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Refuse the apply for group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
+
                     reRequestButt = new RButton(toolWidget);
                     reRequestButt->setText(QObject::tr("ReRequest"));
 
@@ -238,21 +250,28 @@ void SystemNotifyView::resizeEvent(QResizeEvent *)
 
 void SystemNotifyView::respAgree(){
     MQ_D(SystemNotifyView);
-    if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
-        d->setType(FRIEND_AGREE);
-        return;
+
+    if(d->notifyInfo.stype == OperatePerson){
+        if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
+            d->setType(FRIEND_AGREE);
+            return;
+        }
     }
     sendResponse(FRIEND_AGREE);
+
     close();
 }
 
 void SystemNotifyView::respRefuse(){
     MQ_D(SystemNotifyView);
-    if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
-        d->setType(FRIEND_AGREE);
-        return;
+    if(d->notifyInfo.stype == OperatePerson){
+        if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
+            d->setType(FRIEND_AGREE);
+            return;
+        }
     }
     sendResponse(FRIEND_REFUSE);
+
     close();
 }
 
@@ -269,16 +288,21 @@ void SystemNotifyView::respChat()
 
 void SystemNotifyView::respReRequest()
 {
+    R_CHECK_ONLINE;
     MQ_D(SystemNotifyView);
     AddFriendRequest * request = new AddFriendRequest;
     request->stype = d->notifyInfo.stype;
     request->accountId = G_User->BaseInfo().accountId;
-    request->operateId = d->notifyInfo.accountId;
+    if(d->notifyInfo.stype == OperatePerson)
+        request->operateId = d->notifyInfo.accountId;
+    else if(d->notifyInfo.stype == OperateGroup)
+        request->operateId = d->notifyInfo.chatId;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 void SystemNotifyView::sendResponse(ResponseFriendApply result)
 {
+    R_CHECK_ONLINE;
     MQ_D(SystemNotifyView);
     OperateFriendRequest * request = new OperateFriendRequest;
     request->type = FRIEND_APPLY;
@@ -286,6 +310,10 @@ void SystemNotifyView::sendResponse(ResponseFriendApply result)
     request->result = (int)result;
     request->accountId = G_User->BaseInfo().accountId;
     request->operateId = d->notifyInfo.accountId;
+    if(d->notifyInfo.stype == OperateGroup){
+        request->chatId = d->notifyInfo.chatId;
+        request->chatName = d->notifyInfo.chatName;
+    }
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }

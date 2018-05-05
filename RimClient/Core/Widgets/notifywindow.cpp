@@ -162,13 +162,15 @@ NotifyWindow::~NotifyWindow()
 }
 
 /*!
-     * @brief 向通知栏添加一个通知消息
-     * @details 若该消息所属的accountId列表不存在，创建该消息提示；若accountId存在，根据消息的类型来进行不同处理：
-     *          若属于系统消息，已存在该accountId的消息，在未处理时，则进行忽略；
-     *          若属于联系人消息，已存在该accountId的消息，未处理时，在通知消息数量上累加。
-     * @param[in] info 通知消息
-     * @return 若为新插入，返回新插入的ID；否则返回已经存在的info的id
-     */
+ * @brief 向通知栏添加一个通知消息
+ * @details 若该消息所属的accountId列表不存在，创建该消息提示；若accountId存在，根据消息的类型来进行不同处理：
+ *          若属于系统消息(20180426修复添加显示系统信息时未考虑群请求特殊情况):
+ *              好友请求：已存在该accountId的消息，在未处理时，则进行忽略(多次发送一个好友请求意义不大)；
+ *              群请求：已存在对应群id请求消息时，在未处理时进行忽略；若一个accountdId请求不同的的群，则需分别进行提示：
+ *          若属于联系人消息，已存在该accountId的消息，未处理时，在通知消息数量上累加。
+ * @param[in] info 通知消息
+ * @return 若为新插入，返回新插入的ID；否则返回已经存在的info的id
+ */
 QString NotifyWindow::addNotifyInfo(NotifyInfo info)
 {
     MQ_D(NotifyWindow);
@@ -181,17 +183,22 @@ QString NotifyWindow::addNotifyInfo(NotifyInfo info)
     while(iter != items.end())
     {
         ToolItem * curItem = *iter;
+        NotifyInfo tmpInfo = d->systemNotifyInfos.value(curItem);
         NotifyType itemType = (NotifyType)curItem->property(d->propertName.toLocal8Bit().data()).toInt();
         QString accountId = curItem->property(d->porpertyId.toLocal8Bit().data()).toString();
 
-        if(accountId == info.accountId)
-        {
-            if(itemType == NotifyUser || itemType == NotifyGroup)
-            {
-                curItem->addNotifyInfo();
-                existInfoIdeitity = d->systemNotifyInfos.value(curItem).identityId;
+        if(accountId == info.accountId){
+            if(info.stype == OperatePerson){
+                if(itemType == NotifyUser || itemType == NotifyGroup){
+                    curItem->addNotifyInfo();
+                    existInfoIdeitity = d->systemNotifyInfos.value(curItem).identityId;
+                }
+                existedUser = true;
+            }else if(info.stype == OperateGroup){
+                if(info.chatId == tmpInfo.chatId){
+                    existedUser = true;
+                }
             }
-            existedUser = true;
             break;
         }
         iter++;
@@ -291,15 +298,13 @@ void NotifyWindow::viewNotify(ToolItem *item)
 {
     MQ_D(NotifyWindow);
 
-    if(item)
-    {
+    if(item){
         emit showSystemNotifyInfo(d->systemNotifyInfos.value(item),item->getNotifyCount());
 
         d->systemNotifyInfos.remove(item);
         d->infoList->removeItem(item);
 
-        if(d->infoList->count() <= 0)
-        {
+        if(d->infoList->count() <= 0){
             ignoreAll();
         }
     }

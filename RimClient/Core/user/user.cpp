@@ -12,6 +12,7 @@
 User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr)
 {
     createUserHome(baseInfo.accountId);
+    systemSetting = new SystemSettingKey;
 }
 
 User::User(const QString userId)
@@ -19,19 +20,26 @@ User::User(const QString userId)
     createUserHome(userId);
 }
 
-bool User::createUserHome(const QString id)
+void User::createUserHome(const QString id)
 {
     userHome = QDir::currentPath() + QDir::separator() + Constant::PATH_UserPath + QDir::separator() + id;
     userDBPath = userHome + QDir::separator() + Constant::USER_DBDirName;
     userFilePath = userHome + QDir::separator() + Constant::USER_RecvFileDirName;
-    chatImgPath = userFilePath + QDir::separator() + Constant::USER_ChatImageDirName;   //创建当前登录id聊天对话图片保存路径
-    if(RUtil::createDir(userHome))
-        if(RUtil::createDir(userDBPath))
-            if(RUtil::createDir(userFilePath))
-                if(RUtil::createDir(chatImgPath))
-                return true;
-
-    return  false;
+    chatImgPath = userFilePath + QDir::separator() + Constant::USER_ChatImageDirName;
+    audioPath = userFilePath + QDir::separator() + Constant::USER_ChatAudioDirName;
+    if(RUtil::createDir(userHome)){
+        RUtil::createDir(userDBPath);
+        if(RUtil::createDir(userFilePath)){
+            if(RUtil::createDir(chatImgPath)){
+                RUtil::createDir(chatImgPath + QDir::separator() + Constant::USER_C2CDirName);
+                RUtil::createDir(chatImgPath + QDir::separator() + Constant::USER_GroupDirName);
+            }
+            if(RUtil::createDir(audioPath)){
+                RUtil::createDir(audioPath + QDir::separator() + Constant::USER_C2CDirName);
+                RUtil::createDir(audioPath + QDir::separator() + Constant::USER_GroupDirName);
+            }
+        }
+    }
 }
 
 User::~User()
@@ -70,6 +78,26 @@ QString User::getFileRecvPath()
 void User::setFileRecvPath(const QString &path)
 {
     userFilePath = path;
+}
+
+QString User::getC2CImagePath()
+{
+    return chatImgPath + QDir::separator() + Constant::USER_C2CDirName;
+}
+
+QString User::getGroupImagePath()
+{
+    return chatImgPath + QDir::separator() + Constant::USER_GroupDirName;
+}
+
+QString User::getC2CAudioPath()
+{
+    return audioPath + QDir::separator() + Constant::USER_C2CDirName;
+}
+
+QString User::getGroupAudioPath()
+{
+    return audioPath + QDir::separator() + Constant::USER_GroupDirName;
 }
 
 QSettings *User::getSettings()
@@ -114,19 +142,31 @@ void User::setSettingValue(const QString &group, const QString &key, QVariant va
  * @param[in] fileId 文件ID
  * @return 是否插入成功
  */
-QString User::getFilePath(QString fileId)
+QString User::getFilePath(QString fileId, ChatT group, ChatK type)
 {
-    QString tmp = userFilePath + QDir::separator() + fileId;
-    return tmp;
+    if(type == C_Image){
+        if(group == C_C2C){
+            return getC2CImagePath() + QDir::separator() + fileId;
+        }else if(group == C_GROUP){
+            return getGroupImagePath() + QDir::separator() + fileId;
+        }
+    }else if(type == C_Audio){
+        if(group == C_C2C){
+            return getC2CAudioPath() + QDir::separator() + fileId;
+        }else if(group == C_GROUP){
+            return getGroupAudioPath() + QDir::separator() + fileId;
+        }
+    }
+    return QString();
 }
 
 /*!
  * @brief 获取当前用户的ICON信息，判断是系统默认还是用户自定义分别返回
  * @return 返回ICON全路径信息
  */
-QString User::getIcon()
+QString User::getIcon(ChatT group)
 {
-    return getIcon(userBaseInfo.isSystemIcon,userBaseInfo.iconId);
+    return getIcon(userBaseInfo.isSystemIcon,userBaseInfo.iconId,group);
 }
 
 /*!
@@ -135,13 +175,17 @@ QString User::getIcon()
  * @param[in] iconId 图标名称
  * @return 图标路径
  */
-QString User::getIcon(bool isSystemIcon, const QString &iconId)
+QString User::getIcon(bool isSystemIcon, const QString &iconId, ChatT group)
 {
     QString tmpIconPath;
     if(isSystemIcon){
         tmpIconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(iconId);
     }else{
-        tmpIconPath = getFileRecvPath() + QDir::separator() + iconId;
+        if(group == C_C2C){
+            tmpIconPath = getC2CImagePath() + QDir::separator() + iconId;
+        }else if(group == C_GROUP){
+            tmpIconPath = getGroupImagePath() + QDir::separator() + iconId;
+        }
     }
 
     QFileInfo fileInfo(tmpIconPath);
@@ -209,4 +253,24 @@ Database *User::database()
 {
     Q_ASSERT_X(chatDatabase != nullptr,__FUNCTION__,"chat database is null");
     return chatDatabase;
+}
+
+void User::setTextOnline(bool flag)
+{
+    textOnLine = flag;
+}
+
+bool User::isTextOnLine()
+{
+    return textOnLine;
+}
+
+void User::setFileOnline(bool flag)
+{
+    fileOnLine = flag;
+}
+
+bool User::isFileOnLine()
+{
+    return fileOnLine;
 }

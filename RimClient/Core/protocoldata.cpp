@@ -231,5 +231,35 @@ RegistGroupResponse::RegistGroupResponse()
     msgCommand = MSG_GROUP_CREATE;
 }
 
+GroupingChatRequest::GroupingChatRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_OPERATE;
+}
+
+GroupingChatResponse::GroupingChatResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_OPERATE;
+}
+
+SearchGroupResponse::SearchGroupResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_SEARCH;
+}
+
+GroupingCommandRequest::GroupingCommandRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_COMMAND;
+}
+
+GroupingCommandResponse::GroupingCommandResponse()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_GROUP_COMMAND;
+}
+
 
 } //namespace Protocol

@@ -27,25 +27,25 @@ GroupManager::GroupManager()
 
 }
 
-GroupClient *GroupManager::addClient(QString accountId)
+GroupClient *GroupManager::addClient(QString chatId)
 {
     QMutexLocker locker(&mutex);
 
-    if(clients.contains(accountId))
-        return clients.value(accountId);
+    if(clients.contains(chatId))
+        return clients.value(chatId);
 
     GroupClient * client = new GroupClient;
-    clients.insert(accountId,client);
+    clients.insert(chatId,client);
 
     return client;
 }
 
-bool GroupManager::removeClient(QString accountId)
+bool GroupManager::removeClient(QString chatId)
 {
     QMutexLocker locker(&mutex);
-    if(clients.contains(accountId)){
-        delete clients.value(accountId);
-        int t_result = clients.remove(accountId);
+    if(clients.contains(chatId)){
+        delete clients.value(chatId);
+        int t_result = clients.remove(chatId);
         if(t_result != 0)
             return true;
     }
@@ -66,13 +66,25 @@ GroupClient *GroupManager::client(ToolItem *item)
     return NULL;
 }
 
-GroupClient *GroupManager::client(QString accountId)
+GroupClient *GroupManager::client(QString chatId)
 {
     QMutexLocker locker(&mutex);
     QHash<QString,GroupClient*>::iterator iter = clients.begin();
-    while(iter != clients.end())
-    {
-        if(iter.value()->simpleChatInfo.chatId == accountId)
+    while(iter != clients.end()){
+        if(iter.value()->simpleChatInfo.chatId == chatId)
+            return iter.value();
+        iter++;
+    }
+
+    return NULL;
+}
+
+GroupClient *GroupManager::clientByChatRoomId(QString chatRoomId)
+{
+    QMutexLocker locker(&mutex);
+    QHash<QString,GroupClient*>::iterator iter = clients.begin();
+    while(iter != clients.end()){
+        if(iter.value()->simpleChatInfo.chatRoomId == chatRoomId)
             return iter.value();
         iter++;
     }

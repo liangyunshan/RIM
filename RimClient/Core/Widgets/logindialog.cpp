@@ -48,6 +48,7 @@
 #include "systemnotifyview.h"
 #include "user/userclient.h"
 #include "user/userfriendcontainer.h"
+#include "user/userchatcontainer.h"
 #include "abstractchatwidget.h"
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
@@ -293,6 +294,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
     //在多屏状态下，默认选择第一个屏幕
     QSize size = qApp->desktop()->screen()->size();
 
+    G_User = nullptr;
+
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -301,12 +304,13 @@ LoginDialog::LoginDialog(QWidget *parent) :
     loadLocalSettings();
 
     connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(TextNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respTextSocketError()));
     connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
+    connect(FileNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respFileSocketError()));
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
-    connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
-            this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(processTextReply(TextReply)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procFileControl(SimpleFileItemRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procFileRequest(FileItemRequest)));
@@ -314,44 +318,80 @@ LoginDialog::LoginDialog(QWidget *parent) :
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
+/*!
+ * @brief 响应连接文字服务器状态
+ * @details 1.程序登陆或注册时会先执行连接；
+ *          2.程序掉线后，手动的切换在线状态来实现重连，也会执行连接；
+ * @param[in] flag:bool 文字服务器连接状态
+ */
 void LoginDialog::respTextConnect(bool flag)
 {
     MQ_D(LoginDialog);
 
-    if(flag)
-    {
-#ifndef __NO_SERVER__
-        LoginRequest * request = new LoginRequest();
-        request->accountId = d->userList->currentText();
-        request->password = RUtil::MD5( d->password->text());
-        request->status = d->onlineState->state();
-        G_OnlineStatus = d->onlineState->state();
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
-#else
-        recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
-#endif
+    if(G_User){
+        G_User->setTextOnline(flag);
     }
-    else
+
+    if(!flag)
     {
         RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+    }else{
+        //若G_User为NULL，则说明还未登陆过
+        if(!G_User){
+#ifndef __NO_SERVER__
+            LoginRequest * request = new LoginRequest();
+            request->accountId = d->userList->currentText();
+            request->password = RUtil::MD5( d->password->text());
+            request->status = d->onlineState->state();
+            G_OnlineStatus = d->onlineState->state();
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+#else
+            recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
+#endif
+        }
+        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
     }
+
+    enableInput(true);
+}
+
+void LoginDialog::respTextSocketError()
+{
+    G_User->setTextOnline(false);
+    RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
 }
 
 void LoginDialog::respFileConnect(bool flag)
 {
+    if(G_User){
+        G_User->setFileOnline(flag);
+    }
     if(flag)
     {
 #ifndef __NO_SERVER__
         qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
 #endif
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
+    }else{
+        RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
     }
+}
+
+void LoginDialog::respFileSocketError()
+{
+    G_User->setFileOnline(false);
+    RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
 }
 
 void LoginDialog::login()
 {
+    MQ_D(LoginDialog);
 #ifndef __NO_SERVER__
     TextNetConnector::instance()->connect();
+    enableInput(false);
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -374,7 +414,6 @@ void LoginDialog::minsize()
 
 void LoginDialog::closeWindow()
 {
-    qDebug()<<__LINE__<<__FUNCTION__;
     RSingleton<TaskManager>::instance()->removeAll();
     this->close();
 }
@@ -519,6 +558,22 @@ void LoginDialog::validateUserName(QString name)
     validateInput();
 }
 
+void LoginDialog::enableInput(bool flag)
+{
+    MQ_D(LoginDialog);
+    d->login->setEnabled(flag);
+    d->password->setEnabled(flag);
+    d->userList->setEnabled(flag);
+    d->rememberPassord->setEnabled(flag);
+    d->autoLogin->setEnabled(flag);
+
+    repolish(d->login);
+    repolish(d->password);
+    repolish(d->userList);
+    repolish(d->rememberPassord);
+    repolish(d->autoLogin);
+}
+
 void LoginDialog::validatePassword(QString)
 {
     validateInput();
@@ -604,7 +659,7 @@ void LoginDialog::respItemChanged(QString id)
             else
             {
                 User currUser(id);
-                QString pixmap = currUser.getFileRecvPath()+QDir::separator()+userInfo->iconId;
+                QString pixmap = currUser.getC2CImagePath()+QDir::separator()+userInfo->iconId;
                 if(QFile(pixmap).exists())
                 {
                     d->userIcon->setPixmap(pixmap);
@@ -716,6 +771,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         FileNetConnector::instance()->connect();
 
         G_User = new User(baseInfo);
+        G_User->setTextOnline(true);
 
         if(!baseInfo.isSystemIcon && !QFile(G_User->getFilePath(baseInfo.iconId)).exists() && baseInfo.iconId.size() > 0)
          {
@@ -796,7 +852,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
     MQ_D(LoginDialog);
 
-    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
+    if(G_User->systemSettings()->soundAvailable)
+        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
 
     NotifyInfo  info;
     info.identityId = RUtil::UUID();
@@ -807,6 +864,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     info.stype = resp.stype;
     info.iconId = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
     info.ofriendResult = resp.result;
+    info.chatId = resp.chatId;
+    info.chatName = resp.chatName;
 
     d->notifyWindow->addNotifyInfo(info);
     d->notifyWindow->showMe();
@@ -857,6 +916,7 @@ void LoginDialog::procRecvText(TextRequest response)
             }
             else if(response.msgCommand == MSG_TEXT_SHAKE)
             {
+                if(G_User->systemSettings()->windowShaking)
                 client->chatWidget->shakeWindow();
             }
         }
@@ -898,13 +958,11 @@ void LoginDialog::procRecvText(TextRequest response)
             }
         }
 
-        if(response.msgCommand == MSG_TEXT_TEXT)
-        {
-            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
-        }
-        else if(response.msgCommand == MSG_TEXT_SHAKE)
-        {
-            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
+        if(G_User->systemSettings()->soundAvailable){
+            if(response.msgCommand == MSG_TEXT_TEXT)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
         }
     }
 }
@@ -944,31 +1002,6 @@ void LoginDialog::processTextReply(TextReply reply)
 }
 
 /*!
- * @brief 响应好友状态更新
- * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
- * @param[in] result 操作结果
- * @param[in] response 好友状态信息
- * @return 无
- */
-void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
-{
-    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
-    {
-        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
-        if(client)
-        {
-            client->toolItem->setStatus(response.onStatus);
-            client->simpleUserInfo.status = response.onStatus;
-            RSingleton<Subject>::instance()->notify(MESS_FRIEND_STATE_CHANGE);
-            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
-            {
-                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
-            }
-        }
-    }
-}
-
-/*!
  * @brief 处理服务器端的传输控制
  * @details 在传输完成后，从上传文件的队列中更新对应的状态: @n
  *          1.在上传完头像后，应该将fileId更新至服务器数据记录中，将头像改成自定义; @n
@@ -978,6 +1011,7 @@ void LoginDialog::recvUserStateChanged(MsgOperateResponse result, UserStateRespo
  */
 void LoginDialog::procFileControl(SimpleFileItemRequest request)
 {
+    R_CHECK_ONLINE;
     MQ_D(LoginDialog);
     if(FileRecvTask::instance()->containsTask(request.fileId))
     {
@@ -998,7 +1032,7 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
                             {
                                 QFileInfo fileInfo(fileDesc->filePath);
                                 QString newFileName = fileDesc->fileId+"."+fileInfo.suffix();
-                                QString newPath = G_User->getFileRecvPath()+QDir::separator()+newFileName;
+                                QString newPath = G_User->getC2CImagePath()+QDir::separator()+newFileName;
                                 if(QFile::copy(fileDesc->filePath,newPath))
                                 {
                                     G_User->BaseInfo().isSystemIcon = false;
@@ -1065,7 +1099,7 @@ void LoginDialog::procFileControl(SimpleFileItemRequest request)
  */
 void LoginDialog::procFileRequest(FileItemRequest response)
 {
-    if(RSingleton<FileManager>::instance()->addFile(response,G_User->getFileRecvPath()))
+    if(RSingleton<FileManager>::instance()->addFile(response,G_User->getC2CImagePath()))
     {
 //        qDebug()<<response.accountId<<"_"<<response.otherId<<"_"<<response.fileName;
         SimpleFileItemRequest * request = new SimpleFileItemRequest;
@@ -1095,11 +1129,11 @@ void LoginDialog::procFileData(QString fileId, QString fileName)
                 //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
                 if(fileDesc->otherId == G_User->BaseInfo().accountId)
                 {
-                    QString localFileName = G_User->getFileRecvPath()+QDir::separator()+fileName;
+                    QString localFileName = G_User->getC2CImagePath()+QDir::separator()+fileName;
                     if(QFile(localFileName).exists())
                     {
                         QFileInfo fileInfo(localFileName);
-                        QString newName = G_User->getFileRecvPath()+QDir::separator() + fileId + "." + fileInfo.suffix();
+                        QString newName = G_User->getC2CImagePath()+QDir::separator() + fileId + "." + fileInfo.suffix();
 
                         QFile::rename(localFileName,newName);
 
@@ -1138,13 +1172,17 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
         SystemNotifyView * view = new SystemNotifyView();
         connect(view,SIGNAL(chatWidth(QString)),this,SLOT(openChatDialog(QString)));
 
-        //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
-        if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
-            reqType = FRIEND_AGREE;
+        if(info.stype == OperatePerson){
+            //解决:AB同时向对方发送请求，A先接收B的请求，此时已是好友，但B后查看通知消息，造成状态不一致。
+            if(reqType == FRIEND_REQUEST && RSingleton<UserFriendContainer>::instance()->containUser(info.accountId)){
+                reqType = FRIEND_AGREE;
+            }
+        }else if(info.stype == OperateGroup){
+
         }
 
-        view->setNotifyType(reqType);
         view->setNotifyInfo(info);
+        view->setNotifyType(reqType);
         view->show();
     }
     else if(info.type == NotifyUser)
@@ -1202,6 +1240,11 @@ LoginDialog::~LoginDialog()
     {
        delete d->trayIcon;
        d->trayIcon = NULL;
+    }
+
+    if(d->notifyWindow){
+        delete d->notifyWindow;
+        d->notifyWindow = NULL;
     }
 }
 

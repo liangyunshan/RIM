@@ -34,6 +34,9 @@ public:
 
     void proGroupListResponse(QJsonObject & data);
     void proRegistGroupResponse(QJsonObject & data);
+    void proSearchGroupResponse(QJsonObject & data);
+    void proOpreateGroupResponse(QJsonObject & data);
+    void proGroupCommandResponse(QJsonObject & data);
 
     void proText(QJsonObject &data);
     void proTextApply(QJsonObject &data);

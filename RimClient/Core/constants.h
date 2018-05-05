@@ -27,11 +27,25 @@ const char FullIp_Reg[] = "(%1\\.){3}%2";
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimClient";
 
+/*********音频设置************/
+const int MAX_RECORD_TIME = 60;         //默认最长音频录制时间60s
+
 /*!
  * @note 定义系统目录下文件夹的存放信息
  * @attention 1.在定义系统根目录时使用PATH_***Path 命名; @n
  *            2.在定义子目录时，以当前所在父目录作为命名的起始名称即 ***_XXX @;
  *        以config文件夹为例：因在根目录下，直接命名为PATH_ConfigPath,下一层的目录如style目录则名称为 CONFIG_StylePath;
+ +[users]
+    +[10001]
+        +[ChatRecvFile]
+            +[Image]
+                +[C2C]
+                +[Group]
+            +[Audio]
+                +[C2C]
+                +[Group]
+        +[ChatLog]
+        userconfg.ini
 */
 const char PATH_ImagePath[] = "/../image";
 const char IMAGE_SystemIconPath[] = "/systemIcon";
@@ -43,14 +57,15 @@ const char CONFIG_SountPath[] = "/sound";
 
 const char PATH_UserPath[] = "../users";
 const char PATH_UserDirName[] = "users";
-const char USER_RecvFileDirName[] = "ChatRecvFile";
-const char USER_ChatImageDirName[] = "Image";
+const char USER_RecvFileDirName[] = "ChatRecvFile";         //保存接收到的文件
+const char USER_ChatImageDirName[] = "Image";               //在USER_RecvFileDirName目录下，保存接收的图片，其子目录可分为C2C、Group
+const char USER_ChatAudioDirName[] = "Audio";               //在USER_RecvFileDirName目录下保存接收到的音频
 const char USER_C2CDirName[] = "C2C";
 const char USER_GroupDirName[] = "Group";
-const char USER_DBDirName[] = "ChatLog";
-const char USER_DBFileName[] = "chatlog.db";
-const char USER_ConfigName[] = "userconfg.ini";
-const char USER_TempName[] = "temp";
+
+const char USER_DBDirName[] = "ChatLog";                    //保存聊天记录
+const char USER_DBFileName[] = "chatlog.db";                //聊天对话记录文件名
+const char USER_ConfigName[] = "userconfg.ini";             //当前用户配置文件名
 
 /*!
  * @note 系统配置信息
@@ -97,6 +112,9 @@ const char USER_SETTING_SOUND_AVAILABLE[] = "Sounds";
 
 const char USER_SETTING_SYSTEM_LOCK[] = "SystemLock";
 const char USER_SETTING_EXIT_DELRECORD[] = "ExitDelRecord";
+
+const char USER_SETTING_TEXT_ENCRYPTION[] = "TextEncryption";
+const char USER_SETTING_TEXT_COMPRESSION[] = "TextCompression";
 
 const char USER_SETTING_SOUND_GROUP[] = "Sound";
 
@@ -156,6 +174,8 @@ const char TOOL_PANEL_FRONT[] = "Tool_Panel_Front";
 const char TOOL_PANEL_TOOL[] = "Tool_Panel_Tool";
 const char TOOL_PANEL_ADDPERSON[] = "Tool_Panel_AddPerson";
 const char TOOL_PANEL_NOTIFY[] = "Tool_Panel_Notify";
+const char TOOL_PANEL_FILESERVER[] = "Tool_Panel_FILE_SERVER_OK";
+const char TOOL_PANEL_FILESERVER_ERROR[] = "Tool_Panel_FILE_SERVER_ERROR";
 
 const char Tool_Chat_Call[] = "Tool_Chat_Call";
 const char Tool_Chat_Min[] = "Tool_Chat_Min";
@@ -167,6 +187,7 @@ const char Tool_Chat_Face[] = "Tool_Chat_Face";                                 
 const char Tool_Chat_Shake[] = "Tool_Chat_Shake";                                               //窗口抖动
 const char Tool_Chat_Image[] = "Tool_Chat_Image";                                               //图像
 const char Tool_Chat_ScreenShot[] = "Tool_Chat_ScreenShot";                                     //截图
+const char Tool_Chat_Audio[] = "Tool_Chat_Audio";                                               //语音
 const char Tool_Chat_Record[] = "Tool_Chat_Record";                                             //聊天记录
 
 const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复

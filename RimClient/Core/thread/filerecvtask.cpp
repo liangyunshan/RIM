@@ -26,6 +26,12 @@ FileRecvTask::FileRecvTask()
     currTransFile = NULL;
 }
 
+FileRecvTask::~FileRecvTask()
+{
+    stopMe();
+    wait();
+}
+
 FileRecvTask *FileRecvTask::instance()
 {
     return imageTask;
@@ -50,7 +56,6 @@ bool FileRecvTask::addSendItem(FileItemDesc *item)
     if(!isFileTransfer)
     {
         workMode = FileRequestMode;
-
         waitCondition.wakeOne();
     }
 
@@ -133,7 +138,7 @@ void FileRecvTask::run()
         {
             case FileRequestMode:
                 {
-                    while(sendItems.isEmpty())
+                    while(runningFlag && sendItems.isEmpty())
                     {
                         mutex.lock();
                         waitCondition.wait(&mutex);
@@ -228,7 +233,7 @@ void FileRecvTask::transferFile()
         {
             QByteArray data = file.read(900);
             sendLen += data.size();
-            qDebug()<<"SendLen:"<<sendLen<<"_"<<currTransFile->fileSize;
+//            qDebug()<<"SendLen:"<<sendLen<<"_"<<currTransFile->fileSize;
             RSingleton<MsgWrap>::instance()->handleFileData(currTransFileId,currIndex++,data);
         }
         isFileTransfer = false;

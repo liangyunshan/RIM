@@ -17,6 +17,7 @@
 #define PANELGROUPPAGE_H
 
 #include <QWidget>
+#include <QEvent>
 #include "observer.h"
 #include "protocoldata.h"
 
@@ -47,15 +48,20 @@ private slots:
     void searchGroup();
 
     void createNewGroup();
+    void respRegistDestoryed(QObject *);
 
     void sendMessage();
     void viewDetail();
     void modifyGroupInfo();
     void exitGroup();
 
-    void recvGroupGroupingOperate(GroupingResponse response);
-    void recvRegistGroup(RegistGroupResponse response);
-    void recvRegistGroupFailed();
+    void recvGroupPageOperate(MsgOperateResponse status, GroupingResponse response);
+    void recvGroupItemOperate(MsgOperateResponse result , GroupingChatResponse response);
+    void recvRegistGroup(MsgOperateResponse status, RegistGroupResponse response);
+
+    void recvGroupCommand(MsgOperateResponse result,GroupingCommandResponse response);
+
+    void respItemButtonClick(QEvent::Type type,ToolItem* item);
 
 public slots:
     void renameEditFinished();
@@ -69,6 +75,8 @@ private:
     void updateGroupDescInfo(ToolPage *page);
     void clearTargetGroup(const QString id);
     ToolItem * ceateItem(SimpleChatInfo * chatInfo, ToolPage * page);
+    void updateChatShow(const SimpleChatInfo & info);
+    void removeContact(const QString chatRoomId);
 
 private:
     PanelGroupPagePrivate * d_ptr;

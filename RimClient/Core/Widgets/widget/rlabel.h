@@ -46,6 +46,8 @@ public:
     void setEnterHighlight(bool flag = false);
     void setEnterHighlightColor(QColor color);
 
+    void setGray(bool flag);
+
     void setPixmap(const QString &fileName);    
     void setPixmap(const QPixmap &);
 

@@ -6,6 +6,7 @@
 
 #include "head.h"
 #include "datastruct.h"
+#include "Util/rutil.h"
 
 RTextLabel::RTextLabel(QWidget * parent):QLabel(parent)
 {
@@ -63,6 +64,7 @@ private:
     QColor backgroundColor;
     QPen enterHightPen;                     //鼠标进入后
     QString fileName;                       //文件名
+    QPixmap originPix;                      //初始图片，用于灰度之间切换显示
     QTimer * timer;
 };
 
@@ -151,6 +153,22 @@ void RIconLabel::setEnterHighlightColor(QColor color)
     d->enterHightPen.setColor(color);
 }
 
+/*!
+ * @brief 设置头像是否为灰色，在离线状态下为true
+ * @param[in] toolButton 待插入的工具按钮
+ */
+void RIconLabel::setGray(bool flag)
+{
+    MQ_D(RIconLabel);
+    if(pixmap()){
+        if(flag){
+            QLabel::setPixmap(QPixmap::fromImage(RUtil::convertToGray(d->originPix.toImage())));
+        }else{
+            QLabel::setPixmap(d->originPix);
+        }
+    }
+}
+
 void RIconLabel::setPixmap(const QString &fileName)
 {
     MQ_D(RIconLabel);
@@ -165,12 +183,15 @@ void RIconLabel::setPixmap(const QString &fileName)
     {
         setFixedSize(QPixmap(fileName).size());
     }
+    d->originPix = QPixmap(fileName);
     QLabel::setPixmap(QPixmap(fileName));
 }
 
 void RIconLabel::setPixmap(const QPixmap & pixmap)
 {
+    MQ_D(RIconLabel);
     QLabel::setPixmap(pixmap);
+    d->originPix = pixmap;
     update();
 }
 

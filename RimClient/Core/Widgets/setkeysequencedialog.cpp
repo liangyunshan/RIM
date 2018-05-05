@@ -66,6 +66,7 @@ SetKeySequenceDialog::SetKeySequenceDialog(QWidget *parent):
 
 SetKeySequenceDialog::~SetKeySequenceDialog()
 {
+    RSingleton<Subject>::instance()->detach(this);
 }
 
 void SetKeySequenceDialog::onMessage(MessageType type)

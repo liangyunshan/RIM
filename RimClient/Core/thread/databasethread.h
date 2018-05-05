@@ -21,6 +21,7 @@ public:
         }
     };
     explicit DatabaseThread(QObject *obj=NULL);
+    ~DatabaseThread();
 
     void setDatabase(Database * db);
     void addSqlQueryTask(int id, QString sql_querry);
@@ -34,6 +35,7 @@ private:
     QQueue<TaskQueue> m_TaskQueue;
     QWaitCondition runWaitCondition;
     QMutex m_Pause;
+    bool runningFlag;
 
 signals:
     void resultReady(int ,TextUnit::ChatInfoUnitList);

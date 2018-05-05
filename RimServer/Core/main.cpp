@@ -11,6 +11,8 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QSqlDriver>
+#include <QMessageBox>
 
 #include "Util/rutil.h"
 #include "Util/rlog.h"
@@ -365,6 +367,15 @@ int main(int argc, char *argv[])
         {
             RecvTextProcessThread * thread = new RecvTextProcessThread;
             Database * dbs = dbManager.newDatabase();
+
+#ifdef DB_TRANSACTIONS_CHECK
+            QSqlDriver * driver = dbs->sqlDatabase().driver();
+            static bool infoed = false;
+            if(!infoed && !driver->hasFeature(QSqlDriver::Transactions)){
+                infoed = true;
+                QMessageBox::warning(nullptr,QObject::tr("warning"),QObject::tr("Current database don't support transactions"));
+            }
+#endif
             if(!dbs->isError())
             {
                 thread->setDatabase(dbs);

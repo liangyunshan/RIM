@@ -110,6 +110,7 @@ public:
     }
 
     virtual QString sql() = 0;
+    virtual void clear();
 
     Criteria ctia;
 
@@ -158,6 +159,7 @@ protected:
             case DESC: return "DESC";break;
             default:break;
         }
+        return QString("");
     }
 
 };
@@ -186,6 +188,7 @@ public:
     RSelect & orderBy(const QString & tName,const QString key,SuperCondition::SOrder odr = SuperCondition::ASC);
 
     QString sql();
+    void clear();
 
 private:
     QMap<QString,QString> tableNames;                   /*!< 所有连接表名 */

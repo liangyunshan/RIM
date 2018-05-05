@@ -196,10 +196,10 @@ bool RUtil::validateIpFormat(QString dest)
 }
 
 /*!
-     * @brief 将图片转换成灰度图
-     * @param[in] image：const QImage &，转换前的图片
-     * @return 无 t_grayImage：QImage，转换后的灰度图
-     */
+ * @brief 将图片转换成灰度图
+ * @param[in] image：const QImage &，转换前的图片
+ * @return 无 t_grayImage：QImage，转换后的灰度图
+ */
 QImage RUtil::convertToGray(const QImage & t_image)
 {
     int t_height = t_image.height();
@@ -301,7 +301,7 @@ void RUtil::setAbsoulteImgPath(QString &targetHtml, QString userID)
 }
 
 /*!
- * @brief RUtil::escapeQuote 将Html内容中的双引号进行转义
+ * @brief RUtil::escapeQuote 将Html内容中的双引号、单引号进行转义
  * @param targetHtml 需要转义处理的Html内容
  */
 void RUtil::escapeQuote(QString &targetHtml)

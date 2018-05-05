@@ -68,6 +68,7 @@ protected:
 
 signals:
     void connected(bool flag);
+    void socketError();
 
 protected slots:
     virtual void respSocketError(int errorCode)=0;
@@ -80,7 +81,6 @@ protected:
 
     int delayTime;
 
-private:
     QMutex mutex;
     QWaitCondition condition;
 
@@ -115,6 +115,7 @@ class FileNetConnector : public SuperConnector
     Q_OBJECT
 public:
     explicit FileNetConnector();
+    ~FileNetConnector();
 
     static FileNetConnector * instance();
 

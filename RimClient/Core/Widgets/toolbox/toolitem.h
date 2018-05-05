@@ -18,6 +18,7 @@
 #define TOOLITEM_H
 
 #include <QWidget>
+#include <QEvent>
 
 #include "datastruct.h"
 
@@ -83,6 +84,7 @@ signals:
     void showChatWindow(ToolItem *);
     void itemDoubleClick(ToolItem *);
     void itemMouseHover(bool,ToolItem*);
+    void itemButtonClick(QEvent::Type,ToolItem *);
     void updateGroupActions();
 
 private slots:

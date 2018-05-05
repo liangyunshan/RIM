@@ -112,6 +112,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
         case MSG_GROUP_CREATE:
               onProcessRegistGroup(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
+        case MSG_GROUP_COMMAND:
+              onProcessGroupCommand(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
          default:
              break;
     }
@@ -129,7 +132,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
     if(!dataObj.isEmpty())
     {
-        TextRequest * request = new TextRequest;
+        QSharedPointer<TextRequest> request(new TextRequest);
         request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
 
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
@@ -240,6 +243,8 @@ void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject 
     request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::OperateType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
+    request->chatId = obj.value(JsonKey::key(JsonKey::ChatId)).toString();
+    request->chatName = obj.value(JsonKey::key(JsonKey::ChatName)).toString();
 
     RSingleton<DataProcess>::instance()->processRelationOperate(db,socketId,request);
 }
@@ -317,6 +322,19 @@ void DataParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &ob
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processRegistGroup(db,socketId,request);
+}
+
+void DataParse::onProcessGroupCommand(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<GroupingCommandRequest> request (new GroupingCommandRequest);
+
+    request->type = static_cast<OperateGroupingChat>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->groupId = obj.value(JsonKey::key(JsonKey::GroupId)).toString();
+    request->chatRoomId = obj.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+    request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
+
+    RSingleton<DataProcess>::instance()->processGroupCommand(db,socketId,request);
 }
 
 void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
