@@ -47,6 +47,7 @@ public slots:
 private:
     void updateUserInfo();
     void loadCustomUserImage();
+    void networkIsConnected(bool connected);
 
 private:
     PanelTopAreaPrivate * d_ptr;

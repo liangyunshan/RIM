@@ -18,6 +18,7 @@
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
 #include "user/user.h"
+#include "Network/netconnector.h"
 
 #include "widget/rlabel.h"
 
@@ -177,6 +178,12 @@ void PanelTopArea::onMessage(MessageType type)
         case MESS_ICON_CHANGE:
              loadCustomUserImage();
              break;
+        case MESS_TEXT_NET_ERROR:
+             networkIsConnected(false);
+             break;
+        case MESS_TEXT_NET_OK:
+            networkIsConnected(true);
+            break;
         default:
             break;
     }
@@ -187,6 +194,15 @@ void PanelTopArea::loadCustomUserImage()
     MQ_D(PanelTopArea);
 
     d->userIconLabel->setPixmap(G_User->getIcon());
+}
+
+void PanelTopArea::networkIsConnected(bool connected)
+{
+    MQ_D(PanelTopArea);
+    d->userIconLabel->setGray(!connected);
+    if(!connected){
+        d->onlineState->setState(STATUS_OFFLINE);
+    }
 }
 
 /*!
@@ -202,6 +218,7 @@ void PanelTopArea::setState(OnlineStatus state)
 
 void PanelTopArea::respSignChanged(QString content)
 {
+    R_CHECK_ONLINE;
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
     request->baseInfo.accountId = G_User->BaseInfo().accountId;
@@ -260,10 +277,14 @@ void PanelTopArea::updateUserInfo()
 
 void PanelTopArea::stateChanged(OnlineStatus state)
 {
-    UserStateRequest * request = new UserStateRequest();
-    request->accountId = G_User->BaseInfo().accountId;
-    request->onStatus = state;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    if(G_User->isTextOnLine()){
+        UserStateRequest * request = new UserStateRequest();
+        request->accountId = G_User->BaseInfo().accountId;
+        request->onStatus = state;
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
+    }else{
+        TextNetConnector::instance()->reconnect();
+    }
 }
 
 void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)

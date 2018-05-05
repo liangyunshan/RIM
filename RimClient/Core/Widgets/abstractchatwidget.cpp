@@ -51,6 +51,9 @@
 #include "json/jsonresolver.h"
 #include "screenshot.h"
 #include "user/user.h"
+#include "chataudioarea.h"
+#include "media/audioinput.h"
+#include "widget/rmessagebox.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -103,6 +106,7 @@ protected:
 
     QWidget * chatWidget;                  //聊天区域
     QWebEngineView * view;                 //加载html视图
+    ChatAudioArea * chatAudioArea;         //录音工具栏
     ToolBar * chatToolBar;                 //聊天工具栏
     SimpleTextEdit * chatInputArea;        //信息输入框
     QWidget * buttonWidget;                //关闭、发送等按钮栏
@@ -203,8 +207,15 @@ void AbstractChatWidgetPrivate::initWidget()
     view = new QWebEngineView(chatWidget);
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
+
+    chatAudioArea = new ChatAudioArea(chatWidget);
+    chatAudioArea->setVisible(false);
+    QObject::connect(chatAudioArea,SIGNAL(prepareSendAudio()),q_ptr,SLOT(prepareSendAudio()));
+    QObject::connect(chatAudioArea,SIGNAL(preapreCancelAudio()),q_ptr,SLOT(preapreCancelAudio()));
+
     QVBoxLayout * webLayout =  new QVBoxLayout;
     webLayout->addWidget(view);
+    webLayout->addWidget(chatAudioArea);
     chatWidget->setLayout(webLayout);
 
 //    chatWidget->setLayout(tmpLayout);
@@ -253,6 +264,11 @@ void AbstractChatWidgetPrivate::initWidget()
     screenShotButt->setPopupMode(QToolButton::MenuButtonPopup);
     QObject::connect(screenShotButt,SIGNAL(clicked()),G_pScreenShotAction,SIGNAL(triggered()));
 
+    RToolButton * audioButt = new RToolButton();
+    audioButt->setObjectName(Constant::Tool_Chat_Audio);
+    audioButt->setToolTip(QObject::tr("Audio"));
+    QObject::connect(audioButt,SIGNAL(clicked(bool)),q_ptr,SLOT(respShowAudioArea(bool)));
+
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
 
@@ -282,6 +298,7 @@ void AbstractChatWidgetPrivate::initWidget()
     chatToolBar->appendToolButton(shakeButt);
     chatToolBar->appendToolButton(imageButt);
     chatToolBar->appendToolButton(screenShotButt);
+    chatToolBar->appendToolButton(audioButt);
     chatToolBar->addStretch(1);
     chatToolBar->appendToolButton(recordButt);
 
@@ -649,6 +666,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     record.systemIon = d->userInfo.isSystemIcon;
     record.iconId = d->userInfo.iconId;
     record.type = CHAT_C2C;
+    record.status = d->userInfo.status;
     MessDiapatch::instance()->onAddHistoryItem(record);
 //test
 
@@ -663,24 +681,34 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //    QString t_Script = QString("%1").arg(t_simpleHtml);
 //    d->view->page()->runJavaScript(t_Script);
 
-    FileNetConnector::instance()->connect();
+//    FileNetConnector::instance()->connect();
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
+
     //发送Html内容给联系人
-//    TextRequest * request = new TextRequest;
-//    request->type = OperatePerson;
-//    request->textId = RUtil::UUID();
-//    request->isEncryption = false;
-//    request->isCompress = false;
-//    request->textType = TEXT_NORAML;
-//    request->otherSideId = d->userInfo.accountId;
-//    request->accountId = G_User->BaseInfo().accountId;
-//    request->sendData = t_sendHtml;
-//    request->timeStamp = RUtil::timeStamp();
-//    RSingleton<MsgWrap>::instance()->hanleText(request);
-//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+    TextRequest * request = new TextRequest;
+    request->type = OperatePerson;
+    request->textId = RUtil::UUID();
+
+    if(G_User->systemSettings()->encryptionCheck){
+        //TODO 数据加密
+    }
+    request->isEncryption = G_User->systemSettings()->encryptionCheck;
+
+    if(G_User->systemSettings()->compressCheck){
+        //TODO 数据压缩
+    }
+    request->isCompress = G_User->systemSettings()->compressCheck;
+
+    request->textType = TEXT_NORAML;
+    request->otherSideId = d->userInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->sendData = t_sendHtml;
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片
 //    QStringList t_imgDirs;
@@ -742,6 +770,57 @@ void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatI
 void AbstractChatWidget::finishLoadHTML(bool)
 {
     qDebug()<<"finishLoadHTML";
+}
+
+/*!
+ * @brief 显示录音区域
+ * @details 若其它窗口未在录音则直接录音；
+ *          若其它窗口已经在录音，则提示，避免再打开录音功能
+ */
+void AbstractChatWidget::respShowAudioArea(bool)
+{
+    MQ_D(AbstractChatWidget);
+
+    if(RSingleton<AudioInput>::instance()->isRecording()){
+        RMessageBox::warning(this,tr("warning"),tr("Other window is recording,please try later!"),RMessageBox::Yes);
+        return;
+    }
+
+    RSingleton<AudioInput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
+
+    RSingleton<AudioInput>::instance()->start();
+    d->chatAudioArea->setVisible(true);
+    d->chatAudioArea->start();
+}
+
+/*!
+ * @brief 准备发送录音文件
+ */
+void AbstractChatWidget::prepareSendAudio()
+{
+    MQ_D(AbstractChatWidget);
+    if(RSingleton<AudioInput>::instance()->stop()){
+       QString lastRecordFileFullName = RSingleton<AudioInput>::instance()->lastRecordFullPath();
+
+        //TODO 将文件发送出去
+
+    }
+    d->chatAudioArea->setVisible(false);
+}
+
+/*!
+ * @brief 取消录音文件发送
+ * @details 1.将已经生成的文件删除
+ *          2.隐藏录音区域
+ */
+void AbstractChatWidget::preapreCancelAudio()
+{
+    MQ_D(AbstractChatWidget);
+    if(RSingleton<AudioInput>::instance()->stop()){
+
+        RSingleton<AudioInput>::instance()->clear();
+    }
+    d->chatAudioArea->setVisible(false);
 }
 
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)

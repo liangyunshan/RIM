@@ -48,9 +48,11 @@ public:
 signals:
     void showChatDialog(ToolItem * item);
     void userDeleted(ChatMessageType messType, QString accountId);
+    void userStateChanged(OnlineStatus state,QString accountId);
+    void userInfoChanged(QString remarks,QString accountId);
 
 private slots:
-    void updateFriendList(FriendListResponse * friendList);
+    void updateFriendList(MsgOperateResponse status, FriendListResponse * friendList);
     void refreshList();
     //分组操作
     void respGroupCreate();
@@ -73,13 +75,14 @@ private slots:
 
     void modifyUserInfo();
 
-    void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
+    void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
+    void recvFriendItemOperate(MsgOperateResponse result,GroupingFriendResponse response);
     void updateModifyInstance(QObject *);
     void requestModifyRemark(QString remark);
 
     void updateContactList();
 
-    void recvFriendGroupingOperate(GroupingResponse response);
+    void recvFriendPageOperate(MsgOperateResponse status, GroupingResponse response);
 
 public slots:
     void renameEditFinished();
@@ -100,6 +103,8 @@ private:
     void createDetailView(UserClient * client);
     void showOrCreateChatWindow(UserClient * client);
     void sendDeleteUserRequest(UserClient * client , QString groupId);
+
+    void networkIsConnected(bool isConnected);
 
 private:
     PanelPersonPagePrivate * d_ptr;

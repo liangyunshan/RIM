@@ -7,7 +7,7 @@
 #include "head.h"
 #include "observer.h"
 
-QReadWriteLock lock;
+QReadWriteLock lock(QReadWriteLock::Recursive);
 
 Subject::Subject()
 {
@@ -24,7 +24,6 @@ void Subject::detach(Observer *obj)
 {
     QWriteLocker locker(&lock);
     observers.removeOne(obj);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<observers.size()<<"__"<<obj;
 }
 
 void Subject::notify(MessageType type)

@@ -38,6 +38,12 @@ TextSender::TextSender(QThread *parent):
 
 }
 
+TextSender::~TextSender()
+{
+    stopMe();
+    wait();
+}
+
 void TextSender::startMe()
 {
     RTask::startMe();
@@ -65,12 +71,8 @@ void TextSender::processData()
 {
     while(runningFlag)
     {
-        while(G_TextSendBuffs.size() <= 0)
+        while(runningFlag && G_TextSendBuffs.size() <= 0)
         {
-            if(!runningFlag)
-            {
-                break;
-            }
             G_TextSendMutex.lock();
             G_TextSendWaitCondition.wait(&G_TextSendMutex);
             G_TextSendMutex.unlock();
@@ -155,6 +157,12 @@ FileSender::FileSender(QThread *parent):
     SendTask(parent)
 {
 
+}
+
+FileSender::~FileSender()
+{
+    stopMe();
+    wait();
 }
 
 void FileSender::startMe()

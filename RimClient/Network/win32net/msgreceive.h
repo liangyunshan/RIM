@@ -58,7 +58,6 @@ public:
 
 private:
     void processData(QByteArray & data);
-
 };
 
 class NETWORKSHARED_EXPORT FileReceive : public RecveiveTask
@@ -70,9 +69,7 @@ public:
 
 private:
     void processData(QByteArray & data);
-
 };
-
 
 } //ClientNetwork
 

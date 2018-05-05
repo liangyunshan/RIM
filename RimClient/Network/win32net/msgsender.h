@@ -51,6 +51,7 @@ class NETWORKSHARED_EXPORT TextSender : public SendTask
     Q_OBJECT
 public:
     explicit TextSender(QThread * parent = 0);
+    ~TextSender();
 
     void startMe();
     void stopMe();
@@ -65,6 +66,7 @@ class NETWORKSHARED_EXPORT FileSender : public SendTask
     Q_OBJECT
 public:
     explicit FileSender(QThread * parent = 0);
+    ~FileSender();
 
     void startMe();
     void stopMe();

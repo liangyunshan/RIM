@@ -39,7 +39,8 @@
  * {
  *     'type'   :   MsgType,
  *     'cmd'    :   MsgCommand,
- *     'status' :   value,                          //若是操作性质,返回操作成功与否标志,部分不会返回data段
+ *     'status' :   value,                      //若是单操作性质,返回操作成功与否标志,部分不会返回data段
+ *                                              //若是聚合操作命令，根据MsgResponseType来判断是回复还是处理。
  *     'data'   :
  *                  {
  *
@@ -73,6 +74,18 @@ enum MsgType
 };
 
 /*!
+ *  @brief 消息回复类型
+ *  @details 有的消息属于聚合操作类型，一个消息内部根据不同的type，有不同的操作：如MSG_GROUP_COMMAND、MSG_RELATION_GROUPING_FRIEND
+ *          当客户端接收到这些消息后，有的用于对自身操作的回馈；有的则用于处理服务器转发其它用户操作；
+ *       例：A向server发送退出消息时，server处理后，需要给A回复一个处理结果；此时server还需要向群内其它在线用户发送A退出的消息，以便在群列表中
+ *          将A的信息移除。
+ */
+enum MsgResponseType{
+    MSG_REPLY,             /*!< 消息用于回复对应的操作,客户端先前发送了此commadType的request操作 */
+    MSG_EXE                /*!< 命令执行消息，接收到response后，用于执行对应类型的操作*/
+};
+
+/*!
  *  @brief  命令类型
  *  @details 根据不同的MstType，命令的表示范围是不一致的;
  *  \parblock
@@ -103,10 +116,8 @@ enum MsgCommand
 
     MSG_GROUP_SEARCH = 0x31,                           /*!< 查找群 */
     MSG_GROUP_CREATE,                                  /*!< 创建群 */
-    MSG_GROUP_JOIN,                                    /*!< 加入群 */
-    MSG_GROUP_EXIT,                                    /*!< 退出群 */
-    MSG_GROUP_REMOVE,                                  /*!< 移除群 */
-    MSG_GROUP_DISSOLUTION,                             /*!< 解散群 */
+    MSG_GROUP_OPERATE,                                 /*!< 群分组操作 @link OperateGroupingChatRoom @endlink  */
+    MSG_GROUP_COMMAND,                                 /*!< 群操作命令 @link OperateGroupingChat @endlink */
     MSG_GROUP_VIEW_INFO,                               /*!< 查看群信息 */
     MSG_GROUP_UPDATE_INFO,                             /*!< 更新群信息 */
     MSG_GROUP_LIST,                                    /*!< 群列表请求 */
@@ -309,7 +320,9 @@ public:
     MsgCommand msgCommand;      /*!< 命令类型 @link MSG_COMMAND @endlink */
 };
 
-/************************登  陆**********************/
+
+/******************************************************【联系人操作请求/应答命令】*****************************************************************/
+
 /*!
  *  @brief  用户描述信息
  *  @details 定义用户详细信息，用于保存个人信息、好友详细信息等。
@@ -329,6 +342,82 @@ struct UserBaseInfo
     bool isSystemIcon;             /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
     QString iconId;                /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
 };
+
+/*!
+ *  @brief  简单用户信息
+ *  @details 该信息描述了用户的最基础信息，可用于更新用户基本的描述信息、获取好友列表
+ */
+struct SimpleUserInfo
+{
+    QString accountId;           /*!< 登陆账号 */
+    QString nickName;            /*!< 昵称 */
+    QString signName;            /*!< 签名 */
+    bool isSystemIcon;           /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
+    QString iconId;              /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
+    QString remarks;             /*!< 备注名称 */
+    OnlineStatus status;         /*!< 在线状态 */
+};
+
+/*!
+ *  @brief 分组信息
+ *  @details 描述联系人分组的基本信息
+ */
+struct RGroupData
+{
+    ~RGroupData();
+    QString groupId;                  /*!< 分组ID，可用于判断唯一标识  */
+    QString groupName;                /*!< 分组名称  */
+    bool isDefault;                   /*!< 是否为默认分组  */
+    int index;                        /*!< 分组排序 */
+    QList<SimpleUserInfo *> users;    /*!< 分组中联系人或群的描述信息  */
+};
+
+/*!
+ *  @brief 联系人分组操作类型(对应PanelPersonPage->ToolItem操作)
+ */
+enum OperateGroupingFriend
+{
+    G_Friend_CREATE,          /*!< 创建分组联系人  */
+    G_Friend_UPDATE,          /*!< 更新分组联系人(如备注信息等)  */
+    G_Friend_MOVE,            /*!< 移动联系人  */
+    G_Friend_Delete           /*!< 删除联系人  */
+};
+
+/*!
+ *  @brief 对于联系人/群分组操作种类(对应PanelPersonPage/PanelGroupPage->ToolPage操作)
+ */
+enum OperateGrouping
+{
+    GROUPING_CREATE,     /*!< 创建分组 */
+    GROUPING_RENAME,     /*!< 重命名分组 */
+    GROUPING_DELETE,     /*!< 删除分组 */
+    GROUPING_SORT,       /*!< 分组排序 */
+    GROUPING_REFRESH     /*!< 刷新分组 */
+};
+
+/************************个人账户注册**********************/
+/*!
+ *  @brief  注册个人账户请求
+ */
+class RegistRequest : public MsgPacket
+{
+public:
+    RegistRequest();
+    QString nickName;       /*!< 用户昵称 */
+    QString password;       /*!< 账户密码 */
+};
+
+/*!
+ *  @brief  注册个人账户响应
+ */
+class RegistResponse : public MsgPacket
+{
+public:
+    RegistResponse();
+    QString accountId;       /*!< 服务器分配的ID，在登陆时使用此ID作为用户名 */
+};
+
+/************************登**陆**[Ok]********************/
 
 /*!
  *  @brief  登陆请求
@@ -354,31 +443,7 @@ public:
     UserBaseInfo baseInfo;          /*!< 登陆用户的个人信息，参见 @link UserBaseInfo @endlink */
 };
 
-/************************注册个人/群账户**********************/
-/*!
- *  @brief  注册个人账户请求
- */
-class RegistRequest : public MsgPacket
-{
-public:
-    RegistRequest();
-
-    QString nickName;       /*!< 用户昵称 */
-    QString password;       /*!< 账户密码 */
-};
-
-/*!
- *  @brief  注册个人账户响应
- */
-class RegistResponse : public MsgPacket
-{
-public:
-    RegistResponse();
-
-    QString accountId;       /*!< 服务器分配的ID，在登陆时使用此ID作为用户名 */
-};
-
-/************************更新基本信息**********************/
+/************************更新个人基本信息**[Ok]********************/
 /*!
  *  @brief  更新基本信息请求
  */
@@ -401,22 +466,7 @@ public:
     UserBaseInfo baseInfo;              /*!< 更新后的基本信息 */
 };
 
-/***********************查询好友**********************/
-/*!
- *  @brief  简单用户信息
- *  @details 该信息描述了用户的最基础信息，可用于更新用户基本的描述信息、获取好友列表
- */
-struct SimpleUserInfo
-{
-    QString accountId;           /*!< 登陆账号 */
-    QString nickName;            /*!< 昵称 */
-    QString signName;            /*!< 签名 */
-    bool isSystemIcon;           /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
-    QString iconId;              /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
-    QString remarks;             /*!< 备注名称 */
-    OnlineStatus status;         /*!< 在线状态 */
-};
-
+/***********************查询联系人好友**[Ok]********************/
 /*!
  *  @brief  查找好友请求
  */
@@ -440,7 +490,7 @@ public:
     QList<SimpleUserInfo> result;      /*!< 在status为 @link FIND_FRIEND_FOUND @endlink 字段时，表示查找的结果 */
 };
 
-/***********************添加好友**********************/
+/***********************添加好友/群**[Ok]********************/
 /*!
  *  @brief  添加好友请求
  *  @details 根据 @link SearchFriendResponse @endlink 中的查询结果列表，用户可选择发送添加好友请求。
@@ -449,7 +499,7 @@ class AddFriendRequest : public MsgPacket
 {
 public:
     AddFriendRequest();
-    OperateType stype;               /*!< 添加人或群 */
+    OperateType stype;              /*!< 添加人或群 */
     QString accountId;              /*!< 用户账号 */
     QString operateId;              /*!< 待添加的用户或群ID  */
 };
@@ -464,10 +514,10 @@ public:
     AddFriendResponse();
 };
 
-/***********************联系人操作**********************/
+/***********************联系人请求操作**[Ok]********************/
 /*!
  *  @brief 好友操作请求
- *  @details 依据 @link SearchType @endlink 类型发送请求、移动、删除等操作。
+ *  @details 依据 @link SearchType @endlink 类型发送请求操作。
  */
 class OperateFriendRequest : public MsgPacket
 {
@@ -475,44 +525,31 @@ public:
     OperateFriendRequest();
     OperateFriend type;                 /*!< 操作类型 @link OperateFriend @endlink */
     OperateType stype;                  /*!< 操作人或群  */
-    int result;                         /*!< @parblock  当type为 @link FRIEND_APPLY @endlink 时，对应 @link ResponseFriendApply @endlink \n
-                                                        当type为 @link FRIEND_DELETE @endlink 时，对应 @link ResponseDeleteFriend @endlink
-                                        */
+    int result;                         /*!< @parblock  当type为 @link FRIEND_APPLY @endlink 时，对应 @link ResponseFriendApply @endlink \n*/
     QString accountId;                  /*!< 用户账号 */
     QString operateId;                  /*!< 待操作的好友ID */
+    QString chatId;                     /*!< 群号(2xxxx)此值只在stype为OperateGroup时有效 */
+    QString chatName;                   /*!< 群名称(stype为OperateGroup可用) */
 };
 
 /*!
  *  @brief 好友操作响应
- *  @details 依据 @link SearchType @endlink 类型发送请求、移动、删除等操作。
+ *  @details 依据 @link SearchType @endlink 类型发送请求操作。
  */
 class OperateFriendResponse : public MsgPacket
 {
 public:
     OperateFriendResponse();
     OperateFriend type;                 /*!< 操作类型 @link OperateFriend @endlink */
-    OperateType stype;                   /*!< 操作人或群  */
-    int result;                         /*!< @parblock  当type为 @link FRIEND_APPLY @endlink 时，对应 @link ResponseFriendApply @endlink \n
-                                                        当type为 @link FRIEND_DELETE @endlink 时，对应 @link ResponseDeleteFriend @endlink
-                                        */
+    OperateType stype;                  /*!< 操作人或群  */
+    int result;                         /*!< @parblock  当type为 @link FRIEND_APPLY @endlink 时，对应 @link ResponseFriendApply @endlink \n*/
     QString accountId;                  /*!< 用户账号 */
+    QString chatId;                     /*!< 群账号(stype为OperateGroup可用) */
+    QString chatName;                   /*!< 群名称(stype为OperateGroup可用) */
     SimpleUserInfo requestInfo;         /*!< 当 type 为 @link FRIEND_APPLY @endlink,用于保存待操作联系人基本信息 */
 };
 
-/***********************联系人列表操作**********************/
-/*!
- *  @brief 分组信息
- *  @details 描述联系人分组的基本信息
- */
-struct RGroupData
-{
-    ~RGroupData();
-    QString groupId;                  /*!< 分组ID，可用于判断唯一标识  */
-    QString groupName;                /*!< 分组名称  */
-    bool isDefault;                   /*!< 是否为默认分组  */
-    int index;                        /*!< 分组排序 */
-    QList<SimpleUserInfo *> users;    /*!< 分组中联系人或群的描述信息  */
-};
+/***********************联系人列表操作**[Ok]********************/
 
 /*!
  *  @brief 好友列表请求
@@ -536,26 +573,94 @@ public:
     QList<RGroupData *> groups;     /*!< 分组信息  */
 };
 
-/***********************群分组列表操作**********************/
+/***********************联系人分组操作**[Ok]********************/
 
 /*!
- *  @brief  群描述信息
- *  @details 定义群详细信息，用于保存群信息等。
+ *  @brief  联系人分组操作请求(增删移改)
  */
-struct ChatBaseInfo
+class GroupingFriendRequest : public MsgPacket
 {
-    QString uuid;                  /*!< 数据库数据ID */
-    QString chatId;                /*!< 登陆账号 */
-    QString name;                  /*!< 群名称 */
-    QString desc;                  /*!< 群描述 */
-    QString label;                 /*!< 标签 */
-    bool visible;                  /*!< 是否可以被搜索发现 */
-    bool validate;                 /*!< 是否需要验证 */
-    QString userId;                /*!< 所属用户ID，user表ID */
-    bool isSystemIcon;             /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
-    QString iconId;                /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
+public:
+    GroupingFriendRequest();
+    OperateGroupingFriend type;     /*!< 参见 @link OperateGroupingFriend @endlink */
+    OperateType stype;              /*!< 联系人分组/群分组  */
+    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
+    QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
+    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
 };
 
+/*!
+ *  @brief  联系人分组操作响应
+ */
+class GroupingFriendResponse : public MsgPacket
+{
+public:
+    GroupingFriendResponse();
+    OperateGroupingFriend type;     /*!< 参见 @link OperateGroupingFriend @endlink */
+    OperateType stype;              /*!< 联系人分组/群分组  */
+    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
+    QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
+    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
+};
+
+/**********************分组操作(适用于联系人和群分组)**[Ok]********************/
+
+/*!
+ *  @brief 分组操作请求
+ */
+class GroupingRequest : public MsgPacket
+{
+public:
+    GroupingRequest();
+    QString uuid;           /*!< 联系人uuid */
+    QString groupId;        /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
+    OperateType gtype;      /*!< 分组类型，参见 @link GroupingType @endlink */
+    OperateGrouping type;   /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
+    QString groupName;      /*!< 分组名称 */
+    int groupIndex;         /*!< 分组序号,分组排序时向服务器发送当前本地goupid在列表中的位置 */
+};
+
+/*!
+ *  @brief 分组操作响应
+ */
+class GroupingResponse : public MsgPacket
+{
+public:
+    GroupingResponse();
+    QString uuid;             /*!< 联系人uuid */
+    OperateType gtype;       /*!< 分组类型，参见 @link GroupingType @endlink */
+    QString groupId;          /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
+    OperateGrouping type;     /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
+    int groupIndex;           /*!< 分组序号 */
+};
+
+/**********************用户状态变更**[Ok]********************/
+/*!
+ *  @brief  用户状态变更
+ *  @details 向服务器更新自己的在线状态
+ */
+class UserStateRequest : public MsgPacket
+{
+public:
+    UserStateRequest();
+    QString accountId;              /*!< 用户账号 */
+    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
+};
+
+/*!
+ *  @brief  用户变更响应
+ *  @details 1.用于接收本身更新成功与否的状态 @n
+ *           2.用于接收朋友状态变更通知 @n
+ */
+class UserStateResponse : public MsgPacket
+{
+public:
+    UserStateResponse();
+    QString accountId;              /*!< 用户账号，若账号等于自身则用于响应自己的操作；若账户为联系人列表中，则表示接收好友状态 */
+    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
+};
+
+/******************************************************【群操作请求/应答命令】*****************************************************************/
 /*!
  *  @brief 群消息接收等级
  */
@@ -566,12 +671,50 @@ enum ChatMessNotifyLevel{
 };
 
 /*!
+ *  @brief  群搜索是否可见
+ */
+enum SearchVisible{
+    SEARCH_INVISIBLE = 0x00,        /*!< 搜索不可见 */
+    SEARCH_VISIBLE = 0x01           /*!< 搜索可见 */
+};
+
+/*!
+ *  @brief  群搜索是否可见
+ */
+enum JoinValidate{
+    JOIN_VALIDATE = 0x01,           /*!< 加群验证 */
+    JOIN_NOVALIDATE = 0x00          /*!< 加群无需验证 */
+};
+
+/*!
+ *  @brief  群描述信息
+ *  @details 定义群详细信息，用于保存群信息等。
+ *  @todo 将验证答案与问题移动至单独表内，可支持扩充
+ */
+struct ChatBaseInfo
+{
+    QString uuid;                  /*!< 数据库数据ID */
+    QString chatId;                /*!< 登陆账号 */
+    QString name;                  /*!< 群名称 */
+    QString desc;                  /*!< 群描述 */
+    QString label;                 /*!< 标签 */
+    bool visible;                  /*!< 是否可以被搜索发现 */
+    bool validate;                 /*!< 是否需要验证 */
+    QString question;              /*!< 验证问题 */
+    QString answer;                /*!< 验证答案 */
+    QString userId;                /*!< 所属用户ID，user表ID */
+    bool isSystemIcon;             /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
+    QString iconId;                /*!< 图标名称，包含文件后缀：xx.png、xx.jpg等 */
+};
+
+/*!
  *  @brief 基本群描述信息
+ *  @details 用于创建PanelGrouPage->ToolItem
  */
 struct SimpleChatInfo{
     QString id;                     /*!< 分组ID(RChatGroupRoom id) */
-    QString chatRoomId;             /*!< 群表ID */
-    QString chatId;                 /*!< 群号 */
+    QString chatRoomId;             /*!< 群号uuid*/
+    QString chatId;                 /*!< 群号(2****) */
     QString remarks;                /*!< 群备注名 */
     ChatMessNotifyLevel messNotifyLevel;     /*!< 消息通知等级 */
     bool isSystemIcon;              /*!< 是否为系统图标，默认为true，修改为自定义图标后为false @see UserInfoDesc */
@@ -580,7 +723,7 @@ struct SimpleChatInfo{
 
 /*!
  *  @brief 群分组信息
- *  @details 描述群分组的基本信息
+ *  @details 描述群分组的基本信息,用于创建PangelGroupPage->ToolPage
  */
 struct RChatGroupData
 {
@@ -592,6 +735,26 @@ struct RChatGroupData
     QList<SimpleChatInfo *> chatGroups;   /*!< 分组中群的基础描述信息  */
 };
 
+/*!
+ *  @brief 群操作
+ */
+enum OperateGroupingChat{
+    G_ChatGroup_EXIT,            /*!< 退出群  */
+    G_ChatGroup_KICK,            /*!< 踢出/移出群  */
+    G_ChatGroup_DISSOLVED        /*!< 解散群  */
+};
+
+/*!
+ *  @brief 群分组操作类型(对应PanelGroupPage->ToolItem操作)
+ */
+enum OperateGroupingChatRoom
+{
+    G_ChatGroup_CREATE,          /*!< 创建群分组子项  */
+    G_ChatGroup_UPDATE,          /*!< 更新群分组子项(如备注信息、权限等)  */
+    G_ChatGroup_MOVE             /*!< 移动群分组子项至其它分组  */
+};
+
+/***********************群分组列表操作**[OK]********************/
 /*!
  *  @brief 群列表请求
  *  @details 用户登陆成功后，发送群列表请请求
@@ -616,7 +779,7 @@ public:
     QList<RChatGroupData *> groups; /*!< 分组信息  */
 };
 
-
+/***********************注册群账户操作**[OK]********************/
 /*!
  *  @brief  注册群账户请求
  */
@@ -648,115 +811,77 @@ public:
     SimpleChatInfo chatInfo;    /*!< 群基本信息 */
 };
 
-/***********************分组联系人/分组群操作**********************/
+/***********************搜索群结果响应**********************/
 /*!
- *  @brief 分组操作类型
+ *  @brief  查找好友响应
+ *  @details 返回查找的结果列表,【!!!搜索请求参见SearchFriendRequest!!!】
  */
-enum OperateGroupingFriend
-{
-    G_Friend_CREATE,          /*!< 创建分组联系人  */
-    G_Friend_UPDATE,          /*!< 更新分组联系人(如备注信息等)  */
-    G_Friend_MOVE,            /*!< 移动联系人  */
-    G_Friend_Delete           /*!< 删除联系人  */
-};
-
-/*!
- *  @brief  分组操作请求
- */
-class GroupingFriendRequest : public MsgPacket
+class SearchGroupResponse : public MsgPacket
 {
 public:
-    GroupingFriendRequest();
-    OperateGroupingFriend type;     /*!< 参见 @link OperateGroupingFriend @endlink */
-    OperateType stype;               /*!< 联系人分组/群分组  */
-    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
-    QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
-    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
+    SearchGroupResponse();
+
+    QList<ChatBaseInfo> result;     /*!< 在status为 @link FIND_FRIEND_FOUND @endlink 字段时，表示查找的结果 */
 };
 
+/***********************群分组操作**********************/
 /*!
- *  @brief  分组操作响应
+ *  @brief  群分组操作请求
  */
-class GroupingFriendResponse : public MsgPacket
+class GroupingChatRequest : public MsgPacket
 {
 public:
-    GroupingFriendResponse();
-    OperateGroupingFriend type;     /*!< 参见 @link OperateGroupingFriend @endlink */
-    OperateType stype;               /*!< 联系人分组/群分组  */
-    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_Friend_Move @endlink 时，表示移动后分组Id */
-    QString oldGroupId;             /*!< 当type为 @link G_Friend_Move @endlink 时，表示移动前分组Id  */
-    SimpleUserInfo user;            /*!< 联系人基本信息, @link SimpleUserInfo @endlink  */
-};
-
-/**********************分组操作(适用于联系人和群分组)**********************/
-/*!
- *  @brief 对于联系人/群分组操作种类
- */
-enum OperateGrouping
-{
-    GROUPING_CREATE,     /*!< 创建分组 */
-    GROUPING_RENAME,     /*!< 重命名分组 */
-    GROUPING_DELETE,     /*!< 删除分组 */
-    GROUPING_SORT,       /*!< 分组排序 */
-    GROUPING_REFRESH     /*!< 刷新分组 */
+    GroupingChatRequest();
+    OperateGroupingChatRoom type;   /*!< 参见 @link OperateGroupingChatRoom @endlink */
+    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_ChatGroup_MOVE @endlink 时，表示移动后分组Id */
+    QString oldGroupId;             /*!< 当type为 @link G_ChatGroup_MOVE @endlink 时，表示移动前分组Id  */
+    SimpleChatInfo chatInfo;        /*!< 联系人基本信息, @link SimpleChatInfo @endlink  */
 };
 
 /*!
- *  @brief 分组操作请求
+ *  @brief  群分组操作响应
  */
-class GroupingRequest : public MsgPacket
+class GroupingChatResponse : public MsgPacket
 {
 public:
-    GroupingRequest();
-    QString uuid;           /*!< 联系人uuid */
-    QString groupId;        /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
-    OperateType gtype;     /*!< 分组类型，参见 @link GroupingType @endlink */
-    OperateGrouping type;   /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
-    QString groupName;      /*!< 分组名称 */
-    int groupIndex;         /*!< 分组序号,分组排序时向服务器发送当前本地goupid在列表中的位置 */
+    GroupingChatResponse();
+    OperateGroupingChatRoom type;   /*!< 参见 @link OperateGroupingFriend @endlink */
+    QString groupId;                /*!< 分组ID; @attention 当type为 @link G_ChatGroup_MOVE @endlink 时，表示移动后分组Id */
+    QString oldGroupId;             /*!< 当type为 @link G_ChatGroup_MOVE @endlink 时，表示移动前分组Id  */
+    SimpleChatInfo chatInfo;        /*!< 联系人基本信息, @link SimpleChatInfo @endlink  */
+};
+
+/***********************群命令操作**********************/
+/*!
+ *  @brief  群命令操作请求
+ */
+class GroupingCommandRequest : public MsgPacket
+{
+public:
+    GroupingCommandRequest();
+    OperateGroupingChat type;       /*!< 参见 @link OperateGroupingChat @endlink */
+    QString accountId;              /*!< 发起命令用户账户id */
+    QString groupId;                /*!< 分组ID; */
+    QString chatRoomId;             /*!< 群号uuid  */
+    QString operateId;              /*!< 待命令操作用户账户ID  */
 };
 
 /*!
- *  @brief 分组操作响应
+ *  @brief  群命令操作响应
  */
-class GroupingResponse : public MsgPacket
+class GroupingCommandResponse : public MsgPacket
 {
 public:
-    GroupingResponse();
-    QString uuid;             /*!< 联系人uuid */
-    OperateType gtype;       /*!< 分组类型，参见 @link GroupingType @endlink */
-    QString groupId;          /*!< 分组ID(为 @link GROUPING_CREATE @endlink 时无需填写) */
-    OperateGrouping type;     /*!< 分组操作类型，参见 @link OperateGrouping @endlink */
-    int groupIndex;           /*!< 分组序号 */
+    GroupingCommandResponse();
+    MsgResponseType respType;       /*!< 回复类型 */
+    OperateGroupingChat type;       /*!< 参见 @link OperateGroupingChat @endlink */
+    QString accountId;              /*!< 发起命令用户账户id */
+    QString groupId;                /*!< 分组ID; */
+    QString chatRoomId;             /*!< 群号uuid  */
+    QString operateId;              /*!< 待命令操作用户账户ID  */
 };
 
-/**********************用户状态变更**********************/
-/*!
- *  @brief  用户状态变更
- *  @details 向服务器更新自己的在线状态
- */
-class UserStateRequest : public MsgPacket
-{
-public:
-    UserStateRequest();
-    QString accountId;              /*!< 用户账号 */
-    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
-};
-
-/*!
- *  @brief  用户变更响应
- *  @details 1.用于接收本身更新成功与否的状态 @n
- *           2.用于接收朋友状态变更通知 @n
- */
-class UserStateResponse : public MsgPacket
-{
-public:
-    UserStateResponse();
-    QString accountId;              /*!< 用户账号，若账号等于自身则用于响应自己的操作；若账户为联系人列表中，则表示接收好友状态 */
-    OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
-};
-
-/*********************聊天信息和窗口抖动操作**********************/
+/******************************************************【聊天信息和窗口抖动操作】*****************************************************************/
 /*!
  *  @brief 文本信息类型
  *  @details 消息可分为普通消息、需确认消息、需回执消息等，可进行扩展
@@ -934,7 +1059,7 @@ public:
 
 /*!
  *  @brief 简单文件传输控制请求
- *  @details 在简历传输连接后，用于客户端和服务器端传输文件控制命令.
+ *  @details 在建立传输连接后，用于客户端和服务器端传输文件控制命令.
  */
 class SimpleFileItemRequest : public MsgPacket
 {

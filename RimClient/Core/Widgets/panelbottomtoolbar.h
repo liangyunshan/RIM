@@ -7,6 +7,7 @@
  *  @date      2017.12.14
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note   20180503:wey:增加文件服务器状态显示、断网重连。
  */
 
 #ifndef PANELBOTTOMTOOLBAR_H
@@ -27,7 +28,7 @@ public:
     explicit PanelBottomToolBar(QWidget * parent = 0);
     ~PanelBottomToolBar();
 
-    void onMessage(MessageType type);
+    void onMessage(MessageType mtype);
 
 signals:
     void showSearchPerson();
@@ -38,6 +39,10 @@ private slots:
     void updateFrinedInstance(QObject *);
     void updateSettingInstnce(QObject *);
     void showNotifyWindow();
+    void viewFileServerState();
+
+private:
+    void networkIsConnected(bool connected);
 
 private:
     PanelBottomToolBarPrivate * d_ptr;

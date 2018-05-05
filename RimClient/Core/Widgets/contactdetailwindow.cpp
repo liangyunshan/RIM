@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 
 #include "head.h"
+#include "global.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "toolbar.h"
@@ -15,6 +16,7 @@
 #include "widget/rcombobox.h"
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
+#include "user/user.h"
 
 #define DETAIL_SHOW_WIDTH 380
 #define DETAIL_SHOW_HEIGHT 600
@@ -295,6 +297,7 @@ void ContactDetailWindow::onMessage(MessageType type)
      */
 void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 {
+    R_CHECK_ONLINE;
     MQ_D(ContactDetailWindow);
     d->m_account_edit->setText(info.accountId);
     d->m_nickName_edit->setText(info.nickName);

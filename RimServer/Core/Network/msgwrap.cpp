@@ -63,6 +63,15 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
     case MsgCommand::MSG_GROUP_CREATE:
         return handleCreateGroup((RegistGroupResponse *)packet,result);
 
+    case MsgCommand::MSG_GROUP_SEARCH:
+        return handleSearchGroup((SearchGroupResponse *)packet,result);
+
+    case MsgCommand::MSG_GROUP_OPERATE:
+        return handleOpreateGroup((GroupingChatResponse *)packet,result);
+
+    case MsgCommand::MSG_GROUP_COMMAND:
+        return handleOpreateCommand((GroupingCommandResponse *)packet,result);
+
         default:
                 break;
     }
@@ -98,18 +107,20 @@ QByteArray MsgWrap::handleTextReply(TextReply * response)
 
 
 /*!
-     * @brief 处理简单错误信息
-     * @param[in] type 信息类型
-     * @param[in] command 命令类型
-     * @param[in] errorCode 错误码(客户端可根据信息类型-命令类型-错误码定义具体的错误信息)
-     * @return 序列化数据
-     */
-QByteArray MsgWrap::handleErrorSimpleMsg(MsgType type,MsgCommand command, int errorCode)
+ * @brief 处理结果信息
+ * @param[in] type 信息类型
+ * @param[in] command 命令类型
+ * @param[in] replyCode 回复码(客户端可根据信息类型-命令类型-错误码定义具体的错误信息)
+ * @param[in] subMsgCommand 二级命令，若一级命令包含了二级命令，则此值有效，其余命令忽略处理
+ * @return 序列化数据
+ */
+QByteArray MsgWrap::handleMsgReply(MsgType type, MsgCommand command, int replyCode, int subMsgCommand)
 {
     QJsonObject obj;
     obj.insert(JsonKey::key(JsonKey::Type),type);
     obj.insert(JsonKey::key(JsonKey::Command),command);
-    obj.insert(JsonKey::key(JsonKey::Status),errorCode);
+    obj.insert(JsonKey::key(JsonKey::Status),replyCode);
+    obj.insert(JsonKey::key(JsonKey::SubCmd),subMsgCommand);
 
     QJsonDocument document;
     document.setObject(obj);
@@ -221,6 +232,8 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
     obj.insert(JsonKey::key(JsonKey::Result),packet->result);
     obj.insert(JsonKey::key(JsonKey::OperateType),packet->stype);
     obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    obj.insert(JsonKey::key(JsonKey::ChatId),packet->chatId);
+    obj.insert(JsonKey::key(JsonKey::ChatName),packet->chatName);
 
     QJsonObject requsetInfo;
     requsetInfo.insert(JsonKey::key(JsonKey::AccountId),packet->requestInfo.accountId);
@@ -364,6 +377,68 @@ QByteArray MsgWrap::handleCreateGroup(RegistGroupResponse *packet, int result)
     chatInfoObj.insert(JsonKey::key(JsonKey::IconId),packet->chatInfo.iconId);
 
     data.insert(JsonKey::key(JsonKey::Data),chatInfoObj);
+
+    return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
+QByteArray MsgWrap::handleSearchGroup(SearchGroupResponse *packet, int result)
+{
+    QJsonArray dataArray;
+    std::for_each(packet->result.cbegin(),packet->result.cend(),[&](const ChatBaseInfo & info){
+        QJsonObject childObj;
+
+        childObj.insert(JsonKey::key(JsonKey::Uuid),info.uuid);
+        childObj.insert(JsonKey::key(JsonKey::ChatId),info.chatId);
+        childObj.insert(JsonKey::key(JsonKey::ChatName),info.name);
+        childObj.insert(JsonKey::key(JsonKey::Desc),info.desc);
+        childObj.insert(JsonKey::key(JsonKey::Label),info.label);
+        childObj.insert(JsonKey::key(JsonKey::SearchVisible),info.visible);
+        childObj.insert(JsonKey::key(JsonKey::ValidateAble),info.validate);
+        childObj.insert(JsonKey::key(JsonKey::Question),info.question);
+        childObj.insert(JsonKey::key(JsonKey::Answer),info.answer);
+        childObj.insert(JsonKey::key(JsonKey::Users),info.userId);
+        childObj.insert(JsonKey::key(JsonKey::SystemIcon),info.isSystemIcon);
+        childObj.insert(JsonKey::key(JsonKey::IconId),info.iconId);
+
+        dataArray.append(childObj);
+    });
+
+    return wrappedPack(packet,result,dataArray);
+}
+
+QByteArray MsgWrap::handleOpreateGroup(GroupingChatResponse *packet, int result)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::OldGroupId),packet->oldGroupId);
+
+    QJsonObject chatInfoObj;
+
+    chatInfoObj.insert(JsonKey::key(JsonKey::Id),packet->chatInfo.id);
+    chatInfoObj.insert(JsonKey::key(JsonKey::ChatRoomId),packet->chatInfo.chatRoomId);
+    chatInfoObj.insert(JsonKey::key(JsonKey::ChatId),packet->chatInfo.chatId);
+    chatInfoObj.insert(JsonKey::key(JsonKey::Remark),packet->chatInfo.remarks);
+    chatInfoObj.insert(JsonKey::key(JsonKey::NotifyLevel),packet->chatInfo.messNotifyLevel);
+    chatInfoObj.insert(JsonKey::key(JsonKey::SystemIcon),packet->chatInfo.isSystemIcon);
+    chatInfoObj.insert(JsonKey::key(JsonKey::IconId),packet->chatInfo.iconId);
+
+    data.insert(JsonKey::key(JsonKey::Data),chatInfoObj);
+
+    return wrappedPack(packet,(MsgOperateResponse)result,data);
+}
+
+QByteArray MsgWrap::handleOpreateCommand(GroupingCommandResponse *packet, int result)
+{
+    QJsonObject data;
+
+    data.insert(JsonKey::key(JsonKey::RType),packet->respType);
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
+    data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
+    data.insert(JsonKey::key(JsonKey::GroupId),packet->groupId);
+    data.insert(JsonKey::key(JsonKey::ChatRoomId),packet->chatRoomId);
+    data.insert(JsonKey::key(JsonKey::OperateId),packet->operateId);
 
     return wrappedPack(packet,(MsgOperateResponse)result,data);
 }

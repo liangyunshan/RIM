@@ -16,6 +16,7 @@ MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
 
 MsgReceiveProcTask::~MsgReceiveProcTask()
 {
+    stopMe();
     wait();
 }
 
@@ -39,7 +40,7 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(G_TextRecvBuffs.isEmpty())
+        while(runningFlag && G_TextRecvBuffs.isEmpty())
         {
             G_TextRecvMutex.lock();
             G_TextRecvCondition.wait(&G_TextRecvMutex);
@@ -128,6 +129,15 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
                 break;
         case MSG_GROUP_CREATE:
                 RSingleton<DataProcess>::instance()->proRegistGroupResponse(obj);
+                break;
+        case MSG_GROUP_SEARCH:
+                RSingleton<DataProcess>::instance()->proSearchGroupResponse(obj);
+                break;
+        case MSG_GROUP_OPERATE:
+                RSingleton<DataProcess>::instance()->proOpreateGroupResponse(obj);
+                break;
+        case MSG_GROUP_COMMAND:
+                RSingleton<DataProcess>::instance()->proGroupCommandResponse(obj);
                 break;
         default:break;
     };

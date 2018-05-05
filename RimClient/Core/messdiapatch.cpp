@@ -52,19 +52,19 @@ void MessDiapatch::onRecvFriendRequest(OperateFriendResponse response)
     emit recvFriendRequest(response);
 }
 
-void MessDiapatch::onRecvFriendList(FriendListResponse *response)
+void MessDiapatch::onRecvFriendList(MsgOperateResponse status,FriendListResponse *response)
 {
-    emit recvFriendList(response);
+    emit recvFriendList(status,response);
 }
 
-void MessDiapatch::onRecvFriendGroupingOperate(GroupingResponse response)
+void MessDiapatch::onRecvFriendGroupingOperate(MsgOperateResponse status,GroupingResponse response)
 {
-    emit recvFriendGroupingOperate(response);
+    emit recvFriendGroupingOperate(status,response);
 }
 
-void MessDiapatch::onRecvGroupGroupingOperate(GroupingResponse response)
+void MessDiapatch::onRecvGroupGroupingOperate(MsgOperateResponse status, GroupingResponse response)
 {
-    emit recvGroupGroupingOperate(response);
+    emit recvGroupGroupingOperate(status,response);
 }
 
 void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
@@ -72,19 +72,29 @@ void MessDiapatch::onErrorGroupingOperate(OperateGrouping type)
     emit errorGroupingOperate(type);
 }
 
+void MessDiapatch::onRecvSearchChatroomResponse(ResponseAddFriend result, SearchGroupResponse response)
+{
+    emit recvSearchChatroomResponse(result,response);
+}
+
 void MessDiapatch::onRecvGroupList(MsgOperateResponse status, ChatGroupListResponse *response)
 {
     emit recvGroupList(status,response);
 }
 
-void MessDiapatch::onRecvResitGroup(RegistGroupResponse response)
+void MessDiapatch::onRecvResitGroup(MsgOperateResponse status,RegistGroupResponse response)
 {
-    emit recvRegistGroup(response);
+    emit recvRegistGroup(status,response);
 }
 
-void MessDiapatch::onRecvResitGroupFailed()
+void MessDiapatch::onRecvOpreateGroup(MsgOperateResponse status , GroupingChatResponse response)
 {
-    emit recvRegistGroupFailed();
+    emit recvGroupItemOperate(status,response);
+}
+
+void MessDiapatch::onRecvGroupCommand(MsgOperateResponse status, GroupingCommandResponse response)
+{
+    emit recvGroupCommand(status,response);
 }
 
 void MessDiapatch::onRecvText(TextRequest response)

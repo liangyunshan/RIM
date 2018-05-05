@@ -50,7 +50,8 @@ SOURCES += main.cpp\
     jsonkey.cpp \
     sql/rpersistence.cpp \
     datastruct.cpp \
-    global.cpp
+    global.cpp \
+    sql/autotransaction.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -68,7 +69,8 @@ HEADERS  += widget.h \
     jsonkey.h \
     sql/rpersistence.h \
     datastruct.h \
-    global.h
+    global.h \
+    sql/autotransaction.h
 
 FORMS    += widget.ui
 

@@ -145,7 +145,10 @@ SOURCES += \
     sql/datatable.cpp \
     user/userchatcontainer.cpp \
     user/groupclient.cpp \
-    Widgets/registgroupdialog.cpp
+    Widgets/registgroupdialog.cpp \
+    media/audioinput.cpp \
+    media/audiooutput.cpp \
+    Widgets/chataudioarea.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -233,7 +236,10 @@ HEADERS  += \
     sql/datatable.h \
     user/userchatcontainer.h \
     user/groupclient.h \
-    Widgets/registgroupdialog.h
+    Widgets/registgroupdialog.h \
+    media/audioinput.h \
+    media/audiooutput.h \
+    Widgets/chataudioarea.h
 
 DISTFILES += \
     Widgets/Widgets.pri

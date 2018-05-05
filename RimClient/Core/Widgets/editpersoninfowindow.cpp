@@ -368,7 +368,6 @@ void EditPersonInfoWindow::openLocalImage()
 
         FileRecvTask::instance()->addSendItem(desc);
     }
-    Q_UNUSED(d);
 }
 
 /*!
@@ -378,17 +377,18 @@ void EditPersonInfoWindow::openLocalImage()
  */
 void EditPersonInfoWindow::updateUserBaseInfo()
 {
+    R_CHECK_ONLINE;
     MQ_D(EditPersonInfoWindow);
 
     if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))
     {
-        RMessageBox::warning(this,"warning","The phone number is malformed.",RMessageBox::Yes);
+        RMessageBox::warning(this,tr("warning"),tr("The phone number is invalid."),RMessageBox::Yes);
         return;
     }
 
     if(d->m_mail_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,d->m_mail_edit->text()))
     {
-        RMessageBox::warning(this,"warning","The mail number is malformed.",RMessageBox::Yes);
+        RMessageBox::warning(this,tr("warning"),tr("The mail number is invalid."),RMessageBox::Yes);
         return;
     }
 
@@ -422,7 +422,7 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
                 {
                     G_User->BaseInfo() = response.baseInfo;
                     RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
-                    RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
+                    RMessageBox::information(NULL,tr("information"),tr("Update user info successfully!"),RMessageBox::Yes);
                 }
             }
             break;
@@ -431,17 +431,17 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
         default:
             if(response.reponseType == UPDATE_USER_DETAIL)
             {
-                RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
+                RMessageBox::warning(NULL,tr("warning"),tr("Update user info failed!"),RMessageBox::Yes);
             }
             break;
     }
 }
 
 /*!
-     * @brief 任意基本信息完成输入后立即验证并提示
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 任意基本信息完成输入后立即验证并提示
+ * @param[in] 无
+ * @return 无
+ */
 void EditPersonInfoWindow::singleBaseInfoFinished()
 {
     MQ_D(EditPersonInfoWindow);
@@ -449,7 +449,7 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     {
         if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))
         {
-            RMessageBox::warning(this,"warning","The phone number is malformed.",RMessageBox::Yes);
+            RMessageBox::warning(this,tr("warning"),tr("The phone number is invalid."),RMessageBox::Yes);
             return;
         }
     }
@@ -457,7 +457,7 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     {
         if(d->m_mail_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,d->m_mail_edit->text()))
         {
-            RMessageBox::warning(this,"warning","The mail number is malformed.",RMessageBox::Yes);
+            RMessageBox::warning(this,tr("warning"),tr("The mail number is invalid."),RMessageBox::Yes);
             return;
         }
     }

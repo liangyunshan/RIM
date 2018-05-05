@@ -30,16 +30,6 @@ private slots:
     void recvRegistResult(bool flag);
 
 private:
-    enum SearchVisible{
-        S_VISIBLE,
-        S_INVISIBLE
-    };
-
-    enum ValidateAble{
-        V_VALIDATE,
-        V_NOVALIDATE
-    };
-
     void clearInput();
 
 private:

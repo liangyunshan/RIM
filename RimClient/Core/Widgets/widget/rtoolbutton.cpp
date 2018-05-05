@@ -43,15 +43,20 @@ void RToolButton::setObjectName(QString objName)
 
     if(icon().isNull())
     {
-        setIcon(QIcon(QString(":/icon/resource/icon/%1.png").arg(objName)));
+        QToolButton::setIcon(QIcon(QString(":/icon/resource/icon/%1.png").arg(objName)));
     }
+}
+
+void RToolButton::setIcon(QString id)
+{
+    QToolButton::setIcon(QIcon(QString(":/icon/resource/icon/%1.png").arg(id)));
 }
 
 void RToolButton::removeIcon()
 {
     if(!icon().isNull())
     {
-        setIcon(QIcon());
+        QToolButton::setIcon(QIcon());
     }
 }
 
