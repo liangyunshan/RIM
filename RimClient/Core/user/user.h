@@ -56,6 +56,7 @@ public:
     QString getFilePath(QString fileId,ChatT group = C_C2C,ChatK type = C_Image);
     QString getIcon(ChatT group = C_C2C);
     QString getIcon(bool isSystemIcon,const QString &iconId,ChatT group = C_C2C);
+    QString getIconAbsoultePath(bool isSystemIcon,const QString &iconId);
 
     QString getChatImgPath();
     void setChatImgPath(const QString &path);

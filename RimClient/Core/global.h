@@ -11,6 +11,7 @@
 #define GLOBAL_H
 
 #include <QString>
+#include <QDateTime>
 #include "protocoldata.h"
 
 class QAction;
@@ -29,6 +30,7 @@ extern QString G_ScreenShotKeySequence;                 //截屏快捷按键
 
 extern User * G_User;                                   //当前登陆用户，通过此获取当前用户的所有属性信息
 extern OnlineStatus G_OnlineStatus;                     //在线状态
+extern QDateTime G_loginTime;                           //登录时间
 
 extern QAction *G_pScreenShotAction;                    //全局截屏快捷动作
 extern ScreenShot *G_pScreenShot;                       //快捷键设置界面
