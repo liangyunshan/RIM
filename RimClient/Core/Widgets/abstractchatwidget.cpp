@@ -23,6 +23,7 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QImage>
+#include <QDir>
 
 #include "head.h"
 #include "global.h"
@@ -67,6 +68,7 @@
 #define CHAT_SHAKE_RANGE 6                  //窗口抖动幅度
 #define SHOTIMAGE_WIDTH 80                  //截图显示宽度
 #define SHOTIMAGE_HEIGHT 80                 //截图显示高度
+#define TIMESTAMP_GAP 60                    //显示新时间戳的消息时间间隔
 
 class AbstractChatWidgetPrivate : public GlobalData<AbstractChatWidget>
 {
@@ -121,6 +123,7 @@ protected:
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
     bool b_isScreeHide;
+    QDateTime m_preMsgTime;
 };
 
 #define CHAT_TOOL_HEIGHT 30
@@ -406,6 +409,7 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
+    connect(this,SIGNAL(maxWindow(bool)),this,SLOT(noticeWebViewShift(bool)));
 }
 
 AbstractChatWidget::~AbstractChatWidget()
@@ -506,6 +510,55 @@ void AbstractChatWidget::shakeWindow()
     pAnimation->setKeyValueAt(0.9,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
     pAnimation->setEndValue(pos);
     pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+/*!
+ * \brief AbstractChatWidget::appendRecvMsg 直接将接收到的消息数据显示在聊天对话框中
+ * \param recvMsg 收到的消息数据
+ */
+void AbstractChatWidget::appendRecvMsg(TextRequest recvMsg)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_showMsgScript = QString("");
+    QDateTime t_epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
+    QString t_localHtml = recvMsg.sendData;
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+    RUtil::escapeQuote(t_localHtml);
+    RUtil::removeEccapeQuote(t_localHtml);
+
+    User tmpUser(d->userInfo.accountId);
+    t_headPath = tmpUser.getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
+
+    d->view->page()->runJavaScript(t_showMsgScript);
 }
 
 //更新快捷键
@@ -672,19 +725,18 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     QString t_simpleHtml = QString("");
     d->chatInputArea->extractPureHtml(t_simpleHtml);
 
-
-    //修改原始Html格式文本框内容，将其中img标签路径属性值设置为用户的相对路径
     QString t_localHtml = t_simpleHtml;
-    RUtil::setRelativeImgPath(t_localHtml,G_User->BaseInfo().accountId);
-    //TODO 拼接调用JS执行的脚本内容，并调用JS函数执行
-//    QString t_Script = QString("%1").arg(t_simpleHtml);
-//    d->view->page()->runJavaScript(t_Script);
-
-//    FileNetConnector::instance()->connect();
+    TextUnit::ChatInfoUnit t_unit;
+    t_unit.time = QDateTime::currentDateTime().toString("yyyy/M/d h:mm:ss");
+    t_unit.contents = t_localHtml;
+    appendChatRecord(SEND,t_unit);
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
+    //存储发送信息到数据库
+//    TextUnit::ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(t_sendHtml.toLocal8Bit());
+//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
 
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;
@@ -744,25 +796,32 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //响应数据库线程查询结果
 void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
 {
-    Q_UNUSED(id);
-    MQ_D(AbstractChatWidget);
-    foreach(TextUnit::ChatInfoUnit unit,list)
+    if(id == 0)
     {
-        //TODO LYS-20180413 查询数据库获取聊天记录并显示最近的聊天信息
-        //获取收到的Html消息,进行处理后显示在聊天记录中
-        QString t_recvedMsg = QString("");
-        RUtil::setRelativeImgPath(t_recvedMsg,G_User->BaseInfo().accountId);
-        RUtil::removeEccapeQuote(t_recvedMsg);
-        //使用收到的Html消息拼接调用JS执行的脚本内容，并调用JS函数执行
-        QString t_showMsgScript = QString("");;
-        d->view->page()->runJavaScript(t_showMsgScript);
+        foreach(TextUnit::ChatInfoUnit unit,list)
+        {
+            //获取收到的Html消息,进行处理后显示在聊天记录中
+            appendChatRecord(RECV,unit);
+        }
     }
+
 }
 
 //QWebEngineView加载HTML文件完成
 void AbstractChatWidget::finishLoadHTML(bool)
 {
     qDebug()<<"finishLoadHTML";
+    setFontIconFilePath();
+}
+
+/*!
+ * \brief AbstractChatWidget::noticeWebViewShift 最大化或者还原WebView
+ */
+void AbstractChatWidget::noticeWebViewShift(bool)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_shiftScript = QString("toggleWindow()");
+    d->view->page()->runJavaScript(t_shiftScript);
 }
 
 /*!
@@ -878,4 +937,133 @@ void AbstractChatWidget::switchWindowSize()
     d->isMaxSize = !d->isMaxSize;
 
     setShadowWindow(!isMaximized());
+}
+
+/*!
+ * \brief AbstractChatWidget::appendChatRecord 将信息追加显示在聊天信息记录界面上
+ * \param html 收到的html格式的聊天信息
+ */
+void AbstractChatWidget::appendChatRecord(msgTarget source, const TextUnit::ChatInfoUnit &unitMsg)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_showMsgScript = QString("");
+    QString t_localHtml = unitMsg.contents;
+    QDateTime t_curMsgTime = QDateTime::fromString(unitMsg.time,"yyyy/M/d h:mm:ss");
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+    RUtil::escapeQuote(t_localHtml);
+    RUtil::removeEccapeQuote(t_localHtml);
+
+    if(source == RECV)
+    {
+        User tmpUser(d->userInfo.accountId);
+        t_headPath = tmpUser.getIconAbsoultePath(false,d->userInfo.iconId);
+    }
+    else
+    {       
+        User tmpUser(G_User->BaseInfo().accountId);
+        t_headPath = tmpUser.getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+
+}
+
+/*!
+ * @brief AbstractChatWidget::setFontIconFilePath 修改HTML中字体图标文件链接路径
+ */
+void AbstractChatWidget::setFontIconFilePath()
+{
+    MQ_D(AbstractChatWidget);
+    QString t_currentPath = QDir::currentPath();
+    t_currentPath = QDir::fromNativeSeparators(t_currentPath);
+    QString t_setLinkFontHerfScript = QString("setAbsoulteFontIconHerf('%1')").arg(t_currentPath);
+    qDebug(t_setLinkFontHerfScript.toLocal8Bit().data());
+    d->view->page()->runJavaScript(t_setLinkFontHerfScript);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendChatTimeNote 显示时间提示信息
+ * @param format 时间显示格式
+ * @param content 显示内容
+ */
+void AbstractChatWidget::appendChatTimeNote(QDateTime content,timeFormat format)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_curMsgTime = QString("");
+    QString t_showTimeScript = QString("");
+    if(content.isNull())
+    {
+        return;
+    }
+    switch (format) {
+    case TIME:
+        t_curMsgTime = content.time().toString("h:mm:ss");
+        break;
+    case DATETIME:
+        t_curMsgTime = content.toString("yyyy/M/d h:mm:ss");
+        break;
+    default:
+        break;
+    }
+    t_showTimeScript = QString("showMessageTime('%1')").arg(t_curMsgTime);
+    d->view->page()->runJavaScript(t_showTimeScript);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendChatNotice 显示操作提示信息
+ * @param type  信息类型
+ * @param content 信息内容
+ */
+void AbstractChatWidget::appendChatNotice(QString content,noticeType type)
+{
+    MQ_D(AbstractChatWidget);
+    if(content.isEmpty())
+    {
+        return;
+    }
+    QString t_showNotice = QString("setNotice(%1,'%2')").arg(type).arg(content);
+    d->view->page()->runJavaScript(t_showNotice);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendVoiceMsg 显示语音消息
+ */
+void AbstractChatWidget::appendVoiceMsg(msgTarget source)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_headPath = QString("");
+
+    User tmpUser(G_User->BaseInfo().accountId);
+    t_headPath = tmpUser.getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    QString t_showVoiceMsgScript = QString("");
+    t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3')").arg(source).arg(50).arg(t_headPath);
+    d->view->page()->runJavaScript(t_showVoiceMsgScript);
 }

@@ -913,7 +913,7 @@ void LoginDialog::procRecvText(TextRequest response)
             //【3】判断窗口是否创建或者是否可见
             if(client->chatWidget && client->chatWidget->isVisible()){
                 if(response.msgCommand == MSG_TEXT_TEXT){
-                    client->chatWidget->showRecentlyChatMsg();
+                    client->chatWidget->appendRecvMsg(response);
                 }else if(response.msgCommand == MSG_TEXT_SHAKE){
                     if(G_User->systemSettings()->windowShaking)
                         client->chatWidget->shakeWindow();

@@ -269,12 +269,46 @@ void RUtil::setRelativeImgPath(QString &targetHtml,QString userID)
 }
 
 /*!
+ * @brief RUtil::setAbsoulteImgPath 为目标简单的Html格式的文本框内容中img标签设置绝对路径
+ * @param targetHtml 需要修改img标签内容的Html格式字符串
+ * @param userID 用于拼接相对路径的用户账号ID
+ */
+void RUtil::setAbsoulteImgPath(QString &targetHtml, QString userID)
+{
+    QDomDocument domDoc;
+    domDoc.setContent(targetHtml);
+    QString rootName = domDoc.documentElement().tagName();
+    if(rootName == "p")
+    {
+        QDomNodeList nodes = domDoc.documentElement().childNodes();
+        for(int index=0;index<nodes.count();index++)
+        {
+            if(nodes.at(index).nodeName()=="img"&&nodes.at(index).isElement())
+            {
+                QString t_imgPath = QString("");
+                QDir t_parentDir = QDir::current();
+                t_parentDir.cdUp();
+                t_imgPath = t_imgPath + t_parentDir.path() + QDir::separator();
+                t_imgPath = t_imgPath + Constant::PATH_UserDirName + QDir::separator() + userID + QDir::separator() + Constant::USER_RecvFileDirName;
+                t_imgPath = t_imgPath + QDir::separator() + Constant::USER_ChatImageDirName + QDir::separator() + Constant::USER_C2CDirName;
+                t_imgPath = t_imgPath + QDir::separator() + nodes.at(index).toElement().attribute("src");
+                t_imgPath = QDir::fromNativeSeparators(t_imgPath);
+                nodes.at(index).toElement().setAttribute("src",t_imgPath);
+            }
+        }
+    }
+    targetHtml = domDoc.toString();
+}
+
+/*!
  * @brief RUtil::escapeQuote 将Html内容中的双引号、单引号进行转义
  * @param targetHtml 需要转义处理的Html内容
  */
 void RUtil::escapeQuote(QString &targetHtml)
 {
-    targetHtml = targetHtml.replace("\"","\\\"").replace("\'","\\\'");
+    targetHtml = targetHtml.replace("\"","\\\"");
+    targetHtml = targetHtml.replace("\'","\\\'");
+    targetHtml = targetHtml.replace("\n","");
 }
 
 /*!
@@ -284,4 +318,5 @@ void RUtil::escapeQuote(QString &targetHtml)
 void RUtil::removeEccapeQuote(QString &targetHtml)
 {
     targetHtml = targetHtml.replace("\\\"","\"");
+    targetHtml = targetHtml.replace("\n","");
 }

@@ -207,6 +207,37 @@ QString User::getIcon(bool isSystemIcon, const QString &iconId, ChatT group)
 }
 
 /*!
+ * @brief User::getIconAbsoultePath 获取头像的全路径
+ * @param isSystemIcon 是否为系统图标
+ * @param iconId 图标名称
+ * @return 图标路径
+ */
+QString User::getIconAbsoultePath(bool isSystemIcon, const QString &iconId)
+{
+    QString tmpIconPath;
+    QDir t_parentDir = QDir::current();
+    t_parentDir.cdUp();
+    QString t_userPath = t_parentDir.path() + QDir::separator() + Constant::PATH_UserDirName + QDir::separator() + userBaseInfo.accountId;
+    QString t_userRecvFilePath = t_userPath + QDir::separator() + Constant::USER_RecvFileDirName;
+    QString t_userC2CPath = t_userRecvFilePath + QDir::separator() + Constant::USER_ChatImageDirName +QDir::separator() + Constant::USER_C2CDirName;
+
+    if(isSystemIcon)
+    {
+        tmpIconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(iconId);
+    }
+    else
+    {
+        tmpIconPath = t_userC2CPath + QDir::separator() + iconId;
+    }
+
+    QFileInfo fileInfo(tmpIconPath);
+    if(fileInfo.exists())
+        return(QDir::fromNativeSeparators(tmpIconPath));
+    else
+        return QDir::fromNativeSeparators(RSingleton<ImageManager>::instance()->getSystemUserIcon());
+}
+
+/*!
  * @brief User::getChatImgPath 获取保存聊天图片的文件夹路径
  * @return 返回当前登录用户的聊天图片文件夹路径
  */

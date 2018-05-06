@@ -56,6 +56,7 @@ const char CONFIG_StylePath[] = "/style";
 const char CONFIG_SountPath[] = "/sound";
 
 const char PATH_UserPath[] = "../users";
+const char PATH_UserDirName[] = "users";
 const char USER_RecvFileDirName[] = "ChatRecvFile";         //保存接收到的文件
 const char USER_ChatImageDirName[] = "Image";               //在USER_RecvFileDirName目录下，保存接收的图片，其子目录可分为C2C、Group
 const char USER_ChatAudioDirName[] = "Audio";               //在USER_RecvFileDirName目录下保存接收到的音频

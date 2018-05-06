@@ -139,7 +139,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
         request->textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
         request->otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
         request->type = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
-        request->timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
         request->isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
         request->isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
         request->textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
