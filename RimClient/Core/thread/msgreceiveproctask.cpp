@@ -149,6 +149,9 @@ void MsgReceiveProcTask::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
     {
         case MSG_TEXT_TEXT:
         case MSG_TEXT_SHAKE:
+        case MSG_TEXT_AUDIO:
+        case MSG_TEXT_FILE:
+        case MSG_TEXT_IMAGE:
             RSingleton<DataProcess>::instance()->proText(obj);
             break;
 

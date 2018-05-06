@@ -451,6 +451,7 @@ QByteArray MsgWrap::handleFileControl(SimpleFileItemRequest *packet)
     buffer.append((int)STATUS_SUCCESS);
     buffer.append((int)packet->control);
     buffer.append((int)packet->itemType);
+    buffer.append((int)packet->itemKind);
     buffer.append(packet->md5);
     buffer.append(packet->fileId);
 
@@ -465,6 +466,7 @@ QByteArray MsgWrap::handleFileRequest(FileItemRequest *packet)
     buffer.append((int)STATUS_SUCCESS);
     buffer.append((int)packet->control);
     buffer.append((int)packet->itemType);
+    buffer.append((int)packet->itemKind);
     buffer.append(packet->fileName);
     buffer.append(packet->size);
     buffer.append(packet->fileId);

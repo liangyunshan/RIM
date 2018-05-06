@@ -148,7 +148,8 @@ SOURCES += \
     Widgets/registgroupdialog.cpp \
     media/audioinput.cpp \
     media/audiooutput.cpp \
-    Widgets/chataudioarea.cpp
+    Widgets/chataudioarea.cpp \
+    Widgets/widget/rcomboboxitem.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -239,7 +240,8 @@ HEADERS  += \
     Widgets/registgroupdialog.h \
     media/audioinput.h \
     media/audiooutput.h \
-    Widgets/chataudioarea.h
+    Widgets/chataudioarea.h \
+    Widgets/widget/rcomboboxitem.h
 
 DISTFILES += \
     Widgets/Widgets.pri

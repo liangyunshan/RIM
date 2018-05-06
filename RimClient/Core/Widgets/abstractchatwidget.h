@@ -50,6 +50,8 @@ private slots:
     void slot_CheckSendEnter();
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     void finishLoadHTML(bool);
+
+    /**********录音处理**********/
     void respShowAudioArea(bool);
     void prepareSendAudio();
     void preapreCancelAudio();

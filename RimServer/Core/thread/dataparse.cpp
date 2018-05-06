@@ -341,7 +341,7 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
 {
     QSharedPointer<FileItemRequest> request (new FileItemRequest());
 
-    int control,itemType;
+    int control,itemType,itemKind;
     if(!obj.read(control))
         return;
     request->control = (FileTransferControl)control;
@@ -349,6 +349,10 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
     if(!obj.read(itemType))
         return;
     request->itemType = (FileItemType)itemType;
+
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = (FileItemKind)itemKind;
 
     if(!obj.read(request->fileName))
         return;
@@ -390,6 +394,11 @@ void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
     if(!obj.read(itemType))
         return;
     request->itemType = static_cast<FileItemType>(itemType);
+
+    int itemKind = 0;
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = static_cast<FileItemKind>(itemKind);
 
     if(!obj.read(request->md5))
         return;
