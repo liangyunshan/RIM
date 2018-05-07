@@ -148,7 +148,9 @@ SOURCES += \
     Widgets/registgroupdialog.cpp \
     media/audioinput.cpp \
     media/audiooutput.cpp \
-    Widgets/chataudioarea.cpp
+    Widgets/chataudioarea.cpp \
+    Widgets/document.cpp \
+    Widgets/previewpage.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -239,7 +241,9 @@ HEADERS  += \
     Widgets/registgroupdialog.h \
     media/audioinput.h \
     media/audiooutput.h \
-    Widgets/chataudioarea.h
+    Widgets/chataudioarea.h \
+    Widgets/document.h \
+    Widgets/previewpage.h
 
 DISTFILES += \
     Widgets/Widgets.pri

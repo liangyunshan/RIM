@@ -50,6 +50,7 @@ public:
     void onMessage(MessageType type);
     void shakeWindow();
     void appendRecvMsg(TextRequest recvMsg);
+    void playVoiceMessage(QString path);
 
 public slots:
     void slot_UpdateKeySequence();
