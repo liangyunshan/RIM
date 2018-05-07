@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link rel="stylesheet" type="text/css" href="./font/iconfont.css">
+    <script type="text/javascript" src="./qwebchannel.js"></script>
     <style type="text/css">
         *{font-size: 14px; padding:0; margin:0;}
         html,body{
@@ -263,7 +264,12 @@
             color:#85888A;
         }
         /*语音信息样式*/
-        .voiceDiv{
+        .icon-sound_right{
+            color:#85888A;
+            cursor:pointer;
+        }
+        .icon-sound_left{
+            color:#85888A;
             cursor:pointer;
         }
     </style>
@@ -281,6 +287,14 @@
 </div>
 </body>
     <script type="text/javascript">
+    var content;
+    window.onload=function(){
+        new QWebChannel(qt.webChannelTransport,function(channel)
+        {
+             content = channel.objects.content;
+        });
+    }
+
     var input = document.getElementById('msg_input');//查找缓存
     // 模拟双击切换窗口大小
     document.getElementById('chat_titile').addEventListener('dblclick',function (ev) {
@@ -548,6 +562,22 @@
         {
             alert('展示联系人信息');
         }
+
+        var sendVoice = hasClass(target,'icon-sound_right');
+        if(sendVoice)
+        {
+            //播放发出的语音
+            var t_sendPath = target.getAttribute('voicePath');
+            content.receiveText(t_sendPath);
+        }
+
+        var recvVoice = hasClass(target,'icon-sound_left');
+        if(recvVoice)
+        {
+            //播放收到的语音
+            var t_recvPath = target.getAttribute('voicePath');
+            content.receiveText(t_recvPath);
+        }
     })
     // 显示消息读取状态
     function setMesReadState(state) {
@@ -610,7 +640,7 @@
         fontLink.setAttribute('href',t_value);
     }
     //发送语音消息
-    function appendVoiceMsg(messageTarget,voiceMessage,avatarPath){
+    function appendVoiceMsg(messageTarget,voiceDuration,voicePath,avatarPath){
         //初始化容器
         var content_container = document.getElementById('content');
         var newDiv = document.createElement('div');
@@ -630,9 +660,10 @@
         {
             soundIcon.className = 'iconfont icon-sound_left';
         }
+        soundIcon.setAttribute('voicePath',voicePath);//LYS
 
         var secondSpan = document.createElement('span');
-        secondSpan.innerHTML = voiceMessage+'"';
+        secondSpan.innerHTML = voiceDuration+'"';
         // 读取状态容器
         var stateSpan = document.createElement('span');
         stateSpan.setAttribute('class','stateSpan');

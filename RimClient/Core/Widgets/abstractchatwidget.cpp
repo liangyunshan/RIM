@@ -22,6 +22,7 @@
 #include <QPropertyAnimation>
 #include <QWebEngineView>
 #include <QWebEnginePage>
+#include <QWebChannel>
 #include <QImage>
 #include <QDir>
 
@@ -43,6 +44,8 @@
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
 #include "messdiapatch.h"
+#include "previewpage.h"
+#include "document.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -85,6 +88,7 @@ protected:
         p_shotProcess = NULL;
         p_shotTimer = NULL;
         b_isScreeHide = false;
+        m_content.setUi(q); //LYS
     }
 
     void initWidget();
@@ -106,6 +110,8 @@ protected:
 
     QWidget * chatWidget;                  //聊天区域
     QWebEngineView * view;                 //加载html视图
+    PreviewPage *page;  //LYS
+    Document m_content; //LYS
     ChatAudioArea * chatAudioArea;         //录音工具栏
     ToolBar * chatToolBar;                 //聊天工具栏
     SimpleTextEdit * chatInputArea;        //信息输入框
@@ -205,10 +211,15 @@ void AbstractChatWidgetPrivate::initWidget()
     tmpLayout->setContentsMargins(0,0,0,0);
     tmpLayout->setSpacing(0);
 
-    QWebEnginePage *page = new QWebEnginePage(chatWidget);
+    PreviewPage *page = new PreviewPage(q_ptr);
     view = new QWebEngineView(chatWidget);
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
+
+    //LYS
+    QWebChannel *channel = new QWebChannel(q_ptr);
+    channel->registerObject(QStringLiteral("content"),&m_content);
+    page->setWebChannel(channel);
 
     chatAudioArea = new ChatAudioArea(chatWidget);
     chatAudioArea->setVisible(false);
@@ -561,6 +572,16 @@ void AbstractChatWidget::appendRecvMsg(TextRequest recvMsg)
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
+/*!
+ * @brief AbstractChatWidget::playVoiceMessage 播放语音
+ * @param path 语音文件路径
+ */
+void AbstractChatWidget::playVoiceMessage(QString path)
+{
+    Q_UNUSED(path);
+    qDebug(path.toLocal8Bit().data());
+}
+
 //更新快捷键
 void AbstractChatWidget::slot_UpdateKeySequence()
 {
@@ -735,6 +756,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
+
     //存储发送信息到数据库
 //    TextUnit::ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(t_sendHtml.toLocal8Bit());
 //    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
@@ -994,6 +1016,7 @@ void AbstractChatWidget::appendChatRecord(msgTarget source, const TextUnit::Chat
     t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
+    appendVoiceMsg(SEND);
 
 }
 
@@ -1006,7 +1029,6 @@ void AbstractChatWidget::setFontIconFilePath()
     QString t_currentPath = QDir::currentPath();
     t_currentPath = QDir::fromNativeSeparators(t_currentPath);
     QString t_setLinkFontHerfScript = QString("setAbsoulteFontIconHerf('%1')").arg(t_currentPath);
-    qDebug(t_setLinkFontHerfScript.toLocal8Bit().data());
     d->view->page()->runJavaScript(t_setLinkFontHerfScript);
 }
 
@@ -1065,6 +1087,7 @@ void AbstractChatWidget::appendVoiceMsg(msgTarget source)
     User tmpUser(G_User->BaseInfo().accountId);
     t_headPath = tmpUser.getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     QString t_showVoiceMsgScript = QString("");
-    t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3')").arg(source).arg(50).arg(t_headPath);
+    QString t_voicePayh = QString("5b9b3f14e9344b4d87135365b4ff7653.raw");
+    t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(t_voicePayh).arg(t_headPath);
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
 }
