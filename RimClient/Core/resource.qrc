@@ -87,5 +87,6 @@
     </qresource>
     <qresource prefix="/html">
         <file>resource/html/chatRecord.html</file>
+        <file>resource/html/qwebchannel.js</file>
     </qresource>
 </RCC>
