@@ -1,6 +1,6 @@
 ﻿/*!
  *  @brief     文件消息接收处理
- *  @details   处理文件服务器反馈数据。
+ *  @details   处理文件服务器反馈数据，根据协议解析字段，封装后交由上层处理
  *  @file      filereceiveproctask.h
  *  @author    wey
  *  @version   1.0

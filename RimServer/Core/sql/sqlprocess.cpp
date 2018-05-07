@@ -1791,6 +1791,8 @@ bool SQLProcess::getFileInfo(Database *db, SimpleFileItemRequest *request, FileI
     {
         if(query.next())
         {
+            response->itemType = request->itemType;
+            response->itemKind = request->itemKind;
             response->fileId = query.value(rfile.id).toString();
             response->fileName = query.value(rfile.fileName).toString();
             response->size = query.value(rfile.fileSize).toUInt();

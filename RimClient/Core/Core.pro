@@ -150,7 +150,8 @@ SOURCES += \
     media/audiooutput.cpp \
     Widgets/chataudioarea.cpp \
     Widgets/document.cpp \
-    Widgets/previewpage.cpp
+    Widgets/previewpage.cpp\
+    Widgets/widget/rcomboboxitem.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -243,7 +244,8 @@ HEADERS  += \
     media/audiooutput.h \
     Widgets/chataudioarea.h \
     Widgets/document.h \
-    Widgets/previewpage.h
+    Widgets/previewpage.h\
+    Widgets/widget/rcomboboxitem.h
 
 DISTFILES += \
     Widgets/Widgets.pri

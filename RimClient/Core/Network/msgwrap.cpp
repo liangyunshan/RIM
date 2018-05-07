@@ -79,7 +79,6 @@ void MsgWrap::hanleText(TextRequest *packet)
     data.insert(JsonKey::key(JsonKey::OperateType),packet->type);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     data.insert(JsonKey::key(JsonKey::OtherSideId),packet->otherSideId);
-    //TODO 数据压缩
     data.insert(JsonKey::key(JsonKey::Data),packet->sendData);
 
     wrappedPack(packet,data);
@@ -294,27 +293,6 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     G_TextSendWaitCondition.wakeOne();
 }
 
-//处理文件控制请求
-void MsgWrap::handelFileControl(SimpleFileItemRequest *request)
-{
-    RBuffer rbuffer;
-    rbuffer.append((int)request->msgType);
-    rbuffer.append((int)request->msgCommand);
-    rbuffer.append((int)request->control);
-    rbuffer.append((int)request->itemType);
-    rbuffer.append(request->md5);
-    rbuffer.append(request->fileId);
-
-    if(request->isAutoDelete)
-        delete request;
-
-    G_FileSendMutex.lock();
-    G_FileSendBuffs.enqueue(rbuffer.byteArray());
-    G_FileSendMutex.unlock();
-
-    G_FileSendWaitCondition.wakeOne();
-}
-
 //文件上传请求
 void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
 {
@@ -324,6 +302,7 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
     rbuffer.append((int)fileRequest->msgCommand);
     rbuffer.append((int)fileRequest->control);
     rbuffer.append((int)fileRequest->itemType);
+    rbuffer.append((int)fileRequest->itemKind);
     rbuffer.append(fileRequest->fileName);
     rbuffer.append(fileRequest->size);
     rbuffer.append(fileRequest->fileId);
@@ -333,6 +312,28 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
 
     if(fileRequest->isAutoDelete)
         delete fileRequest;
+
+    G_FileSendMutex.lock();
+    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendMutex.unlock();
+
+    G_FileSendWaitCondition.wakeOne();
+}
+
+//处理文件控制请求
+void MsgWrap::handelFileControl(SimpleFileItemRequest *request)
+{
+    RBuffer rbuffer;
+    rbuffer.append((int)request->msgType);
+    rbuffer.append((int)request->msgCommand);
+    rbuffer.append((int)request->control);
+    rbuffer.append((int)request->itemType);
+    rbuffer.append((int)request->itemKind);
+    rbuffer.append(request->md5);
+    rbuffer.append(request->fileId);
+
+    if(request->isAutoDelete)
+        delete request;
 
     G_FileSendMutex.lock();
     G_FileSendBuffs.enqueue(rbuffer.byteArray());

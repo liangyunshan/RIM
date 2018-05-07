@@ -487,6 +487,11 @@ void DataProcess::proFileControl(RBuffer &data)
             return;
         simpleControl.itemType = static_cast<FileItemType>(itemType);
 
+        int itemKind;
+        if(!data.read(itemKind))
+            return;
+        simpleControl.itemKind = static_cast<FileItemKind>(itemKind);
+
         if(!data.read(simpleControl.md5))
             return;
 
@@ -518,6 +523,11 @@ void DataProcess::proFileRequest(RBuffer & data)
         if(!data.read(itemType))
             return;
         itemRequest.itemType = static_cast<FileItemType>(itemType);
+
+        int itemKind;
+        if(!data.read(itemKind))
+            return;
+        itemRequest.itemKind = static_cast<FileItemKind>(itemKind);
 
         if(!data.read(itemRequest.fileName))
             return;

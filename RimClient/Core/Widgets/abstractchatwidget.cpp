@@ -98,17 +98,15 @@ protected:
     QWidget * contentWidget;
 
     QWidget * userInfoWidget;              //用户、群组头像等信息页面
-    RIconLabel * userInfo_IconLabel;
-    QLabel * userInfo_NameLabel;
-
-    SimpleUserInfo userInfo;               //用户基本信息
+    RIconLabel * userInfo_IconLabel;       /*!< 聊天头像 */
+    QLabel * userInfo_NameLabel;           /*!< 对方名称 */
 
     ToolBar * toolBar;                     //工具栏
 
     QSplitter * chatSplitter;
     QWidget * bodyWidget;
     QWidget * leftWidget;
-    QWidget * rightWidget;                 //右侧
+    QWidget * rightWidget;                 //右侧(历史消息、文件传输等)
 
     QWidget * chatWidget;                  //聊天区域
     QWebEngineView * view;                 //加载html视图
@@ -125,7 +123,8 @@ protected:
     bool isMaxSize;
     QRect originRect;                      //原始位置及尺寸
 
-    QString windowId;                       /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
+    SimpleUserInfo userInfo;               /*!< 当前聊天对象基本信息 */
+    QString windowId;                      /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
     DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
@@ -753,8 +752,6 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     t_unit.contents = t_localHtml;
     appendChatRecord(SEND,t_unit);
 
-//    FileNetConnector::instance()->connect();
-
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeQuote(t_sendHtml);
@@ -802,18 +799,12 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //            desc->fileSize = QFileInfo(fileName).size();
 //            desc->otherSideId = d->userInfo.accountId;
 //            desc->itemType = FILE_ITEM_CHAT_UP;
+//            desc->itemKind = FILE_IMAGE;
 //            FileRecvTask::instance()->addSendItem(desc);
 
 //            Q_UNUSED(t_imgPath);
 //        }
 //    }
-
-    //文件下载
-//    SimpleFileItemRequest * request = new SimpleFileItemRequest;
-//    request->control = T_REQUEST;
-//    request->itemType = FILE_ITEM_CHAT_DOWN;
-//    request->fileId = "f5a7c4c5e9574d31bb37723945b5d6a3";
-//    FileRecvTask::instance()->addRecvItem(request);
 
 //    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
 
@@ -885,8 +876,18 @@ void AbstractChatWidget::prepareSendAudio()
     if(RSingleton<AudioInput>::instance()->stop()){
        QString lastRecordFileFullName = RSingleton<AudioInput>::instance()->lastRecordFullPath();
 
-        //TODO 将文件发送出去
+       //【聊天文件发送:1/5】向服务器发送文件
+       if(G_User->isFileOnLine()){
+           FileItemDesc * desc = new FileItemDesc;
+           desc->id = RUtil::UUID();
+           desc->fullPath = lastRecordFileFullName;
+           desc->fileSize = QFileInfo(lastRecordFileFullName).size();
+           desc->itemType = FILE_ITEM_CHAT_UP;
+           desc->itemKind = FILE_AUDIO;
+           desc->otherSideId = d->userInfo.accountId;
 
+           FileRecvTask::instance()->addSendItem(desc);
+       }
     }
     d->chatAudioArea->setVisible(false);
 }

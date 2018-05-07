@@ -45,9 +45,7 @@ FileRecvTask *FileRecvTask::instance()
 bool FileRecvTask::addSendItem(FileItemDesc *item)
 {
     if(item == NULL)
-    {
         return false;
-    }
 
     mutex.lock();
     sendItems.enqueue(item);
@@ -180,17 +178,17 @@ void FileRecvTask::run()
 
 /*!
  * @brief 向服务器发送文件传输请求
- * @details 服务器会在将请求绑定至此socket对应的文件队列
+ * @details [1]创建传输请求FileItemRequest，将文件的基本描述信息封装发送
+ *          [2]创建文件描述FileDesc，在本地建立对应文件描述，用于文件发送状态跟踪
  */
 void FileRecvTask::handleItem()
 {
     if(currTransFile == NULL)
-    {
         return;
-    }
 
     FileItemRequest * fileRequest = new FileItemRequest;
     fileRequest->itemType = currTransFile->itemType;
+    fileRequest->itemKind = currTransFile->itemKind;
     fileRequest->fileName = QFileInfo(currTransFile->fullPath).fileName();
     fileRequest->size = currTransFile->fileSize;
     fileRequest->fileId = RUtil::UUID();
@@ -200,6 +198,7 @@ void FileRecvTask::handleItem()
 
     FileDesc * fileDesc = new FileDesc;
     fileDesc->itemType = static_cast<int>(fileRequest->itemType);
+    fileDesc->itemKind = static_cast<int>(fileRequest->itemKind);
     fileDesc->size = fileRequest->size;
     fileDesc->fileName = fileRequest->fileName;
     fileDesc->md5 = fileRequest->md5;

@@ -160,6 +160,7 @@ struct FileRecvDesc
     }
 
     int itemType;                        /*!< 文件操作类型 @link FileItemType @endlink */
+    int itemKind;                        /*!< 文件类型 @link FileItemKind @endlink */
     FileTransState fileTransState;       /*!< 文件传输状态，用于控制文件的状态 */
     qint64 size;                         /*!< 文件大小 */
     qint64 writeLen;                     /*!< 文件已经写入的大小 */

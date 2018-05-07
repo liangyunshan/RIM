@@ -49,6 +49,7 @@ User::~User()
 
 QString User::getUserHome() const
 {
+    RUtil::createDir(userHome);
     return userHome;
 }
 
@@ -58,6 +59,7 @@ QString User::getUserHome() const
  */
 QString User::getUserDatabasePath()
 {
+    RUtil::createDir(userDBPath);
     return userDBPath;
 }
 
@@ -72,6 +74,7 @@ void User::setUserDatabasePath(const QString &path)
  */
 QString User::getFileRecvPath()
 {
+    RUtil::createDir(userFilePath);
     return userFilePath;
 }
 
@@ -82,22 +85,30 @@ void User::setFileRecvPath(const QString &path)
 
 QString User::getC2CImagePath()
 {
-    return chatImgPath + QDir::separator() + Constant::USER_C2CDirName;
+    QString tmpPath = chatImgPath + QDir::separator() + Constant::USER_C2CDirName;
+    RUtil::createDir(tmpPath);
+    return tmpPath;
 }
 
 QString User::getGroupImagePath()
 {
-    return chatImgPath + QDir::separator() + Constant::USER_GroupDirName;
+    QString tmpPath = chatImgPath + QDir::separator() + Constant::USER_GroupDirName;
+    RUtil::createDir(tmpPath);
+    return tmpPath;
 }
 
 QString User::getC2CAudioPath()
 {
-    return audioPath + QDir::separator() + Constant::USER_C2CDirName;
+    QString tmpPath = audioPath + QDir::separator() + Constant::USER_C2CDirName;
+    RUtil::createDir(tmpPath);
+    return tmpPath;
 }
 
 QString User::getGroupAudioPath()
 {
-    return audioPath + QDir::separator() + Constant::USER_GroupDirName;
+    QString tmpPath = audioPath + QDir::separator() + Constant::USER_GroupDirName;
+    RUtil::createDir(tmpPath);
+    return tmpPath;
 }
 
 QSettings *User::getSettings()

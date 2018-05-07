@@ -28,6 +28,7 @@ bool FileManager::addFile(const ProtocolType::FileItemRequest &desc,const QStrin
     {
         FileDesc * tmpDesc = new FileDesc;
         tmpDesc->itemType = desc.itemType;
+        tmpDesc->itemKind = desc.itemKind;
         tmpDesc->size = desc.size;
         tmpDesc->writeLen = 0;
         tmpDesc->fileName = desc.fileName;
