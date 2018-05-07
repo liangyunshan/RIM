@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180126:wey:增加图标根据不同的状态删除
+ *      20180507:wey:增加移除全部通知消息
  */
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H
@@ -72,6 +73,7 @@ signals:
 private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
     void switchNotifyImage();
+    void removeAll();
 
 private:
     /*!

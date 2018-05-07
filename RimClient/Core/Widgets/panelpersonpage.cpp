@@ -337,6 +337,16 @@ void PanelPersonPage::onMessage(MessageType type)
     case MESS_TEXT_NET_ERROR:
             networkIsConnected(false);
         break;
+    case MESS_USER_OFF_LINE:
+            {
+                std::function<void(UserClient*)> func = [](UserClient* item){
+                    item->toolItem->setStatus(STATUS_OFFLINE);
+                };
+                RSingleton<UserManager>::instance()->for_each(func);
+
+                updateGroupDescInfo();
+            }
+        break;
     default:
         break;
     }
@@ -1061,28 +1071,36 @@ void PanelPersonPage::movePersonTo()
 }
 
 /*!
- * @brief 响应好友状态更新
- * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @brief 响应自己/好友状态更新
+ * @details 【1】好友更新：根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ *          【2】自己更新：若为离线状态，则需要将当前联系人列表中分组在线数量进行修改；
  * @param[in] result 操作结果
  * @param[in] response 好友状态信息
  * @return 无
  */
 void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
 {
-    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
+    if(result == STATUS_SUCCESS)
     {
-        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
-        if(client)
-        {
-            client->toolItem->setStatus(response.onStatus);
-            client->simpleUserInfo.status = response.onStatus;
-            updateGroupDescInfo();
-            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+        if(response.accountId != G_User->BaseInfo().accountId){
+            UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+            if(client)
             {
-                if(G_User->systemSettings()->soundAvailable)
-                    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+                client->toolItem->setStatus(response.onStatus);
+                client->simpleUserInfo.status = response.onStatus;
+                updateGroupDescInfo();
+                if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+                {
+                    if(G_User->systemSettings()->soundAvailable)
+                        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+                }
+                emit userStateChanged(response.onStatus,response.accountId);
             }
-            emit userStateChanged(response.onStatus,response.accountId);
+        }else{
+            //执行断网操作
+            if(response.onStatus == STATUS_OFFLINE){
+                RSingleton<Subject>::instance()->notify(MESS_USER_OFF_LINE);
+            }
         }
     }
 }

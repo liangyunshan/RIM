@@ -143,3 +143,23 @@ void MessDiapatch::onAddHistoryItem(HistoryChatRecord &record)
 {
     emit createHisotryItem(record);
 }
+
+void MessDiapatch::onTextConnected(bool flag)
+{
+    emit textConnected(flag);
+}
+
+void MessDiapatch::onTextSocketError()
+{
+    emit textSocketError();
+}
+
+void MessDiapatch::onFileConnected(bool flag)
+{
+    emit fileConnected(flag);
+}
+
+void MessDiapatch::onFileSocketError()
+{
+    emit fileSocketError();
+}

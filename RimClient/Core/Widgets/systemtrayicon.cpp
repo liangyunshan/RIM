@@ -280,6 +280,24 @@ void SystemTrayIcon::removeNotify(QString id)
     }
 }
 
+void SystemTrayIcon::removeAll()
+{
+    MQ_D(SystemTrayIcon);
+
+    if(d->notifyList.size() > 0)
+    {
+        QList<SystemTrayIcon::NotifyDesc>::iterator iter = d->notifyList.begin();
+        while(iter != d->notifyList.end())
+        {
+            iter = d->notifyList.erase(iter);
+        }
+
+        stopBliking();
+        d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
+        setIcon(d->blinkingIcon);
+    }
+}
+
 /*!
  * @brief 开启闪烁
  * @details 控制托盘状态闪烁，默认闪烁周期为400ms。

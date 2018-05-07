@@ -136,16 +136,23 @@ void MainDialog::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SETTINGS:
-        {
-            makeWindowFront(G_User->systemSettings()->keepFront);
-            blockAutoHidePanel();
-        }
-        break;
-        case MESS_SCREEN_CHANGE:
-        {
-            changeGeometry(geometry());
+            {
+                makeWindowFront(G_User->systemSettings()->keepFront);
+                blockAutoHidePanel();
+            }
             break;
-        }
+        case MESS_SCREEN_CHANGE:
+            {
+                changeGeometry(geometry());
+            }
+            break;
+         case MESS_USER_OFF_LINE:
+            {
+                G_User->setTextOnline(false);
+                G_User->setFileOnline(false);
+                RSingleton<TaskManager>::instance()->removeAll();
+            }
+            break;
         default:break;
     }
 }

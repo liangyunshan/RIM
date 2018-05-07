@@ -287,11 +287,8 @@ void PanelHistoryPage::loadHistoryList()
 {
     QList<HistoryChatRecord> recordList;
     if(RSingleton<SQLProcess>::instance()->loadChatHistoryChat(G_User->database(),recordList)){
-        //TODO 20180422直接将谓语改成传递类成员函数
-        std::for_each(recordList.begin(),recordList.end(),[&](HistoryChatRecord  record){
-            createHistoryItem(record);
-        });
-//        std::for_each(recordList.begin(),recordList.end(),std::bind1st(std::mem_fun(&PanelHistoryPage::createHistoryItem), this));
+        auto func = std::bind(&PanelHistoryPage::createHistoryItem,this,std::placeholders::_1);
+        std::for_each(recordList.begin(),recordList.end(),func);
     }
 }
 

@@ -1,7 +1,5 @@
 ﻿#include "userclient.h"
 
-#include <QMutexLocker>
-
 #include "../Widgets/abstractchatwidget.h"
 
 UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
@@ -30,8 +28,7 @@ UserManager::UserManager()
  */
 UserClient *UserManager::addClient(QString accountId)
 {
-    QMutexLocker locker(&mutex);
-
+    std::lock_guard<std::mutex> lg(clientMutex);
     if(clients.contains(accountId))
         return clients.value(accountId);
 
@@ -48,7 +45,7 @@ UserClient *UserManager::addClient(QString accountId)
  */
 bool UserManager::removeClient(QString accountId)
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(clientMutex);
     bool t_removeResult = false;
     if(clients.contains(accountId))
     {
@@ -63,7 +60,7 @@ bool UserManager::removeClient(QString accountId)
 
 UserClient *UserManager::client(ToolItem *item)
 {
-    QMutexLocker locker(&mutex);
+    std::unique_lock<std::mutex> ul(clientMutex);
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
@@ -77,7 +74,7 @@ UserClient *UserManager::client(ToolItem *item)
 
 UserClient *UserManager::client(QString accountId)
 {
-    QMutexLocker locker(&mutex);
+    std::unique_lock<std::mutex> ul(clientMutex);
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
@@ -89,11 +86,20 @@ UserClient *UserManager::client(QString accountId)
     return NULL;
 }
 
+void UserManager::for_each(std::function<void(UserClient*)> func)
+{
+    std::lock_guard<std::mutex> lg(clientMutex);
+    auto beg = clients.begin();
+    while(beg != clients.end()){
+        func(beg.value());
+        beg++;
+    }
+}
+
 //TODO 关闭窗口出现问题
 void UserManager::closeAllClientWindow()
 {
-    QMutexLocker locker(&mutex);
-
+    std::lock_guard<std::mutex> lg(clientMutex);
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
@@ -107,6 +113,6 @@ void UserManager::closeAllClientWindow()
 
 int UserManager::size()
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(clientMutex);
     return clients.size();
 }

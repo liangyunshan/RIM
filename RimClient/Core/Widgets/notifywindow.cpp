@@ -270,7 +270,6 @@ void NotifyWindow::viewAll()
     while(iter != items.begin())
     {
         iter--;
-//        emit showSystemNotifyInfo(d->systemNotifyInfos.value((*iter)),(*iter)->getNotifyCount());
         viewNotify(*iter);
     }
 
@@ -286,6 +285,7 @@ void NotifyWindow::ignoreAll()
 
     d->systemNotifyInfos.clear();
     d->infoList->clear();
+    emit ignoreAllNotifyInfo();
 }
 
 /*!

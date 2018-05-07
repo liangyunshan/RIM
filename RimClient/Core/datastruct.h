@@ -48,7 +48,8 @@ enum MessageType
     MESS_CHATGROUP_REGIST_SUCCESS,      /*!< 群账户注册成功 */
     MESS_CHATGROUP_REGIST_FAILED,       /*!< 群账户注册失败 */
     MESS_FRIEND_STATE_CHANGE,     /*!< 好友状态改变 */
-    MESS_ADD_FRIEND_WINDOWS      /*!< 打开添加好友 */
+    MESS_ADD_FRIEND_WINDOWS,      /*!< 打开添加好友 */
+    MESS_USER_OFF_LINE            /*!< 用户下线 */
 };
 
 /*!

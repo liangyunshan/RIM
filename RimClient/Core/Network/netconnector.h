@@ -30,7 +30,6 @@ namespace ClientNetwork {
 class RTask;
 }
 
-
 class SuperConnector : public ClientNetwork::RTask
 {
     Q_OBJECT
@@ -65,10 +64,6 @@ protected:
     virtual void doDisconnect()=0;
 
     void run();
-
-signals:
-    void connected(bool flag);
-    void socketError();
 
 protected slots:
     virtual void respSocketError(int errorCode)=0;

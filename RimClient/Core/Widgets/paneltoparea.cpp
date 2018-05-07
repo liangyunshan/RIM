@@ -19,6 +19,7 @@
 #include "messdiapatch.h"
 #include "user/user.h"
 #include "Network/netconnector.h"
+#include "thread/taskmanager.h"
 
 #include "widget/rlabel.h"
 
@@ -170,6 +171,7 @@ PanelTopArea::~PanelTopArea()
 
 void PanelTopArea::onMessage(MessageType type)
 {
+    MQ_D(PanelTopArea);
     switch(type)
     {
         case MESS_BASEINFO_UPDATE:
@@ -182,17 +184,22 @@ void PanelTopArea::onMessage(MessageType type)
              networkIsConnected(false);
              break;
         case MESS_TEXT_NET_OK:
-            networkIsConnected(true);
-            break;
+             networkIsConnected(true);
+             break;
+        case MESS_USER_OFF_LINE:
+             {
+                d->userIconLabel->setGray(true);
+                d->onlineState->setState(STATUS_OFFLINE);
+             }
+             break;
         default:
-            break;
+             break;
     }
 }
 
 void PanelTopArea::loadCustomUserImage()
 {
     MQ_D(PanelTopArea);
-
     d->userIconLabel->setPixmap(G_User->getIcon());
 }
 
@@ -272,7 +279,6 @@ void PanelTopArea::updateUserInfo()
     }
 
     d->userIconLabel->setPixmap(t_iconPath);
-
 }
 
 void PanelTopArea::stateChanged(OnlineStatus state)
@@ -283,7 +289,9 @@ void PanelTopArea::stateChanged(OnlineStatus state)
         request->onStatus = state;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
     }else{
-        TextNetConnector::instance()->reconnect();
+        RSingleton<TaskManager>::instance()->initTask();
+        if(TextNetConnector::instance())
+            TextNetConnector::instance()->reconnect();
     }
 }
 

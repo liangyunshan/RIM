@@ -1,71 +1,84 @@
 ﻿#include "taskmanager.h"
 
-#include <QWriteLocker>
-
 #include "Util/rlog.h"
 #include "Network/rtask.h"
+#include "thread/msgreceiveproctask.h"
+#include "thread/filereceiveproctask.h"
+#include "thread/filerecvtask.h"
+#include "Network/netconnector.h"
 
 TaskManager::TaskManager(QObject *parent) : QObject(parent)
 {
 
 }
 
-/*!
-     * @brief 添加新服务，若服务未开启，会自动开启此服务
-     * @param[in] toolButton 待插入的工具按钮
-     * @return 是否插入成功
-     */
-void TaskManager::addTask(ClientNetwork::RTask *task)
+void TaskManager::initTask()
 {
-    if(task == Q_NULLPTR)
-    {
-        RLOG_ERROR("Task is null~");
-        return;
-    }
+    if(tasks.size() > 0 )
+        removeAll();
 
-    QWriteLocker locker(&lock);
-    if(!task->running())
-    {
-        task->startMe();
-    }
-    tasks.append(task);
+    addTask(TEXT_NET_CONC,shared_ptr<ClientNetwork::RTask>(new TextNetConnector()));
+    addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
+
+    addTask(MSG_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new MsgReceiveProcTask()));
+    addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
+    addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
 }
 
-void TaskManager::removeTask(ClientNetwork::RTask *task)
+/*!
+ * @brief 添加新服务，若服务未开启，会自动开启此服务
+ * @param[in] toolButton 待插入的工具按钮
+ */
+void TaskManager::addTask(TaskType type,shared_ptr<ClientNetwork::RTask> task)
 {
-    if(task == Q_NULLPTR)
+    if(task.get() == Q_NULLPTR)
     {
         RLOG_ERROR("Task is null~");
         return;
     }
 
-    QWriteLocker locker(&lock);
+    unique_lock<mutex> ul(containMutex);
 
-    for(int i = 0 ; i < tasks.size(); i++)
-    {
-        if(tasks.at(i) == task)
-        {
-            if(task->running())
-            {
-                task->stopMe();
-            }
-            tasks.removeAt(i);
-            break;
-        }
-    }
+    if(task.get() && !task->running())
+        task->startMe();
+
+    tasks.insert(pair<TaskType,shared_ptr<ClientNetwork::RTask>>(type,task));
 }
 
 void TaskManager::removeAll()
 {
-    QWriteLocker locker(&lock);
+    unique_lock<mutex> ul(containMutex);
 
-    for(int i = 0 ; i < tasks.size(); i++)
-    {
-        if(tasks.at(i)->running())
-        {
-            delete tasks.at(i);
+    auto func = [](pair<TaskType,shared_ptr<ClientNetwork::RTask>> item){
+        if(item.second.get() && item.second.get()->running()){
+            item.second.reset();
         }
-    }
+    };
+    for_each(func);
 
     tasks.clear();
+}
+
+bool TaskManager::isReseted()
+{
+    unique_lock<mutex> ul(containMutex);
+    return tasks.size();
+}
+
+shared_ptr<ClientNetwork::RTask> TaskManager::operator[](TaskManager::TaskType t)
+{
+    return task(t);
+}
+
+shared_ptr<ClientNetwork::RTask> TaskManager::task(TaskManager::TaskType t)
+{
+    unique_lock<mutex>(containMutex);
+    if(tasks.find(t) != tasks.end())
+        return (*tasks.find(t)).second;
+    return shared_ptr<ClientNetwork::RTask>(nullptr);
+}
+
+void TaskManager::for_each(function<void(const pair<TaskType,shared_ptr<ClientNetwork::RTask>> &)> func)
+{
+    ::for_each(tasks.begin(),tasks.end(),func);
 }

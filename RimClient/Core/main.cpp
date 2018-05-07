@@ -21,15 +21,11 @@ using namespace ProtocolType;
 #include "Widgets/nativewindow/MainWindow.h"
 #include "Widgets/widget/rmessagebox.h"
 
-#include "thread/msgreceiveproctask.h"
-#include "thread/filereceiveproctask.h"
 #include "thread/taskmanager.h"
-#include "thread/filerecvtask.h"
 
 #include "Network/rsocket.h"
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
-#include "Network/netconnector.h"
 
 /*!
   运行目录结构
@@ -152,11 +148,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingChatResponse>("GroupingChatResponse");
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
 
-    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
-    RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
-    RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new FileRecvTask());
+    RSingleton<TaskManager>::instance()->initTask();
 
     LoginDialog dialog;
     dialog.show();

@@ -43,6 +43,7 @@ signals:
     void showWindow();
     void hideWindow();
     void showSystemNotifyInfo(NotifyInfo info,int notifyCount);
+    void ignoreAllNotifyInfo();
 
 private slots:
     void viewAll();

@@ -708,6 +708,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
+
 //test
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;

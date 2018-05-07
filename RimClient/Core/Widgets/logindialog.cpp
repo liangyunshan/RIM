@@ -304,14 +304,14 @@ LoginDialog::LoginDialog(QWidget *parent) :
     createTrayMenu();
     loadLocalSettings();
 
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
-    connect(TextNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respTextSocketError()));
-    connect(FileNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respFileConnect(bool)));
-    connect(FileNetConnector::instance(),SIGNAL(socketError()),this,SLOT(respFileSocketError()));
+    connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
+    connect(MessDiapatch::instance(),SIGNAL(fileConnected(bool)),this,SLOT(respFileConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(fileSocketError()),this,SLOT(respFileSocketError()));
+
     connect(MessDiapatch::instance(),SIGNAL(recvLoginResponse(ResponseLogin,LoginResponse)),this,SLOT(recvLoginResponse(ResponseLogin,LoginResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvFriendRequest(OperateFriendResponse)),this,SLOT(recvFriendResponse(OperateFriendResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
-
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procUploadFileRequest(SimpleFileItemRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procDownloadFileRequest(FileItemRequest)));
@@ -801,6 +801,7 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         {
             d->notifyWindow = new NotifyWindow;
             connect(d->notifyWindow,SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
+            connect(d->notifyWindow,SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
         }
 
         d->mainDialog->show();
