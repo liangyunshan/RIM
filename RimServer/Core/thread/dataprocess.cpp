@@ -879,6 +879,7 @@ void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<
 
         FileRecvDesc * desc = new FileRecvDesc;
         desc->itemType = (int)request->itemType;
+        desc->itemKind = (int)request->itemKind;
         desc->size = request->size;
         desc->fileName = request->fileName;
         desc->md5 = request->md5;
@@ -897,8 +898,10 @@ void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<
             {
                 QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                 response->control = T_SERVER_EXIST;
-                response->md5 = request->md5;
+                response->itemType = request->itemType;
+                response->itemKind = request->itemKind;
                 response->fileId = request->fileId;
+                response->md5 = request->md5;
 
                 responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
             }
@@ -914,8 +917,10 @@ void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<
                 tmpClient->setAccount(request->accountId);
                 QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                 response->control = T_ABLE_SEND;
-                response->md5 = request->md5;
+                response->itemType = request->itemType;
+                response->itemKind = request->itemKind;
                 response->fileId = request->fileId;
+                response->md5 = request->md5;
 
                 responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
             }
@@ -964,6 +969,8 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
 
                 SimpleFileItemRequest * response = new SimpleFileItemRequest;
                 response->control = request->control;
+                response->itemKind = request->itemKind;
+                response->itemType = request->itemType;
                 response->md5 = request->md5;
                 responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
                 SendData(responseData);
@@ -1058,6 +1065,8 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
 
                             QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
                             response->control = T_OVER;
+                            response->itemType = static_cast<FileItemType>(desc->itemType);
+                            response->itemKind = static_cast<FileItemKind>(desc->itemKind);
                             response->md5 = desc->md5;
                             response->fileId = desc->fileId;
                             responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());

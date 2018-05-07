@@ -364,6 +364,7 @@ void EditPersonInfoWindow::openLocalImage()
         desc->fullPath = imageFile;
         desc->fileSize = QFileInfo(imageFile).size();
         desc->itemType = FILE_ITEM_USER_UP;
+        desc->itemKind = FILE_AUDIO;
         desc->otherSideId = G_User->BaseInfo().accountId;
 
         FileRecvTask::instance()->addSendItem(desc);

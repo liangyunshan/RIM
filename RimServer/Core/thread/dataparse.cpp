@@ -139,7 +139,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
         request->textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
         request->otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
         request->type = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
-        request->timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
         request->isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
         request->isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
         request->textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
@@ -341,7 +341,7 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
 {
     QSharedPointer<FileItemRequest> request (new FileItemRequest());
 
-    int control,itemType;
+    int control,itemType,itemKind;
     if(!obj.read(control))
         return;
     request->control = (FileTransferControl)control;
@@ -349,6 +349,10 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
     if(!obj.read(itemType))
         return;
     request->itemType = (FileItemType)itemType;
+
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = (FileItemKind)itemKind;
 
     if(!obj.read(request->fileName))
         return;
@@ -390,6 +394,11 @@ void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
     if(!obj.read(itemType))
         return;
     request->itemType = static_cast<FileItemType>(itemType);
+
+    int itemKind = 0;
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = static_cast<FileItemKind>(itemKind);
 
     if(!obj.read(request->md5))
         return;

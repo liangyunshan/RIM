@@ -59,9 +59,9 @@ private:
 
     WorkMode workMode;
     QString currTransFileId;
-    FileItemDesc *  currTransFile;
-    QQueue<FileItemDesc *> sendItems;
-    QQueue<SimpleFileItemRequest *> recvItems;
+    FileItemDesc *  currTransFile;                      /*!< 当前传输文件 */
+    QQueue<FileItemDesc *> sendItems;                   /*!< 文件发送队列描述符 */
+    QQueue<SimpleFileItemRequest *> recvItems;          /*!< 文件接收队列 */
     QWaitCondition waitCondition;
     QMutex mutex;
     bool isFileTransfer;

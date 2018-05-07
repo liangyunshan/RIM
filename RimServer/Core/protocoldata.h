@@ -127,9 +127,12 @@ enum MsgCommand
     MSG_OTHER_HEAT = 0x41,                             /*!< 心跳报 */
 
 /****MsgType为MSG_TEXT时以下字段有效******/
-    MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天信息内容 */
+    MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天文字信息 */
     MSG_TEXT_SHAKE = 0xA2,                             /*!< 窗口抖动 */
     MSG_TEXT_APPLY = 0xA3,                             /*!< 文本确认消息 */
+    MSG_TEXT_AUDIO = 0xA4,                             /*!< 聊天语音 */
+    MSG_TEXT_FILE = 0xA5,                              /*!< 文件信息 */
+    MSG_TEXT_IMAGE = 0xA6,                             /*!< 图片信息 */
 
 /****MsgType为MSG_FILE时以下字段有效******/
     MSG_FILE_CONTROL = 0xB1,                           /*!< 传输控制命令 */
@@ -943,6 +946,16 @@ public:
 
 /*********************文件操作**********************/
 /*!
+ *  @brief 传输文件类型
+ *  @details 在下载时，不同的文件类型其默认的保存位置是不一致的。
+ */
+enum FileItemKind{
+    FILE_IMAGE,             /*!< 图像文件 */
+    FILE_AUDIO,             /*!< 音频文件 */
+    FILE_FILE               /*!< 普通文件(包含doc、zip等文件) */
+};
+
+/*!
  *  @brief  文件操作的类型
  *  @details 主要包含聊天过程中图片的收、发，用户头像信息的上传、接收，文件传输的收、发。
  */
@@ -998,6 +1011,7 @@ public:
     QString md5;                    /*!< 文件对应的MD5值，用于校验接收数据的正确与否 */
     QString otherSideId;            /*!< 对方用户ID */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
+    FileItemKind itemKind;          /*!< 文件操作类型 @line FileItemKind @endlink */
 };
 
 /*!
@@ -1036,6 +1050,7 @@ public:
     FileItemRequest();
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
+    FileItemKind itemKind;          /*!< 文件类型 */
     QString fileName;               /*!< 文件名称 @attention 维护文件真实的信息 */
     size_t size;                    /*!< 文件大小 */
     QString fileId;                 /*!< 文件数据库中唯一标识 */
@@ -1059,7 +1074,7 @@ public:
 
 /*!
  *  @brief 简单文件传输控制请求
- *  @details 在简历传输连接后，用于客户端和服务器端传输文件控制命令.
+ *  @details 在建立传输连接后，用于客户端和服务器端传输文件控制命令.
  */
 class SimpleFileItemRequest : public MsgPacket
 {
@@ -1067,6 +1082,7 @@ public:
     SimpleFileItemRequest();
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
+    FileItemKind itemKind;          /*!< 文件类型 */
     QString md5;                    /*!< 当前文件唯一标识,以文件的MD5作为索引 @attention 服务器以此文件名作为在磁盘中保存的索引 */
     QString fileId;                 /*!< 文件在数据库中的唯一ID,用户可以拿着此ID下载文件或者告诉对方下载文件 */
 };

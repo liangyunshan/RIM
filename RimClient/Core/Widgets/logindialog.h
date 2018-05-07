@@ -25,51 +25,11 @@
 #include "protocoldata.h"
 using namespace ProtocolType;
 
-class QToolButton;
-class ToolBar;
-class QMenu;
-class QAction;
-class QLabel;
-class RIconLabel;
-class QPushButton;
-class QListWidgetItem;
-
 class LoginDialogPrivate;
 class OnLineState;
 class SystemTrayIcon;
 class MainDialog;
 class ActionManager;
-
-class ComboxItem : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit ComboxItem(QWidget * parent = 0);
-    ~ComboxItem();
-
-    void setNickName(QString name);
-
-    void setPixmap(QString pixmap);
-
-    void setAccountId(QString id);
-    QString getAccountId();
-
-protected:
-    void mouseReleaseEvent(QMouseEvent *);
-
-signals:
-    void deleteItem(QString id);
-    void itemClicked(QString id);
-
-private slots:
-    void prepareDelete();
-
-private:
-    RIconLabel * iconLabel;
-    QLabel * nickNameLabel;
-    QLabel * accountLabel;
-    QPushButton * closeButt;
-};
 
 class LoginDialog : public Widget , public Observer
 {
@@ -101,20 +61,27 @@ private slots:
     void removeUserItem(QString accountId);
     void respItemChanged(QString id);
     void showRegistDialog();
-    void respTextConnect(bool flag);
-    void respTextSocketError();
-    void respFileConnect(bool flag);
-    void respFileSocketError();
+
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
     void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
+
+    /**********网络连接**********/
+    void respTextConnect(bool flag);
+    void respTextSocketError();
+    void respFileConnect(bool flag);
+    void respFileSocketError();
+
+    /**********文本消息**********/
     void procRecvText(TextRequest response);
-    void processTextReply(TextReply reply);
-    void procFileControl(SimpleFileItemRequest request);
-    void procFileRequest(FileItemRequest response);
-    void procFileData(QString fileId,QString fileName);
+    void procRecvServerTextReply(TextReply reply);
+
+    /**********文件消息**********/
+    void procUploadFileRequest(SimpleFileItemRequest request);
+    void procDownloadFileRequest(FileItemRequest response);
+    void procDownloadFileOver(QString fileId,QString fileName);
 
 private:
     void createTrayMenu();
