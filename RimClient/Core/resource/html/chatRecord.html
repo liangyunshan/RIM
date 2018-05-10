@@ -36,10 +36,11 @@
         /*消息盒子样式*/
         .content{
             list-style: none;
-            width: 100%;
-            height: 320px;
+            width: auto;    /*FIXME LYS*/
+            height: 100%;
             margin: 0px auto;
-            overflow-y: scroll;
+            overflow-x: hidden; /*FIXME LYS*/
+            overflow-y: auto;
             padding:0 18px 0 0;
         }
         .content .left{
@@ -277,11 +278,6 @@
 
 <body>
 <div id="main" class="main">
-    <div class="chat_titile" @click="toggleWindow" id="chat_titile">
-        <span class="chat_title">
-            chatTitile
-        </span>
-    </div>
     <div id="content" class="content">
     </div>
 </div>
@@ -296,10 +292,6 @@
     }
 
     var input = document.getElementById('msg_input');//查找缓存
-    // 模拟双击切换窗口大小
-    document.getElementById('chat_titile').addEventListener('dblclick',function (ev) {
-        toggleWindow();
-    })
     // 点击图片全屏显示，关闭后删除mask层
     document.getElementById('main').addEventListener('dblclick',function (ev) {
         var img = ev.target.className;
@@ -379,7 +371,7 @@
         timeContainer.appendChild(time);
         timeContainer.setAttribute('class','timeBox');
         content.appendChild(timeContainer);
-        timeContainer.scrollIntoView();
+        timeContainer.scrollIntoView(false);
     }
     //切换窗口大小
     function toggleWindow() {
@@ -447,7 +439,7 @@
                 }
             }
 
-            newDiv.scrollIntoView();
+            newDiv.scrollIntoView(false);
         }
     }
     // 设置提醒消息
@@ -476,7 +468,7 @@
         noticeBox.appendChild(noticeText);
         noticeContainer.appendChild(noticeBox);
         contentContainer.appendChild(noticeContainer);
-        noticeContainer.scrollIntoView();
+        noticeContainer.scrollIntoView(false);
     }
     // 收/发文件夹消息
     function appendFile(target,filePath,avatarPath,resultType) {
@@ -545,7 +537,7 @@
             newDialog.className = 'msgContent left';
             avatarContainer.className = 'avatarPic left'
         }
-        newDiv.scrollIntoView();
+        newDiv.scrollIntoView(false);
     }
     // 文件夹消息操作按钮生产
     function openFileBtn(){
@@ -695,7 +687,7 @@
         var div = document.createElement('div');
         div.style = 'clear:both';
         content_container.appendChild(div);
-        div.scrollIntoView();
+        div.scrollIntoView(false);
     }
     </script>
 </html>

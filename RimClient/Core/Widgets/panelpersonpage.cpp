@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QLineEdit>
 #include <algorithm>
+#include <QFileInfo>
 
 #include "head.h"
 #include "datastruct.h"
@@ -25,6 +26,7 @@
 #include "abstractchatwidget.h"
 #include "widget/rmessagebox.h"
 #include "media/mediaplayer.h"
+#include "thread/filerecvtask.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -74,7 +76,7 @@ void PanelPersonPagePrivate::initWidget()
 
     toolBox = new ToolBox(contentWidget);
     QObject::connect(toolBox,SIGNAL(updateGroupActions(ToolPage *)),q_ptr,SLOT(updateGroupActions(ToolPage *)));
-    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,QString)),q_ptr,SLOT(respGroupMoved(int,QString)));
+    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,int,QString)),q_ptr,SLOT(respGroupMoved(int,int,QString)));
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
@@ -176,7 +178,7 @@ void PanelPersonPage::updateGroupDescInfo()
  * @param[in] id:QString，待删除的联系人分组id
  * @return 无
  */
-void PanelPersonPage::clearTargetGroup(const QString id)
+void PanelPersonPage::removeTargetGroup(const QString id)
 {
     MQ_D(PanelPersonPage);
     QString t_id = id;
@@ -466,10 +468,11 @@ void PanelPersonPage::respGroupDeleted()
 
 /*!
  * @brief 响应分组移动
- * @param[in] index 重新排序后，分组在列表中索引
+ * @param[in] newIndex 重新排序后，分组在列表中索引
+ * @param[in] oldIndex 排序前，分组在列表中索引
  * @param[in] pageId 执行排序的分组ID
  */
-void PanelPersonPage::respGroupMoved(int index, QString pageId)
+void PanelPersonPage::respGroupMoved(int newIndex, int oldIndex, QString pageId)
 {
     R_CHECK_ONLINE;
     MQ_D(PanelPersonPage);
@@ -480,7 +483,7 @@ void PanelPersonPage::respGroupMoved(int index, QString pageId)
     request->gtype = OperatePerson;
     request->groupName = d->tmpNameEdit->text();
     request->groupId = pageId;
-    request->groupIndex = index;
+    request->groupIndex = newIndex;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -670,7 +673,7 @@ void PanelPersonPage::networkIsConnected(bool isConnected)
 {
     MQ_D(PanelPersonPage);
     if(isConnected){
-
+        //TODO 查询在线联系人状态
     }else{
         for(int i = 0;i<d->toolBox->allPages().size();i++){
             ToolPage * page = d->toolBox->allPages().at(i);
@@ -896,7 +899,7 @@ void PanelPersonPage::updateContactList()
 }
 
 /*!
- * @brief 接收分组操作接口
+ * @brief 接收分组操作结果。若执行错误，则需要撤销之前的操作。
  * @details 以下操作需要同步至UserFriendContainer，确保UserFriendContainer和数据库中保持一致。
  *          1.创建分组：
  *          2.重命名分组：
@@ -907,10 +910,11 @@ void PanelPersonPage::updateContactList()
 void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingResponse response)
 {
     MQ_D(PanelPersonPage);
-    if(status == STATUS_SUCCESS){
-        if(response.uuid != G_User->BaseInfo().uuid)
-            return;
 
+    if(response.uuid != G_User->BaseInfo().uuid)
+        return;
+
+    if(status == STATUS_SUCCESS){
         switch(response.type){
             case GROUPING_CREATE:{
                     RSingleton<UserFriendContainer>::instance()->addGroup(response.groupId,response.groupIndex);
@@ -921,7 +925,7 @@ void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingRe
                 }
                 break;
             case GROUPING_DELETE:{
-                    clearTargetGroup(d->m_deleteID);
+                    removeTargetGroup(d->m_deleteID);
                 }
                 break;
             case GROUPING_SORT:{
@@ -932,7 +936,30 @@ void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingRe
             default:break;
         }
         updateGroupDescInfo();
-    }else{
+    }else if(status == STATUS_FAILE){
+        switch(response.type){
+            case GROUPING_CREATE:{
+                    RSingleton<UserFriendContainer>::instance()->removeTmpGroup(response.groupId);
+                    removeTargetGroup(response.groupId);
+                }
+                break;
+            case GROUPING_RENAME:{
+                    QString originGroupName = RSingleton<UserFriendContainer>::instance()->revertRenameGroup(response.groupId);
+                    ToolPage * selectedPage = d->toolBox->targetPage(response.groupId);
+                    if(selectedPage)
+                        selectedPage->setToolName(originGroupName);
+                }
+                break;
+            case GROUPING_DELETE:{
+                    d->m_deleteID = QString();
+                }
+                break;
+            case GROUPING_SORT:{
+                    d->toolBox->revertSortPage(response.groupId);
+                }
+                break;
+            default:break;
+        }
         RMessageBox::warning(this,QObject::tr("warning"),tr("Opearate failed!"),RMessageBox::Yes);
     }
 }
@@ -956,6 +983,19 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     item->setName(userInfo->remarks);
     item->setNickName(userInfo->nickName);
     item->setDescInfo(userInfo->signName);
+
+    if(!userInfo->isSystemIcon && !QFile(G_User->getFilePath(userInfo->iconId)).exists() && userInfo->iconId.size() > 0)
+     {
+         SimpleFileItemRequest * request = new SimpleFileItemRequest;
+         request->control = T_REQUEST;
+         request->itemType = FILE_ITEM_USER_DOWN;
+         request->itemKind = FILE_IMAGE;
+         request->fileId = QFileInfo(userInfo->iconId).baseName();
+         FileRecvTask::instance()->addRecvItem(request);
+     }else{
+        item->setIcon(G_User->getIcon(userInfo->isSystemIcon,userInfo->iconId));
+    }
+
     item->setStatus(userInfo->status);
 
     emit userStateChanged(userInfo->status,userInfo->accountId);

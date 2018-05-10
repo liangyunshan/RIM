@@ -612,19 +612,13 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
             break;
     }
 
-    if(flag){
-        QScopedPointer<GroupingResponse> response (new GroupingResponse);
-        response->uuid = request->uuid;
-        response->gtype = request->gtype;
-        response->type = request->type;
-        response->groupId = request->groupId;
-        response->groupIndex = request->groupIndex;
-
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
-    }else{
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,
-                                                                            (int)STATUS_FAILE,(int)request->gtype);
-    }
+    QScopedPointer<GroupingResponse> response (new GroupingResponse);
+    response->uuid = request->uuid;
+    response->gtype = request->gtype;
+    response->type = request->type;
+    response->groupId = request->groupId;
+    response->groupIndex = request->groupIndex;
+    responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),flag?STATUS_SUCCESS:STATUS_FAILE);
 
     SendData(responseData);
 }
@@ -1057,22 +1051,6 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
                     if(desc->flush() && desc->isRecvOver())
                     {
                         desc->close();
-
-                        if(RSingleton<SQLProcess>::instance()->addFile(db,desc))
-                        {
-                            SocketOutData responseData;
-                            responseData.sockId = socketId;
-
-                            QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
-                            response->control = T_OVER;
-                            response->itemType = static_cast<FileItemType>(desc->itemType);
-                            response->itemKind = static_cast<FileItemKind>(desc->itemKind);
-                            response->md5 = desc->md5;
-                            response->fileId = desc->fileId;
-                            responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
-
-                            SendData(responseData);
-                        }
                     }
                 }
 
@@ -1080,9 +1058,22 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
 
             if(desc->isRecvOver())
             {
+                if(RSingleton<SQLProcess>::instance()->addFile(db,desc))
                 {
-                    tmpClient->removeFile(request->fileId);
+                       SocketOutData responseData;
+                       responseData.sockId = socketId;
+
+                       QScopedPointer<SimpleFileItemRequest> response (new SimpleFileItemRequest);
+                       response->control = T_OVER;
+                       response->itemType = static_cast<FileItemType>(desc->itemType);
+                       response->itemKind = static_cast<FileItemKind>(desc->itemKind);
+                       response->md5 = desc->md5;
+                       response->fileId = desc->fileId;
+                       responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
+
+                       SendData(responseData);
                 }
+                tmpClient->removeFile(request->fileId);
             }
         }
     }

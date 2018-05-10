@@ -16,6 +16,7 @@ RBuffer::RBuffer(QByteArray array):buffSize(BUFFER_DEFAULT_SIZE),
     int size = array.size()+1 > buffSize ?array.size()+1:buffSize;
     dataSize = array.size();
     dataBuff = new char[size];
+    memset(dataBuff,0,size);
     memcpy(dataBuff,array.data(),array.size());
 }
 

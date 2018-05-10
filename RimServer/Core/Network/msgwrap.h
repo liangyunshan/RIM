@@ -39,8 +39,8 @@ private:
 
     QByteArray handleSearchFriendResponse(SearchFriendResponse * packet);
     QByteArray handleOperateFriendResponse(OperateFriendResponse * packet);
-    QByteArray handleFriendListResponse(FriendListResponse *packet);
-    QByteArray handleGroupingResponse(GroupingResponse *packet);
+    QByteArray handleFriendListResponse(FriendListResponse *packet, int result);
+    QByteArray handleGroupingResponse(GroupingResponse *packet, int result);
     QByteArray handleGroupingFriend(GroupingFriendResponse *packet, int result);
 
     QByteArray handleGroupList(ChatGroupListResponse * packet,int result);

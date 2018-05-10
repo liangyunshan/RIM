@@ -39,8 +39,10 @@ public:
 
     bool deleteGroup(const QString & groupId);
     void addTmpGroup(const QString id, RChatGroupData *data);
+    void removeTmpGroup(const QString &id);
     void addGroup(const QString id,int groupIndex);
     void renameGroup(const QString &id);
+    QString revertRenameGroup(const QString &id);
     void sortGroup(const QString & groupId, int newPageIndex);
 
     bool addChatGroupRoom(const QString groupId, const SimpleChatInfo &chatInfo);

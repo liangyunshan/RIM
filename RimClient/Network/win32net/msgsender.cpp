@@ -114,8 +114,6 @@ bool TextSender::handleDataSend(QByteArray &data)
 
         int sendLen = 0;
 
-//        qDebug()<<data.length()<<sizeof(DataPacket)<<packet.totalIndex;
-
         for(unsigned int i = 0; i < packet.totalIndex; i++)
         {
             memset(sendBuff,0,MAX_SEND_BUFF);
@@ -129,20 +127,16 @@ bool TextSender::handleDataSend(QByteArray &data)
             int dataLen = sizeof(DataPacket)+packet.currentLen;
             int realSendLen = tcpSocket->send(sendBuff,dataLen);
 
-            qDebug()<<"Send:"<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
+qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
 
-            if(realSendLen == dataLen)
-            {
+            if(realSendLen == dataLen){
                 sendLen += packet.currentLen;
-            }
-            else
-            {
+            }else{
                 break;
             }
         }
 
-        if(sendLen == packet.totalLen)
-        {
+        if(sendLen == packet.totalLen){
             return true;
         }
     }

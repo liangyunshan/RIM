@@ -18,6 +18,7 @@
 
 class ToolItem;
 class AbstractChatWidget;
+class FileDesc;
 
 #include "protocoldata.h"
 #include "datastruct.h"
@@ -28,6 +29,12 @@ class UserClient
 public:
     explicit UserClient();
     ~UserClient();
+
+    void procRecvContent(TextRequest &response);
+    void procRecvServerTextReply(TextReply &reply);
+
+    void procDownOverFile(FileDesc * fileDesc);
+    void procDownItemIcon(FileDesc * fileDesc);
 
 public:
     SimpleUserInfo simpleUserInfo;

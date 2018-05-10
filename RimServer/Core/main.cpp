@@ -37,6 +37,9 @@ using namespace ServerNetwork;
 #pragma execution_character_set("utf-8")
 #endif
 
+#include <Dbghelp.h>
+#pragma comment( lib, "DbgHelp")
+
 /*!
  *  @brief 配置文件参数
  */
@@ -63,6 +66,31 @@ struct SettingConfig
 
     QString uploadFilePath;
 };
+
+inline void CreateMiniDump(PEXCEPTION_POINTERS pep, LPCTSTR strFileName)
+{
+    HANDLE hFile = CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+
+    if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
+    {
+        MINIDUMP_EXCEPTION_INFORMATION mdei;
+        mdei.ThreadId = GetCurrentThreadId();
+        mdei.ExceptionPointers = pep;
+        mdei.ClientPointers = NULL;
+
+        ::MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, (pep != 0) ? &mdei : 0, NULL, 0);
+
+        CloseHandle(hFile);
+    }
+}
+
+LONG __stdcall MyUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo)
+{
+    CreateMiniDump(pExceptionInfo, L"core.dmp");
+    return EXCEPTION_EXECUTE_HANDLER;
+}
 
 void parseCommandLine(QApplication & app,CommandParameter & result)
 {
@@ -291,6 +319,7 @@ void printProgramInfo(CommandParameter & result,QString ip,unsigned short port)
 
 int main(int argc, char *argv[])
 {
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     QApplication a(argc, argv);
 
     QApplication::setApplicationName(Constant::ApplicationName);

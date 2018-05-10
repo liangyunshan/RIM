@@ -53,6 +53,7 @@ private:
     QLabel * timeLabel;                 //群组和历史聊天的日期
     QLabel * onLineStateLabel;          //联系人在线状态、群消息状态(屏蔽等).
     QLabel * topViewLabel;              //置顶显示状态，在topView为true时使用paint事件绘制状态效果
+    QString originDescInfo;             //保存原始的显示信息
 
     int notifyCount;                    //作为通知消息时，显示通知消息的数量
     bool topView;                       //置顶显示，默认为false;置顶时提供角标显示其状态
@@ -167,6 +168,7 @@ void ToolItemPrivate::initWidget()
 
     contentWidget->installEventFilter(q_ptr);
     topViewLabel->installEventFilter(q_ptr);
+    descLabel->installEventFilter(q_ptr);
 }
 
 ToolItem::ToolItem(ToolPage *page, QWidget *parent) :
@@ -209,7 +211,7 @@ void ToolItem::setNickName(QString name)
 void ToolItem::setDescInfo(QString text)
 {
     MQ_D(ToolItem);
-    d->descLabel->setText(text);
+    d->originDescInfo = text;
 }
 
 void ToolItem::setGroupMemberCoung(int number)
@@ -269,6 +271,11 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
                 painter.drawPolygon(polygon);
                 return true;
             }
+        }
+    }else if(watched == d->descLabel){
+        if(event->type() == QEvent::Paint){
+            QPainter painter(d->descLabel);
+            painter.drawText(d->descLabel->rect(),RUtil::replaceLongTextWidthElide(d->descLabel->font(),d->originDescInfo,d->descLabel->width()));
         }
     }
     return QWidget::eventFilter(watched,event);

@@ -1080,6 +1080,9 @@ class SimpleFileItemRequest : public MsgPacket
 {
 public:
     SimpleFileItemRequest();
+    ~SimpleFileItemRequest(){
+
+    }
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
     FileItemKind itemKind;          /*!< 文件类型 */

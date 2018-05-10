@@ -2,6 +2,19 @@
 
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <winsock2.h>
+#include <windows.h>
+typedef  int socklen_t;
+#elif defined(Q_OS_UNIX)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#define closesocket close
+#endif
+
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
 #include "Util/rlog.h"
@@ -133,26 +146,29 @@ void TextNetConnector::respSocketError(int errorCode)
 
 void TextNetConnector::doConnect()
 {
-    netConnected = false;
-    if(!rsocket->isValid() && rsocket->createSocket())
-    {
-        msgSender->setSock(rsocket);
-        msgReceive->setSock(rsocket);
-
-        char ip[20] = {0};
-        memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
-
-        if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_TextServerPort,delayTime))
+    if(!netConnected){
+        if(!rsocket->isValid() && rsocket->createSocket())
         {
-            netConnected = true;
+            int timeout = 3000; // 3s
+            rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
+            msgSender->setSock(rsocket);
+            msgReceive->setSock(rsocket);
 
-            msgSender->startMe();
-            msgReceive->startMe();
+            char ip[20] = {0};
+            memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
+
+            if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_TextServerPort,delayTime))
+            {
+                netConnected = true;
+
+                msgSender->startMe();
+                msgReceive->startMe();
+            }else{
+                rsocket->closeSocket();
+            }
         }else{
             rsocket->closeSocket();
         }
-    }else{
-        rsocket->closeSocket();
     }
 
     MessDiapatch::instance()->onTextConnected(netConnected);
@@ -219,24 +235,28 @@ void FileNetConnector::respSocketError(int errorCode)
 
 void FileNetConnector::doConnect()
 {
-    netConnected = false;
-    if(!rsocket->isValid() && rsocket->createSocket())
-    {
-        msgSender->setSock(rsocket);
-        msgReceive->setSock(rsocket);
-        char ip[20] = {0};
-        memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
-
-        if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_FileServerPort,delayTime))
+    if(!netConnected){
+        if(!rsocket->isValid() && rsocket->createSocket())
         {
-            netConnected = true;
-            msgSender->startMe();
-            msgReceive->startMe();
+            int timeout = 3000; // 3s
+            rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
+
+            msgSender->setSock(rsocket);
+            msgReceive->setSock(rsocket);
+            char ip[20] = {0};
+            memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
+
+            if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_FileServerPort,delayTime))
+            {
+                netConnected = true;
+                msgSender->startMe();
+                msgReceive->startMe();
+            }else{
+                rsocket->closeSocket();
+            }
         }else{
             rsocket->closeSocket();
         }
-    }else{
-        rsocket->closeSocket();
     }
 
     MessDiapatch::instance()->onFileConnected(netConnected);

@@ -4,10 +4,12 @@
 #include <QVBoxLayout>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
+#include <QEvent>
 
 #include "head.h"
 #include "datastruct.h"
 #include "constants.h"
+#include "Util/rutil.h"
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -47,6 +49,8 @@ private:
     QLabel * userNameLabel;
     QLabel * signNameLabel;
     QLabel * accountLabel;
+
+    QString originSignName;
 
     QPoint toolItemPos;
 
@@ -112,6 +116,7 @@ void ItemHoverInfoPrivate::initWidget()
     contentWidget->setLayout(vlayout);
 
     q_ptr->setContentWidget(contentWidget);
+    signNameLabel->installEventFilter(q_ptr);
 }
 
 ItemHoverInfo::ItemHoverInfo(QWidget *parent):
@@ -189,6 +194,18 @@ void ItemHoverInfo::setSimpleUserInfo(SimpleUserInfo info)
 {
     MQ_D(ItemHoverInfo);
     d->userNameLabel->setText(info.nickName);
-    d->signNameLabel->setText(info.signName);
+    d->originSignName = info.signName;
     d->accountLabel->setText(info.accountId);
+}
+
+bool ItemHoverInfo::eventFilter(QObject *watched, QEvent *event)
+{
+    MQ_D(ItemHoverInfo);
+    if(watched == d->signNameLabel){
+        if(event->type() == QEvent::Resize){
+            d->signNameLabel->setText(RUtil::replaceLongTextWidthElide(d->signNameLabel->font(),d->originSignName,d->signNameLabel->width()));
+            return true;
+        }
+    }
+    return Widget::eventFilter(watched,event);
 }

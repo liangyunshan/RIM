@@ -1,6 +1,21 @@
 ﻿#include "userclient.h"
 
 #include "../Widgets/abstractchatwidget.h"
+#include "user/user.h"
+#include "global.h"
+#include "rsingleton.h"
+#include "Widgets/notifywindow.h"
+#include "Util/imagemanager.h"
+#include "json/jsonresolver.h"
+#include "util/rutil.h"
+#include "sql/sqlprocess.h"
+#include "media/mediaplayer.h"
+#include "messdiapatch.h"
+#include "thread/filerecvtask.h"
+#include "file/filedesc.h"
+#include "Widgets/toolbox/toolitem.h"
+#include "datastruct.h"
+using namespace TextUnit;
 
 UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
 {
@@ -14,6 +29,140 @@ UserClient::~UserClient()
         delete chatWidget;
         chatWidget = NULL;
     }
+}
+
+//TODO 考虑若未打开窗口，消息如何存储？？
+/*!
+ * @brief 接收发送的聊天消息
+ * @details
+ *    1.存储消息至数据库；
+ *    2.将信息添加至历史会话列表;
+ *    3.  若聊天对象的窗口未创建，则使用系统通知，进行提示；
+ *        若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
+ * @param[in] response 消息体内容
+ * @return 是否插入成功
+ */
+void UserClient::procRecvContent(TextRequest & response)
+{
+    if(response.msgCommand == MSG_TEXT_TEXT || response.msgCommand == MSG_TEXT_SHAKE){
+        //【1】存储消息至数据库
+//        SimpleUserInfo userInfo;
+//        userInfo.accountId = "0";
+//        ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
+//        RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
+
+        //TODO 20180423【2】将信息添加至历史会话列表
+        HistoryChatRecord record;
+        record.accountId = simpleUserInfo.accountId;
+        record.nickName = simpleUserInfo.nickName;
+        record.dtime = RUtil::currentMSecsSinceEpoch();
+        record.lastRecord = RUtil::getTimeStamp();
+        record.systemIon = simpleUserInfo.isSystemIcon;
+        record.iconId = simpleUserInfo.iconId;
+        record.type = CHAT_C2C;
+        MessDiapatch::instance()->onAddHistoryItem(record);
+
+        if(chatWidget && chatWidget->isVisible()){
+            if(response.msgCommand == MSG_TEXT_TEXT){
+                chatWidget->appendRecvMsg(response);
+            }else if(response.msgCommand == MSG_TEXT_SHAKE){
+                if(G_User->systemSettings()->windowShaking)
+                    chatWidget->shakeWindow();
+            }
+        }else{
+            if(response.msgCommand == MSG_TEXT_SHAKE){
+                if(!chatWidget){
+                    chatWidget = new AbstractChatWidget();
+                    chatWidget->setUserInfo(simpleUserInfo);
+                    chatWidget->initChatRecord();
+                }
+                chatWidget->show();
+            }else if(response.msgCommand == MSG_TEXT_TEXT){
+                //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
+                NotifyInfo  info;
+                info.identityId = RUtil::UUID();
+                info.msgCommand = response.msgCommand;
+                info.accountId = response.otherSideId;
+                info.nickName = simpleUserInfo.nickName;
+                info.type = NotifyUser;
+                info.stype = response.type;
+                info.isSystemIcon = simpleUserInfo.isSystemIcon;
+                info.iconId = simpleUserInfo.iconId;
+
+                RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
+                RSingleton<NotifyWindow>::instance()->showMe();
+            }
+        }
+
+        if(G_User->systemSettings()->soundAvailable){
+            if(response.msgCommand == MSG_TEXT_TEXT)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+                RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
+        }
+    }else if(response.msgCommand == MSG_TEXT_FILE || response.msgCommand == MSG_TEXT_AUDIO || response.msgCommand == MSG_TEXT_IMAGE){
+        //【聊天文件发送:4/5】拿着fileId向文件服务器下载对应文件
+        SimpleFileItemRequest * request = new SimpleFileItemRequest;
+        request->control = T_REQUEST;
+        request->itemType = FILE_ITEM_CHAT_DOWN;
+        if(response.msgCommand == MSG_TEXT_FILE){
+            request->itemKind = FILE_FILE;
+        }else if(response.msgCommand == MSG_TEXT_AUDIO){
+            request->itemKind = FILE_AUDIO;
+        }else if(response.msgCommand == MSG_TEXT_IMAGE){
+            request->itemKind = FILE_IMAGE;
+        }
+        request->fileId = response.sendData;
+        FileRecvTask::instance()->addRecvItem(request);
+    }
+}
+
+/*!
+ * @brief 处理服务器端返回接收消息的确认消息
+ * @param[in] reply 确认消息
+ */
+void UserClient::procRecvServerTextReply(TextReply & reply)
+{
+    switch(reply.applyType)
+    {
+        case APPLY_SYSTEM:
+             {
+
+             }
+             break;
+        default:
+            break;
+    }
+}
+
+/*!
+ * @brief 处理下载完成用户文件
+ * @param[in] fileDesc 文件标识
+ */
+void UserClient::procDownOverFile(FileDesc *fileDesc)
+{
+    //【聊天文件发送:5/5】下载完指定fileId的文件，分发至对应的窗口
+    FileItemKind itemKind = static_cast<FileItemKind>(fileDesc->itemKind);
+    if(chatWidget && chatWidget->isVisible()){
+        if(itemKind == FILE_FILE){
+
+        }else if(itemKind == FILE_AUDIO){
+            chatWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
+        }else if(itemKind == FILE_IMAGE){
+
+        }
+    }else{
+
+    }
+}
+
+/*!
+ * @brief 处理用户头像下载
+ * @param[in] fileDesc 文件标识
+ */
+void UserClient::procDownItemIcon(FileDesc *fileDesc)
+{
+    toolItem->setIcon(G_User->getIcon(simpleUserInfo.isSystemIcon,simpleUserInfo.iconId));
 }
 
 UserManager::UserManager()

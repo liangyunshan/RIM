@@ -32,6 +32,9 @@ public:
 
     void setSimpleUserInfo(SimpleUserInfo info);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event);
+
 private:
     ItemHoverInfoPrivate * d_ptr;
 };

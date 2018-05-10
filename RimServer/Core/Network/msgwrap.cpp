@@ -16,11 +16,11 @@ MsgWrap::MsgWrap()
 }
 
 /*!
-     * @brief 为普通信息添加信息头
-     * @param[in] packet 待发送原始数据包信息
-     * @param[in] result 自定义参数，可用于补充头部状态信息
-     * @return 添加信息头后的数据信息
-     */
+ * @brief 为普通信息添加信息头
+ * @param[in] packet 待发送原始数据包信息
+ * @param[in] result 自定义参数，可用于补充头部状态信息
+ * @return 添加信息头后的数据信息
+ */
 QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
 {
     if(packet == NULL)
@@ -49,10 +49,10 @@ QByteArray MsgWrap::handleMsg(MsgPacket *packet, int result)
         return handleOperateFriendResponse((OperateFriendResponse *)packet);
 
     case MsgCommand::MSG_RELATION_LIST:
-        return handleFriendListResponse((FriendListResponse *)packet);
+        return handleFriendListResponse((FriendListResponse *)packet,result);
 
     case MsgCommand::MSG_GROUPING_OPERATE:
-        return handleGroupingResponse((GroupingResponse *)packet);
+        return handleGroupingResponse((GroupingResponse *)packet,result);
 
     case MsgCommand::MSG_RELATION_GROUPING_FRIEND:
         return handleGroupingFriend((GroupingFriendResponse *)packet,result);
@@ -247,7 +247,7 @@ QByteArray MsgWrap::handleOperateFriendResponse(OperateFriendResponse * packet)
     return wrappedPack(packet,FRIEND_REQUEST,obj);
 }
 
-QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
+QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet,int result)
 {
     QJsonObject obj;
 
@@ -285,10 +285,10 @@ QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet)
     }
     obj.insert(JsonKey::key(JsonKey::Groups),groups);
 
-    return wrappedPack(packet,STATUS_SUCCESS,obj);
+    return wrappedPack(packet,(MsgOperateResponse)result,obj);
 }
 
-QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet)
+QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet,int result)
 {
     QJsonObject obj;
     obj.insert(JsonKey::key(JsonKey::Uuid),packet->uuid);
@@ -297,7 +297,7 @@ QByteArray MsgWrap::handleGroupingResponse(GroupingResponse *packet)
     obj.insert(JsonKey::key(JsonKey::Type),packet->type);
     obj.insert(JsonKey::key(JsonKey::Index),packet->groupIndex);
 
-    return wrappedPack(packet,STATUS_SUCCESS,obj);
+    return wrappedPack(packet,(MsgOperateResponse)result,obj);
 }
 
 QByteArray MsgWrap::handleGroupingFriend(GroupingFriendResponse *packet,int result)
@@ -442,6 +442,8 @@ QByteArray MsgWrap::handleOpreateCommand(GroupingCommandResponse *packet, int re
 
     return wrappedPack(packet,(MsgOperateResponse)result,data);
 }
+
+#include <QDebug>
 
 QByteArray MsgWrap::handleFileControl(SimpleFileItemRequest *packet)
 {

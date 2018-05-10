@@ -52,6 +52,7 @@ public:
     bool isBock(){return rsocket->isBock();}
 
     bool isSockValid(){return rsocket->isValid();}
+    bool isConnected()const {return netConnected;}
 
     ClientNetwork::RSocket * socket(){return rsocket;}
 

@@ -41,6 +41,7 @@ private:
 
     QIcon blinkingIcon;
     int notifyCount;                        //用于切换闪烁托盘图标信息
+    QString blinkingNotifyId;               //闪烁时通知的id，与NotifyWinwos中通知id保持一致
 
     QList<SystemTrayIcon::NotifyDesc> notifyList;
 
@@ -95,20 +96,15 @@ SystemTrayIcon *SystemTrayIcon::instance()
 SystemTrayIcon::~SystemTrayIcon()
 {
     MQ_D(SystemTrayIcon);
-    if(systemIcon)
-    {
+    if(systemIcon){
         systemIcon = NULL;
     }
 
-    if(d_ptr)
-    {
-        if(d->blinkingTimer)
-        {
-            if(d->blinkingTimer->isActive())
-            {
+    if(d_ptr){
+        if(d->blinkingTimer){
+            if(d->blinkingTimer->isActive()){
                 d->blinkingTimer->stop();
             }
-
             delete d->blinkingTimer;
         }
     }
@@ -125,8 +121,7 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
     MQ_D(SystemTrayIcon);
     d->setModel(model);
 
-    if(model == System_Main)
-    {
+    if(model == System_Main){
         if(!d->taryMainMenu)
         {
             d->taryMainMenu = new QMenu();
@@ -144,9 +139,7 @@ void SystemTrayIcon::setModel(SystemTrayIcon::SystemTrayModel model)
         }
         connect(this,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(respIconActivated(QSystemTrayIcon::ActivationReason)));
         setContextMenu(d->taryMainMenu);
-    }
-    else if(model == System_Login)
-    {
+    }else if(model == System_Login){
         setContextMenu(d->trayLoginMenu);
     }
 }
@@ -170,37 +163,34 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QStrin
         NotifyDesc notify;
         notify.model = model;
         notify.id = id;
-        if(model == SystemNotify)
-        {
+        if(model == SystemNotify){
             notify.imagePath = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_24);
             imagePath = notify.imagePath;
-        }
-        else
-        {
+        }else{
             notify.imagePath = imagePath;
         }
+        d->blinkingNotifyId = id;
         d->notifyList.append(notify);
     }
 
     switch(model)
     {
         case NoneNotify:
-                        {
-                            if(d->blinkingTimer && d->blinkingTimer->isActive())
-                            {
-                                d->blinkingTimer->stop();
-                            }
-                            d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
-                            setIcon(d->blinkingIcon);
-                            break;
-                        }
+            {
+                if(d->blinkingTimer && d->blinkingTimer->isActive()){
+                    d->blinkingTimer->stop();
+                }
+                d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
+                setIcon(d->blinkingIcon);
+                break;
+            }
         case SystemNotify:
         case UserNotify:
-                        {
-                            d->blinkingIcon = QIcon(imagePath);
-                            startBliking();
-                            break;
-                        }
+            {
+                d->blinkingIcon = QIcon(imagePath);
+                startBliking();
+                break;
+            }
         default:
             break;
     }
@@ -216,6 +206,7 @@ void SystemTrayIcon::notify(SystemTrayIcon::NotifyModel model, QString id,QStrin
 void SystemTrayIcon::frontNotify(NotifyModel model, QString id)
 {
     MQ_D(SystemTrayIcon);
+    d->blinkingNotifyId = id;
     if(model == UserNotify)
     {
         QList<SystemTrayIcon::NotifyDesc>::iterator iter = d->notifyList.begin();
@@ -268,12 +259,14 @@ void SystemTrayIcon::removeNotify(QString id)
             if(d->notifyList.size() > 0)
             {
                 d->blinkingIcon = QIcon(d->notifyList.last().imagePath);
+                d->blinkingNotifyId = d->notifyList.last().id;
             }
             else
             {
                 stopBliking();
 
                 d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
+                d->blinkingNotifyId = QString();
                 setIcon(d->blinkingIcon);
             }
         }
@@ -342,6 +335,10 @@ SystemTrayIcon::SystemTrayModel SystemTrayIcon::model()
     return d->model();
 }
 
+/*!
+ * @brief 处理对托盘系统的鼠标操作
+ * @param[in] reason 触发托盘系统执行的不同条件
+ */
 void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     MQ_D(SystemTrayIcon);
@@ -349,14 +346,19 @@ void SystemTrayIcon::respIconActivated(QSystemTrayIcon::ActivationReason reason)
     switch(reason)
     {
         case QSystemTrayIcon::DoubleClick:
-                                          if(d->model() == System_Main)
-                                          {
-                                               emit showMainPanel();
-                                          }
-                                           break;
+              {
+                   if(d->blinkingNotifyId.size() > 0){
+                       emit showNotifyInfo(d->blinkingNotifyId);
+                       return;
+                   }
+                   if(d->model() == System_Main){
+                        emit showMainPanel();
+                   }
+              }
+              break;
     case QSystemTrayIcon::Trigger:
-                                            {
-                                            }
+            {
+            }
     break;
         default:
             break;

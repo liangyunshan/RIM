@@ -36,10 +36,11 @@ public:
     static QSettings * globalSettings();
     static QVariant getGlobalValue(const QString & group, const QString &key, const QVariant &defaultValue);
 
+    static QString replaceLongTextWidthElide(const QFont & font,const QString & origin,const int maxLen);
+
     static QString UUID();
 
     static QSize screenSize(int num = -1);
-
     static QRect screenGeometry();
 
     static qint64 currentMSecsSinceEpoch();
@@ -51,11 +52,15 @@ public:
 
     static void setRelativeImgPath(QString &targetHtml,QString userID);
 
-    static void setAbsoulteImgPath(QString &targetHtml,QString userID);
+    static void setAbsoulteImgPath(QString targetHtml, QString userID);
 
-    static void escapeQuote(QString &targetHtml);
+    static void escapeSingleQuote(QString &targetHtml);
 
-    static void removeEccapeQuote(QString &targetHtml);
+    static void removeEccapeSingleQuote(QString &targetHtml);
+
+    static void escapeDoubleQuote(QString &targetHtml);
+
+    static void removeEccapeDoubleQuote(QString &targetHtml);
 
 private:
     static QSettings * gSettings;

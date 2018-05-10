@@ -63,9 +63,7 @@ bool FileRecvTask::addSendItem(FileItemDesc *item)
 bool FileRecvTask::addRecvItem(SimpleFileItemRequest *item)
 {
     recvItems.append(item);
-
     RSingleton<MsgWrap>::instance()->handelFileControl(item);
-
     return true;
 }
 

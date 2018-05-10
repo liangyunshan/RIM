@@ -168,9 +168,23 @@ bool UserFriendContainer::deleteGroup(const QString &groupId)
  * @param[in] id 分组uuid
  * @param[in] data 分组数据信息
  */
-void UserFriendContainer::addTmpGroup(const QString id, RGroupData *data)
+void UserFriendContainer::addTmpGroup(const QString &id, RGroupData *data)
 {
+    unique_lock<mutex> ul(lockMutex);
     tmpCreateOrRenameMap.insert(id,data);
+}
+
+/*!
+ * @brief 执行创建分组失败，从临时列表中移除所添加的分组信息
+ * @param[in] id 待删除的临时分组ID
+ */
+void UserFriendContainer::removeTmpGroup(const QString &id)
+{
+    unique_lock<mutex> ul(lockMutex);
+    if(tmpCreateOrRenameMap.contains(id)){
+        delete tmpCreateOrRenameMap.value(id);
+        tmpCreateOrRenameMap.remove(id);
+    }
 }
 
 void UserFriendContainer::addGroup(const QString id, int groupIndex)
@@ -207,6 +221,34 @@ void UserFriendContainer::renameGroup(const QString & id)
         delete data;
         tmpCreateOrRenameMap.remove(id);
     }
+}
+
+/*!
+ * @brief 撤销重命名
+ * @param[in] id 待撤销重命名分组的id
+ * @return 未命名前的分组名称
+ */
+QString UserFriendContainer::revertRenameGroup(const QString &id)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    if(tmpCreateOrRenameMap.contains(id)){
+        RGroupData * data = tmpCreateOrRenameMap.value(id);
+        QList<RGroupData *>::iterator iter = std::find_if(friendList.begin(),friendList.end(),[&](const RGroupData * gdata){
+            if(gdata->groupId == data->groupId)
+                return true;
+            return false;
+        });
+
+        delete data;
+        tmpCreateOrRenameMap.remove(id);
+
+        if(iter != friendList.end()){
+            return (*iter)->groupName;
+        }
+    }
+
+    return QString();
 }
 
 /*!

@@ -12,6 +12,9 @@ QT       += webenginewidgets
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
+QMAKE_LFLAGS_RELEASE += /MAP
+QMAKE_CFLAGS_RELEASE += /Zi
+QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 
 #是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__

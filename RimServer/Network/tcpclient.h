@@ -79,59 +79,63 @@ enum FileTransState
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():file(NULL),fileTransState(FILE_ERROR){}
+    FileRecvDesc():fileTransState(FILE_ERROR){}
+
+    ~FileRecvDesc(){
+        destory();
+    }
 
     bool create(const QString& filePath)
     {
-        file = new QFile(filePath + "/" +md5);
-        if(file->open(QFile::WriteOnly) )
-        {
-            if(file->resize(size))
+        if(!file.isOpen()){
+            file.setFileName(filePath + "/" +md5);
+            if(file.open(QFile::WriteOnly) )
             {
-                fileTransState = FILE_TRANING;
-                return true;
+                if(file.resize(size))
+                {
+                    fileTransState = FILE_TRANING;
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    bool isNull(){return !file;}
+    bool isNull(){return !file.isOpen();}
 
     bool seek(size_t pos)
     {
-        if(!file)
+        if(!file.isOpen())
             return false;
 
-        return file->seek(pos);
+        return file.seek(pos);
     }
 
     qint64 write(const QByteArray &data)
     {
-        if(!file)
+        if(!file.isOpen())
             return -1;
-        qint64 realWriteLen = file->write(data);
+        qint64 realWriteLen = file.write(data);
         writeLen += realWriteLen;
         return realWriteLen;
     }
 
     bool flush()
     {
-        if(file)
-            return file->flush();
+        if(file.isOpen())
+            return file.flush();
         return false;
     }
 
     bool isRecvOver()
     {
-        if(!file)
-            return false;
-        return writeLen == file->size();
+        return writeLen == file.size();
     }
 
     void close()
     {
-        if(file)
-            file->close();
+        if(file.isOpen())
+            file.close();
     }
 
     void lock(){mutex.lock();}
@@ -139,25 +143,16 @@ struct FileRecvDesc
 
     void destory()
     {
-        if(file)
+        if(file.isOpen())
         {
-            if(file->isOpen())
-            {
-                fileTransState = FILE_OVER;
-                file->close();
-            }
-            delete file;
+            fileTransState = FILE_OVER;
+            file.close();
         }
     }
 
 
     FileTransState state(){return fileTransState;}
     void setState(FileTransState state){fileTransState = state;}
-
-    ~FileRecvDesc()
-    {
-        destory();
-    }
 
     int itemType;                        /*!< 文件操作类型 @link FileItemType @endlink */
     int itemKind;                        /*!< 文件类型 @link FileItemKind @endlink */
@@ -169,7 +164,7 @@ struct FileRecvDesc
     QString fileId;                      /*!< 文件唯一标识，有客户端指定，与数据库中保持一致 */
     QString accountId;                   /*!< 自己ID */
     QString otherId;                     /*!< 接收方ID */
-    QFile * file;                        /*!< 文件缓冲 */
+    QFile   file;                        /*!< 文件缓冲 */
     QMutex mutex;                        /*!< 文件读写锁 */
 };
 
@@ -199,7 +194,7 @@ public:
     int getPackId();
 
     bool addFile(QString fileId,FileRecvDesc * desc);
-    bool removeFile(QString fileId);
+    bool removeFile(QString &fileId);
     FileRecvDesc * getFile(QString fileId);
 
 private:

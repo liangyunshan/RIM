@@ -50,11 +50,9 @@
 #include "user/userfriendcontainer.h"
 #include "user/userchatcontainer.h"
 #include "abstractchatwidget.h"
-#include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
 #include "widget/rcombobox.h"
 #include "file/filemanager.h"
-#include "json/jsonresolver.h"
 #include "file/filedesc.h"
 #include "user/user.h"
 #include "widget/rcomboboxitem.h"
@@ -70,8 +68,6 @@ public:
 
         numberExp = QRegExp(Constant::AccountId_Reg);
         passExp = QRegExp(Constant::AccountPassword_Reg);
-
-        notifyWindow = NULL;
 
         isSystemUserIcon = true;
         isNewUser = true;
@@ -117,8 +113,6 @@ private:
     QToolButton * systemSetting;
     SystemTrayIcon * trayIcon;
     MainDialog * mainDialog;
-
-    NotifyWindow * notifyWindow;
 };
 
 void LoginDialogPrivate::initWidget()
@@ -359,8 +353,12 @@ void LoginDialog::respTextConnect(bool flag)
 
 void LoginDialog::respTextSocketError()
 {
-    G_User->setTextOnline(false);
+    if(G_User){
+        G_User->setTextOnline(false);
+    }
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
+    RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+    RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
 void LoginDialog::respFileConnect(bool flag)
@@ -385,6 +383,8 @@ void LoginDialog::respFileSocketError()
 {
     G_User->setFileOnline(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
+    RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+    RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
 }
 
 void LoginDialog::login()
@@ -689,7 +689,7 @@ void LoginDialog::respItemChanged(QString id)
 void LoginDialog::showRegistDialog()
 {
     MQ_D(LoginDialog);
-    disconnect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    disconnect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
 
     RegistDialog * dialog = new RegistDialog(this);
     connect(dialog,SIGNAL(destroyed(QObject*)),this,SLOT(respRegistDialogDestory(QObject*)));
@@ -700,7 +700,7 @@ void LoginDialog::showRegistDialog()
 void LoginDialog::respRegistDialogDestory(QObject *)
 {
     MQ_D(LoginDialog);
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
     d->registView = false;
 }
 
@@ -792,16 +792,15 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         d->trayIcon->disconnect();
         d->trayIcon->setModel(SystemTrayIcon::System_Main);
 
-        if(!d->mainDialog)
-        {
+        if(!d->mainDialog){
             d->mainDialog = new MainDialog();
         }
 
-        if(!d->notifyWindow)
         {
-            d->notifyWindow = new NotifyWindow;
-            connect(d->notifyWindow,SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
-            connect(d->notifyWindow,SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
+            RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
+            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
+            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
+            connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
         }
 
         d->mainDialog->show();
@@ -863,6 +862,7 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     info.accountId = resp.requestInfo.accountId;
     info.nickName = resp.requestInfo.nickName;
     info.isSystemIcon = resp.requestInfo.isSystemIcon;
+
     info.type = NotifySystem;
     info.stype = resp.stype;
     info.iconId = RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SYSTEMNOTIFY,ImageManager::ICON_64);
@@ -870,110 +870,16 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
     info.chatId = resp.chatId;
     info.chatName = resp.chatName;
 
-    d->notifyWindow->addNotifyInfo(info);
-    d->notifyWindow->showMe();
-
-    d->trayIcon->notify(SystemTrayIcon::SystemNotify,info.identityId);
+    RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
+    RSingleton<NotifyWindow>::instance()->showMe();
 }
 
-//TODO 考虑若未打开窗口，消息如何存储？？
-/*!
- * @brief 接收发送的聊天消息
- * @details
- *          1.存储消息至数据库；
- *          2.将信息添加至历史会话列表;
- *          3.  若聊天对象的窗口未创建，则使用系统通知，进行提示；
- *              若聊天对象的窗口已创建，但不可见，则将信息保存并将窗口设置可见
- * @param[in] response 消息体内容
- * @return 是否插入成功
- */
 void LoginDialog::procRecvText(TextRequest response)
 {
     MQ_D(LoginDialog);
     UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
     if(client)
-    {
-        if(response.msgCommand == MSG_TEXT_TEXT || response.msgCommand == MSG_TEXT_SHAKE){
-            //【1】存储消息至数据库
-            SimpleUserInfo userInfo;
-            userInfo.accountId = "0";
-            ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-            RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
-
-            //TODO 20180423【2】将信息添加至历史会话列表
-            HistoryChatRecord record;
-            record.accountId = client->simpleUserInfo.accountId;
-            record.nickName = client->simpleUserInfo.nickName;
-            record.dtime = RUtil::currentMSecsSinceEpoch();
-            record.lastRecord = RUtil::getTimeStamp();
-            record.systemIon = client->simpleUserInfo.isSystemIcon;
-            record.iconId = client->simpleUserInfo.iconId;
-            record.type = CHAT_C2C;
-            MessDiapatch::instance()->onAddHistoryItem(record);
-
-            //【3】判断窗口是否创建或者是否可见
-            if(client->chatWidget && client->chatWidget->isVisible()){
-                if(response.msgCommand == MSG_TEXT_TEXT){
-                    client->chatWidget->appendRecvMsg(response);
-                }else if(response.msgCommand == MSG_TEXT_SHAKE){
-                    if(G_User->systemSettings()->windowShaking)
-                        client->chatWidget->shakeWindow();
-                }
-            }else{
-                if(response.msgCommand == MSG_TEXT_SHAKE){
-                    if(!client->chatWidget){
-                        client->chatWidget = new AbstractChatWidget();
-                        client->chatWidget->setUserInfo(client->simpleUserInfo);
-                        client->chatWidget->initChatRecord();
-                    }
-                    client->chatWidget->show();
-                }else if(response.msgCommand == MSG_TEXT_TEXT){
-                    //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
-                    NotifyInfo  info;
-                    info.identityId = RUtil::UUID();
-                    info.msgCommand = response.msgCommand;
-                    info.accountId = response.otherSideId;
-                    info.nickName = client->simpleUserInfo.nickName;
-                    info.type = NotifyUser;
-                    info.stype = response.type;
-                    info.isSystemIcon = client->simpleUserInfo.isSystemIcon;
-                    info.iconId = RSingleton<ImageManager>::instance()->getSystemUserIcon();
-
-                    QString inserInfoId = d->notifyWindow->addNotifyInfo(info);
-                    d->notifyWindow->showMe();
-                    if(inserInfoId == info.identityId)
-                    {
-                        d->trayIcon->notify(SystemTrayIcon::UserNotify,info.identityId,RSingleton<ImageManager>::instance()->getSystemUserIcon());
-                    }
-                    else
-                    {
-                        d->trayIcon->frontNotify(SystemTrayIcon::UserNotify,inserInfoId);
-                    }
-                }
-            }
-
-            if(G_User->systemSettings()->soundAvailable){
-                if(response.msgCommand == MSG_TEXT_TEXT)
-                    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
-                else if(response.msgCommand == MSG_TEXT_SHAKE)
-                    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
-            }
-        }else if(response.msgCommand == MSG_TEXT_FILE || response.msgCommand == MSG_TEXT_AUDIO || response.msgCommand == MSG_TEXT_IMAGE){
-            //【聊天文件发送:4/5】拿着fileId向文件服务器下载对应文件
-            SimpleFileItemRequest * request = new SimpleFileItemRequest;
-            request->control = T_REQUEST;
-            request->itemType = FILE_ITEM_CHAT_DOWN;
-            if(response.msgCommand == MSG_TEXT_FILE){
-                request->itemKind = FILE_FILE;
-            }else if(response.msgCommand == MSG_TEXT_AUDIO){
-                request->itemKind = FILE_AUDIO;
-            }else if(response.msgCommand == MSG_TEXT_IMAGE){
-                request->itemKind = FILE_IMAGE;
-            }
-            request->fileId = response.sendData;
-            FileRecvTask::instance()->addRecvItem(request);
-        }
-    }
+        client->procRecvContent(response);
 }
 
 /*!
@@ -987,26 +893,15 @@ void LoginDialog::procRecvText(TextRequest response)
  */
 void LoginDialog::procRecvServerTextReply(TextReply reply)
 {
-    AbstractChatWidget * chatWidget = NULL;
     TextRequest * msgDesc = RSingleton<MsgQueueManager>::instance()->dequeue(reply.textId);
     if(msgDesc != NULL)
     {
          UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
          if(client && client->chatWidget != NULL)
          {
-             chatWidget = client->chatWidget;
+             client->procRecvServerTextReply(reply);
          }
-    }
-
-    switch(reply.applyType)
-    {
-        case APPLY_SYSTEM:
-             {
-
-             }
-             break;
-        default:
-            break;
+         delete msgDesc;
     }
 }
 
@@ -1119,11 +1014,11 @@ void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
                 }
             }
 
-            RMessageBox::information(NULL,"title","file transferover \n fileId:"+request.fileId,RMessageBox::Yes);
+//            RMessageBox::information(NULL,"title","file transferover \n fileId:"+request.fileId,RMessageBox::Yes);
         }
         else if(request.control == T_SERVER_EXIST)
         {
-            RMessageBox::information(this,"title","Server file exist file!",RMessageBox::Yes);
+//            RMessageBox::information(this,"title","Server file exist file!",RMessageBox::Yes);
             FileRecvTask::instance()->nextFile();
         }
     }
@@ -1170,12 +1065,10 @@ void LoginDialog::procDownloadFileOver(QString fileId, QString fileName)
         switch(static_cast<FileItemType>(fileDesc->itemType))
         {
             case FILE_ITEM_USER_DOWN:
-                //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
-                if(fileDesc->otherId == G_User->BaseInfo().accountId)
                 {
+                    //登陆用户自己ID图片,更新界面显示，更新远程数据库信息
                     QString localFileName = G_User->getC2CImagePath()+QDir::separator()+fileName;
-                    if(QFile(localFileName).exists())
-                    {
+                    if(QFile(localFileName).exists()){
                         QFileInfo fileInfo(localFileName);
                         QString newName = G_User->getC2CImagePath()+QDir::separator() + fileId + "." + fileInfo.suffix();
 
@@ -1184,20 +1077,24 @@ void LoginDialog::procDownloadFileOver(QString fileId, QString fileName)
                         if(fileDesc->isRecvOver()){
                             RSingleton<FileManager>::instance()->removeFile(fileId);
                         }
-
-                        RSingleton<Subject>::instance()->notify(MESS_ICON_CHANGE);
                     }
-                }
-                else
-                {
-                    //TODO 处理好友的头像信息
+                    if(fileDesc->otherId == G_User->BaseInfo().accountId){
+                        RSingleton<Subject>::instance()->notify(MESS_ICON_CHANGE);
+                    }else{
+                        UserClient * client = RSingleton<UserManager>::instance()->client(fileDesc->accountId);
+                        if(client){
+                            client->procDownItemIcon(fileDesc);
+                        }
+                    }
                 }
                 break;
 
         case FILE_ITEM_CHAT_DOWN:
                 {
-                    //【聊天文件发送:5/5】下载完指定fileId的文件，分发至对应的窗口
-
+                    UserClient * client = RSingleton<UserManager>::instance()->client(fileDesc->accountId);
+                    if(client){
+                        client->procDownOverFile(fileDesc);
+                    }
                 }
                 break;
             default:
@@ -1291,11 +1188,6 @@ LoginDialog::~LoginDialog()
        delete d->trayIcon;
        d->trayIcon = NULL;
     }
-
-    if(d->notifyWindow){
-        delete d->notifyWindow;
-        d->notifyWindow = NULL;
-    }
 }
 
 void LoginDialog::onMessage(MessageType type)
@@ -1310,7 +1202,7 @@ void LoginDialog::onMessage(MessageType type)
             }
         case MESS_NOTIFY_WINDOWS:
             {
-                d->notifyWindow->showMe();
+                RSingleton<NotifyWindow>::instance()->showMe();
                 break;
             }
         case MESS_BASEINFO_UPDATE:

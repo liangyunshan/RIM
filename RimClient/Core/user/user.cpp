@@ -200,7 +200,7 @@ QString User::getIcon(bool isSystemIcon, const QString &iconId, ChatT group)
     }
 
     QFileInfo fileInfo(tmpIconPath);
-    if(fileInfo.exists())
+    if(fileInfo.isFile() && fileInfo.exists())
         return(tmpIconPath);
     else
         return RSingleton<ImageManager>::instance()->getSystemUserIcon();
