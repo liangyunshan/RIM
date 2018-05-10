@@ -17,7 +17,7 @@ DatabaseManager::DatabaseManager():
     m_dbType("")
 {
     p_This = this;
-    m_QueryRow = TextUnit::DefaultQueryRow;
+    m_QueryRow = DefaultQueryRow;
 }
 
 DatabaseManager *DatabaseManager::Instance()

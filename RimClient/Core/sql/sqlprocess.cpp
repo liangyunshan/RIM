@@ -10,7 +10,6 @@
 #include "rpersistence.h"
 #include "datatable.h"
 
-using namespace TextUnit;
 
 SQLProcess *p_SQLProcess = NULL;
 SQLProcess *SQLProcess::instance()
@@ -24,16 +23,26 @@ SQLProcess *SQLProcess::instance()
 
 SQLProcess::SQLProcess()
 {
-    m_QueryRow = TextUnit::DefaultQueryRow;
+    m_QueryRow = DefaultQueryRow;
     p_SQLProcess= this;
 }
 
 SQLProcess::~SQLProcess()
 {
+    if(p_SQLProcess)
+    {
+        delete p_SQLProcess;
+    }
     p_SQLProcess = NULL;
 }
 
-//查询历史记录信息
+/*!
+ * @brief SQLProcess::querryRecords 拼接查询历史记录信息的sql语句
+ * @param[in] userid 目标用户ID
+ * @param[in] currRow 查询起始行数
+ * @param[in] queryRows 查询总条数
+ * @return 拼接好的sql语句
+ */
 QString SQLProcess::querryRecords(int userid, int currRow, int queryRows)
 {
     int StartRow = 0;
@@ -57,17 +66,17 @@ QString SQLProcess::querryRecords(int userid, int currRow, int queryRows)
     }
 
     QString item = QString("%1,%2,%3,%4,%5,%6,%7")
-            .arg(TextUnit::_Sql_User_Rowid_)
-            .arg(TextUnit::_Sql_User_UserId_)
-            .arg(TextUnit::_Sql_User_UserName_)
-            .arg(TextUnit::_Sql_User_Userhead_)
-            .arg(TextUnit::_Sql_User_RecordTime_)
-            .arg(TextUnit::_Sql_User_RecordContents_)
-            .arg(TextUnit::_Sql_User_RecordTxt_);
+            .arg(_Sql_User_Rowid_)
+            .arg(_Sql_User_UserId_)
+            .arg(_Sql_User_UserName_)
+            .arg(_Sql_User_Userhead_)
+            .arg(_Sql_User_RecordTime_)
+            .arg(_Sql_User_RecordContents_)
+            .arg(_Sql_User_RecordTxt_);
 
     QString cmd_limit = QString("select %0 from %1%2 limit %3,%4 ")
                   .arg(item)
-                  .arg(TextUnit::_Sql_User_TableName_)
+                  .arg(_Sql_User_TableName_)
                   .arg(userid)
                   .arg(StartRow)
                   .arg(queryRows);
@@ -75,74 +84,91 @@ QString SQLProcess::querryRecords(int userid, int currRow, int queryRows)
     QString cmd = QString("select %0 from (%1) order by %2 desc ")
             .arg(item)
             .arg(cmd_limit)
-            .arg(TextUnit::_Sql_User_Rowid_);
+            .arg(_Sql_User_Rowid_);
     return cmd;
 }
 
-//查询一个表一共有多少数据记录
-int SQLProcess::queryTotleRecord(Database *db, int id)
+/*!
+ * @brief SQLProcess::queryTotalRecord 查询一个表一共有多少数据记录
+ * @param[in] db 数据库连接
+ * @param id 目标用户的账号ID
+ * @return 表中记录行ID
+ */
+int SQLProcess::queryTotalRecord(Database *db, int id)
 {
     QSqlQuery query(db->sqlDatabase());
 
     query.prepare(QString("select %0 from %1%2 order by (%3) desc")
-                    .arg(TextUnit::_Sql_User_Rowid_)
-                    .arg(TextUnit::_Sql_User_TableName_)
+                    .arg(_Sql_User_Rowid_)
+                    .arg(_Sql_User_TableName_)
                     .arg(id)
-                    .arg(TextUnit::_Sql_User_Rowid_));
+                    .arg(_Sql_User_Rowid_));
     if(query.exec())
     {
-        int totleId = 0;
+        int totalId = 0;
         if(query.next())
         {
-            totleId = query.value(QString(TextUnit::_Sql_User_Rowid_)).toInt();
+            totalId = query.value(QString(_Sql_User_Rowid_)).toInt();
         }
-        return totleId;
+        return totalId;
     }
     return 0;
 }
 
-bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit, SimpleUserInfo userInfo)
+/*!
+ * @brief SQLProcess::insertTableUserChatInfo 插入用户聊天信息到数据库表中
+ * @param[in] db 数据库连接
+ * @param[in] unit 聊天信息
+ * @param[in] userInfo 用户基本信息
+ * @return 插入信息结果
+ */
+bool SQLProcess::insertTableUserChatInfo(Database *db, ChatInfoUnit unit)
 {
-    UserInfo user_insert;
+//    UserInfo user_insert;
 
-    if(userInfo.accountId.toInt() == 0)
-    {
-        user_insert = unit.user;
-    }
-    else
-    {
-        user_insert.id = userInfo.accountId.toInt();
-        user_insert.name = userInfo.nickName;
-        user_insert.head = userInfo.iconId;
-    }
+//    if(userInfo.accountId.toInt() == 0)
+//    {
+//        user_insert = unit.user;
+//    }
+//    else
+//    {
+//        user_insert.id = userInfo.accountId.toInt();
+//        user_insert.name = userInfo.nickName;
+//        user_insert.head = userInfo.iconId;
+//    }
 
-    if(!queryUser(db,user_insert.id))
-    {
-        insertTgtUser(db,user_insert.id,user_insert.name);
-//        createTableUser_id(db,user_insert.id);
-    }
+//    if(!queryUser(db,user_insert.id))
+//    {
+//        insertTgtUser(db,user_insert.id,user_insert.name);
+//    }
 
-    QSqlQuery query(db->sqlDatabase());
+//    QSqlQuery query(db->sqlDatabase());
 
-    query.prepare(QString("insert into %1%2 values(?,?,?,?,?,?) ")
-                  .arg(TextUnit::_Sql_User_TableName_)
-                  .arg(user_insert.id));
-    query.bindValue(0,unit.user.id);
-    query.bindValue(1,unit.user.name);
-    query.bindValue(2,unit.user.head);
-    query.bindValue(3,unit.time);
-    query.bindValue(4,unit.contents);
-    query.bindValue(5,unit.contents);
+//    query.prepare(QString("insert into %1%2 values(?,?,?,?,?,?) ")
+//                  .arg(_Sql_User_TableName_)
+//                  .arg(user_insert.id));
+//    query.bindValue(0,unit.user.id);
+//    query.bindValue(1,unit.user.name);
+//    query.bindValue(2,unit.user.head);
+//    query.bindValue(3,unit.time);
+//    query.bindValue(4,unit.contents);
+//    query.bindValue(5,unit.contents);
 
-    bool ret = query.exec();
-    if(!ret)
-    {
-        return false;
-    }
+//    bool ret = query.exec();
+//    if(!ret)
+//    {
+//        return false;
+//    }
 
     return true;
 }
 
+/*!
+ * @brief SQLProcess::initTableUser_id 初始化数据库表中用户信息
+ * @param[in] db 数据库连接
+ * @param[in] userInfo 目标用户基本信息
+ * @return 初始化结果
+ */
 bool SQLProcess::initTableUser_id(Database *db, SimpleUserInfo userInfo)
 {
     UserInfo user_insert ;
@@ -159,7 +185,12 @@ bool SQLProcess::initTableUser_id(Database *db, SimpleUserInfo userInfo)
     return ret;
 }
 
-//查询一个用户记录是否存在
+/*!
+ * @brief SQLProcess::queryUser 查询一个用户记录是否存在
+ * @param[in] db 数据库连接
+ * @param[in] tgtUserId 目标用户ID
+ * @return 查询结果
+ */
 bool SQLProcess::queryUser(Database * db,int tgtUserId)
 {
     if(!db)
@@ -170,7 +201,7 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     query.clear();
     QString cmd = QString("select %1 from %2")
                         .arg(tgtUserId)
-                        .arg(TextUnit::_Sql_UserList_TableName_);
+                        .arg(_Sql_UserList_TableName_);
     query.prepare(cmd);
     bool ret = query.exec();
     if(!ret)
@@ -191,7 +222,13 @@ bool SQLProcess::queryUser(Database * db,int tgtUserId)
     return false;
 }
 
-//插入一个用户记录
+/*!
+ * @brief SQLProcess::insertTgtUser 插入一个用户记录
+ * @param[in] db 数据库连接
+ * @param[in] tgtUserId 用户账号ID
+ * @param[in] name 用户名称
+ * @return 是否插入成功
+ */
 bool SQLProcess::insertTgtUser(Database *db, int tgtUserId, QString name)
 {
     if(!db)
@@ -202,7 +239,7 @@ bool SQLProcess::insertTgtUser(Database *db, int tgtUserId, QString name)
     QSqlQuery query(db->sqlDatabase());
 
     query.prepare(QString("insert into %1 values(?, ?) ")
-                  .arg(TextUnit::_Sql_UserList_TableName_));
+                  .arg(_Sql_UserList_TableName_));
     query.bindValue(0,tgtUserId);
     query.bindValue(1,name);
 
@@ -280,7 +317,7 @@ bool SQLProcess::loadChatHistoryChat(Database *db, QList<HistoryChatRecord> &lis
  * @brief 创建一条对话记录
  * @param[in] db 数据库连接
  * @param[in] record 连接信息
- * @return 创建结果
+ * @return 添加结果
  */
 bool SQLProcess::addOneHistoryRecord(Database *db, const HistoryChatRecord &record)
 {

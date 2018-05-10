@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
     qRegisterMetaType<TextReply>("TextReply");
     qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
-    qRegisterMetaType<TextUnit::ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
+    qRegisterMetaType<ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
     qRegisterMetaType<ResponseLogin>("ResponseLogin");
     qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");

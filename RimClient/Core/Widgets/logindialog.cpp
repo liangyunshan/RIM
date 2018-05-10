@@ -58,7 +58,7 @@
 #include "file/filedesc.h"
 #include "user/user.h"
 #include "widget/rcomboboxitem.h"
-using namespace TextUnit ;
+#include "thread/chatmsgprocess.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -894,10 +894,8 @@ void LoginDialog::procRecvText(TextRequest response)
     {
         if(response.msgCommand == MSG_TEXT_TEXT || response.msgCommand == MSG_TEXT_SHAKE){
             //【1】存储消息至数据库
-            SimpleUserInfo userInfo;
-            userInfo.accountId = "0";
-            ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(response.sendData.toLocal8Bit());
-            RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,userInfo);
+            ChatInfoUnit t_unit;
+            RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
 
             //TODO 20180423【2】将信息添加至历史会话列表
             HistoryChatRecord record;

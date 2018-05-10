@@ -48,7 +48,7 @@ void RecveiveTask::run()
     lastRecvBuff.clear();
 
     char recvBuff[MSG_RECV_BUFF] = {0};
-    tcpSocket->setBlock(false);
+//    tcpSocket->setBlock(false);
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);

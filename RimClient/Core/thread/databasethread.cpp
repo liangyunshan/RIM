@@ -22,7 +22,7 @@ DatabaseThread::~DatabaseThread()
 
 void DatabaseThread::setDatabase(Database *db)
 {
-    database = db;
+database = db;
 }
 
 void DatabaseThread::addSqlQueryTask(int id, QString sql_querry)
@@ -58,7 +58,7 @@ void DatabaseThread::run()
             TaskQueue task = m_TaskQueue.head();
             if(database)
             {
-                TextUnit::ChatInfoUnitList list;
+                ChatInfoUnitList list;
 
                 QSqlQuery query(database->sqlDatabase());
                 query.prepare(task.cmd);
@@ -67,13 +67,12 @@ void DatabaseThread::run()
                 {
                     while(query.next())
                     {
-                        TextUnit::ChatInfoUnit unit;
-                        unit.rowid = query.value(TextUnit::_Sql_User_Rowid_).toInt();
-                        unit.user.id    = query.value(TextUnit::_Sql_User_UserId_).toInt();
-                        unit.user.name  = query.value(TextUnit::_Sql_User_UserName_).toString();
-                        unit.user.head  = query.value(TextUnit::_Sql_User_Userhead_).toString();
-                        unit.time       = query.value(TextUnit::_Sql_User_RecordTime_).toString();
-                        unit.contents   = query.value(TextUnit::_Sql_User_RecordContents_).toString();
+                        ChatInfoUnit unit;
+//                        unit.id = query.value().toInt();
+//                        unit.user.id    = query.value(_Sql_User_UserId_).toInt();
+//                        unit.user.name  = query.value(_Sql_User_UserName_).toString();
+//                        unit.user.head  = query.value(_Sql_User_Userhead_).toString();
+                        unit.contents   = query.value(_Sql_User_RecordContents_).toString();
                         list.append(unit);
                     }
                     emit resultReady(0,list);

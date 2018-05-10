@@ -36,10 +36,11 @@
         /*消息盒子样式*/
         .content{
             list-style: none;
-            width: 100%;
-            height: 320px;
+            width: auto;
+            height: 100%;
             margin: 0px auto;
-            overflow-y: scroll;
+            overflow-x: hidden;
+            overflow-y: auto;
             padding:0 18px 0 0;
         }
         .content .left{
@@ -131,7 +132,7 @@
             margin-right: 0;
         }
         #main.fullScreen .content{
-            height: 75%;
+            height: 100%;
         }
 
         /*查看图片详情样式*/
@@ -277,11 +278,6 @@
 
 <body>
 <div id="main" class="main">
-    <div class="chat_titile" @click="toggleWindow" id="chat_titile">
-        <span class="chat_title">
-            chatTitile
-        </span>
-    </div>
     <div id="content" class="content">
     </div>
 </div>
@@ -296,10 +292,6 @@
     }
 
     var input = document.getElementById('msg_input');//查找缓存
-    // 模拟双击切换窗口大小
-    document.getElementById('chat_titile').addEventListener('dblclick',function (ev) {
-        toggleWindow();
-    })
     // 点击图片全屏显示，关闭后删除mask层
     document.getElementById('main').addEventListener('dblclick',function (ev) {
         var img = ev.target.className;

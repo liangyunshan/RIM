@@ -151,7 +151,8 @@ SOURCES += \
     Widgets/chataudioarea.cpp \
     Widgets/document.cpp \
     Widgets/previewpage.cpp\
-    Widgets/widget/rcomboboxitem.cpp
+    Widgets/widget/rcomboboxitem.cpp \
+    thread/chatmsgprocess.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -245,7 +246,8 @@ HEADERS  += \
     Widgets/chataudioarea.h \
     Widgets/document.h \
     Widgets/previewpage.h\
-    Widgets/widget/rcomboboxitem.h
+    Widgets/widget/rcomboboxitem.h \
+    thread/chatmsgprocess.h
 
 DISTFILES += \
     Widgets/Widgets.pri

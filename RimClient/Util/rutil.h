@@ -45,6 +45,9 @@ public:
     static qint64 currentMSecsSinceEpoch();
     static qint64 currentSecsSinceEpoch();
 
+    static QDateTime addMSecsToEpoch(qint64 mSeonds);
+    static QDateTime addSecsToEpoch(qint64 seonds);
+
     static bool validateIpFormat(QString dest);
 
     static QImage convertToGray(const QImage &);
@@ -53,9 +56,13 @@ public:
 
     static void setAbsoulteImgPath(QString &targetHtml,QString userID);
 
-    static void escapeQuote(QString &targetHtml);
+    static void escapeSingleQuote(QString &targetHtml);
 
-    static void removeEccapeQuote(QString &targetHtml);
+    static void removeEccapeSingleQuote(QString &targetHtml);
+
+    static void escapeDoubleQuote(QString &targetHtml);
+
+    static void removeEccapeDoubleQuote(QString &targetHtml);
 
 private:
     static QSettings * gSettings;
