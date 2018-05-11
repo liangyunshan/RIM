@@ -64,7 +64,6 @@
         }
         .content .right{
             float: right;
-            /*text-align: right;*/
             background-color: #A6D4F2;
             margin-right:10px;
         }
@@ -80,10 +79,15 @@
         /*消息读取状态样式*/
         .stateSpan{
             display: inline-block;
-            height: 100%;
-            position: absolute;
+            height: 20px;
+            float: right;
             font-size: 12px;
+            padding-top:15px;
             color: #cccccc;
+        }
+        span.stateSpan.left{
+            float: left;
+            background:none;
         }
         .stateSpan.notRead {
             color:red;
@@ -97,7 +101,7 @@
             margin-right:4px;
             cursor: pointer;
         }
-        img.avatarPic .left{
+        img.avatarPic.left{
             float: left;
         }
         img.othersAvatar{
@@ -408,13 +412,22 @@
             textMes.className = 'textMesContainer';
             textMes.innerHTML = textMessage;
             // 读取状态容器
-            var stateSpan = document.createElement('span');
-            stateSpan.setAttribute('class','stateSpan');
+            var stateSpan;
+            if(messageTarget === 0)
+            {
+                stateSpan = document.createElement('span');
+                stateSpan.setAttribute('class','stateSpan');
+                stateSpan.innerHTML = '未读'
+            }
             //添加内容
             newDiv.appendChild(avatarContainer);
             newDialog.appendChild(textMes);
             newDiv.appendChild(newDialog);
-            newDiv.appendChild(stateSpan);
+            if(messageTarget === 0)
+            {
+                newDiv.appendChild(stateSpan);
+            }
+
             content_container.appendChild(newDiv);
             var div = document.createElement('div');
             div.style = 'clear:both';
@@ -427,6 +440,7 @@
             {
                 newDialog.className = 'msgContent left dialog_others';
                 avatarContainer.className = 'avatarPic left';
+                /*stateSpan.className = 'stateSpan left';*/
             }
             // 设置消息内图片样式
             var imgSeter = document.getElementById('content').getElementsByClassName('msgContent');
@@ -654,22 +668,28 @@
         }
         soundIcon.setAttribute('voicePath',voicePath);//LYS
 		
-		var soundLength = document.createElement('span');
-		soundLength.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-		var count = voiceDuration/2;
-		for(var index=0;index<count;index++)
-		{
-			soundLength.innerHTML += '&nbsp;';
-		}
+        var soundLength = document.createElement('span');
+        soundLength.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        var count = voiceDuration/2;
+        for(var index=0;index<count;index++)
+        {
+            soundLength.innerHTML += '&nbsp;';
+        }
 		
         var secondSpan = document.createElement('span');
         secondSpan.innerHTML = voiceDuration+'"';
         // 读取状态容器
-        var stateSpan = document.createElement('span');
-        stateSpan.setAttribute('class','stateSpan');
+        var stateSpan;
         if(messageTarget === 0)
         {
-			newDialog.appendChild(soundLength);
+            stateSpan = document.createElement('span');
+            stateSpan.setAttribute('class','stateSpan');
+            stateSpan.innerHTML = '未读'
+        }
+
+        if(messageTarget === 0)
+        {
+            newDialog.appendChild(soundLength);
             newDialog.appendChild(soundIcon);
             newDialog.appendChild(secondSpan);
         }
@@ -677,12 +697,16 @@
         {
             newDialog.appendChild(secondSpan);
             newDialog.appendChild(soundIcon);
-			newDialog.appendChild(soundLength);
+            newDialog.appendChild(soundLength);
         }
 
         newDiv.appendChild(avatarContainer);
         newDiv.appendChild(newDialog);
-        newDiv.appendChild(stateSpan);
+        if(messageTarget === 0)
+        {
+            newDiv.appendChild(stateSpan);
+        }
+
         newDiv.setAttribute('class','dialogContainer');
         if(messageTarget === 0)
         {
@@ -692,6 +716,7 @@
         {
             newDialog.className = 'msgContent left dialog_others';
             avatarContainer.className = 'avatarPic left';
+            /*stateSpan.className = 'stateSpan left';*/
         }
         content_container.appendChild(newDiv);
         var div = document.createElement('div');

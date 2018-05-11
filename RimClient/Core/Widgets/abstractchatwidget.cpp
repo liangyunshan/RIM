@@ -994,8 +994,6 @@ void AbstractChatWidget::appendChatRecord(msgTarget source, const ChatInfoUnit &
     t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
-    appendVoiceMsg(SEND);
-
 }
 
 /*!
