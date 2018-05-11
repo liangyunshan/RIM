@@ -653,7 +653,15 @@
             soundIcon.className = 'iconfont icon-sound_left';
         }
         soundIcon.setAttribute('voicePath',voicePath);//LYS
-
+		
+		var soundLength = document.createElement('span');
+		soundLength.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+		var count = voiceDuration/2;
+		for(var index=0;index<count;index++)
+		{
+			soundLength.innerHTML += '&nbsp;';
+		}
+		
         var secondSpan = document.createElement('span');
         secondSpan.innerHTML = voiceDuration+'"';
         // 读取状态容器
@@ -661,6 +669,7 @@
         stateSpan.setAttribute('class','stateSpan');
         if(messageTarget === 0)
         {
+			newDialog.appendChild(soundLength);
             newDialog.appendChild(soundIcon);
             newDialog.appendChild(secondSpan);
         }
@@ -668,6 +677,7 @@
         {
             newDialog.appendChild(secondSpan);
             newDialog.appendChild(soundIcon);
+			newDialog.appendChild(soundLength);
         }
 
         newDiv.appendChild(avatarContainer);

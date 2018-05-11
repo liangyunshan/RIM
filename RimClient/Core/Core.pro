@@ -152,7 +152,9 @@ SOURCES += \
     Widgets/document.cpp \
     Widgets/previewpage.cpp\
     Widgets/widget/rcomboboxitem.cpp \
-    thread/chatmsgprocess.cpp
+    thread/chatmsgprocess.cpp \
+    Widgets/abstractchatmainwidget.cpp \
+    Widgets/setfontwidget.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -247,7 +249,9 @@ HEADERS  += \
     Widgets/document.h \
     Widgets/previewpage.h\
     Widgets/widget/rcomboboxitem.h \
-    thread/chatmsgprocess.h
+    thread/chatmsgprocess.h \
+    Widgets/abstractchatmainwidget.h \
+    Widgets/setfontwidget.h
 
 DISTFILES += \
     Widgets/Widgets.pri
