@@ -501,6 +501,7 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
     responseData.sockId = socketId;
 
     QScopedPointer<FriendListResponse> response (new FriendListResponse);
+    response->type = request->type;
     response->accountId = request->accountId;
     bool flag = RSingleton<SQLProcess>::instance()->getFriendList(db,request->accountId,response.data());
     if(flag){
@@ -516,7 +517,6 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
                 iter++;
             }
         }
-
         responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
     }
     else

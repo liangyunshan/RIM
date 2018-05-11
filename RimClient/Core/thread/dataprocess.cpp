@@ -189,6 +189,7 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
         QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
 
         response = new FriendListResponse;
+        response->type = static_cast<OperateListTimeType>(dataObject.value(JsonKey::key(JsonKey::Type)).toInt());
         response->accountId = dataObject.value(JsonKey::key(JsonKey::AccountId)).toString();
         QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
         for(int i = 0; i < groups.size(); i++)

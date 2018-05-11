@@ -49,7 +49,7 @@ public:
 
     bool addUser(const QString groupId,SimpleUserInfo & userInfo);
     bool containUser(const QString accountId);
-    bool deleteUser(const QString groupId, const QString & accountId);
+    bool deleteUser(const QString groupId, const QString accountId);
     bool moveUser(const QString & srcGroupId,const QString &destGroupId,const QString & accountId);
 
     const QList<RGroupData *> & list();

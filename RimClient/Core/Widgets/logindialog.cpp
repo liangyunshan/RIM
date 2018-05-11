@@ -807,10 +807,12 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         d->mainDialog->setLogInState(d->onlineState->state());
 
         FriendListRequest * request = new FriendListRequest;
+        request->type = REQUEST_FIRST;
         request->accountId = baseInfo.accountId;
         RSingleton<MsgWrap>::instance()->handleMsg(request);
 
         ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
+        groupRequest->type = REQUEST_FIRST;
         groupRequest->uuid = baseInfo.uuid;
         RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
     }
@@ -971,14 +973,8 @@ void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
                                         }
                                         iter++;
                                     }
-
                                     RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
                                 }
-                            }
-                            //好友ID图片
-                            else if(false)
-                            {
-                                //TODO 处理好友的头像信息
                             }
                         break;
 

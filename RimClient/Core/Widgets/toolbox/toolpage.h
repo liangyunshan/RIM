@@ -19,6 +19,7 @@
 #define TOOLPAGE_H
 
 #include <QWidget>
+#include <functional>
 
 #include "toolitem.h"
 #include "datastruct.h"
@@ -46,6 +47,7 @@ public:
     void addItem(ToolItem *item);
     bool removeItem(ToolItem * item);
     QList<ToolItem *> &items();
+    bool containsItem(std::function<bool(ToolItem *)> func);
 
     void setMenu(QMenu * menu);
 

@@ -251,6 +251,7 @@ QByteArray MsgWrap::handleFriendListResponse(FriendListResponse *packet,int resu
 {
     QJsonObject obj;
 
+    obj.insert(JsonKey::key(JsonKey::Type),packet->type);
     obj.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
 
     QJsonArray groups;

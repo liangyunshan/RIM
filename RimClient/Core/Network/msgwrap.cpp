@@ -196,6 +196,7 @@ void MsgWrap::handleOperateFriendRequest(OperateFriendRequest * packet)
 void MsgWrap::handleFriendListRequest(FriendListRequest *packet)
 {
     QJsonObject data;
+    data.insert(JsonKey::key(JsonKey::Type),packet->type);
     data.insert(JsonKey::key(JsonKey::AccountId),packet->accountId);
     wrappedPack(packet,data);
 }

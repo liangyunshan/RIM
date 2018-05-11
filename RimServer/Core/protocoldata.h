@@ -394,8 +394,7 @@ enum OperateGrouping
     GROUPING_CREATE,     /*!< 创建分组 */
     GROUPING_RENAME,     /*!< 重命名分组 */
     GROUPING_DELETE,     /*!< 删除分组 */
-    GROUPING_SORT,       /*!< 分组排序 */
-    GROUPING_REFRESH     /*!< 刷新分组 */
+    GROUPING_SORT        /*!< 分组排序 */
 };
 
 /************************个人账户注册**********************/
@@ -553,14 +552,24 @@ public:
 };
 
 /***********************联系人列表操作**[Ok]********************/
+/*!
+ *  @brief  操作列表类型
+ */
+enum OperateListTimeType{
+    REQUEST_FIRST,      /*!< 第一次登陆请求 */
+    REQUEST_RECONNECT,  /*!< 断线重连 */
+    REQUEST_REFRESH     /*!< 列表刷新 */
+};
 
 /*!
  *  @brief 好友列表请求
+ *  @details 1.登陆列表请求；2.断线重连后；3.用户手动在页面执行刷新页面
  */
 class FriendListRequest : public MsgPacket
 {
 public:
     FriendListRequest();
+    OperateListTimeType type;       /*!< 刷新列表时机 */
     QString accountId;              /*!< 用户账号  */
 };
 
@@ -572,6 +581,7 @@ class FriendListResponse : public MsgPacket
 public:
     FriendListResponse();
     ~FriendListResponse();
+    OperateListTimeType type;       /*!< 刷新列表时机 */
     QString accountId;              /*!< 用户账号  */
     QList<RGroupData *> groups;     /*!< 分组信息  */
 };

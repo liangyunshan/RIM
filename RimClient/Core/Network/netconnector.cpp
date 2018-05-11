@@ -149,7 +149,7 @@ void TextNetConnector::doConnect()
     if(!netConnected){
         if(!rsocket->isValid() && rsocket->createSocket())
         {
-            int timeout = 3000; // 3s
+            int timeout = 3000;     // 3s
             rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
             msgSender->setSock(rsocket);
             msgReceive->setSock(rsocket);

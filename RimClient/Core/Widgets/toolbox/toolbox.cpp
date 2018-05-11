@@ -119,12 +119,12 @@ ToolPage * ToolBox::addPage(QString text)
 }
 
 /*!
-     * @brief 移除targetPage
-     * @details
-     * @param[in] targetPage:ToolPage *
-     * @details 仅将目标page从布局中移除但仍保留在pages列表中
-     * @return 移除targetPage结果
-     */
+ * @brief 移除targetPage
+ * @details
+ * @param[in] targetPage:ToolPage *
+ * @details 仅将目标page从布局中移除但仍保留在pages列表中
+ * @return 移除targetPage结果
+ */
 bool ToolBox::removePage(ToolPage *targetPage)
 {
     MQ_D(ToolBox);

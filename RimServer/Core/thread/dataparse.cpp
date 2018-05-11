@@ -262,6 +262,7 @@ void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<FriendListRequest> request (new FriendListRequest);
+    request->type = static_cast<OperateListTimeType>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);

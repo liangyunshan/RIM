@@ -279,7 +279,7 @@ void UserFriendContainer::sortGroup(const QString & groupId, int newPageIndex)
  * @param[in] accountId 待删除的用户ID
  * @return 是否删除成功
  */
-bool UserFriendContainer::deleteUser(const QString groupId, const QString &accountId)
+bool UserFriendContainer::deleteUser(const QString groupId, const QString accountId)
 {
     lock_guard<mutex> guard(lockMutex);
 

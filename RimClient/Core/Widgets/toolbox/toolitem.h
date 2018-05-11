@@ -62,6 +62,9 @@ public:
     void setStatus(OnlineStatus);
     bool isOnline()const;
 
+    ToolPage * toolpage();
+    void setToolPage(ToolPage * page);
+
     enum ItemState
     {
        Item_Normal,

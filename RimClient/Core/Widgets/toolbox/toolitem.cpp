@@ -411,6 +411,20 @@ bool ToolItem::isOnline() const
     return !(d->onlineStatus == STATUS_OFFLINE || d->onlineStatus == STATUS_HIDE);
 }
 
+ToolPage *ToolItem::toolpage()
+{
+    MQ_D(ToolItem);
+    return d->pagePtr;
+}
+
+void ToolItem::setToolPage(ToolPage *page)
+{
+    MQ_D(ToolItem);
+    if(page == NULL)
+        return;
+    d->pagePtr = page;
+}
+
 void ToolItem::cursorHoverIcon(bool flag)
 {
     emit itemMouseHover(flag,this);
