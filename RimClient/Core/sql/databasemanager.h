@@ -16,6 +16,9 @@
 #include "database.h"
 #include "datastruct.h"
 
+#define SQL_SQLITE "SQLITE"
+#define SQL_MYSQL "MYSQL"
+
 class DatabaseManager
 {
 public:
@@ -24,10 +27,8 @@ public:
     void setDatabaseType(const QString dtype);
     void setConnectInfo(const QString host,const QString dbName,const QString user,const QString pass,const int port = 0);
 
+    bool testSupportDB(QString dbtype);
     Database * newDatabase(QString connectionName = "");
-    Database *getLastDB(){
-        return p_DB;
-    }
 
     QStringList availableDrivers();
 
@@ -41,8 +42,6 @@ private:
 
     unsigned short m_port;
     unsigned short m_QueryRow;
-    Database * p_DB;
-
 };
 
 #endif // DATABASEMANAGER_H

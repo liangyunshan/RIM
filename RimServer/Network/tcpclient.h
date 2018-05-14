@@ -59,23 +59,83 @@ struct PacketBuff
 };
 
 /*!
+ *  @brief 文件传输过程中状态
+ *  @details 用于底层控制接收文件的状态，状态由FILE_CREATE->FILE_OVER逐渐变化状态
+ */
+enum FileTransState
+{
+    FILE_ERROR,                     /*!< 错误状态， @note 默认状态 */
+    FILE_TRANING,                   /*!< 文件传输过程中 */
+    FILE_PAUSE,                     /*!< 文件传输暂停 */
+    FILE_CANCEL,                    /*!< 文件传取消 */
+    FILE_OVER                       /*!< 文件传输结束 */
+};
+
+
+/*!
  *  @brief  单个接收文本描述
+ *  @attention 1.保存文件时需要指定文件的路径，此路径需要保存至数据库中，防止后期移动; @n
+ *             2.文件使用md5进行重命名，取消文件的后缀，防止用户直接打开，真实的文件名保存在数据库中; @n
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():file(NULL){}
+    FileRecvDesc():fileTransState(FILE_ERROR){}
 
-    bool create()
+    ~FileRecvDesc(){
+        destory();
+    }
+
+    bool create(const QString& filePath)
     {
-        file = new QFile(fileName);
-        if(file->open(QFile::WriteOnly) )
-        {
-            if(file->resize(size))
+        if(!file.isOpen()){
+            file.setFileName(filePath + "/" +md5);
+            if(file.open(QFile::WriteOnly) )
             {
-                return true;
+                if(file.resize(size))
+                {
+                    fileTransState = FILE_TRANING;
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    bool isNull(){return !file.isOpen();}
+
+    bool seek(size_t pos)
+    {
+        if(!file.isOpen())
+            return false;
+
+        return file.seek(pos);
+    }
+
+    qint64 write(const QByteArray &data)
+    {
+        if(!file.isOpen())
+            return -1;
+        qint64 realWriteLen = file.write(data);
+        writeLen += realWriteLen;
+        return realWriteLen;
+    }
+
+    bool flush()
+    {
+        if(file.isOpen())
+            return file.flush();
+        return false;
+    }
+
+    bool isRecvOver()
+    {
+        return writeLen == file.size();
+    }
+
+    void close()
+    {
+        if(file.isOpen())
+            file.close();
     }
 
     void lock(){mutex.lock();}
@@ -83,29 +143,28 @@ struct FileRecvDesc
 
     void destory()
     {
-        if(file)
+        if(file.isOpen())
         {
-            if(file->isOpen())
-            {
-                file->close();
-            }
-            delete file;
+            fileTransState = FILE_OVER;
+            file.close();
         }
     }
 
-    ~FileRecvDesc()
-    {
-        destory();
-    }
 
-    int itemType;                        /*!< 文件操作类型 @line FileItemType @endlink */
+    FileTransState state(){return fileTransState;}
+    void setState(FileTransState state){fileTransState = state;}
+
+    int itemType;                        /*!< 文件操作类型 @link FileItemType @endlink */
+    int itemKind;                        /*!< 文件类型 @link FileItemKind @endlink */
+    FileTransState fileTransState;       /*!< 文件传输状态，用于控制文件的状态 */
     qint64 size;                         /*!< 文件大小 */
     qint64 writeLen;                     /*!< 文件已经写入的大小 */
     QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
     QString md5;                         /*!< 文件MD5 */
+    QString fileId;                      /*!< 文件唯一标识，有客户端指定，与数据库中保持一致 */
     QString accountId;                   /*!< 自己ID */
     QString otherId;                     /*!< 接收方ID */
-    QFile * file;                        /*!< 文件缓冲 */
+    QFile   file;                        /*!< 文件缓冲 */
     QMutex mutex;                        /*!< 文件读写锁 */
 };
 
@@ -135,7 +194,7 @@ public:
     int getPackId();
 
     bool addFile(QString fileId,FileRecvDesc * desc);
-    bool removeFile(QString fileId);
+    bool removeFile(QString &fileId);
     FileRecvDesc * getFile(QString fileId);
 
 private:

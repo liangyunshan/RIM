@@ -73,6 +73,9 @@
         <file>resource/icon/Detail_Group.png</file>
         <file>resource/icon/Detail_Nick.png</file>
         <file>resource/icon/Detail_Remark.png</file>
+        <file>resource/icon/Tool_Panel_FILE_SERVER_ERROR.png</file>
+        <file>resource/icon/Tool_Panel_FILE_SERVER_OK.png</file>
+        <file>resource/icon/Tool_Chat_Audio.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>
@@ -81,5 +84,9 @@
         <file>resource/icon/state/STATE_NODISTURB.png</file>
         <file>resource/icon/state/STATE_OFFLINE.png</file>
         <file>resource/icon/state/STATE_ONLINE.png</file>
+    </qresource>
+    <qresource prefix="/html">
+        <file>resource/html/chatRecord.html</file>
+        <file>resource/html/qwebchannel.js</file>
     </qresource>
 </RCC>

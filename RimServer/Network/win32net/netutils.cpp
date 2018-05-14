@@ -65,6 +65,8 @@ bool crateIocp(SOCKET clientSock,SharedIocpData * sharedData,DWORD iocpKey)
 
 bool send(SOCKET dest, const char *data, int length)
 {
+    Q_UNUSED(data);
+    Q_UNUSED(length);
     TcpServer::instance()->clientManager()->getClient(dest);
 
     IocpContext * context = IocpContext::create(IOCP_ACCPET,NULL);

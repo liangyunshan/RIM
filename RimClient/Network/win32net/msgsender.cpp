@@ -38,6 +38,12 @@ TextSender::TextSender(QThread *parent):
 
 }
 
+TextSender::~TextSender()
+{
+    stopMe();
+    wait();
+}
+
 void TextSender::startMe()
 {
     RTask::startMe();
@@ -65,12 +71,8 @@ void TextSender::processData()
 {
     while(runningFlag)
     {
-        while(G_TextSendBuffs.size() <= 0)
+        while(runningFlag && G_TextSendBuffs.size() <= 0)
         {
-            if(!runningFlag)
-            {
-                break;
-            }
             G_TextSendMutex.lock();
             G_TextSendWaitCondition.wait(&G_TextSendMutex);
             G_TextSendMutex.unlock();
@@ -112,8 +114,6 @@ bool TextSender::handleDataSend(QByteArray &data)
 
         int sendLen = 0;
 
-//        qDebug()<<data.length()<<sizeof(DataPacket)<<packet.totalIndex;
-
         for(unsigned int i = 0; i < packet.totalIndex; i++)
         {
             memset(sendBuff,0,MAX_SEND_BUFF);
@@ -127,20 +127,16 @@ bool TextSender::handleDataSend(QByteArray &data)
             int dataLen = sizeof(DataPacket)+packet.currentLen;
             int realSendLen = tcpSocket->send(sendBuff,dataLen);
 
-            qDebug()<<"Send:"<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
+qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
 
-            if(realSendLen == dataLen)
-            {
+            if(realSendLen == dataLen){
                 sendLen += packet.currentLen;
-            }
-            else
-            {
+            }else{
                 break;
             }
         }
 
-        if(sendLen == packet.totalLen)
-        {
+        if(sendLen == packet.totalLen){
             return true;
         }
     }
@@ -155,6 +151,12 @@ FileSender::FileSender(QThread *parent):
     SendTask(parent)
 {
 
+}
+
+FileSender::~FileSender()
+{
+    stopMe();
+    wait();
 }
 
 void FileSender::startMe()

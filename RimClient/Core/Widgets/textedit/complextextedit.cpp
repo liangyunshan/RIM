@@ -4,10 +4,12 @@
 #include <QTextFrame>
 #include <QMovie>
 #include <QUrl>
+#include <QtMath>
+
 #include "sql/sqlprocess.h"
 #include "sql/databasemanager.h"
 #include "global.h"
-#include <QtMath>
+#include "user/user.h"
 
 #include <QDebug>
 
@@ -163,7 +165,7 @@ void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
     //
     QTextCursor cursor  = this->textCursor();
     cursor.insertBlock(blockFormat_head);
-    if(record.user.id == G_UserBaseInfo.accountId.toInt())
+    if(record.user.id == G_User->BaseInfo().accountId.toInt())
     {
         cursor.insertText(me ,m_Type_UserHead_Me_Format);
     }

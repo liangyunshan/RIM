@@ -1,5 +1,5 @@
 ﻿/*!
- *  @brief     添加好友面板
+ *  @brief     添加联系人面板
  *  @details   可按联系人、群进行查找好友
  *  @file      addfriend.h
  *  @author    wey
@@ -8,7 +8,9 @@
  *  @warning
  *  @copyright NanJing RenGu.
  *  @note
- *      20170201:wey:添加键盘快捷响应事件
+ *      20180201:wey:添加键盘快捷响应事件
+ *      20180426:wey:添加群信息搜索
+ *                   添加群输入验证
  */
 
 #ifndef ADDFRIEND_H
@@ -42,11 +44,12 @@ private slots:
     void itemSelected(ToolItem * item);
     void validateInputState(QString content);
     void recvSearchFriendResponse(ResponseAddFriend status,SearchFriendResponse response);
+    void recvSearchChatroomResponse(ResponseAddFriend status,SearchGroupResponse response);
     void recvAddFriendResponse(ResponseAddFriend status);
 
 private:
     void enableInput(bool flag);
-    bool friendExisted(QString accountId);
+    void errorSearchResult(ResponseAddFriend status);
 
 private:
     AddFriendPrivate * d_ptr;

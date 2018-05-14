@@ -24,6 +24,8 @@
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
+#include "user/user.h"
+#include "systemtrayicon.h"
 
 #pragma comment(lib,"user32.lib")
 
@@ -44,8 +46,7 @@ public:
         initStateMachine();
     }
 
-    void enableButt(RButton * butt,bool enable)
-    {
+    void enableButt(RButton * butt,bool enable){
         butt->style()->unpolish(butt);
         butt->setEnabled(enable);
         butt->style()->polish(butt);
@@ -69,7 +70,9 @@ private:
 
     QStateMachine * stateMachine;
 
-    QMap<ToolItem*,NotifyInfo> systemNotifyInfos;
+    std::map<ToolItem*,NotifyInfo> systemNotifyInfos;
+
+    SystemTrayIcon * systemTrayIcon;
 };
 
 void NotifyWindowPrivate::initWidget()
@@ -139,14 +142,14 @@ NotifyWindow::NotifyWindow(QWidget *parent):
     d_ptr(new NotifyWindowPrivate(this))
 {
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
-
+    setToolBarMoveable(true);
     d_ptr->toolBar = enableToolBar(true);
     enableDefaultSignalConection(false);
     if(d_ptr->toolBar)
     {
         d_ptr->toolBar->setToolFlags((ToolBar::ToolType)(ToolBar::TOOL_DIALOG & ~ToolBar::TOOL_CLOSE));
         d_ptr->toolBar->setWindowIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::WHITE,ImageManager::ICON_SYSTEM,ImageManager::ICON_16));
-        d_ptr->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
+        d_ptr->toolBar->setWindowTitle(G_User->BaseInfo().nickName);
         connect(this,SIGNAL(minimumWindow()),this,SIGNAL(hideWindow()));
     }
     setMaximumWidth(NOTIFY_WINDOW_WIDTH);
@@ -160,15 +163,23 @@ NotifyWindow::~NotifyWindow()
     RSingleton<Subject>::instance()->detach(this);
 }
 
+void NotifyWindow::bindTrayIcon(SystemTrayIcon *trayIcon)
+{
+    MQ_D(NotifyWindow);
+    d->systemTrayIcon = trayIcon;
+}
+
 /*!
-     * @brief 向通知栏添加一个通知消息
-     * @details 若该消息所属的accountId列表不存在，创建该消息提示；若accountId存在，根据消息的类型来进行不同处理：
-     *          若属于系统消息，已存在该accountId的消息，在未处理时，则进行忽略；
-     *          若属于联系人消息，已存在该accountId的消息，未处理时，在通知消息数量上累加。
-     * @param[in] info 通知消息
-     * @return 若为新插入，返回新插入的ID；否则返回已经存在的info的id
-     */
-QString NotifyWindow::addNotifyInfo(NotifyInfo info)
+ * @brief 向通知栏添加一个通知消息
+ * @details 若该消息所属的accountId列表不存在，创建该消息提示；若accountId存在，根据消息的类型来进行不同处理：
+ *          若属于系统消息(20180426修复添加显示系统信息时未考虑群请求特殊情况):
+ *              好友请求：已存在该accountId的消息，在未处理时，则进行忽略(多次发送一个好友请求意义不大)；
+ *              群请求：已存在对应群id请求消息时，在未处理时进行忽略；若一个accountdId请求不同的的群，则需分别进行提示：
+ *          若属于联系人消息，已存在该accountId的消息，未处理时，在通知消息数量上累加。
+ * @param[in] info 通知消息
+ * @return 若为新插入，返回新插入的ID；否则返回已经存在的info的id
+ */
+QString NotifyWindow::addNotifyInfo(NotifyInfo &info)
 {
     MQ_D(NotifyWindow);
 
@@ -180,17 +191,22 @@ QString NotifyWindow::addNotifyInfo(NotifyInfo info)
     while(iter != items.end())
     {
         ToolItem * curItem = *iter;
+        NotifyInfo tmpInfo = d->systemNotifyInfos.at(curItem);
         NotifyType itemType = (NotifyType)curItem->property(d->propertName.toLocal8Bit().data()).toInt();
         QString accountId = curItem->property(d->porpertyId.toLocal8Bit().data()).toString();
 
-        if(accountId == info.accountId)
-        {
-            if(itemType == NotifyUser || itemType == NotifyGroup)
-            {
-                curItem->addNotifyInfo();
-                existInfoIdeitity = d->systemNotifyInfos.value(curItem).identityId;
+        if(accountId == info.accountId){
+            if(info.stype == OperatePerson){
+                if(itemType == NotifyUser || itemType == NotifyGroup){
+                    curItem->addNotifyInfo();
+                    existInfoIdeitity = d->systemNotifyInfos.at(curItem).identityId;
+                }
+                existedUser = true;
+            }else if(info.stype == OperateGroup){
+                if(info.chatId == tmpInfo.chatId){
+                    existedUser = true;
+                }
             }
-            existedUser = true;
             break;
         }
         iter++;
@@ -203,26 +219,37 @@ QString NotifyWindow::addNotifyInfo(NotifyInfo info)
         item->setProperty(d->propertName.toLocal8Bit().data(),info.type);
         item->setProperty(d->porpertyId.toLocal8Bit().data(),info.accountId);
 
-        if(info.type == NotifySystem)
-        {
+        if(info.type == NotifySystem){
             item->setName(QObject::tr("System info"));
-        }
-        else if(info.type == NotifyUser || info.type == NotifyGroup)
-        {
+            item->setIcon(info.iconId);
+        }else if(info.type == NotifyUser || info.type == NotifyGroup){
             item->setName(info.accountId);
             item->setNickName(info.nickName);
             item->setDescInfo(info.content);
+            item->setIcon(G_User->getIcon(info.isSystemIcon,info.iconId));
         }
-        existInfoIdeitity = info.identityId;
-        d->systemNotifyInfos.insert(item,info);
-        item->setIcon(info.pixmap);
         item->addNotifyInfo();
         d->infoList->addItem(item);
+        d->systemNotifyInfos.insert(std::make_pair(item,info));
+        existInfoIdeitity = info.identityId;
 
-        if(!d->ignoreButt->isEnabled())
-        {
+        if(!d->ignoreButt->isEnabled()){
             d->enableButt(d->ignoreButt,true);
             d->enableButt(d->viewAllButt,true);
+        }
+    }
+
+    if(existInfoIdeitity == info.identityId){
+        if(info.type == NotifySystem){
+            d->systemTrayIcon->notify(SystemTrayIcon::SystemNotify,info.identityId);
+        }else{
+            d->systemTrayIcon->notify(SystemTrayIcon::UserNotify,info.identityId,G_User->getIcon(info.isSystemIcon,info.iconId));
+        }
+    }else{
+        if(info.type == NotifySystem){
+            d->systemTrayIcon->frontNotify(SystemTrayIcon::SystemNotify,existInfoIdeitity);
+        }else{
+            d->systemTrayIcon->frontNotify(SystemTrayIcon::UserNotify,existInfoIdeitity);
         }
     }
 
@@ -243,15 +270,9 @@ void NotifyWindow::hideMe()
 void NotifyWindow::onMessage(MessageType type)
 {
     MQ_D(NotifyWindow);
-    if(type == MESS_BASEINFO_UPDATE)
-    {
-        d->toolBar->setWindowTitle(G_UserBaseInfo.nickName);
+    if(type == MESS_BASEINFO_UPDATE){
+        d->toolBar->setWindowTitle(G_User->BaseInfo().nickName);
     }
-}
-
-void NotifyWindow::resizeEvent(QResizeEvent *)
-{
-
 }
 
 void NotifyWindow::viewAll()
@@ -259,13 +280,10 @@ void NotifyWindow::viewAll()
     MQ_D(NotifyWindow);
     QList<ToolItem *> items = d->infoList->items();
     QList<ToolItem *>::iterator iter = items.end();
-    while(iter != items.begin())
-    {
+    while(iter != items.begin()){
         iter--;
-//        emit showSystemNotifyInfo(d->systemNotifyInfos.value((*iter)),(*iter)->getNotifyCount());
         viewNotify(*iter);
     }
-
 }
 
 void NotifyWindow::ignoreAll()
@@ -278,6 +296,7 @@ void NotifyWindow::ignoreAll()
 
     d->systemNotifyInfos.clear();
     d->infoList->clear();
+    emit ignoreAllNotifyInfo();
 }
 
 /*!
@@ -290,16 +309,34 @@ void NotifyWindow::viewNotify(ToolItem *item)
 {
     MQ_D(NotifyWindow);
 
-    if(item)
-    {
-        emit showSystemNotifyInfo(d->systemNotifyInfos.value(item),item->getNotifyCount());
+    if(item){
+        emit showSystemNotifyInfo(d->systemNotifyInfos.at(item),item->getNotifyCount());
 
-        d->systemNotifyInfos.remove(item);
+        auto iter = d->systemNotifyInfos.find(item);
+        if(iter != d->systemNotifyInfos.end()){
+            d->systemNotifyInfos.erase(iter);
+        }
         d->infoList->removeItem(item);
 
-        if(d->infoList->count() <= 0)
-        {
+        if(d->infoList->count() <= 0){
             ignoreAll();
         }
+    }
+}
+
+/*!
+ * @brief 响应托盘双击查看当前闪烁的通知消息
+ * @param[in] notifyId 待查看通知消息ID
+ */
+void NotifyWindow::viewNotify(QString notifyId)
+{
+    MQ_D(NotifyWindow);
+
+    auto iter = std::find_if(d->systemNotifyInfos.begin(),d->systemNotifyInfos.end(),[&notifyId](std::pair<ToolItem*,NotifyInfo> item){
+        return item.second.identityId == notifyId;
+    });
+
+    if(iter != d->systemNotifyInfos.end()){
+        viewNotify((*iter).first);
     }
 }

@@ -8,6 +8,9 @@
 #include <QMessageBox>
 #include <QToolButton>
 #include <QPropertyAnimation>
+#include <QSharedPointer>
+#include <QAudioFormat>
+#include <QDir>
 
 #include "systemtrayicon.h"
 #include "Util/rutil.h"
@@ -27,10 +30,14 @@
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "user/userclient.h"
+#include "user/userfriendcontainer.h"
 #include "panelpersonpage.h"
 #include "media/mediaplayer.h"
+#include "user/user.h"
+#include "thread/taskmanager.h"
+#include "media/audioinput.h"
+#include "media/audiooutput.h"
 
-#include "abstractchatwidget.h"
 #include "itemhoverinfo.h"
 
 #include "sql/databasemanager.h"
@@ -59,7 +66,6 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
-        m_autoHideSetting = RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool();
     }
 
 private:
@@ -77,7 +83,6 @@ private:
     EditPersonInfoWindow * editWindow;
 
     bool m_bIsAutoHide;
-    bool m_autoHideSetting;
     Direction m_enDriection;
 
     MainDialog * q_ptr;
@@ -93,14 +98,14 @@ MainDialog::MainDialog(QWidget *parent) :
     setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
     setMaximumHeight(qApp->desktop()->screen()->height());
 
-    dialog = this;
     RSingleton<Subject>::instance()->attach(this);
+    dialog = this;
     ScreenShot::instance();
+
     initSqlDatabase();
+    initMedia();
     initWidget();
 
-    connect(MessDiapatch::instance(),SIGNAL(recvFriendList(FriendListResponse*)),this,SLOT(updateFriendList(FriendListResponse*)));
-    connect(MessDiapatch::instance(),SIGNAL(recvGroupingOperate(GroupingResponse)),this,SLOT(recvGroupingOperate(GroupingResponse)));
     connect(MessDiapatch::instance(),SIGNAL(errorGroupingOperate(OperateGrouping)),this,SLOT(errorGroupingOperate(OperateGrouping)));
     connect(MessDiapatch::instance(),SIGNAL(screenChange()),this,SLOT(screenChanged()));
 }
@@ -109,19 +114,16 @@ MainDialog::~MainDialog()
 {
     MQ_D(MainDialog);
     RSingleton<Subject>::instance()->detach(this);
-    if(d->editWindow)
-    {
+
+    RSingleton<TaskManager>::instance()->removeAll();
+
+    if(d->editWindow){
         delete d->editWindow;
     }
 
     RSingleton<UserManager>::instance()->closeAllClientWindow();
 
     RSingleton<ShortcutSettings>::instance()->save();
-    if(p_dbManager)
-    {
-        delete p_dbManager;
-        p_dbManager = NULL;
-    }
 }
 
 MainDialog *MainDialog::instance()
@@ -134,16 +136,23 @@ void MainDialog::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SETTINGS:
-        {
-            makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
-            blockAutoHidePanel(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
-        }
-        break;
-        case MESS_SCREEN_CHANGE:
-        {
-            changeGeometry(geometry());
+            {
+                makeWindowFront(G_User->systemSettings()->keepFront);
+                blockAutoHidePanel();
+            }
             break;
-        }
+        case MESS_SCREEN_CHANGE:
+            {
+                changeGeometry(geometry());
+            }
+            break;
+         case MESS_USER_OFF_LINE:
+            {
+                G_User->setTextOnline(false);
+                G_User->setFileOnline(false);
+                RSingleton<TaskManager>::instance()->removeAll();
+            }
+            break;
         default:break;
     }
 }
@@ -176,7 +185,7 @@ void MainDialog::leaveEvent(QEvent *event)
 {
     MQ_D(MainDialog);
     isAutoHide();
-    if(d->m_bIsAutoHide && d->m_autoHideSetting)
+    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
     {
         hidePanel();
     }
@@ -186,7 +195,7 @@ void MainDialog::leaveEvent(QEvent *event)
 void MainDialog::enterEvent(QEvent *event)
 {
     MQ_D(MainDialog);
-    if(d->m_bIsAutoHide && d->m_autoHideSetting)
+    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
     {
         showPanel();
     }
@@ -210,14 +219,10 @@ void MainDialog::updateWidgetGeometry()
 
 void MainDialog::closeWindow()
 {
-    if(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM).toBool())
-    {
+    if(G_User->systemSettings()->exitSystem)
         this->close();
-    }
     else
-    {
         this->hide();
-    }
 }
 
 void MainDialog::makeWindowFront(bool flag)
@@ -235,17 +240,16 @@ void MainDialog::makeWindowFront(bool flag)
         ActionManager::instance()->toolButton(Id(Constant::TOOL_PANEL_FRONT))->setToolTip(tr("Stick"));
     }
 
-    RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
 
     show();
 }
 
-void MainDialog::blockAutoHidePanel(bool flag)
+void MainDialog::blockAutoHidePanel()
 {
     MQ_D(MainDialog);
-    d->m_autoHideSetting = flag;
     isAutoHide();
-    if(!d->m_autoHideSetting)
+    if(!G_User->systemSettings()->hidePanel)
     {
         if(d->m_bIsAutoHide)
         {
@@ -258,23 +262,6 @@ void MainDialog::blockAutoHidePanel(bool flag)
         {
             hidePanel();
         }
-    }
-}
-
-void MainDialog::showChatWindow(ToolItem * item)
-{
-    UserClient * client = RSingleton<UserManager>::instance()->client(item);
-    if(client->chatWidget)
-    {
-        client->chatWidget->show();
-    }
-    else
-    {
-        AbstractChatWidget * widget = new AbstractChatWidget();
-        widget->setUserInfo(client->simpleUserInfo);
-        widget->initChatRecord();
-        client->chatWidget = widget;
-        widget->show();
     }
 }
 
@@ -328,62 +315,26 @@ void MainDialog::updateEditInstance()
    d->editWindow = NULL;
 }
 
-/*!
- * @brief 设置好友列表
- * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
- * @param[in] friendList 好友列表
- * @return 无
- */
-void MainDialog::updateFriendList(FriendListResponse *friendList)
-{
-    QList<RGroupData *>::iterator iter = G_FriendList.begin();
-    while(iter != G_FriendList.end())
-    {
-        delete (*iter);
-        iter = G_FriendList.erase(iter);
-    }
-    G_FriendList.clear();
-
-    G_FriendList = friendList->groups;
-
-    RSingleton<Subject>::instance()->notify(MESS_FRIENDLIST_UPDATE);
-}
-
-//TODO 根据服务器返回的信息更新本地分组信息
-void MainDialog::recvGroupingOperate(GroupingResponse response)
-{
-    if(response.uuid != G_UserBaseInfo.uuid)
-        return;
-    if(response.gtype == GROUPING_FRIEND)
-    {
-        RSingleton<Subject>::instance()->notify(MESS_GROUP_DELETE);
-    }
-    else
-    {
-
-    }
-}
-
 void MainDialog::errorGroupingOperate(OperateGrouping type)
 {
     QString errorInfo;
     switch(type)
     {
         case GROUPING_CREATE:
-                            {
-                                errorInfo = QObject::tr("Create group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Create group failed!");
+            }
+            break;
         case GROUPING_RENAME:
-                            {
-                                errorInfo = QObject::tr("Rename group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Rename group failed!");
+            }
+            break;
         case GROUPING_DELETE:
-                            {
-                                errorInfo = QObject::tr("Delete group failed!");
-                            }
-                            break;
+            {
+                errorInfo = QObject::tr("Delete group failed!");
+            }
+            break;
         default:break;
     }
 
@@ -393,6 +344,9 @@ void MainDialog::errorGroupingOperate(OperateGrouping type)
 void MainDialog::initWidget()
 {
     MQ_D(MainDialog);
+
+    readSettings();
+
     d->MainPanel = new QWidget(this);
     d->MainPanel->setObjectName("MainPanel");
 
@@ -421,8 +375,6 @@ void MainDialog::initWidget()
     connect(SystemTrayIcon::instance(),SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(showNormal()));
 
-    readSettings();
-
     d->toolBar = new ToolBar(d->MainPanel);
     d->toolBar->setToolFlags(ToolBar::TOOL_ICON|ToolBar::TOOL_MIN|ToolBar::TOOL_CLOSE|ToolBar::TOOL_SPACER);
     connect(d->toolBar,SIGNAL(minimumWindow()),this,SLOT(hide()));
@@ -434,7 +386,9 @@ void MainDialog::initWidget()
 
     d->toolBar->insertToolButton(frontButton,Constant::TOOL_MIN);
 
-    makeWindowFront(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT).toBool());
+    //读取个人配置信息设置系统功能
+    makeWindowFront(G_User->systemSettings()->keepFront);
+    blockAutoHidePanel();
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -478,27 +432,46 @@ void MainDialog::initWidget()
  */
 void MainDialog::readSettings()
 {
-    QSettings * settings = RUtil::globalSettings();
-
-    if(!settings->value(Constant::SETTING_X).isValid() || !settings->value(Constant::SETTING_Y).isValid()
-            ||!settings->value(Constant::SETTING_WIDTH).isValid() ||!settings->value(Constant::SETTING_HEIGHT).isValid())
+    QSettings * settings = G_User->getSettings();
+    settings->beginGroup(Constant::USER_BASIC_GROUP);
+    if(!settings->value(Constant::USER_BASIC_X).isValid() || !settings->value(Constant::USER_BASIC_Y).isValid()
+            ||!settings->value(Constant::USER_BASIC_WIDTH).isValid() ||!settings->value(Constant::USER_BASIC_HEIGHT).isValid())
     {
         QRect rect = qApp->desktop()->screen()->geometry();
 
         int tmpWidth = Constant::MAIN_PANEL_MIN_WIDTH * SCALE_ZOOMIN_FACTOR;
         int tmpHeight = rect.height() * SCALE_ZOOMOUT_FACTOR;
 
-
-        RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.width() - tmpWidth - PANEL_MARGIN);
-        RUtil::globalSettings()->setValue(Constant::SETTING_Y,PANEL_MARGIN);
-        RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,tmpWidth);
-        RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,tmpHeight);
+        settings->setValue(Constant::USER_BASIC_X,rect.width() - tmpWidth - PANEL_MARGIN);
+        settings->setValue(Constant::USER_BASIC_Y,PANEL_MARGIN);
+        settings->setValue(Constant::USER_BASIC_WIDTH,tmpWidth);
+        settings->setValue(Constant::USER_BASIC_HEIGHT,tmpHeight);
     }
 
-    int x = RUtil::globalSettings()->value(Constant::SETTING_X).toInt();
-    int y = RUtil::globalSettings()->value(Constant::SETTING_Y).toInt();
-    int w = RUtil::globalSettings()->value(Constant::SETTING_WIDTH).toInt();
-    int h = RUtil::globalSettings()->value(Constant::SETTING_HEIGHT).toInt();
+    int x = settings->value(Constant::USER_BASIC_X).toInt();
+    int y = settings->value(Constant::USER_BASIC_Y).toInt();
+    int w = settings->value(Constant::USER_BASIC_WIDTH).toInt();
+    int h = settings->value(Constant::USER_BASIC_HEIGHT).toInt();
+    settings->endGroup();
+
+    settings->beginGroup(Constant::USER_SETTING_GROUP);
+
+    G_User->systemSettings()->autoStartUp = settings->value(Constant::USER_SETTING_AUTO_STARTUP,false).toBool();
+    G_User->systemSettings()->autoLogin = settings->value(Constant::USER_SETTING_AUTO_LOGIN,false).toBool();
+
+    G_User->systemSettings()->keepFront = settings->value(Constant::USER_SETTING_TOPHINT,false).toBool();
+    G_User->systemSettings()->exitSystem = settings->value(Constant::USER_SETTING_EXIT_SYSTEM,true).toBool();
+    G_User->systemSettings()->hidePanel = settings->value(Constant::USER_SETTING_HIDEPANEL,true).toBool();
+    G_User->systemSettings()->trayIcon = settings->value(Constant::SETTING_TRAYICON,true).toBool();
+
+    G_User->systemSettings()->windowShaking = settings->value(Constant::USER_SETTING_WINDOW_SHAKE,true).toBool();
+    G_User->systemSettings()->soundAvailable = settings->value(Constant::USER_SETTING_SOUND_AVAILABLE,true).toBool();
+    G_User->systemSettings()->lockCheck = settings->value(Constant::USER_SETTING_SYSTEM_LOCK,false).toBool();
+    G_User->systemSettings()->recordCheck = settings->value(Constant::USER_SETTING_EXIT_DELRECORD,false).toBool();
+    G_User->systemSettings()->encryptionCheck = settings->value(Constant::USER_SETTING_TEXT_ENCRYPTION,false).toBool();
+    G_User->systemSettings()->compressCheck = settings->value(Constant::USER_SETTING_TEXT_COMPRESSION,false).toBool();
+
+    settings->endGroup();
 
     changeGeometry(x,y,w,h);
 }
@@ -603,24 +576,74 @@ void MainDialog::moveToDesktop(int direction)
 void MainDialog::writeSettings()
 {
     QRect rect = this->geometry();
-    RUtil::globalSettings()->setValue(Constant::SETTING_X,rect.x());
-    RUtil::globalSettings()->setValue(Constant::SETTING_Y,rect.y());
-    RUtil::globalSettings()->setValue(Constant::SETTING_WIDTH,rect.width());
-    RUtil::globalSettings()->setValue(Constant::SETTING_HEIGHT,rect.height());
+    QSettings * settings = G_User->getSettings();
+    settings->beginGroup(Constant::USER_BASIC_GROUP);
+    settings->setValue(Constant::USER_BASIC_X,rect.x());
+    settings->setValue(Constant::USER_BASIC_Y,rect.y());
+    settings->setValue(Constant::USER_BASIC_WIDTH,rect.width());
+    settings->setValue(Constant::USER_BASIC_HEIGHT,rect.height());
+    settings->endGroup();
 }
 
+/*!
+ * @brief 初始化数据库连接
+ * @details 从配置文件中读取数据库连接信息，若没有填写对应的信息，则启用系统默认信息
+ */
 void MainDialog::initSqlDatabase()
 {
-    QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-    QString db_path = QString("%1/%2/%3").arg(apppath).arg(G_UserBaseInfo.accountId).arg(Constant::UserDBDirName);
-    RUtil::createDir(db_path);
-    db_path += QString("/%1").arg(Constant::UserDBFileName);
-    p_dbManager = new DatabaseManager();
-    p_dbManager->setConnectInfo("localhost",db_path,"root","rengu123456");
-    p_dbManager->setDatabaseType("QSQLITE");
-    p_dbManager->newDatabase("sqlite1234");
+    QSharedPointer<DatabaseManager> db_ptr(new DatabaseManager());
 
-    SQLProcess::instance()->createTablebUserList(p_dbManager->getLastDB());
+    QString type = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_TYPE,Constant::DEFAULT_SQL_TYPE).toString();
+    QString hostName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_HOSTNAME,Constant::DEFAULT_SQL_HOST).toString();
+    QString databaseName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_DATABASE,Constant::DEFAULT_SQL_DATABASE).toString();
+    QString userName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_USER,Constant::DEFAULT_SQL_USER).toString();
+    int port = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_PORT,Constant::DEFAULT_SQL_PORT).toString().toInt();
+
+    bool useInnerPass = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_INNER_PASSWORD,Constant::DEFAULT_SQL_INNER_PASS).toBool();
+    QString password;
+    if(useInnerPass){
+        password = Constant::DEFAULT_SQL_PASSWORD;
+    }else{
+        RUtil::globalSettings()->beginGroup(Constant::SYSTEM_DB);
+        password = RUtil::globalSettings()->value(Constant::SYSTEM_DB_PASS,"").toString();
+        RUtil::globalSettings()->endGroup();
+    }
+
+    if(db_ptr->testSupportDB(type)){
+        if(type.toUpper().contains(SQL_SQLITE)){
+            if(!databaseName.contains("\\.db")){
+                databaseName += ".db";
+            }
+            databaseName = G_User->getUserDatabasePath() +QDir::separator() + databaseName;
+        }
+        db_ptr->setConnectInfo(hostName,databaseName,userName,password,port);
+        db_ptr->setDatabaseType(type);
+        Database * chatDatabase = db_ptr->newDatabase(RUtil::UUID());
+        if(chatDatabase == nullptr){
+            RMessageBox::warning(this,tr("warning"),tr("Open chat message database error! \n please check database config."),RMessageBox::Yes);
+            return;
+        }
+        G_User->setDatabase(chatDatabase);
+
+        if(!RSingleton<SQLProcess>::instance()->createTableIfNotExists(chatDatabase))
+            RMessageBox::warning(this,tr("warning"),tr("Database tables create error!"),RMessageBox::Yes);
+    }else{
+        RMessageBox::warning(this,tr("warning"),tr("Don't support database type [%1]!").arg(type),RMessageBox::Yes);
+    }
+}
+
+void MainDialog::initMedia()
+{
+    QAudioFormat format;
+    format.setSampleRate(8000);
+    format.setChannelCount(1);
+    format.setSampleSize(8);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::UnSignedInt);
+
+    RSingleton<AudioInput>::instance()->setAudioFormat(format);
+    RSingleton<AudioOutput>::instance()->setAudioFormat(format);
 }
 
 /*!

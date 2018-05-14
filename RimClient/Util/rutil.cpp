@@ -8,6 +8,14 @@
 #include <QApplication>
 #include <QUuid>
 #include <QRegExp>
+#include <QDir>
+#include <QDomDocument>
+#include <QDomElement>
+#include <QDebug>
+
+#include "../Core/constants.h"
+
+#include <QDebug>
 
 QSettings * RUtil::gSettings = NULL;
 
@@ -93,6 +101,46 @@ QSettings *RUtil::globalSettings()
     return gSettings;
 }
 
+/*!
+ * @brief 查询全局ini配置文件中字段内容
+ * @param[in] group 分组名称
+ * @param[in] key 待查询值key
+ * @param[in] defaultValue 默认值，若group下不存在对应的key，使用默认值代替
+ * @return 查询结果
+ */
+QVariant RUtil::getGlobalValue(const QString & group,const QString &key, const QVariant & defaultValue)
+{
+    gSettings->beginGroup(group);
+    if(!gSettings->contains(key))
+    {
+        gSettings->setValue(key,defaultValue);
+    }
+
+    QVariant val = gSettings->value(key,defaultValue);
+
+    gSettings->endGroup();
+
+    return val;
+}
+
+/*!
+ * @brief 将超长的字符串转换以...结尾的字符
+ * @param[in] font 带显示区字体
+ * @param[in] origin 原始显示内容
+ * @param[in] maxLen 最大显示宽度
+ * @return 转换后的字符
+ */
+QString RUtil::replaceLongTextWidthElide(const QFont &font, const QString &origin, const int maxLen)
+{
+    QString str;
+    QFontMetrics fontWidth(font);
+    if(fontWidth.width(origin) >= maxLen)
+        str = fontWidth.elidedText(origin,Qt::ElideRight,maxLen);
+    else
+        str = origin;
+    return str;
+}
+
 QString RUtil::UUID()
 {
     QString uuid = QUuid::createUuid().toString();
@@ -147,6 +195,16 @@ qint64 RUtil::currentMSecsSinceEpoch()
     return QDateTime::currentDateTime().currentMSecsSinceEpoch();
 }
 
+/*!
+ * @brief 获取当前时间自格林尼治时间1970-1-1 0:0:0以来的秒数
+ * @details QDateTime会先将两个时间都转换为gmt时间，再做比较。
+ */
+qint64 RUtil::currentSecsSinceEpoch()
+{
+    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    return epochTime.secsTo(QDateTime::currentDateTime());
+}
+
 bool RUtil::validateIpFormat(QString dest)
 {
     QString matchIp = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
@@ -157,10 +215,10 @@ bool RUtil::validateIpFormat(QString dest)
 }
 
 /*!
-     * @brief 将图片转换成灰度图
-     * @param[in] image：const QImage &，转换前的图片
-     * @return 无 t_grayImage：QImage，转换后的灰度图
-     */
+ * @brief 将图片转换成灰度图
+ * @param[in] image：const QImage &，转换前的图片
+ * @return 无 t_grayImage：QImage，转换后的灰度图
+ */
 QImage RUtil::convertToGray(const QImage & t_image)
 {
     int t_height = t_image.height();
@@ -199,4 +257,106 @@ QImage RUtil::convertToGray(const QImage & t_image)
         break;
     }
     return t_grayImage;
+}
+
+/*!
+ * @brief RUtil::setRelativeImgPath 为目标简单的Html格式的文本框内容中img标签设置相对路径
+ * @param targetHtml 需要修改img标签内容的Html格式字符串
+ * @param userID 用于拼接相对路径的用户账号ID
+ */
+void RUtil::setRelativeImgPath(QString &targetHtml,QString userID)
+{
+    QDomDocument domDoc;
+    domDoc.setContent(targetHtml);
+    QString rootName = domDoc.documentElement().tagName();
+    if(rootName == "p")
+    {
+        QDomNodeList nodes = domDoc.documentElement().childNodes();
+        for(int index=0;index<nodes.count();index++)
+        {
+            if(nodes.at(index).nodeName()=="img"&&nodes.at(index).isElement())
+            {
+                QString t_imgPath = QString("");
+                t_imgPath = t_imgPath + Constant::PATH_UserPath + QDir::separator() + userID + QDir::separator() + Constant::USER_RecvFileDirName;
+                t_imgPath = t_imgPath + QDir::separator() + Constant::USER_ChatImageDirName + QDir::separator() + Constant::USER_C2CDirName;
+                t_imgPath = t_imgPath + QDir::separator() + nodes.at(index).toElement().attribute("src");
+                nodes.at(index).toElement().setAttribute("src",t_imgPath);
+            }
+        }
+    }
+    targetHtml = domDoc.toString();
+}
+
+/*!
+ * @brief RUtil::setAbsoulteImgPath 为目标简单的Html格式的文本框内容中img标签设置绝对路径
+ * @param targetHtml 需要修改img标签内容的Html格式字符串
+ * @param userID 用于拼接相对路径的用户账号ID
+ */
+
+void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
+{
+    QDomDocument domDoc;
+    domDoc.setContent(targetHtml);
+    QString rootName = domDoc.documentElement().tagName();
+    if(rootName == "p")
+    {
+        QDomNodeList nodes = domDoc.documentElement().childNodes();
+        for(int index=0;index<nodes.count();index++)
+        {
+            if(nodes.at(index).nodeName()=="img"&&nodes.at(index).isElement())
+            {
+                QString t_imgPath = QString("");
+                QDir t_parentDir = QDir::current();
+                t_parentDir.cdUp();
+                t_imgPath = t_imgPath + t_parentDir.path() + QDir::separator();
+                t_imgPath = t_imgPath + Constant::PATH_UserDirName + QDir::separator() + userID + QDir::separator() + Constant::USER_RecvFileDirName;
+                t_imgPath = t_imgPath + QDir::separator() + Constant::USER_ChatImageDirName + QDir::separator() + Constant::USER_C2CDirName;
+                t_imgPath = t_imgPath + QDir::separator() + nodes.at(index).toElement().attribute("src");
+                t_imgPath = QDir::fromNativeSeparators(t_imgPath);
+                nodes.at(index).toElement().setAttribute("src",t_imgPath);
+            }
+        }
+    }
+    qDebug()<<domDoc.toString();
+    targetHtml = domDoc.toString();
+}
+
+/*!
+ * @brief RUtil::escapeQuote 将Html内容中的双引号、单引号进行转义
+ * @param targetHtml 需要转义处理的Html内容
+ */
+void RUtil::escapeSingleQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\'","\\\'");
+    targetHtml = targetHtml.replace("\n","");
+}
+
+/*!
+ * @brief RUtil::removeEccapeQuote 移除Html内容中双引号的转义符号
+ * @param targetHtml 需要移除转义处理的Html内容
+ */
+void RUtil::removeEccapeSingleQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\\\'","\'");
+    targetHtml = targetHtml.replace("\n","");
+}
+
+/*!
+ * @brief RUtil::escapeDoubleQuote
+ * @param targetHtml
+ */
+void RUtil::escapeDoubleQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\"","\\\"");
+    targetHtml = targetHtml.replace("\n","");
+}
+
+/*!
+ * @brief RUtil::removeEccapeDoubleQuote
+ * @param targetHtml
+ */
+void RUtil::removeEccapeDoubleQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\\\"","\"");
+    targetHtml = targetHtml.replace("\n","");
 }

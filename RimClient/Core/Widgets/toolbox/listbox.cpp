@@ -82,8 +82,81 @@ void ListBox::addItem(ToolItem * item)
 QList<ToolItem *> ListBox::items() const
 {
     MQ_D(ListBox);
-
     return d->toolItems;
+}
+
+QList<ToolItem *> ListBox::sortedItems() const
+{
+    MQ_D(ListBox);
+    QList<ToolItem *> sortedItems;
+
+    QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+
+    if(layout){
+        for(int i = 0;i < layout->count();i++){
+            if(layout->itemAt(i)->widget()){
+                sortedItems.push_back(dynamic_cast<ToolItem *>(layout->itemAt(i)->widget()));
+            }
+        }
+    }
+
+    return sortedItems;
+}
+
+/*!
+ * @brief 将item从列表中移除，并重新插入指定位置
+ * @param[in] item 待重新插入的item
+ * @param[in] pos  重新插入的位置;默认为-1，表示插入到末尾;否则插入指定位置
+ * @return 是否插入成功
+ */
+bool ListBox::reInsert(ToolItem *item, int pos)
+{
+    MQ_D(ListBox);
+    if(d->toolItems.size() > 0){
+        QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+
+        bool existed = false;
+        for(int i = 0; i < layout->count(); i++){
+            if(layout->itemAt(i)->widget()){
+               ToolItem * tmpItem = dynamic_cast<ToolItem *>(layout->itemAt(i)->widget());
+               if(tmpItem == item){
+                   layout->removeWidget(item);
+                   existed = true;
+                   break;
+               }
+            }
+        }
+
+        if(existed){
+            if(pos >=0 )
+                layout->insertWidget(pos,item);
+            else
+                layout->insertWidget(layout->count() - 1,item);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ListBox::removeAllItem()
+{
+    MQ_D(ListBox);
+
+    if(d->toolItems.size() == 0)
+         return false;
+
+    QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+    if(layout == nullptr)
+        return false;
+
+    for(int i = layout->count() - 1; i >=0 ;i--){
+        if(layout->itemAt(i)->widget()){
+            delete layout->itemAt(i)->widget();
+        }
+    }
+    d->toolItems.clear();
+    return true;
 }
 
 bool ListBox::removeItem(ToolItem *item)
@@ -102,8 +175,7 @@ bool ListBox::removeItem(ToolItem *item)
                 if(layout->itemAt(i)->widget())
                 {
                     ToolItem * tmpItem = dynamic_cast<ToolItem *>(layout->itemAt(i)->widget());
-                    if(tmpItem == item)
-                    {
+                    if(tmpItem == item){
                         index = i;
                         break;
                     }
@@ -115,8 +187,7 @@ bool ListBox::removeItem(ToolItem *item)
                 if(layItem->widget())
                 {
                     bool removeResult = d->toolItems.removeOne(item);
-                    if(removeResult)
-                    {
+                    if(removeResult){
                         delete layItem->widget();
                         emit itemRemoved(item);
                     }

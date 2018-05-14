@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note      此窗口设置了一定的边距，用于绘制渐变的背景。
  *      20180222:LYS:添加获取窗口中阴影边框宽度方法shadowWidth
+ *      20180425:wey:添加设置工具栏移动，避免全面板可移动
  */
 
 #ifndef WIDGET_H
@@ -35,6 +36,7 @@ public:
 
     void setShadowWindow(bool flag = true);
     void setWindowsMoveable(bool flag = true);
+    void setToolBarMoveable(bool flag = true);
 
 protected:
     void setContentWidget(QWidget * child);

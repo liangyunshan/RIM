@@ -4,6 +4,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QDir>
 
 #include "datastruct.h"
 #include "constants.h"
@@ -16,6 +17,10 @@
 #include "protocoldata.h"
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
+#include "user/user.h"
+#include "Network/netconnector.h"
+#include "thread/taskmanager.h"
+#include "Util/rutil.h"
 
 #include "widget/rlabel.h"
 
@@ -38,13 +43,15 @@ private:
 
     QWidget * contentWidget;
 
-    RIconLabel * userIconLabel;
-    QLabel * userNikcNameLabel;
-    RLineEdit * userSignNameEdit;
-    QWidget * extendToolWiget;
-    OnLineState * onlineState;
+    RIconLabel * userIconLabel;                     /*!< 用户头像 */
+    QLabel * userNikcNameLabel;                     /*!< 用户昵称 */
+    RLineEdit * userSignNameEdit;                   /*!< 用户签名 */
+    QWidget * extendToolWiget;                      /*!< 扩展工具 */
+    OnLineState * onlineState;                      /*!< 在线状态 */
 
     QLineEdit * searchLineEdit;
+
+    QString originUserSignName;                     /*!< 原始用户签名 */
 };
 
 void PanelTopAreaPrivate::initWidget()
@@ -72,7 +79,6 @@ void PanelTopAreaPrivate::initWidget()
     userIconLabel->setObjectName("Panel_Top_UserIconLabel");
     userIconLabel->setToolTip(QObject::tr("Edit personal information"));
     userIconLabel->setFixedSize(PANEL_TOP_USER_ICON_SIZE,PANEL_TOP_USER_ICON_SIZE);
-    userIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     QObject::connect(userIconLabel,SIGNAL(mousePressed()),MainDialog::instance(),SLOT(showPersonalEditWindow()));
 //    connect(userIconLabel,SIGNAL(mouseHover(bool)),MainDialog::instance(),SLOT(showUserInfo(bool)));
 
@@ -89,7 +95,7 @@ void PanelTopAreaPrivate::initWidget()
     userNikcNameLabel = new QLabel(contentWidget);
     userNikcNameLabel->setObjectName("Panel_Top_UserNikcNameLabel");
     userNikcNameLabel->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userNikcNameLabel->setText(G_UserBaseInfo.nickName);
+    userNikcNameLabel->setText(G_User->BaseInfo().nickName);
 
     onlineState = new OnLineState(contentWidget);
     onlineState->setState(G_OnlineStatus);
@@ -104,7 +110,7 @@ void PanelTopAreaPrivate::initWidget()
     userSignNameEdit = new RLineEdit(contentWidget);
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
-    userSignNameEdit->setText(G_UserBaseInfo.signName);
+    originUserSignName = G_User->BaseInfo().signName;
     QObject::connect(userSignNameEdit,SIGNAL(contentChanged(QString)),q_ptr,SLOT(respSignChanged(QString)));
 
     extendToolWiget = new QWidget(contentWidget);
@@ -143,6 +149,7 @@ void PanelTopAreaPrivate::initWidget()
     gridLayout->addWidget(searchWidget,5,0,1,2);
 
     contentWidget->setLayout(gridLayout);
+    userSignNameEdit->installEventFilter(q_ptr);
 }
 
 PanelTopArea::PanelTopArea(QWidget *parent) :
@@ -150,6 +157,8 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
     QWidget(parent)
 {
     RSingleton<Subject>::instance()->attach(this);
+
+    loadCustomUserImage();
 
     connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
             this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
@@ -166,21 +175,52 @@ PanelTopArea::~PanelTopArea()
 
 void PanelTopArea::onMessage(MessageType type)
 {
+    MQ_D(PanelTopArea);
     switch(type)
     {
         case MESS_BASEINFO_UPDATE:
-                             updateUserInfo();
-                             break;
+             updateUserInfo();
+             break;
+        case MESS_ICON_CHANGE:
+             loadCustomUserImage();
+             break;
+        case MESS_TEXT_NET_ERROR:
+             networkIsConnected(false);
+             break;
+        case MESS_TEXT_NET_OK:
+             networkIsConnected(true);
+             break;
+        case MESS_USER_OFF_LINE:
+             {
+                d->userIconLabel->setGray(true);
+                d->onlineState->setState(STATUS_OFFLINE);
+             }
+             break;
         default:
-            break;
+             break;
+    }
+}
+
+void PanelTopArea::loadCustomUserImage()
+{
+    MQ_D(PanelTopArea);
+    d->userIconLabel->setPixmap(G_User->getIcon());
+}
+
+void PanelTopArea::networkIsConnected(bool connected)
+{
+    MQ_D(PanelTopArea);
+    d->userIconLabel->setGray(!connected);
+    if(!connected){
+        d->onlineState->setState(STATUS_OFFLINE);
     }
 }
 
 /*!
-     * @brief 设置面板中用户的状态显示
-     * @param[in] state:OnlineStatus，用户状态枚举值
-     * @return 无
-     */
+ * @brief 设置面板中用户的状态显示
+ * @param[in] state:OnlineStatus，用户状态枚举值
+ * @return 无
+ */
 void PanelTopArea::setState(OnlineStatus state)
 {
     MQ_D(PanelTopArea);
@@ -189,19 +229,20 @@ void PanelTopArea::setState(OnlineStatus state)
 
 void PanelTopArea::respSignChanged(QString content)
 {
+    R_CHECK_ONLINE;
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
-    request->baseInfo.accountId = G_UserBaseInfo.accountId;
-    request->baseInfo.nickName = G_UserBaseInfo.nickName;
+    request->baseInfo.accountId = G_User->BaseInfo().accountId;
+    request->baseInfo.nickName = G_User->BaseInfo().nickName;
     request->baseInfo.signName = content;
-    request->baseInfo.sexual = G_UserBaseInfo.sexual;
-    request->baseInfo.birthday = G_UserBaseInfo.birthday;
-    request->baseInfo.address = G_UserBaseInfo.address;
-    request->baseInfo.email = G_UserBaseInfo.email;
-    request->baseInfo.phoneNumber = G_UserBaseInfo.phoneNumber;
-    request->baseInfo.remark = G_UserBaseInfo.remark;
-    request->baseInfo.face = G_UserBaseInfo.face;
-    request->baseInfo.customImgId = G_UserBaseInfo.customImgId;
+    request->baseInfo.sexual = G_User->BaseInfo().sexual;
+    request->baseInfo.birthday = G_User->BaseInfo().birthday;
+    request->baseInfo.address = G_User->BaseInfo().address;
+    request->baseInfo.email = G_User->BaseInfo().email;
+    request->baseInfo.phoneNumber = G_User->BaseInfo().phoneNumber;
+    request->baseInfo.remark = G_User->BaseInfo().remark;
+    request->baseInfo.isSystemIcon = G_User->BaseInfo().isSystemIcon;
+    request->baseInfo.iconId = G_User->BaseInfo().iconId;
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -211,8 +252,7 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
 {
     if(result == UPDATE_USER_SUCCESS)
     {
-        G_UserBaseInfo = response.baseInfo;
-
+        G_User->BaseInfo() = response.baseInfo;
         RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
     }
 }
@@ -220,37 +260,48 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
 void PanelTopArea::updateUserInfo()
 {
     MQ_D(PanelTopArea);
-    UserBaseInfo tmp = G_UserBaseInfo;
-    d->userSignNameEdit->setText(G_UserBaseInfo.signName);
+    d->originUserSignName = G_User->BaseInfo().signName;
+    d->userSignNameEdit->setText(RUtil::replaceLongTextWidthElide(d->userSignNameEdit->font(),d->originUserSignName,d->userSignNameEdit->width()));
+    d->userNikcNameLabel->setText(G_User->BaseInfo().nickName);
 
     QString t_iconPath;
-    if(G_UserBaseInfo.face>0)
-    {
-        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_UserBaseInfo.face);
+    if(G_User->BaseInfo().isSystemIcon){
+        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_User->BaseInfo().iconId);
     }
-    else
-    {
-        //TODO 获取自定义头像文件路径
-    }
-    if(!t_iconPath.isEmpty())
-    {
+
+    if(!t_iconPath.isEmpty()){
         QFileInfo t_iconFile(t_iconPath);
         if(!t_iconFile.exists())
-        {
             return;
-        }
     }
 
     d->userIconLabel->setPixmap(t_iconPath);
-
 }
 
 void PanelTopArea::stateChanged(OnlineStatus state)
 {
-    UserStateRequest * request = new UserStateRequest();
-    request->accountId = G_UserBaseInfo.accountId;
-    request->onStatus = state;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    if(G_User->isTextOnLine()){
+        UserStateRequest * request = new UserStateRequest();
+        request->accountId = G_User->BaseInfo().accountId;
+        request->onStatus = state;
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
+    }else{
+        RSingleton<TaskManager>::instance()->initTask();
+        if(TextNetConnector::instance())
+            TextNetConnector::instance()->reconnect();
+    }
+}
+
+bool PanelTopArea::eventFilter(QObject *watched, QEvent *event)
+{
+    MQ_D(PanelTopArea);
+    if(watched == d->userSignNameEdit){
+        if(event->type() == QEvent::Resize){
+            d->userSignNameEdit->setText(RUtil::replaceLongTextWidthElide(d->userSignNameEdit->font(),d->originUserSignName,d->userSignNameEdit->width()));
+            return true;
+        }
+    }
+    return QWidget::eventFilter(watched,event);
 }
 
 void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
@@ -258,9 +309,3 @@ void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateRespo
     Q_UNUSED(result);
     Q_UNUSED(response);
 }
-
-
-
-
-
-

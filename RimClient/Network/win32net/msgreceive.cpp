@@ -3,6 +3,10 @@
 #include <QUdpSocket>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <winsock2.h>
+#endif
+
 #include "Util/rlog.h"
 #include "Util/rutil.h"
 #include "netglobal.h"
@@ -48,7 +52,6 @@ void RecveiveTask::run()
     lastRecvBuff.clear();
 
     char recvBuff[MSG_RECV_BUFF] = {0};
-
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);
@@ -64,8 +67,8 @@ void RecveiveTask::run()
                 memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
                 memcpy(dataBuff + lastRecvBuff.size(),recvBuff,recvLen);
 
-                recvData(dataBuff,lastRecvBuff.size() + recvLen);
                 lastRecvBuff.clear();
+                recvData(dataBuff,tmpBuffLen - 1);
 
                 delete[] dataBuff;
             }
@@ -74,9 +77,15 @@ void RecveiveTask::run()
                 recvData(recvBuff,recvLen);
             }
         }
-        else
+        //Socket 关闭/出错
+        else if(recvLen < 0)
         {
-            RLOG_ERROR("receive a pack not completely %d",tcpSocket->getLastError());
+            int error = tcpSocket->getLastError();
+            if(errno == EAGAIN || errno == EWOULDBLOCK || error == (int)WSAETIMEDOUT){
+                continue;
+            }
+
+            RLOG_ERROR("remoate socket cloesed %d",tcpSocket->getLastError());
             tcpSocket->closeSocket();
             emit socketError(tcpSocket->getLastError());
             break;
@@ -97,9 +106,8 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
         unsigned int processLen = 0;
         do
         {
-            memcpy((char *)&packet,recvData,sizeof(DataPacket));
+            memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
             processLen += sizeof(DataPacket);
-
             //[1]数据头部分正常
             if(packet.magicNum == RECV_MAGIC_NUM)
             {
@@ -112,7 +120,6 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                     {
                         dataBuff.resize(packet.currentLen);
                         memcpy(dataBuff.data(),recvData + processLen,packet.currentLen);
-
                         processData(dataBuff);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
@@ -160,9 +167,7 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                     int leftLen = recvLen - processLen;
 
                     if(leftLen <= 0)
-                    {
                         break;
-                    }
 
                     if(leftLen >= sizeof(DataPacket))
                     {
@@ -174,11 +179,12 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                         memcpy(&packet,recvData + processLen,leftLen);
 
                         lastRecvBuff.clear();
-                        lastRecvBuff.append((char *)&packet,leftLen);
+                        lastRecvBuff.append(recvData + processLen,leftLen);
 
                         processLen += leftLen;
                         break;
                     }
+
                 }
                 //[1.2]【信息被截断】
                 else
@@ -219,7 +225,8 @@ TextReceive::TextReceive(QObject *parent):
 
 TextReceive::~TextReceive()
 {
-
+    stopMe();
+    wait();
 }
 
 void TextReceive::processData(QByteArray &data)
@@ -239,7 +246,8 @@ FileReceive::FileReceive(QObject *parent):
 
 FileReceive::~FileReceive()
 {
-
+    stopMe();
+    wait();
 }
 
 void FileReceive::processData(QByteArray &data)

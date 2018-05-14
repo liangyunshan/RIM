@@ -16,6 +16,7 @@ MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
 
 MsgReceiveProcTask::~MsgReceiveProcTask()
 {
+    stopMe();
     wait();
 }
 
@@ -39,7 +40,7 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(G_TextRecvBuffs.isEmpty())
+        while(runningFlag && G_TextRecvBuffs.isEmpty())
         {
             G_TextRecvMutex.lock();
             G_TextRecvCondition.wait(&G_TextRecvMutex);
@@ -123,6 +124,22 @@ void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &o
         case MSG_RELATION_GROUPING_FRIEND:
                 RSingleton<DataProcess>::instance()->proGroupingFriendResponse(obj);
                 break;
+        case MSG_GROUP_LIST:
+                RSingleton<DataProcess>::instance()->proGroupListResponse(obj);
+                break;
+        case MSG_GROUP_CREATE:
+                RSingleton<DataProcess>::instance()->proRegistGroupResponse(obj);
+                break;
+        case MSG_GROUP_SEARCH:
+                RSingleton<DataProcess>::instance()->proSearchGroupResponse(obj);
+                break;
+        case MSG_GROUP_OPERATE:
+                RSingleton<DataProcess>::instance()->proOpreateGroupResponse(obj);
+                break;
+        case MSG_GROUP_COMMAND:
+                RSingleton<DataProcess>::instance()->proGroupCommandResponse(obj);
+                break;
+        default:break;
     };
 }
 
@@ -132,6 +149,9 @@ void MsgReceiveProcTask::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
     {
         case MSG_TEXT_TEXT:
         case MSG_TEXT_SHAKE:
+        case MSG_TEXT_AUDIO:
+        case MSG_TEXT_FILE:
+        case MSG_TEXT_IMAGE:
             RSingleton<DataProcess>::instance()->proText(obj);
             break;
 

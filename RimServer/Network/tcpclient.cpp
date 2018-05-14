@@ -41,7 +41,7 @@ bool TcpClient::addFile(QString fileId, FileRecvDesc *desc)
     return true;
 }
 
-bool TcpClient::removeFile(QString fileId)
+bool TcpClient::removeFile(QString &fileId)
 {
     QMutexLocker fileLocker(&fileMutex);
     if(fileRecvList.contains(fileId))

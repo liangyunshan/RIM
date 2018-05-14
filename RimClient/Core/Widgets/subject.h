@@ -7,6 +7,7 @@
  *  @date      2017.12.26
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note 20180427:wey:修改锁为可重入模式，避免在响应OnMessage过程中动态增加Observer
  */
 #ifndef SUBJECT_H
 #define SUBJECT_H

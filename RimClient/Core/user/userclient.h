@@ -1,6 +1,6 @@
 ﻿/*!
- *  @brief     联系人
- *  @details   代表当前一个联系人或者一个群，可通过此对象获取所有用户相关的窗口、数据等
+ *  @brief     用户联系人
+ *  @details   代表当前一个联系人，可通过此对象获取所有用户相关的窗口、数据等
  *  @file      userclient.h
  *  @author    wey
  *  @version   1.0
@@ -13,10 +13,12 @@
 
 #include <QHash>
 #include <QString>
-#include <QMutex>
+#include <functional>
+#include <mutex>
 
 class ToolItem;
 class AbstractChatWidget;
+class FileDesc;
 
 #include "protocoldata.h"
 #include "datastruct.h"
@@ -27,6 +29,12 @@ class UserClient
 public:
     explicit UserClient();
     ~UserClient();
+
+    void procRecvContent(TextRequest &response);
+    void procRecvServerTextReply(TextReply &reply);
+
+    void procDownOverFile(FileDesc * fileDesc);
+    void procDownItemIcon(FileDesc * fileDesc);
 
 public:
     SimpleUserInfo simpleUserInfo;
@@ -46,14 +54,14 @@ public:
     UserClient * client(ToolItem * item);
     UserClient * client(QString accountId);
 
-    void closeAllClientWindow();
+    void for_each(std::function<void(UserClient *)> func);
 
+    void closeAllClientWindow();
     int size();
 
 private:
     QHash<QString,UserClient*> clients;
-
-    QMutex mutex;
+    std::mutex clientMutex;
 };
 
 #endif // USERCLIENT_H

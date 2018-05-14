@@ -10,6 +10,10 @@
 #include "maindialog.h"
 #include "rsingleton.h"
 #include "systemsettings.h"
+#include "Network/netconnector.h"
+#include "user/user.h"
+#include "global.h"
+#include "widget/rmessagebox.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -76,9 +80,14 @@ void PanelBottomToolBarPrivate::initWidget()
     notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     notifyButton->setToolTip(QObject::tr("Notify windows"));
 
+    RToolButton * fileServerButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FILESERVER,q_ptr,SLOT(viewFileServerState()));
+    fileServerButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
+    fileServerButton->setToolTip(QObject::tr("File server"));
+
     contentLayout->addWidget(toolButton);
     contentLayout->addWidget(searchPerson);
     contentLayout->addWidget(notifyButton);
+    contentLayout->addWidget(fileServerButton);
     contentLayout->addStretch(1);
 
     mainWidget->setLayout(contentLayout);
@@ -103,9 +112,21 @@ PanelBottomToolBar::~PanelBottomToolBar()
     delete d_ptr;
 }
 
-void PanelBottomToolBar::onMessage(MessageType)
+void PanelBottomToolBar::onMessage(MessageType mtype)
 {
-
+    switch(mtype){
+        case MESS_ADD_FRIEND_WINDOWS:
+                showAddFriendPanel();
+            break;
+        case MESS_FILE_NET_ERROR:
+            networkIsConnected(false);
+            break;
+        case MESS_FILE_NET_OK:
+            networkIsConnected(true);
+            break;
+        default:
+            break;
+    }
 }
 
 void PanelBottomToolBar::showAddFriendPanel()
@@ -153,4 +174,31 @@ void PanelBottomToolBar::updateSettingInstnce(QObject *)
 void PanelBottomToolBar::showNotifyWindow()
 {
     RSingleton<Subject>::instance()->notify(MESS_NOTIFY_WINDOWS);
+}
+
+void PanelBottomToolBar::viewFileServerState()
+{
+    MQ_D(PanelBottomToolBar);
+    if(!G_User->isFileOnLine()){
+        if(FileNetConnector::instance())
+            FileNetConnector::instance()->reconnect();
+    }else{
+        RMessageBox::information(nullptr,tr("information"),tr("File server connected!"),RMessageBox::Yes);
+        //TODO 20180503 检测文件服务器连接状态
+    }
+}
+
+void PanelBottomToolBar::networkIsConnected(bool connected)
+{
+    MQ_D(PanelBottomToolBar);
+    RToolButton * butt = ActionManager::instance()->toolButton(Constant::TOOL_PANEL_FILESERVER);
+    if(butt){
+        if(connected){
+            butt->setIcon(Constant::TOOL_PANEL_FILESERVER);
+            butt->setToolTip(tr("File server connected"));
+        }else{
+            butt->setIcon(Constant::TOOL_PANEL_FILESERVER_ERROR);
+            butt->setToolTip(tr("File server disconnected"));
+        }
+    }
 }

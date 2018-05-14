@@ -44,8 +44,13 @@ private slots:
 public slots:
     void stateChanged(OnlineStatus state);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event);
+
 private:
     void updateUserInfo();
+    void loadCustomUserImage();
+    void networkIsConnected(bool connected);
 
 private:
     PanelTopAreaPrivate * d_ptr;

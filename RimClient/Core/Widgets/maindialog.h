@@ -22,12 +22,7 @@
 using namespace ProtocolType;
 
 class MainDialogPrivate;
-class ToolBar;
-class PanelBottomToolBar;
-class PanelContentArea;
-class PanelTopArea;
 class ToolItem;
-class DatabaseManager;
 
 class MainDialog : public Widget,public Observer
 {
@@ -52,18 +47,14 @@ private slots:
     void updateWidgetGeometry();
     void closeWindow();
     void makeWindowFront(bool flag);
-    void blockAutoHidePanel(bool flag);
+    void blockAutoHidePanel();
 
-    void showChatWindow(ToolItem*item);
     void showHoverItem(bool,ToolItem*);
 
     void showPersonalEditWindow();
     void updateEditInstance();
 
-    void updateFriendList(FriendListResponse * friendList);
-    void recvGroupingOperate(GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
-
     void screenChanged();
 
 private:
@@ -71,6 +62,7 @@ private:
     void readSettings();
     void writeSettings();
     void initSqlDatabase();
+    void initMedia();
     void isAutoHide();
     void hidePanel();
     void showPanel();
@@ -82,7 +74,6 @@ private:
 private:
     static MainDialog * dialog;
     MainDialogPrivate * d_ptr;
-    DatabaseManager *p_dbManager;
 };
 
 #endif // MAINDIALOG_H

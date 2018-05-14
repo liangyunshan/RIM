@@ -30,7 +30,6 @@ namespace ClientNetwork {
 class RTask;
 }
 
-
 class SuperConnector : public ClientNetwork::RTask
 {
     Q_OBJECT
@@ -53,6 +52,7 @@ public:
     bool isBock(){return rsocket->isBock();}
 
     bool isSockValid(){return rsocket->isValid();}
+    bool isConnected()const {return netConnected;}
 
     ClientNetwork::RSocket * socket(){return rsocket;}
 
@@ -66,9 +66,6 @@ protected:
 
     void run();
 
-signals:
-    void connected(bool flag);
-
 protected slots:
     virtual void respSocketError(int errorCode)=0;
 
@@ -80,7 +77,6 @@ protected:
 
     int delayTime;
 
-private:
     QMutex mutex;
     QWaitCondition condition;
 
@@ -115,6 +111,7 @@ class FileNetConnector : public SuperConnector
     Q_OBJECT
 public:
     explicit FileNetConnector();
+    ~FileNetConnector();
 
     static FileNetConnector * instance();
 

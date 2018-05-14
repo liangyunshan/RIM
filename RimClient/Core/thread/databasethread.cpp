@@ -8,9 +8,16 @@
 #include <QDebug>
 
 DatabaseThread::DatabaseThread(QObject *obj):
-    p_TaskObj(obj)
+    p_TaskObj(obj),runningFlag(true)
 {
     database = NULL;
+}
+
+DatabaseThread::~DatabaseThread()
+{
+    runningFlag = false;
+    runWaitCondition.wakeAll();
+    wait();
 }
 
 void DatabaseThread::setDatabase(Database *db)
@@ -36,8 +43,16 @@ void DatabaseThread::addSqlQueryTask(int id, QString sql_querry)
 
 void DatabaseThread::run()
 {
-    while(true)
+    while(runningFlag)
     {
+        while(runningFlag && m_TaskQueue.isEmpty())
+        {
+            m_Pause.lock();
+            runWaitCondition.wait(&m_Pause);
+            m_Pause.unlock();
+        }
+
+
         while (!m_TaskQueue.isEmpty())
         {
             TaskQueue task = m_TaskQueue.head();
@@ -69,13 +84,6 @@ void DatabaseThread::run()
                 }
             }
             m_TaskQueue.removeFirst();
-        }
-
-        if(m_TaskQueue.isEmpty())
-        {
-            m_Pause.lock();
-                runWaitCondition.wait(&m_Pause);
-            m_Pause.unlock();
         }
     }
 }

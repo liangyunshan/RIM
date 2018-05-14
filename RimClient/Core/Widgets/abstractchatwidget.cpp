@@ -19,6 +19,12 @@
 #include <QProcess>
 #include <QMimeData>
 #include <QPalette>
+#include <QPropertyAnimation>
+#include <QWebEngineView>
+#include <QWebEnginePage>
+#include <QWebChannel>
+#include <QImage>
+#include <QDir>
 
 #include "head.h"
 #include "global.h"
@@ -32,12 +38,14 @@
 #include "Util/imagemanager.h"
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"
-#include "slidebar.h"
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
 #include "others/msgqueuemanager.h"
-#include "thread/imagetask.h"
+#include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
+#include "messdiapatch.h"
+#include "previewpage.h"
+#include "document.h"
 
 #include "actionmanager/actionmanager.h"
 #include "toolbar.h"
@@ -46,6 +54,11 @@
 #include "sql/sqlprocess.h"
 #include "json/jsonresolver.h"
 #include "screenshot.h"
+#include "user/user.h"
+#include "chataudioarea.h"
+#include "media/audioinput.h"
+#include "media/audiooutput.h"
+#include "widget/rmessagebox.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -54,6 +67,12 @@
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
 #define CHAT_RIGHT_EXTREA_WIDTH   370       //消息记录等宽度
+#define CHAT_SHAKE_DURATION 200             //窗口抖动动画持续时间
+#define CHAT_SHAKE_LOOPCOUNT 2              //窗口抖动动画循环次数
+#define CHAT_SHAKE_RANGE 6                  //窗口抖动幅度
+#define SHOTIMAGE_WIDTH 80                  //截图显示宽度
+#define SHOTIMAGE_HEIGHT 80                 //截图显示高度
+#define TIMESTAMP_GAP 60                    //显示新时间戳的消息时间间隔
 
 class AbstractChatWidgetPrivate : public GlobalData<AbstractChatWidget>
 {
@@ -69,6 +88,8 @@ protected:
         p_DatabaseThread = NULL;
         p_shotProcess = NULL;
         p_shotTimer = NULL;
+        b_isScreeHide = false;
+        m_content.setUi(q); //LYS
     }
 
     void initWidget();
@@ -78,21 +99,21 @@ protected:
     QWidget * contentWidget;
 
     QWidget * userInfoWidget;              //用户、群组头像等信息页面
-    RIconLabel * userInfo_IconLabel;
-    QLabel * userInfo_NameLabel;
-
-    SimpleUserInfo userInfo;               //用户基本信息
+    RIconLabel * userInfo_IconLabel;       /*!< 聊天头像 */
+    QLabel * userInfo_NameLabel;           /*!< 对方名称 */
 
     ToolBar * toolBar;                     //工具栏
-    SlideBar * slideBar;
 
     QSplitter * chatSplitter;
     QWidget * bodyWidget;
     QWidget * leftWidget;
-    QWidget * rightWidget;                 //右侧
+    QWidget * rightWidget;                 //右侧(历史消息、文件传输等)
 
     QWidget * chatWidget;                  //聊天区域
-    ComplexTextEdit * chatArea;            //对话信息区域
+    QWebEngineView * view;                 //加载html视图
+    PreviewPage *page;  //LYS
+    Document m_content; //LYS
+    ChatAudioArea * chatAudioArea;         //录音工具栏
     ToolBar * chatToolBar;                 //聊天工具栏
     SimpleTextEdit * chatInputArea;        //信息输入框
     QWidget * buttonWidget;                //关闭、发送等按钮栏
@@ -103,14 +124,13 @@ protected:
     bool isMaxSize;
     QRect originRect;                      //原始位置及尺寸
 
-    QString windowId;                       /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
+    SimpleUserInfo userInfo;               /*!< 当前聊天对象基本信息 */
+    QString windowId;                      /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
     DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
-    QTimer *p_shakeTimer;
-    int m_nPosition;
-    QPoint m_curPos;
     bool b_isScreeHide;
+    QDateTime m_preMsgTime;
 };
 
 #define CHAT_TOOL_HEIGHT 30
@@ -133,14 +153,11 @@ void AbstractChatWidgetPrivate::initWidget()
     userLayout->setSpacing(5);
     userInfo_IconLabel = new RIconLabel(userInfoWidget);
     userInfo_IconLabel->setTransparency(true);
-    userInfo_IconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     userInfo_IconLabel->setFixedSize(CHAT_USER_ICON_SIZE,CHAT_USER_ICON_SIZE);
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
-
-    q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
     userLayout->addWidget(userInfo_NameLabel);
@@ -188,19 +205,27 @@ void AbstractChatWidgetPrivate::initWidget()
 
     /**********聊天对话框***************/
     chatWidget = new QWidget(leftWidget);
-    QHBoxLayout * tmpLayout = new QHBoxLayout();
-    tmpLayout->setContentsMargins(0,0,0,0);
-    tmpLayout->setSpacing(0);
 
-    chatArea = new ComplexTextEdit(leftWidget);
-    chatArea->setReadOnly(true);
+    PreviewPage *page = new PreviewPage(q_ptr);
+    view = new QWebEngineView(chatWidget);
+    view->setStyleSheet("background-color:red");
+    view->setPage(page);
+    QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
 
-    slideBar = new SlideBar(contentWidget);
-    slideBar->setFixedWidth(10);
+    //LYS
+    QWebChannel *channel = new QWebChannel(q_ptr);
+    channel->registerObject(QStringLiteral("content"),&m_content);
+    page->setWebChannel(channel);
 
-    tmpLayout->addWidget(chatArea);
-    tmpLayout->addWidget(slideBar);
-    chatWidget->setLayout(tmpLayout);
+    chatAudioArea = new ChatAudioArea(chatWidget);
+    chatAudioArea->setVisible(false);
+    QObject::connect(chatAudioArea,SIGNAL(prepareSendAudio()),q_ptr,SLOT(prepareSendAudio()));
+    QObject::connect(chatAudioArea,SIGNAL(preapreCancelAudio()),q_ptr,SLOT(preapreCancelAudio()));
+
+    QVBoxLayout * webLayout =  new QVBoxLayout;
+    webLayout->addWidget(view);
+    webLayout->addWidget(chatAudioArea);
+    chatWidget->setLayout(webLayout);
 
     QWidget * chatInputContainter = new QWidget(leftWidget);
     chatInputContainter->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -219,10 +244,13 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * fontButt = new RToolButton();
     fontButt->setObjectName(Constant::Tool_Chat_Font);
     fontButt->setToolTip(QObject::tr("Font"));
+    //ShangChao
+    QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
 
     RToolButton * fontColorButt = new RToolButton();
     fontColorButt->setObjectName(Constant::Tool_Chat_FontColor);
     fontColorButt->setToolTip(QObject::tr("FontColor"));
+    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
 
     RToolButton * faceButt = new RToolButton();
     faceButt->setObjectName(Constant::Tool_Chat_Face);
@@ -231,6 +259,7 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * shakeButt = new RToolButton();
     shakeButt->setObjectName(Constant::Tool_Chat_Shake);
     shakeButt->setToolTip(QObject::tr("Shake window"));
+    QObject::connect(shakeButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ShakeWidget(bool)));
 
     RToolButton * imageButt = new RToolButton();
     imageButt->setObjectName(Constant::Tool_Chat_Image);
@@ -239,7 +268,13 @@ void AbstractChatWidgetPrivate::initWidget()
     RToolButton * screenShotButt = new RToolButton();
     screenShotButt->setObjectName(Constant::Tool_Chat_ScreenShot);
     screenShotButt->setToolTip(QObject::tr("Screenshot"));
-    screenShotButt->setPopupMode(QToolButton::InstantPopup);
+    screenShotButt->setPopupMode(QToolButton::MenuButtonPopup);
+    QObject::connect(screenShotButt,SIGNAL(clicked()),G_pScreenShotAction,SIGNAL(triggered()));
+
+    RToolButton * audioButt = new RToolButton();
+    audioButt->setObjectName(Constant::Tool_Chat_Audio);
+    audioButt->setToolTip(QObject::tr("Audio"));
+    QObject::connect(audioButt,SIGNAL(clicked(bool)),q_ptr,SLOT(respShowAudioArea(bool)));
 
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
@@ -248,6 +283,7 @@ void AbstractChatWidgetPrivate::initWidget()
     hideWindowAction->setObjectName(this->windowId + "HideScreenshot");
     hideWindowAction->setCheckable(true);
     hideWindowAction->setChecked(false);
+    QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
 
     screenShotMenu->addAction(G_pScreenShotAction);
     screenShotMenu->addAction(hideWindowAction);
@@ -259,6 +295,9 @@ void AbstractChatWidgetPrivate::initWidget()
     recordButt->setToolTip(QObject::tr("Record data"));
     recordButt->removeIcon();
     recordButt->setText(QObject::tr("Record data"));
+    recordButt->setCheckable(true);
+    recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
+    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
 
     chatToolBar->appendToolButton(fontButt);
     chatToolBar->appendToolButton(fontColorButt);
@@ -266,20 +305,11 @@ void AbstractChatWidgetPrivate::initWidget()
     chatToolBar->appendToolButton(shakeButt);
     chatToolBar->appendToolButton(imageButt);
     chatToolBar->appendToolButton(screenShotButt);
+    chatToolBar->appendToolButton(audioButt);
     chatToolBar->addStretch(1);
     chatToolBar->appendToolButton(recordButt);
 
-    recordButt->setCheckable(true);
-    recordButt->setFixedWidth(recordButt->fontMetrics().width(recordButt->text()) + 10);
-    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
-
-    //ShangChao
-    QObject::connect(fontButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFont(bool)));
-    QObject::connect(fontColorButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_SetChatEditFontColor(bool)));
-    QObject::connect(shakeButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ShakeWidget(bool)));
     QObject::connect(G_pScreenShot,SIGNAL(sig_ShotReady(bool)),q_ptr,SLOT(slot_ScreenShot_Ready(bool)));
-    QObject::connect(hideWindowAction,SIGNAL(triggered(bool)),q_ptr,SLOT(slot_ScreenShotHide(bool)));
-    //
 
     /**********聊天内容输入框***************/
     chatInputArea = new SimpleTextEdit(chatInputContainter);
@@ -302,7 +332,7 @@ void AbstractChatWidgetPrivate::initWidget()
     sendMessButton->setObjectName(Constant::Button_Chat_Send);
     sendMessButton->setText(QObject::tr("Send message"));
     QObject::connect(sendMessButton,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_ButtClick_SendMsg(bool)));
-    QObject::connect(this->chatInputArea,SIGNAL(sigEnter()),q_ptr,SLOT(slot_CheckSendEnter()));
+    QObject::connect(chatInputArea,SIGNAL(sigEnter()),q_ptr,SLOT(slot_CheckSendEnter()));
 
     RToolButton * extralButton = new RToolButton();
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -344,8 +374,6 @@ void AbstractChatWidgetPrivate::initWidget()
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
 
-    QObject::connect(slideBar,SIGNAL(slideStateChanged(bool)),q_ptr,SLOT(setSideVisible(bool)));
-
     layout->addWidget(leftWidget);
     layout->addWidget(rightWidget);
 
@@ -380,37 +408,31 @@ AbstractChatWidget::AbstractChatWidget(QWidget *parent):
 
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
-    d_ptr->chatInputArea->setFocus();
 
-    d_ptr->p_shakeTimer = NULL;
-    d_ptr->b_isScreeHide = false;
-
-    connect(d_ptr->chatArea,SIGNAL(sig_QueryRecordTask(int,int)),
-            this,SLOT(slot_QueryHistoryRecords(int,int)));
+    d_ptr->view->load(QUrl("qrc:/html/resource/html/chatRecord.html"));
+    d_ptr->view->show();
 
     QTimer::singleShot(0,this,SLOT(resizeOnce()));
     RSingleton<Subject>::instance()->attach(this);
+    connect(this,SIGNAL(maxWindow(bool)),this,SLOT(noticeWebViewShift(bool)));
 }
 
 AbstractChatWidget::~AbstractChatWidget()
 {
-    if(d_ptr->p_shotProcess)
+    MQ_D(AbstractChatWidget);
+    if(d->p_shotProcess)
     {
-        delete d_ptr->p_shotProcess;
-        d_ptr->p_shotProcess = NULL;
+        delete d->p_shotProcess;
+        d->p_shotProcess = NULL;
     }
-    if(d_ptr->p_shotTimer)
+    if(d->p_shotTimer)
     {
-        delete d_ptr->p_shotTimer;
-        d_ptr->p_shotTimer = NULL;
+        delete d->p_shotTimer;
+        d->p_shotTimer = NULL;
     }
-    if(d_ptr->p_shakeTimer)
-    {
-        delete d_ptr->p_shakeTimer;
-        d_ptr->p_shakeTimer = NULL;
-    }
+    d->chatWidget->deleteLater();
 
-    delete d_ptr;
+    delete d;
 }
 
 QString AbstractChatWidget::widgetId()
@@ -423,16 +445,16 @@ void AbstractChatWidget::recvChatMsg(QByteArray msg)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 }
 
 void AbstractChatWidget::showRecentlyChatMsg(int count)
 {
     MQ_D(AbstractChatWidget);
     int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,count));
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,count));
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -440,9 +462,28 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     MQ_D(AbstractChatWidget);
     d->userInfo = info;
     d->userInfo_NameLabel->setText(info.nickName);
+    d->userInfo_IconLabel->setPixmap(G_User->getIcon(d->userInfo.isSystemIcon,d->userInfo.iconId));
+    setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(G_User->getIcon(info.isSystemIcon,info.iconId)));
     setWindowTitle(info.nickName);
+}
 
-    d_ptr->chatArea->setSimpleUserInfo(info);
+void AbstractChatWidget::initChatRecord()
+{
+    MQ_D(AbstractChatWidget);
+    d->p_DatabaseThread = new DatabaseThread(this);
+    d->p_DatabaseThread->setDatabase(G_User->database());
+
+    connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
+            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
+    connect(d->p_DatabaseThread,SIGNAL(finished()),
+            d->p_DatabaseThread,SLOT(deleteLater()));
+    d->p_DatabaseThread->start();
+
+    int user_query_id = d->userInfo.accountId.toInt();
+    bool ret = RSingleton<SQLProcess>::instance()->initTableUser_id(G_User->database(),d->userInfo);
+    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow));
+    Q_UNUSED(ret);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -450,13 +491,90 @@ void AbstractChatWidget::onMessage(MessageType type)
     switch(type)
     {
         case MESS_SHORTCUT:
-                           {
-
-                                break;
-                           }
+           {
+                break;
+           }
         default:
-            break;
+                break;
     }
+}
+
+//窗口抖动
+void AbstractChatWidget::shakeWindow()
+{
+    QPoint pos = this->pos();
+    QPropertyAnimation *pAnimation = new QPropertyAnimation(this, "pos");
+    pAnimation->setDuration(CHAT_SHAKE_DURATION);
+    pAnimation->setLoopCount(CHAT_SHAKE_LOOPCOUNT);
+    pAnimation->setStartValue(pos);
+    pAnimation->setKeyValueAt(0.1,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.2,pos + QPoint(-CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.3,pos + QPoint(-CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.4,pos + QPoint(0,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.5,pos + QPoint(CHAT_SHAKE_RANGE,CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.6,pos + QPoint(CHAT_SHAKE_RANGE,0));
+    pAnimation->setKeyValueAt(0.7,pos + QPoint(CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.8,pos + QPoint(0,-CHAT_SHAKE_RANGE));
+    pAnimation->setKeyValueAt(0.9,pos + QPoint(-CHAT_SHAKE_RANGE,-CHAT_SHAKE_RANGE));
+    pAnimation->setEndValue(pos);
+    pAnimation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+/*!
+ * \brief AbstractChatWidget::appendRecvMsg 直接将接收到的消息数据显示在聊天对话框中
+ * \param recvMsg 收到的消息数据
+ */
+void AbstractChatWidget::appendRecvMsg(TextRequest recvMsg)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_showMsgScript = QString("");
+    QDateTime t_epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
+    QString t_localHtml = recvMsg.sendData;
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+    RUtil::removeEccapeDoubleQuote(t_localHtml);
+    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+
+    t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
+/*!
+ * @brief AbstractChatWidget::playVoiceMessage 播放语音
+ * @param path 语音文件路径
+ */
+void AbstractChatWidget::playVoiceMessage(QString audioName)
+{
+    RSingleton<AudioOutput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
+    RSingleton<AudioOutput>::instance()->start(audioName);
 }
 
 //更新快捷键
@@ -468,7 +586,8 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 //响应聊天框的历史信息查询
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,currStartRow));
+    MQ_D(AbstractChatWidget);
+    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,currStartRow));
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -483,11 +602,11 @@ void AbstractChatWidget::resizeOnce()
     setSideVisible(false);
 }
 
+//控制历史消息记录窗口弹出与隐藏
 void AbstractChatWidget::setSideVisible(bool flag)
 {
     MQ_D(AbstractChatWidget);
 
-    d->slideBar->setState(flag);
     d->leftWidget->setProperty("SideBarVisible",flag);
     d->rightWidget->setProperty("SideBarVisible",flag);
 
@@ -510,13 +629,17 @@ void AbstractChatWidget::setSideVisible(bool flag)
 //出现字体设置界面
 void AbstractChatWidget::slot_SetChatEditFont(bool flag)
 {
-    Q_UNUSED(flag)
+    Q_UNUSED(flag);
+    MQ_D(AbstractChatWidget);
     bool ok;
     QFont font = QFontDialog::getFont(
                   &ok, QFont("Helvetica [Cronyx]", 10), this);
-    if (ok) {
-        d_ptr->chatInputArea->setInputFont(font);
-    } else {
+    if(ok)
+    {
+        d->chatInputArea->setInputFont(font);
+    }
+    else
+    {
 
     }
 }
@@ -524,10 +647,10 @@ void AbstractChatWidget::slot_SetChatEditFont(bool flag)
 //出现字体颜色设置界面
 void AbstractChatWidget::slot_SetChatEditFontColor(bool flag)
 {
-    Q_UNUSED(flag)
-
+    Q_UNUSED(flag);
+    MQ_D(AbstractChatWidget);
     QColor color = QColorDialog::getColor(Qt::white, this, QObject::tr("ColorDialog"));
-    d_ptr->chatInputArea->setInputColor(color);
+    d->chatInputArea->setInputColor(color);
 }
 
 //实现窗口抖动
@@ -539,70 +662,17 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     TextRequest * request = new TextRequest;
     request->msgCommand = MSG_TEXT_SHAKE;
     request->otherSideId = d->userInfo.accountId;
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->timeStamp = RUtil::timeStamp();
     RSingleton<MsgWrap>::instance()->hanleText(request);
 
     shakeWindow();
 }
 
-void AbstractChatWidget::shakeWindow()
-{
-    MQ_D(AbstractChatWidget);
-    if(d->p_shakeTimer == NULL)
-    {
-        d->p_shakeTimer = new QTimer();
-        connect(d->p_shakeTimer,SIGNAL(timeout()),this,SLOT(slot_ShakeTimeout()));
-        d->p_shakeTimer->setInterval(40);
-    }
-    d->m_nPosition = 0;
-    d->m_curPos = this->pos();
-    d->p_shakeTimer->start();
-}
-
-void AbstractChatWidget::slot_ShakeTimeout()
-{
-    MQ_D(AbstractChatWidget);
-    if(d->p_shakeTimer==NULL)
-    {
-        return ;
-    }
-    d->p_shakeTimer->stop();
-    if(d->m_nPosition < MaxLimitTimes)
-    {
-        ++d->m_nPosition;
-        switch(d->m_nPosition%4)
-        {
-            case 1:
-            {
-                QPoint tmpPos(d->m_curPos.x(),d->m_curPos.y()-MaxLimitSpace);
-                this->move(tmpPos);
-            }
-                break;
-            case 2:
-            {
-                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y()-MaxLimitSpace);
-                this->move(tmpPos);
-            }
-                break;
-            case 3:
-            {
-                QPoint tmpPos(d->m_curPos.x()-MaxLimitSpace,d->m_curPos.y());
-                this->move(tmpPos);
-            }
-                break;
-            default:
-            case 0:
-                this->move(d->m_curPos);
-                break;
-        }
-            d->p_shakeTimer->start();
-    }
-}
-
 //截图完成
 void AbstractChatWidget::slot_ScreenShot_Ready(bool)
 {
+    MQ_D(AbstractChatWidget);
     if(!this->isActiveWindow())
     {
         return ;
@@ -611,7 +681,7 @@ void AbstractChatWidget::slot_ScreenShot_Ready(bool)
     const QMimeData *mimeData = clipboard->mimeData();
     if(mimeData->hasImage())
     {
-        d_ptr->chatInputArea->insertCopyImage(clipboard->image());
+        d->chatInputArea->insertCopyImage(clipboard->image());
     }
     if(this->isMinimized())
     {
@@ -624,15 +694,17 @@ void AbstractChatWidget::slot_ScreenShot_Ready(bool)
 //截屏时聊天界面是否隐藏
 void AbstractChatWidget::slot_ScreenShotHide(bool flag)
 {
-    d_ptr->b_isScreeHide = flag;
+    MQ_D(AbstractChatWidget);
+    d->b_isScreeHide = flag;
 }
 
 void AbstractChatWidget::slot_ScreenTimeout()
 {
-    d_ptr->p_shotTimer->stop();
-    if(d_ptr->p_shotProcess)
+    MQ_D(AbstractChatWidget);
+    d->p_shotTimer->stop();
+    if(d->p_shotProcess)
     {
-        d_ptr->p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
+        d->p_shotProcess->start( "rundll32 "+ QApplication::applicationDirPath()+ "/PrScrn.dll PrScrn" );
     }
 }
 
@@ -653,64 +725,190 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
 
-//    if(d_ptr->chatInputArea->toPlainText().trimmed().isEmpty())
+//test
+    //TODO 20180423 向历史会话记录列表插入一条记录
+    HistoryChatRecord record;
+    record.accountId = d->userInfo.accountId;
+    record.nickName = d->userInfo.nickName;
+    record.dtime = RUtil::currentMSecsSinceEpoch();
+    record.lastRecord = RUtil::getTimeStamp();
+    record.systemIon = d->userInfo.isSystemIcon;
+    record.iconId = d->userInfo.iconId;
+    record.type = CHAT_C2C;
+    record.status = d->userInfo.status;
+    MessDiapatch::instance()->onAddHistoryItem(record);
+//test
+
+    QString t_simpleHtml = QString("");
+    d->chatInputArea->extractPureHtml(t_simpleHtml);
+
+    QString t_localHtml = t_simpleHtml;
+    TextUnit::ChatInfoUnit t_unit;
+    t_unit.time = QDateTime::currentDateTime().toString("yyyy/M/d h:mm:ss");
+    t_unit.contents = t_localHtml;
+    appendChatRecord(SEND,t_unit);
+
+    //转义原始Html
+    QString t_sendHtml = t_simpleHtml;
+    RUtil::escapeSingleQuote(t_sendHtml);
+    RUtil::escapeDoubleQuote(t_sendHtml);
+
+    //存储发送信息到数据库
+//    TextUnit::ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(t_sendHtml.toLocal8Bit());
+//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
+
+    //发送Html内容给联系人
+    TextRequest * request = new TextRequest;
+    request->type = OperatePerson;
+    request->textId = RUtil::UUID();
+
+    if(G_User->systemSettings()->encryptionCheck){
+        //TODO 数据加密
+    }
+    request->isEncryption = G_User->systemSettings()->encryptionCheck;
+
+    if(G_User->systemSettings()->compressCheck){
+        //TODO 数据压缩
+    }
+    request->isCompress = G_User->systemSettings()->compressCheck;
+
+    request->textType = TEXT_NORAML;
+    request->otherSideId = d->userInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->sendData = t_sendHtml;
+    request->timeStamp = RUtil::timeStamp();
+    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<MsgQueueManager>::instance()->enqueue(request);
+
+    //分开发送输入框中的图片
+//    QStringList t_imgDirs;
+//    d->chatInputArea->getInputedImgs(t_imgDirs);
+//    if(!t_imgDirs.isEmpty())
 //    {
-//        d_ptr->chatArea->insertTipChatText(QObject::tr("Input contents is empty."));
-//        return ;
+//        for(int imgIndex=0;imgIndex<t_imgDirs.count();imgIndex++)
+//        {
+//            QString t_imgPath = t_imgDirs.at(imgIndex);
+
+//            QString fileName = t_imgPath;
+//            FileItemDesc * desc = new FileItemDesc;
+//            desc->id = RUtil::UUID();
+//            desc->fullPath = fileName;
+//            desc->fileSize = QFileInfo(fileName).size();
+//            desc->otherSideId = d->userInfo.accountId;
+//            desc->itemType = FILE_ITEM_CHAT_UP;
+//            desc->itemKind = FILE_IMAGE;
+//            FileRecvTask::instance()->addSendItem(desc);
+
+//            Q_UNUSED(t_imgPath);
+//        }
 //    }
-//    TextUnit::ChatInfoUnit unit;
-//    d_ptr->chatInputArea->transTextToUnit(unit);
 
-    FileNetConnector::instance()->connect();
-
-//    //TODO 对信息进一步的操作（压缩、加密、设置信息类型等）
-//    TextRequest * request = new TextRequest;
-//    request->type = SearchPerson;
-//    request->textId = RUtil::UUID();
-//    request->isEncryption = false;
-//    request->isCompress = false;
-//    request->textType = TEXT_NORAML;
-//    request->otherSideId = d->userInfo.accountId;
-//    request->accountId = G_UserBaseInfo.accountId;
-//    request->sendData = RSingleton<JsonResolver>::instance()->WriteJSONFile(unit);
-//    request->timeStamp = RUtil::timeStamp();
-//    RSingleton<MsgWrap>::instance()->hanleText(request);
-//    RSingleton<MsgQueueManager>::instance()->enqueue(request);
-
-    //TODO 对图片进行测试
-    QString fileName = "e:/33.ISO";
-    FileItemDesc * desc = new FileItemDesc;
-    desc->id = RUtil::UUID();
-    desc->fullPath = fileName;
-    desc->fileSize = QFileInfo(fileName).size();
-//    desc->md5 = RUtil::MD5File(fileName);           //md5校验时过大的文件其计算较慢，在真正传输时计算MD5信息
-    desc->otherSideId = d->userInfo.accountId;
-    desc->itemType = FILE_ITEM_CHAT_UP;
-    ImageTask::instance()->addItem(desc);
-
-//    SQLProcess::instance()->insertTableUserChatInfo(DatabaseManager::Instance()->getLastDB(),unit,d->userInfo);
+//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
 
 //    int user_query_id = d->userInfo.accountId.toInt();
-//    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow,1));
+//    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
+//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
 
-    d_ptr->chatInputArea->clear();
+    d->chatInputArea->clear();
 }
 
 //响应数据库线程查询结果
 void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
 {
-    Q_UNUSED(id);
-    foreach(TextUnit::ChatInfoUnit unit,list)
+    if(id == 0)
     {
-        d_ptr->chatArea->insertChatText(unit);
+        foreach(TextUnit::ChatInfoUnit unit,list)
+        {
+            //获取收到的Html消息,进行处理后显示在聊天记录中
+            appendChatRecord(RECV,unit);
+        }
     }
+
+}
+
+//QWebEngineView加载HTML文件完成
+void AbstractChatWidget::finishLoadHTML(bool)
+{
+    qDebug()<<"finishLoadHTML";
+    setFontIconFilePath();
+}
+
+/*!
+ * \brief AbstractChatWidget::noticeWebViewShift 最大化或者还原WebView
+ */
+void AbstractChatWidget::noticeWebViewShift(bool)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_shiftScript = QString("toggleWindow()");
+    d->view->page()->runJavaScript(t_shiftScript);
+}
+
+/*!
+ * @brief 显示录音区域
+ * @details 若其它窗口未在录音则直接录音；
+ *          若其它窗口已经在录音，则提示，避免再打开录音功能
+ */
+void AbstractChatWidget::respShowAudioArea(bool)
+{
+    MQ_D(AbstractChatWidget);
+
+    if(RSingleton<AudioInput>::instance()->isRecording()){
+        RMessageBox::warning(this,tr("warning"),tr("Other window is recording,please try later!"),RMessageBox::Yes);
+        return;
+    }
+
+    RSingleton<AudioInput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
+
+    RSingleton<AudioInput>::instance()->start();
+    d->chatAudioArea->setVisible(true);
+    d->chatAudioArea->start();
+}
+
+/*!
+ * @brief 准备发送录音文件
+ */
+void AbstractChatWidget::prepareSendAudio()
+{
+    MQ_D(AbstractChatWidget);
+    if(RSingleton<AudioInput>::instance()->stop()){
+       QString lastRecordFileFullName = RSingleton<AudioInput>::instance()->lastRecordFullPath();
+
+       //【聊天文件发送:1/5】向服务器发送文件
+       if(G_User->isFileOnLine()){
+           FileItemDesc * desc = new FileItemDesc;
+           desc->id = RUtil::UUID();
+           desc->fullPath = lastRecordFileFullName;
+           desc->fileSize = QFileInfo(lastRecordFileFullName).size();
+           desc->itemType = FILE_ITEM_CHAT_UP;
+           desc->itemKind = FILE_AUDIO;
+           desc->otherSideId = d->userInfo.accountId;
+
+           FileRecvTask::instance()->addSendItem(desc);
+
+           appendVoiceMsg(SEND,QFileInfo(lastRecordFileFullName).fileName());
+       }
+    }
+    d->chatAudioArea->setVisible(false);
+}
+
+/*!
+ * @brief 取消录音文件发送
+ * @details 1.将已经生成的文件删除
+ *          2.隐藏录音区域
+ */
+void AbstractChatWidget::preapreCancelAudio()
+{
+    MQ_D(AbstractChatWidget);
+    if(RSingleton<AudioInput>::instance()->stop()){
+
+        RSingleton<AudioInput>::instance()->clear();
+    }
+    d->chatAudioArea->setVisible(false);
 }
 
 bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(AbstractChatWidget);
-
     if(watched == d->userInfoWidget)
     {
         if(event->type() == QEvent::MouseButtonDblClick)
@@ -727,7 +925,6 @@ bool AbstractChatWidget::eventFilter(QObject *watched, QEvent *event)
             return true;
         }
     }
-
 
     return Widget::eventFilter(watched,event);
 }
@@ -763,22 +960,127 @@ void AbstractChatWidget::switchWindowSize()
     setShadowWindow(!isMaximized());
 }
 
-void AbstractChatWidget::initChatRecord()
+/*!
+ * \brief AbstractChatWidget::appendChatRecord 将信息追加显示在聊天信息记录界面上
+ * \param html 收到的html格式的聊天信息
+ */
+void AbstractChatWidget::appendChatRecord(MsgTarget source, const TextUnit::ChatInfoUnit &unitMsg)
 {
     MQ_D(AbstractChatWidget);
-    d_ptr->p_DatabaseThread = new DatabaseThread(this);
-    d_ptr->p_DatabaseThread->setDatabase(DatabaseManager::Instance()->getLastDB());
+    QString t_showMsgScript = QString("");
+    QString t_localHtml = unitMsg.contents;
+    QDateTime t_curMsgTime = QDateTime::fromString(unitMsg.time,"yyyy/M/d h:mm:ss");
+    QString t_headPath = QString("");
 
-    connect(d_ptr->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
-            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
-    connect(d_ptr->p_DatabaseThread,SIGNAL(finished()),
-            d_ptr->p_DatabaseThread,SLOT(deleteLater()));
-    d_ptr->p_DatabaseThread->start();
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
 
-    int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = SQLProcess::instance()->initTableUser_id(DatabaseManager::Instance()->getLastDB(),d->userInfo);
-    int lastRow = SQLProcess::instance()->queryTotleRecord(DatabaseManager::Instance()->getLastDB(),user_query_id);
-    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,SQLProcess::instance()->querryRecords(user_query_id,lastRow));
-    Q_UNUSED(ret);
+    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+    RUtil::escapeSingleQuote(t_localHtml);
+
+    if(source == RECV)
+        t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    else
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+
 }
 
+/*!
+ * @brief AbstractChatWidget::setFontIconFilePath 修改HTML中字体图标文件链接路径
+ */
+void AbstractChatWidget::setFontIconFilePath()
+{
+    MQ_D(AbstractChatWidget);
+    QString t_currentPath = QDir::currentPath();
+    t_currentPath = QDir::fromNativeSeparators(t_currentPath);
+    QString t_setLinkFontHerfScript = QString("setAbsoulteFontIconHerf('%1')").arg(t_currentPath);
+    d->view->page()->runJavaScript(t_setLinkFontHerfScript);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendChatTimeNote 显示时间提示信息
+ * @param format 时间显示格式
+ * @param content 显示内容
+ */
+void AbstractChatWidget::appendChatTimeNote(QDateTime content,TimeFormat format)
+{
+    MQ_D(AbstractChatWidget);
+    QString t_curMsgTime = QString("");
+    QString t_showTimeScript = QString("");
+    if(content.isNull())
+    {
+        return;
+    }
+    switch (format) {
+    case TIME:
+        t_curMsgTime = content.time().toString("h:mm:ss");
+        break;
+    case DATETIME:
+        t_curMsgTime = content.toString("yyyy/M/d h:mm:ss");
+        break;
+    default:
+        break;
+    }
+    t_showTimeScript = QString("showMessageTime('%1')").arg(t_curMsgTime);
+    d->view->page()->runJavaScript(t_showTimeScript);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendChatNotice 显示操作提示信息
+ * @param type  信息类型
+ * @param content 信息内容
+ */
+void AbstractChatWidget::appendChatNotice(QString content,NoticeType type)
+{
+    MQ_D(AbstractChatWidget);
+    if(content.isEmpty())
+    {
+        return;
+    }
+    QString t_showNotice = QString("setNotice(%1,'%2')").arg(type).arg(content);
+    d->view->page()->runJavaScript(t_showNotice);
+}
+
+/*!
+ * @brief AbstractChatWidget::appendVoiceMsg 显示语音消息
+ */
+void AbstractChatWidget::appendVoiceMsg(MsgTarget source,QString recordFileName)
+{
+    MQ_D(AbstractChatWidget);
+
+    QString t_headPath;
+    if(source == SEND){
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }else if(source == RECV){
+        t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    }
+
+    QString t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
+    d->view->page()->runJavaScript(t_showVoiceMsgScript);
+}

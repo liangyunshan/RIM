@@ -7,26 +7,25 @@
  *  @date      2017.12.18
  *  @warning
  *  @copyright NanJing RenGu.
- *  @change
- *      date:20180118   content:添加获取page的文本框位置信息方法textRect    name:LYS
- *      date:20180122   content:添加获取page的文本框内容方法toolName      name:LYS
- *      date:20180129   content:添加移除page中的目标item方法removeItem   name:LYS
- *      date:20180129   content:添加page的item移除信号itemRemoved   name:LYS
- *      date:20180131   content:添加获取page是否展开方法isExpanded   name:LYS
- *      date:20180131   content:修改鼠标左键点击后设置page为选中状态（L373）   name:LYS
+ *  @note
+ *      20180118:LYS:添加获取page的文本框位置信息方法textRect
+ *      20180122:LYS:添加获取page的文本框内容方法toolName
+ *      20180129:LYS:添加移除page中的目标item方法removeItem
+ *      20180129:LYS:添加page的item移除信号itemRemoved
+ *      20180131:LYS:添加获取page是否展开方法isExpanded
+ *      20180131:LYS:修改鼠标左键点击后设置page为选中状态（L373）
  */
 #ifndef TOOLPAGE_H
 #define TOOLPAGE_H
 
 #include <QWidget>
+#include <functional>
 
 #include "toolitem.h"
 #include "datastruct.h"
 
 class ToolBox;
 class ToolPagePrivate;
-
-using namespace GroupPerson;
 
 class ToolPage : public QWidget
 {
@@ -39,9 +38,6 @@ public:
     void setToolName(const QString &text);
     QString toolName()const;
 
-    void setSortNum(const int num);
-    int sortNum()const;
-
     void setID(const QString & id);
     QString getID()const;
 
@@ -49,13 +45,16 @@ public:
     bool isDefault()const;
 
     void addItem(ToolItem *item);
-    QList<ToolItem *> &items();
     bool removeItem(ToolItem * item);
+    QList<ToolItem *> &items();
+    bool containsItem(std::function<bool(ToolItem *)> func);
 
     void setMenu(QMenu * menu);
 
     void setExpand(bool);
     bool isExpanded()const;
+
+    void setDescInfo(const QString & content);
 
     QRect textRect()const;
     QRect titleRect()const;

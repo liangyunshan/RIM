@@ -14,6 +14,8 @@
  *             20180207:wey:调整用户登陆列表
  *             20180225:wey:修复切换用户其登陆状态未同步切换问题
  *             20180301:wey:修复接收好友状态信息后未及时更新缓存信息
+ *             20180410:wey:修复好友列表初始不能获取登陆信息问题；调整输入验证，未登录则自动切换为默认头像
+ *             20180419:wey:调整将登陆成功的账户再次登陆时置顶显示；
  */
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
@@ -23,49 +25,11 @@
 #include "protocoldata.h"
 using namespace ProtocolType;
 
-class QToolButton;
-class ToolBar;
-class QMenu;
-class QAction;
-class QLabel;
-class RIconLabel;
-class QPushButton;
-class QListWidgetItem;
-
 class LoginDialogPrivate;
 class OnLineState;
 class SystemTrayIcon;
 class MainDialog;
 class ActionManager;
-
-class ComboxItem : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit ComboxItem(QWidget * parent = 0);
-    ~ComboxItem();
-
-    void setNickName(QString name);
-
-    void setAccountId(QString id);
-    QString getAccountId();
-
-protected:
-    void mouseReleaseEvent(QMouseEvent *);
-
-signals:
-    void deleteItem(QString id);
-    void itemClicked(QString id);
-
-private slots:
-    void prepareDelete();
-
-private:
-    RIconLabel * iconLabel;
-    QLabel * nickNameLabel;
-    QLabel * accountLabel;
-    QPushButton * closeButt;
-};
 
 class LoginDialog : public Widget , public Observer
 {
@@ -82,6 +46,7 @@ protected:
     void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject * obj, QEvent *event);
+    void keyPressEvent(QKeyEvent * event);
 
 private slots:
     void login();
@@ -89,28 +54,42 @@ private slots:
     void closeWindow();
     void setPassword(bool flag);
     void readLocalUser();
-    void validateInput(QString text);
+    void validateInput();
+    void validateUserName(QString name);
+    void validatePassword(QString);
     void showNetSettings();
     void removeUserItem(QString accountId);
     void respItemChanged(QString id);
     void showRegistDialog();
-    void respTextConnect(bool flag);
-    void respFileConnect(bool flag);
+
     void respRegistDialogDestory(QObject *);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
     void recvFriendResponse(OperateFriendResponse resp);
     void viewSystemNotify(NotifyInfo info, int notifyCount);
     void openChatDialog(QString accountId);
+
+    /**********网络连接**********/
+    void respTextConnect(bool flag);
+    void respTextSocketError();
+    void respFileConnect(bool flag);
+    void respFileSocketError();
+
+    /**********文本消息**********/
     void procRecvText(TextRequest response);
-    void processTextReply(TextReply reply);
-    void recvUserStateChanged(MsgOperateResponse result, UserStateResponse response);
-    void procFileControl(SimpleFileItemRequest request);
+    void procRecvServerTextReply(TextReply reply);
+
+    /**********文件消息**********/
+    void procUploadFileRequest(SimpleFileItemRequest request);
+    void procDownloadFileRequest(FileItemRequest response);
+    void procDownloadFileOver(QString fileId,QString fileName);
 
 private:
     void createTrayMenu();
     void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
+    void resetDefaultPixmap();
+    void enableInput(bool flag);
 
 private:
     LoginDialogPrivate * d_ptr;

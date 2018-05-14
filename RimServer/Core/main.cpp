@@ -10,6 +10,9 @@
 #include <QDateTime>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
+#include <QDir>
+#include <QSqlDriver>
+#include <QMessageBox>
 
 #include "Util/rutil.h"
 #include "Util/rlog.h"
@@ -34,6 +37,9 @@ using namespace ServerNetwork;
 #pragma execution_character_set("utf-8")
 #endif
 
+#include <Dbghelp.h>
+#pragma comment( lib, "DbgHelp")
+
 /*!
  *  @brief 配置文件参数
  */
@@ -47,6 +53,8 @@ struct SettingConfig
         fileListenPort = 8024;
         textIp = "127.0.0.1";
         fileIp = "127.0.0.1";
+
+        uploadFilePath = qApp->applicationDirPath() + Constant::PATH_File;
     }
     int textRecvProcCount;
     int textSendProcCount;
@@ -55,7 +63,34 @@ struct SettingConfig
 
     QString textIp;
     QString fileIp;
+
+    QString uploadFilePath;
 };
+
+inline void CreateMiniDump(PEXCEPTION_POINTERS pep, LPCTSTR strFileName)
+{
+    HANDLE hFile = CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+
+    if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
+    {
+        MINIDUMP_EXCEPTION_INFORMATION mdei;
+        mdei.ThreadId = GetCurrentThreadId();
+        mdei.ExceptionPointers = pep;
+        mdei.ClientPointers = NULL;
+
+        ::MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, (pep != 0) ? &mdei : 0, NULL, 0);
+
+        CloseHandle(hFile);
+    }
+}
+
+LONG __stdcall MyUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo)
+{
+    CreateMiniDump(pExceptionInfo, L"core.dmp");
+    return EXCEPTION_EXECUTE_HANDLER;
+}
 
 void parseCommandLine(QApplication & app,CommandParameter & result)
 {
@@ -181,6 +216,7 @@ void parseCommandLine(QApplication & app,CommandParameter & result)
 
 void readSettings(QSettings * settings,SettingConfig & localConfig)
 {
+    //[1]网络配置
     settings->beginGroup(Constant::GroupNetwork);
 
     if(!settings->contains(Constant::DB_THREAD))
@@ -224,6 +260,18 @@ void readSettings(QSettings * settings,SettingConfig & localConfig)
     }
 
     localConfig.fileIp = settings->value(Constant::FILE_IP,localConfig.fileIp).toString();
+
+    settings->endGroup();
+
+    //[2]文件服务器配置
+    settings->beginGroup(Constant::FileServerSetting);
+
+    if(!settings->contains(Constant::UPLOAD_FILE_PATH))
+    {
+        settings->setValue(Constant::UPLOAD_FILE_PATH,localConfig.uploadFilePath);
+    }
+
+    localConfig.uploadFilePath = settings->value(Constant::UPLOAD_FILE_PATH,localConfig.uploadFilePath).toString();
 
     settings->endGroup();
 
@@ -271,6 +319,7 @@ void printProgramInfo(CommandParameter & result,QString ip,unsigned short port)
 
 int main(int argc, char *argv[])
 {
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     QApplication a(argc, argv);
 
     QApplication::setApplicationName(Constant::ApplicationName);
@@ -313,11 +362,22 @@ int main(int argc, char *argv[])
         SettingConfig settingConfig;
         readSettings(settings,settingConfig);
 
+        RGlobal::G_SERVICE_TYPE = commandResult.serviceType;
+
+        if(RGlobal::G_SERVICE_TYPE == SERVICE_FILE)
+        {
+            QDir fileDir(settingConfig.uploadFilePath);
+            if(!fileDir.mkpath(settingConfig.uploadFilePath))
+            {
+                RLOG_ERROR("create file path error ! %s",settingConfig.uploadFilePath.toLocal8Bit().data());
+                return -1;
+            }
+            RGlobal::G_FILE_UPLOAD_PATH = settingConfig.uploadFilePath;
+        }
+
         DatabaseManager dbManager;
         dbManager.setConnectInfo("localhost","rimserver","root","rengu123456");
         dbManager.setDatabaseType(commandResult.dbType);
-
-        G_SERVICE_TYPE = commandResult.serviceType;
 
         if(commandResult.serviceType == SERVICE_TEXT)
         {
@@ -336,6 +396,15 @@ int main(int argc, char *argv[])
         {
             RecvTextProcessThread * thread = new RecvTextProcessThread;
             Database * dbs = dbManager.newDatabase();
+
+#ifdef DB_TRANSACTIONS_CHECK
+            QSqlDriver * driver = dbs->sqlDatabase().driver();
+            static bool infoed = false;
+            if(!infoed && !driver->hasFeature(QSqlDriver::Transactions)){
+                infoed = true;
+                QMessageBox::warning(nullptr,QObject::tr("warning"),QObject::tr("Current database don't support transactions"));
+            }
+#endif
             if(!dbs->isError())
             {
                 thread->setDatabase(dbs);

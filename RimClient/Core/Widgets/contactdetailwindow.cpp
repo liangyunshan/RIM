@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 
 #include "head.h"
+#include "global.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "toolbar.h"
@@ -15,6 +16,7 @@
 #include "widget/rcombobox.h"
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
+#include "user/user.h"
 
 #define DETAIL_SHOW_WIDTH 380
 #define DETAIL_SHOW_HEIGHT 600
@@ -255,6 +257,7 @@ ContactDetailWindow::ContactDetailWindow(QWidget *parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Contact Person Detail"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -294,12 +297,13 @@ void ContactDetailWindow::onMessage(MessageType type)
      */
 void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 {
+    R_CHECK_ONLINE;
     MQ_D(ContactDetailWindow);
     d->m_account_edit->setText(info.accountId);
     d->m_nickName_edit->setText(info.nickName);
     d->m_remark_edit->setText(info.remarks);
     d->m_remark_edit->adjustSize();
-    d->m_headPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(info.face);
+    d->m_headPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(info.iconId);
     d->m_head_label->setPixmap(d->m_headPath);
     d->m_signName_edit->setText(info.signName);
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
@@ -309,10 +313,10 @@ void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 }
 
 /*!
-     * @brief 在分组下拉框中填充当前全部的分组名称并设置联系人所属分组
-     * @param[in] groups:QStringList,全部分组名称;current:int,当前分组索引值
-     * @return 无
-     */
+ * @brief 在分组下拉框中填充当前全部的分组名称并设置联系人所属分组
+ * @param[in] groups:QStringList,全部分组名称;current:int,当前分组索引值
+ * @return 无
+ */
 void ContactDetailWindow::setGroups(QStringList groups, int current)
 {
     MQ_D(ContactDetailWindow);

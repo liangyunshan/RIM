@@ -69,6 +69,8 @@ private slots:
     void respSoundAvailable(bool flag);
     void respSystemLock(bool flag);
     void respDelRecord(bool flag);
+    void respTextEncryption(bool flag);
+    void respTextCompression(bool flag);
 
     void respAutoReply();
     void respShortCut();

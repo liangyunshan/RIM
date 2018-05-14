@@ -13,6 +13,7 @@
 
 #include <QObject>
 
+#include "datastruct.h"
 #include "protocoldata.h"
 using namespace ProtocolType;
 
@@ -30,16 +31,33 @@ public:
     void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
-    void onRecvFriendList(FriendListResponse * response);
-    void onRecvGroupingOperate(GroupingResponse response);
+    void onRecvFriendList(MsgOperateResponse status, FriendListResponse * response);
+    void onRecvFriendGroupingOperate(MsgOperateResponse status, GroupingResponse response);
+    void onRecvGroupGroupingOperate(MsgOperateResponse status,GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
+
+    void onRecvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
+    void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void onRecvResitGroup(MsgOperateResponse status, RegistGroupResponse response);
+    void onRecvOpreateGroup(MsgOperateResponse status, GroupingChatResponse response);
+    void onRecvGroupCommand(MsgOperateResponse status, GroupingCommandResponse response);
+
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void onRecvFileControl(SimpleFileItemRequest request);
+    void onRecvFileRequest(FileItemRequest request);
+    void onRecvFileData(QString fileId,QString fileName);
 
     void onScreenChanged();
+
+    void onAddHistoryItem(HistoryChatRecord &record);
+
+    void onTextConnected(bool flag);
+    void onTextSocketError();
+    void onFileConnected(bool flag);
+    void onFileSocketError();
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
@@ -49,16 +67,34 @@ signals:
     void recvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void recvAddFriendResponse(ResponseAddFriend);
     void recvFriendRequest(OperateFriendResponse response);
-    void recvFriendList(FriendListResponse * response);
-    void recvGroupingOperate(GroupingResponse response);
+    void recvFriendList(MsgOperateResponse status,FriendListResponse * response);
+    void recvFriendGroupingOperate(MsgOperateResponse status,GroupingResponse response);
+    void recvGroupGroupingOperate(MsgOperateResponse status,GroupingResponse response);
     void errorGroupingOperate(OperateGrouping type);
+
+    void recvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
+    void recvRegistGroup(MsgOperateResponse status,RegistGroupResponse response);
+    void recvGroupItemOperate(MsgOperateResponse result,GroupingChatResponse response);
+    void recvRegistGroupFailed();
+    void recvGroupCommand(MsgOperateResponse result,GroupingCommandResponse response);
+
     void recvText(TextRequest request);
     void recvTextReply(TextReply);
+    void recvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void recvRelationFriend(MsgOperateResponse result,GroupingFriendResponse response);
 
     void recvFileControl(SimpleFileItemRequest control);
+    void recvFileRequest(FileItemRequest control);
+    void recvFileData(QString fileId,QString fileName);
 
     void screenChange();
+
+    void createHisotryItem(HistoryChatRecord);
+
+    void textConnected(bool);
+    void textSocketError();
+    void fileConnected(bool);
+    void fileSocketError();
 
 private:
     MessDiapatch(QObject *parent = 0);

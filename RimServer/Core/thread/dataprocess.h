@@ -17,7 +17,8 @@
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
 
-#include <QScopedPointer>
+#include <QSharedPointer>
+#include <memory>
 
 #include "protocoldata.h"
 using namespace ProtocolType;
@@ -29,22 +30,27 @@ class DataProcess
 public:
     DataProcess();
 
-    void processUserRegist(Database *db, int socketId, RegistRequest *request);
-    void processUserLogin(Database *db, int socketId, LoginRequest * request);
-    void processUpdateUserInfo(Database * db,int socketId, UpdateBaseInfoRequest *request);
-    void processUserStateChanged(Database *db, int socketId, UserStateRequest *request);
+    void processUserRegist(Database *db, int socketId,std::shared_ptr<RegistRequest>request);
+    void processUserLogin(Database *db, int socketId, QSharedPointer<LoginRequest> request);
+    void processUpdateUserInfo(Database * db, int socketId, QSharedPointer<UpdateBaseInfoRequest> request);
+    void processUserStateChanged(Database *db, int socketId, QSharedPointer<UserStateRequest> request);
 
-    void processSearchFriend(Database * db,int socketId, SearchFriendRequest *request);
-    void processAddFriend(Database * db, int socketId, AddFriendRequest *request);
-    void processRelationOperate(Database * db, int socketId, OperateFriendRequest *request);
-    void processFriendList(Database *db, int socketId, FriendListRequest *request);
-    void processGroupingOperate(Database *db, int socketId, GroupingRequest *request);
-    void processGroupingFriend(Database *db, int socketId, GroupingFriendRequest *request);
+    void processSearchFriend(Database * db, int socketId, QSharedPointer<SearchFriendRequest> request);
+    void processAddFriend(Database * db, int socketId, QSharedPointer<AddFriendRequest> request);
+    void processRelationOperate(Database * db, int socketId, QSharedPointer<OperateFriendRequest> request);
+    void processFriendList(Database *db, int socketId, QSharedPointer<FriendListRequest> request);
+    void processGroupingOperate(Database *db, int socketId, QSharedPointer<GroupingRequest> request);
+    void processGroupingFriend(Database *db, int socketId, QSharedPointer<GroupingFriendRequest> request);
 
-    void processText(Database *db, int socketId, TextRequest *request);
+    void processGroupList(Database *db, int socketId, QSharedPointer<ChatGroupListRequest> request);
+    void processRegistGroup(Database *db, int socketId, QSharedPointer<RegistGroupRequest> request);
+    void processGroupCommand(Database *db, int socketId, QSharedPointer<GroupingCommandRequest> request);
 
-    void processFileRequest(Database *db, int socketId, FileItemRequest *request);
-    void processFileData(Database *db, int socketId, FileDataRequest *request);
+    void processText(Database *db, int socketId, QSharedPointer<TextRequest> request);
+
+    void processFileRequest(Database *db, int socketId, QSharedPointer<FileItemRequest> request);
+    void processFileControl(Database *db, int socketId, QSharedPointer<SimpleFileItemRequest> request);
+    void processFileData(Database *db, int socketId, QSharedPointer<FileDataRequest> request);
 
 private:
     void pushFriendMyStatus(Database *db, int socketId, QString accountId, OnlineStatus onStatus);

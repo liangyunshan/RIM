@@ -15,16 +15,22 @@
 #include <QFile>
 #include <QBuffer>
 #include <QStandardPaths>
-#include <QCryptographicHash>
 #include <QDir>
+#include <QTime>
 #include <QTextCursor>
+#include <QCryptographicHash>
 
 #include "Util/rutil.h"
 #include "rsingleton.h"
 #include "json/jsonresolver.h"
 #include "global.h"
+#include "user/user.h"
+#include "constants.h"
 
 #include <QDebug>
+
+#define SHOTIMAGE_WIDTH 80                  //截图显示宽度
+#define SHOTIMAGE_HEIGHT 80                 //截图显示高度
 
 BaseTextEdit::BaseTextEdit(QWidget *parent):
     QTextEdit(parent)
@@ -81,8 +87,8 @@ int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
     QString contents = this->toChatFormaText().replace("'","\"");
 
     unit.rowid = -1;
-    unit.user.id = G_UserBaseInfo.accountId.toInt();
-    unit.user.name = G_UserBaseInfo.nickName;
+    unit.user.id = G_User->BaseInfo().accountId.toInt();
+    unit.user.name = G_User->BaseInfo().nickName;
     unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
     unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
     unit.font.fontName = font.key();
@@ -114,29 +120,46 @@ void BaseTextEdit::insertChatFormatText(const QString &format)
     this->insertHtml(contents);
 }
 
-int BaseTextEdit::insertCopyImage(QImage &image)
+/*!
+ * @brief BaseTextEdit::insertCopyImage 将图片插入到文本框当前位置
+ * @param image 待插入的图片
+ * @return 无
+ */
+void BaseTextEdit::insertCopyImage(QImage &image)
 {
-    QByteArray bb = QCryptographicHash::hash ( QByteArray((char*)image.bits()), QCryptographicHash::Md5 );
-    QString temp_img_filepath ;
-    temp_img_filepath.append(bb.toHex());
-    QString imgfilepath = G_Temp_Picture_Path + "/" + temp_img_filepath + ".png";
-    QFileInfo fileinfo(imgfilepath);
+    QString t_msec = QString::number(QTime::currentTime().msec());
+    QByteArray data = QByteArray((char*)image.bits()).append(t_msec.toLocal8Bit());
+    QByteArray imgId = QCryptographicHash::hash (data , QCryptographicHash::Md5 );
+    QString t_imgName ;
+    t_imgName.append(imgId.toHex());
+    t_imgName += QString(".png");
+
+    //保存图片到本地
+    QString imgAbsoultPath = G_User->getC2CImagePath() + QDir::separator() + t_imgName;
+
+    QFileInfo fileinfo(imgAbsoultPath);
     if(!fileinfo.exists())
     {
-        image.save(imgfilepath);
+        image.save(imgAbsoultPath);
     }
+    m_inputImgs.append(imgAbsoultPath);
 
-    int width = this->viewport()->width() - 7;
-    if (image.size().width() > width || image.size().height() > width)
+    //图片比例缩放显示
+    int width = SHOTIMAGE_WIDTH;
+    if (image.width() > width || image.height() > width)
     {
-        image = image.scaled(width, width, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        image = image.scaled(SHOTIMAGE_WIDTH,SHOTIMAGE_HEIGHT,Qt::KeepAspectRatio,Qt::SmoothTransformation);
     }
-
-    QTextImageFormat imageFormat;;
-    imageFormat.setName(imgfilepath);
-    this->textCursor().insertImage(imageFormat);
-
-    return 0;
+    this->document()->addResource(QTextDocument::ImageResource,QUrl("image"),image);
+    QTextCursor cursor = this->textCursor();
+    //获取登录账号id用于拼接HTML中的img标签内容
+    QString imgFlagContent = QString("");
+    QString userID = G_User->BaseInfo().accountId;
+    imgFlagContent = imgFlagContent + Constant::PATH_UserPath + QDir::separator() + userID + QDir::separator() + Constant::USER_RecvFileDirName;
+    imgFlagContent = imgFlagContent + QDir::separator() + Constant::USER_ChatImageDirName + QDir::separator() + Constant::USER_C2CDirName;
+    imgFlagContent = imgFlagContent + QDir::separator() + t_imgName;
+//    cursor.insertImage(image,imgFlagContent);
+    cursor.insertImage(image,t_imgName);    //使用纯文件名作为img标签内容
 }
 
 void BaseTextEdit::setInputTextColor(QColor Color)
@@ -153,29 +176,48 @@ void BaseTextEdit::setInputTextColor(QColor Color)
     }
 }
 
+/*!
+ * @brief BaseTextEdit::getInputedImgs 获取当前文本输入框中全部图片保存路径
+ * @param imgDirs 保存所有图片路径的列表
+ */
+void BaseTextEdit::getInputedImgs(QStringList &imgDirs)
+{
+    imgDirs = m_inputImgs;
+}
+
+void BaseTextEdit::clearInputImg()
+{
+    m_inputImgs.clear();
+}
+
 void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 {
-    if(e->mimeData()->hasFormat("text/uri-list")) //只能打开文本文件
+    if(e->mimeData()->hasUrls())
     {
-        e->acceptProposedAction(); //可以在这个窗口部件上拖放对象
+        e->acceptProposedAction();
+    }
+    else
+    {
+        e->ignore();
     }
 }
 
 //处理拖拽进来的文件
-void BaseTextEdit::dropEvent(QDropEvent *e) //释放对方时，执行的操作
+void BaseTextEdit::dropEvent(QDropEvent *e)
 {
-    QList<QUrl> urls = e->mimeData()->urls();
-    if(urls.isEmpty())
-        return ;
-
-    QString fileName = urls.first().toLocalFile();
-
-    foreach (QUrl u, urls) {
-        this->insertPlainText(QString("%1 - %2").arg(u.toString()).arg("Drag File"));
+    const QMimeData *mimeData = e->mimeData();
+    if(mimeData->hasUrls())
+    {
+        QList<QUrl> urlList = mimeData->urls();
+        for(int index=0;index<urlList.count();index++)
+        {
+            QString fileName = urlList.at(index).toLocalFile();
+            if(!fileName.isEmpty())
+            {
+                QFileInfo filInfo(fileName);
+                Q_UNUSED(filInfo);
+                //TODO 发送拖拽进来的文件
+            }
+        }
     }
-
-    if(fileName.isEmpty())
-        return;
-
-    //TODO:发送该文件
 }

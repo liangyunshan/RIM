@@ -25,6 +25,10 @@
 #include "widget/rmessagebox.h"
 #include "widget/rcombobox.h"
 #include "Util/regexp.h"
+#include "thread/filerecvtask.h"
+#include "Network/netconnector.h"
+#include "file/filemanager.h"
+#include "user/user.h"
 
 #define EDIT_PERSON_WIDTH 380
 #define EDIT_PERSON_HEIGHT 600
@@ -80,6 +84,8 @@ private:
     RButton * closeButton;
 
     RButton * iconButton;
+
+    bool isSystemIcon;
 };
 
 void EditPersonInfoWindowPrivate::initWidget()
@@ -111,7 +117,6 @@ void EditPersonInfoWindowPrivate::initWidget()
     iconLabel = new RIconLabel(iconWidget);
     iconLabel->setToolTip(QObject::tr("Open system image"));
     iconLabel->setTransparency(true);
-    iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     QObject::connect(iconLabel,SIGNAL(mousePressed()),q_ptr,SLOT(openSystemImage()));
 
     iconButton = new RButton(iconWidget);
@@ -262,23 +267,27 @@ void EditPersonInfoWindowPrivate::initWidget()
 
 void EditPersonInfoWindowPrivate::initContent()
 {
-    m_account_edit->setText(G_UserBaseInfo.accountId);
-    m_nickName_edit->setText(G_UserBaseInfo.nickName);
+    m_account_edit->setText(G_User->BaseInfo().accountId);
+    m_nickName_edit->setText(G_User->BaseInfo().nickName);
     m_sign_plainEdit->clear();
-    m_sign_plainEdit->appendPlainText(G_UserBaseInfo.signName);
-    m_sexual_box->setCurrentIndex((int)G_UserBaseInfo.sexual);
-    m_birth_dateEdit->setDate(QDate::fromString(G_UserBaseInfo.birthday,Constant::Date_Simple));
-    m_address_edit->setText(G_UserBaseInfo.address);
-    if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_UserBaseInfo.email))
+    m_sign_plainEdit->appendPlainText(G_User->BaseInfo().signName);
+    m_sexual_box->setCurrentIndex((int)G_User->BaseInfo().sexual);
+    m_birth_dateEdit->setDate(QDate::fromString(G_User->BaseInfo().birthday,Constant::Date_Simple));
+    if(G_User->BaseInfo().birthday.size() <= 0)
     {
-        m_mail_edit->setText(G_UserBaseInfo.email);
+        G_User->BaseInfo().birthday = m_birth_dateEdit->text();
     }
-    if(RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,G_UserBaseInfo.phoneNumber))
+    m_address_edit->setText(G_User->BaseInfo().address);
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,G_User->BaseInfo().email))
     {
-        m_phone_edit->setText(G_UserBaseInfo.phoneNumber);
+        m_mail_edit->setText(G_User->BaseInfo().email);
+    }
+    if(RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,G_User->BaseInfo().phoneNumber))
+    {
+        m_phone_edit->setText(G_User->BaseInfo().phoneNumber);
     }
     m_desc_plainEdit->clear();
-    m_desc_plainEdit->appendPlainText(G_UserBaseInfo.remark);
+    m_desc_plainEdit->appendPlainText(G_User->BaseInfo().remark);
 }
 
 EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
@@ -289,6 +298,7 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Edit personal information"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -301,6 +311,8 @@ EditPersonInfoWindow::EditPersonInfoWindow(QWidget *parent):
     }
 
     RSingleton<Subject>::instance()->attach(this);
+
+    loadCustomUserImage();
 
     setFixedSize(EDIT_PERSON_WIDTH,EDIT_PERSON_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
@@ -324,6 +336,11 @@ void EditPersonInfoWindow::onMessage(MessageType type)
                 d->initContent();
             }
             break;
+        case MESS_ICON_CHANGE:
+            {
+                loadCustomUserImage();
+            }
+            break;
         default:
             break;
     }
@@ -338,10 +355,19 @@ void EditPersonInfoWindow::openSystemImage()
 
 void EditPersonInfoWindow::openLocalImage()
 {
+    MQ_D(EditPersonInfoWindow);
     QString imageFile = QFileDialog::getOpenFileName(this,tr("Local image"),"/home", tr("Image Files (*.png)"));
     if(!imageFile.isNull())
     {
+        FileItemDesc * desc = new FileItemDesc;
+        desc->id = RUtil::UUID();
+        desc->fullPath = imageFile;
+        desc->fileSize = QFileInfo(imageFile).size();
+        desc->itemType = FILE_ITEM_USER_UP;
+        desc->itemKind = FILE_AUDIO;
+        desc->otherSideId = G_User->BaseInfo().accountId;
 
+        FileRecvTask::instance()->addSendItem(desc);
     }
 }
 
@@ -352,23 +378,24 @@ void EditPersonInfoWindow::openLocalImage()
  */
 void EditPersonInfoWindow::updateUserBaseInfo()
 {
+    R_CHECK_ONLINE;
     MQ_D(EditPersonInfoWindow);
 
     if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))
     {
-        RMessageBox::warning(this,"warning","The phone number is malformed.",RMessageBox::Yes);
+        RMessageBox::warning(this,tr("warning"),tr("The phone number is invalid."),RMessageBox::Yes);
         return;
     }
 
     if(d->m_mail_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,d->m_mail_edit->text()))
     {
-        RMessageBox::warning(this,"warning","The mail number is malformed.",RMessageBox::Yes);
+        RMessageBox::warning(this,tr("warning"),tr("The mail number is invalid."),RMessageBox::Yes);
         return;
     }
 
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
-    request->baseInfo.accountId = G_UserBaseInfo.accountId;
+    request->baseInfo.accountId = G_User->BaseInfo().accountId;
     request->baseInfo.nickName = d->m_nickName_edit->text();
     request->baseInfo.signName = d->m_sign_plainEdit->toPlainText();
     request->baseInfo.sexual = (Sexual)d->m_sexual_box->currentIndex();
@@ -377,8 +404,10 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->baseInfo.email = d->m_mail_edit->text();
     request->baseInfo.phoneNumber = d->m_phone_edit->text();
     request->baseInfo.remark = d->m_desc_plainEdit->toPlainText();
-    request->baseInfo.face = 0;     //FIXME LYS-根据实际情况进行处理
-    request->baseInfo.customImgId = "456";
+
+    request->baseInfo.isSystemIcon = d->isSystemIcon;
+    request->baseInfo.iconId = d->iconLabel->getPixmapName();
+
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
@@ -389,31 +418,31 @@ void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,
     switch(status)
     {
         case UPDATE_USER_SUCCESS:
-                                    {
-                                        if(response.reponseType == UPDATE_USER_DETAIL)
-                                        {
-                                            G_UserBaseInfo = response.baseInfo;
-                                            RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
-                                            RMessageBox::information(NULL,"information","Update user info successfully!",RMessageBox::Yes);
-                                        }
-                                    }
-                                    break;
+            {
+                if(response.reponseType == UPDATE_USER_DETAIL)
+                {
+                    G_User->BaseInfo() = response.baseInfo;
+                    RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
+                    RMessageBox::information(NULL,tr("information"),tr("Update user info successfully!"),RMessageBox::Yes);
+                }
+            }
+            break;
 
         case UPDATE_USER_FAILED:
         default:
-                                    if(response.reponseType == UPDATE_USER_DETAIL)
-                                    {
-                                        RMessageBox::warning(NULL,"warning","Update user info failed!",RMessageBox::Yes);
-                                    }
-                                    break;
+            if(response.reponseType == UPDATE_USER_DETAIL)
+            {
+                RMessageBox::warning(NULL,tr("warning"),tr("Update user info failed!"),RMessageBox::Yes);
+            }
+            break;
     }
 }
 
 /*!
-     * @brief 任意基本信息完成输入后立即验证并提示
-     * @param[in] 无
-     * @return 无
-     */
+ * @brief 任意基本信息完成输入后立即验证并提示
+ * @param[in] 无
+ * @return 无
+ */
 void EditPersonInfoWindow::singleBaseInfoFinished()
 {
     MQ_D(EditPersonInfoWindow);
@@ -421,7 +450,7 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     {
         if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))
         {
-            RMessageBox::warning(this,"warning","The phone number is malformed.",RMessageBox::Yes);
+            RMessageBox::warning(this,tr("warning"),tr("The phone number is invalid."),RMessageBox::Yes);
             return;
         }
     }
@@ -429,7 +458,7 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     {
         if(d->m_mail_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::MAIL,d->m_mail_edit->text()))
         {
-            RMessageBox::warning(this,"warning","The mail number is malformed.",RMessageBox::Yes);
+            RMessageBox::warning(this,tr("warning"),tr("The mail number is invalid."),RMessageBox::Yes);
             return;
         }
     }
@@ -439,9 +468,17 @@ void EditPersonInfoWindow::singleBaseInfoFinished()
     }
 }
 
-void EditPersonInfoWindow::updateSystemIconInfo(QString filename)
+void EditPersonInfoWindow::loadCustomUserImage()
 {
     MQ_D(EditPersonInfoWindow);
-    d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemImageDir()+"/"+filename);
+
+    d->isSystemIcon = G_User->BaseInfo().isSystemIcon;
+    d->iconLabel->setPixmap(G_User->getIcon());
 }
 
+void EditPersonInfoWindow::updateSystemIconInfo(QString fileName)
+{
+    MQ_D(EditPersonInfoWindow);
+    d->isSystemIcon = true;
+    d->iconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon(fileName));
+}

@@ -192,7 +192,7 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                     int leftLen = recvLen - processLen;
                     if(leftLen <= 0)
                     {
-                        qDebug()<<"[1]++++"<<leftLen<<"_"<<recvLen<<"_"<<processLen<<"_"<<packet.currentLen;
+//                        qDebug()<<"[1]++++"<<leftLen<<"_"<<recvLen<<"_"<<processLen<<"_"<<packet.currentLen;
                         break;
                     }
 
@@ -212,7 +212,7 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                         processLen += leftLen;
                         break;
                     }
-                    qDebug()<<"[3]"<<processLen<<"__"<<recvLen;
+//                    qDebug()<<"[3]"<<processLen<<"__"<<recvLen;
                 }
                 //[1.2]【信息被截断】
                 else
@@ -272,7 +272,7 @@ void WorkThread::handleSend(IocpContext *ioData)
 {
     if(ioData->getClient() != NULL)
     {
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"delete:"<<ioData->getClient()->socket();
+//        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"delete:"<<ioData->getClient()->socket();
         IocpContext::destory(ioData);
     }
 }

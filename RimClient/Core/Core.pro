@@ -8,9 +8,13 @@ QT       += core gui
 QT       += xml
 QT       += sql
 QT       += multimedia
+QT       += webenginewidgets
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
+QMAKE_LFLAGS_RELEASE += /MAP
+QMAKE_CFLAGS_RELEASE += /Zi
+QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 
 #是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
@@ -131,11 +135,26 @@ SOURCES += \
     json/jsonresolver.cpp \
     Widgets/widget/rcombobox.cpp \
     Widgets/widget/rlineedit.cpp \
-    thread/imagetask.cpp \
     Widgets/modifyremarkwindow.cpp \
     Widgets/contactdetailwindow.cpp \
     others/msgqueuemanager.cpp \
-    thread/filereceiveproctask.cpp
+    thread/filereceiveproctask.cpp \
+    thread/filerecvtask.cpp \
+    file/filedesc.cpp \
+    file/filemanager.cpp \
+    user/user.cpp \
+    sql/rpersistence.cpp \
+    user/userfriendcontainer.cpp \
+    sql/datatable.cpp \
+    user/userchatcontainer.cpp \
+    user/groupclient.cpp \
+    Widgets/registgroupdialog.cpp \
+    media/audioinput.cpp \
+    media/audiooutput.cpp \
+    Widgets/chataudioarea.cpp \
+    Widgets/document.cpp \
+    Widgets/previewpage.cpp\
+    Widgets/widget/rcomboboxitem.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -211,10 +230,25 @@ HEADERS  += \
     Widgets/widget/rcombobox.h \
     Widgets/widget/rlineedit.h \
     others/msgqueuemanager.h \
-    thread/imagetask.h \
     Widgets/modifyremarkwindow.h \
     Widgets/contactdetailwindow.h \ 
-    thread/filereceiveproctask.h
+    thread/filereceiveproctask.h \
+    thread/filerecvtask.h \
+    file/filedesc.h \
+    file/filemanager.h \
+    user/user.h \
+    sql/rpersistence.h \
+    user/userfriendcontainer.h \
+    sql/datatable.h \
+    user/userchatcontainer.h \
+    user/groupclient.h \
+    Widgets/registgroupdialog.h \
+    media/audioinput.h \
+    media/audiooutput.h \
+    Widgets/chataudioarea.h \
+    Widgets/document.h \
+    Widgets/previewpage.h\
+    Widgets/widget/rcomboboxitem.h
 
 DISTFILES += \
     Widgets/Widgets.pri

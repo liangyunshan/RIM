@@ -88,10 +88,10 @@ void SendTextProcessThread::run()
                             //TODO 对错误进行处理
                         }
                     }
-                    else
-                    {
-                        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"send Client";
-                    }
+//                    else
+//                    {
+//                        qDebug()<<__FILE__<<__FUNCTION__<<"send Client::"<<packet.packId;
+//                    }
 
                     if(sendLength == dataLen)
                     {

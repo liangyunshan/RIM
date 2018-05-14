@@ -32,10 +32,18 @@ public:
     void proGroupingOperateResponse(QJsonObject &data);
     void proGroupingFriendResponse(QJsonObject &data);
 
+    void proGroupListResponse(QJsonObject & data);
+    void proRegistGroupResponse(QJsonObject & data);
+    void proSearchGroupResponse(QJsonObject & data);
+    void proOpreateGroupResponse(QJsonObject & data);
+    void proGroupCommandResponse(QJsonObject & data);
+
     void proText(QJsonObject &data);
     void proTextApply(QJsonObject &data);
 
     void proFileControl(RBuffer &data);
+    void proFileRequest(RBuffer & data);
+    void proFileData(RBuffer & data);
 
 private:
 

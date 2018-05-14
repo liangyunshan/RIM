@@ -26,6 +26,7 @@
 #include "subject.h"
 #include "widget/rmessagebox.h"
 #include "setkeysequencedialog.h"
+#include "user/user.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
 {
@@ -117,22 +118,25 @@ private:
     QScrollArea * basicScrollArea;
     QScrollArea * securityScrollArea;
 
-    QCheckBox * autoStartUp;
-    QCheckBox * autoLogin;
+    QCheckBox * autoStartUp;                /*!< 开机自动启动【已处理】 */
+    QCheckBox * autoLogin;                  /*!< 自动登陆 */
 
-    QCheckBox * keepFront;
-    QCheckBox * exitSystem;
-    QCheckBox * systemTrayIcon;
-    QCheckBox * hidePanel;
+    QCheckBox * keepFront;                  /*!< 置顶【已处理】*/
+    QCheckBox * exitSystem;                 /*!< 退出时直接退出【已处理】 */
+    QCheckBox * systemTrayIcon;             /*!< 任务栏显示图标【已处理】 */
+    QCheckBox * hidePanel;                  /*!< 自动隐藏【已处理】 */
 
-    QCheckBox * windowShaking;
+    QCheckBox * windowShaking;              /*!< 允许窗口抖动【已处理】 */
 
-    QCheckBox * soundAvailable;
+    QCheckBox * soundAvailable;             /*!< 开启声音【已处理】 */
 
-    QCheckBox * lockCheckBox;
+    QCheckBox * lockCheckBox;               /*!< 打开设备锁 */
 
-    QCheckBox * recordCheckBox;
+    QCheckBox * recordCheckBox;             /*!< 退出删除记录 */
     SetKeySequenceDialog *p_setKeySequenceDialog;
+
+    QCheckBox * encryptionCheckBox;         /*!< 数据加密【已处理】 */
+    QCheckBox * compressCheckBox;           /*!< 数据压缩【已处理】 */
 };
 
 void SystemSettingsPrivate::initWidget()
@@ -346,9 +350,26 @@ void SystemSettingsPrivate::initWidget()
 
     recordPage->addItem(recordCheckBox);
 
+    /****************文本内容********************/
+    SystemSettingsPage * textContentPage = new SystemSettingsPage(securityWidget);
+    textContentPage->setDescInfo(QObject::tr("Text settings"));
+
+    encryptionCheckBox = new QCheckBox;
+    encryptionCheckBox->setText(QObject::tr("Text encryption"));
+    QObject::connect(encryptionCheckBox,SIGNAL(clicked(bool)),q_ptr,SLOT(respTextEncryption(bool)));
+
+    textContentPage->addItem(encryptionCheckBox);
+
+    compressCheckBox = new QCheckBox;
+    compressCheckBox->setText(QObject::tr("Text compression"));
+    QObject::connect(compressCheckBox,SIGNAL(clicked(bool)),q_ptr,SLOT(respTextCompression(bool)));
+
+    textContentPage->addItem(compressCheckBox);
+
     securityLayout->addWidget(passwordPage);
     securityLayout->addWidget(lockPage);
     securityLayout->addWidget(recordPage);
+    securityLayout->addWidget(textContentPage);
     securityLayout->addStretch(1);
 
     securityWidget->setLayout(securityLayout);
@@ -371,25 +392,25 @@ void SystemSettingsPrivate::initWidget()
 
 void SystemSettingsPrivate::localSettings()
 {
-    autoStartUp->setChecked(RUtil::globalSettings()->value(Constant::SETTING_AUTO_STARTUP,false).toBool());
-    autoLogin->setChecked(RUtil::globalSettings()->value(Constant::SETTING_AUTO_LOGIN,false).toBool());
+    autoStartUp->setChecked(G_User->systemSettings()->autoStartUp);
+    autoLogin->setChecked(G_User->systemSettings()->autoLogin);
 
-    keepFront->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TOPHINT,false).toBool());
-    exitSystem->setChecked(RUtil::globalSettings()->value(Constant::SETTING_EXIT_SYSTEM,false).toBool());
+    keepFront->setChecked(G_User->systemSettings()->keepFront);
+    exitSystem->setChecked(G_User->systemSettings()->exitSystem);
+    hidePanel->setChecked(G_User->systemSettings()->hidePanel);
+
+    windowShaking->setChecked(G_User->systemSettings()->windowShaking);
+    soundAvailable->setChecked(G_User->systemSettings()->soundAvailable);
+    lockCheckBox->setChecked(G_User->systemSettings()->lockCheck);
+    recordCheckBox->setChecked(G_User->systemSettings()->recordCheck);
+    encryptionCheckBox->setChecked(G_User->systemSettings()->encryptionCheck);
+    compressCheckBox->setChecked(G_User->systemSettings()->compressCheck);
+
     systemTrayIcon->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,false).toBool());
-    hidePanel->setChecked(RUtil::globalSettings()->value(Constant::SETTING_HIDEPANEL,false).toBool());
-
-    windowShaking->setChecked(RUtil::globalSettings()->value(Constant::SETTING_WINDOW_SHAKE,false).toBool());
-
-    soundAvailable->setChecked(RUtil::globalSettings()->value(Constant::SETTING_SOUND_AVAILABLE,false).toBool());
-
-    lockCheckBox->setChecked(RUtil::globalSettings()->value(Constant::SETTING_SYSTEM_LOCK,false).toBool());
-
-    recordCheckBox->setChecked(RUtil::globalSettings()->value(Constant::SETTING_EXIT_DELRECORD,false).toBool());
 }
 
-#define SYSTEM_SETTING_WIDTH 380
-#define SYSTEM_SETTING_HEIGHT 600
+#define SYSTEM_USER_BASIC_WIDTH 380
+#define SYSTEM_USER_BASIC_HEIGHT 600
 
 SystemSettings::SystemSettings(QWidget *parent):
     d_ptr(new SystemSettingsPrivate(this)),
@@ -399,6 +420,7 @@ SystemSettings::SystemSettings(QWidget *parent):
 //    setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Settings"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -410,9 +432,9 @@ SystemSettings::SystemSettings(QWidget *parent):
 
     RSingleton<Subject>::instance()->attach(this);
 
-    setFixedSize(SYSTEM_SETTING_WIDTH,SYSTEM_SETTING_HEIGHT);
+    setFixedSize(SYSTEM_USER_BASIC_WIDTH,SYSTEM_USER_BASIC_HEIGHT);
     QSize  screenSize = RUtil::screenSize();
-    setGeometry((screenSize.width() - SYSTEM_SETTING_WIDTH)/2,(screenSize.height() - SYSTEM_SETTING_HEIGHT)/2,SYSTEM_SETTING_WIDTH,SYSTEM_SETTING_HEIGHT);
+    setGeometry((screenSize.width() - SYSTEM_USER_BASIC_WIDTH)/2,(screenSize.height() - SYSTEM_USER_BASIC_HEIGHT)/2,SYSTEM_USER_BASIC_WIDTH,SYSTEM_USER_BASIC_HEIGHT);
 }
 
 SystemSettings::~SystemSettings()
@@ -427,7 +449,8 @@ void SystemSettings::onMessage(MessageType)
 
 void SystemSettings::respAutoStartUp(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_AUTO_STARTUP,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_STARTUP,flag);
+    G_User->systemSettings()->autoStartUp = flag;
 
 #ifdef Q_OS_WIN32
     QSettings settings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
@@ -446,45 +469,53 @@ void SystemSettings::respAutoStartUp(bool flag)
 
 void SystemSettings::respAutoLogIn(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_AUTO_LOGIN,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_AUTO_LOGIN,flag);
+    G_User->systemSettings()->autoLogin = flag;
 }
 
 void SystemSettings::respKeepFront(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_TOPHINT,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TOPHINT,flag);
+    G_User->systemSettings()->keepFront = flag;
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respExitSystem(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_EXIT_SYSTEM,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_SYSTEM,flag);
+    G_User->systemSettings()->exitSystem = flag;
 }
 
 void SystemSettings::respSystemTrayIcon(bool flag)
 {
     RUtil::globalSettings()->setValue(Constant::SETTING_TRAYICON,flag);
+    G_User->systemSettings()->trayIcon = flag;
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respHidePanel(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_HIDEPANEL,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_HIDEPANEL,flag);
+    G_User->systemSettings()->hidePanel = flag;
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
 }
 
 void SystemSettings::respWindowShake(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_WINDOW_SHAKE,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_WINDOW_SHAKE,flag);
+    G_User->systemSettings()->windowShaking = flag;
 }
 
 void SystemSettings::respSoundAvailable(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_SOUND_AVAILABLE,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SOUND_AVAILABLE,flag);
+    G_User->systemSettings()->soundAvailable = flag;
 }
 
 void SystemSettings::respSystemLock(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_SYSTEM_LOCK,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_SYSTEM_LOCK,flag);
+    G_User->systemSettings()->lockCheck = flag;
     if(flag)
     {
         RMessageBox::information(this,tr("Information"),tr("Use account password to unlock!"),RMessageBox::Yes);
@@ -508,7 +539,20 @@ void SystemSettings::respDelRecord(bool flag)
            d->recordCheckBox->setChecked(true);
        }
     }
-    RUtil::globalSettings()->setValue(Constant::SETTING_EXIT_DELRECORD,flag);
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_EXIT_DELRECORD,flag);
+    G_User->systemSettings()->recordCheck = flag;
+}
+
+void SystemSettings::respTextEncryption(bool flag)
+{
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TEXT_ENCRYPTION,flag);
+    G_User->systemSettings()->encryptionCheck = flag;
+}
+
+void SystemSettings::respTextCompression(bool flag)
+{
+    G_User->setSettingValue(Constant::USER_SETTING_GROUP,Constant::USER_SETTING_TEXT_COMPRESSION,flag);
+    G_User->systemSettings()->compressCheck = flag;
 }
 
 void SystemSettings::respAutoReply()
@@ -522,7 +566,6 @@ void SystemSettings::respShortCut()
     {
         d_ptr->p_setKeySequenceDialog->showNormal();
     }
-
 }
 
 void SystemSettings::respSoundSetting()

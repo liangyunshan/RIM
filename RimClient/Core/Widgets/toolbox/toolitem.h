@@ -12,11 +12,14 @@
  *  @note      20180209:LYS:添加置联系人item中头像为灰色或正常状态方法setStatus
  *             20180224:wey:添加item在线状态；
  *             20180305:LYS:鼠标右键选中item后更新当前的item
+ *             20180424:wey:调整item布局，新增timeLabel
+ *             20180509:wey:修复desclabel内容过长，出现滚动条
  */
 #ifndef TOOLITEM_H
 #define TOOLITEM_H
 
 #include <QWidget>
+#include <QEvent>
 
 #include "datastruct.h"
 
@@ -45,13 +48,22 @@ public:
     void setGroupMemberCoung(int number);
     void setContentMenu(QMenu * contentMenu);
 
+    void setDate(QString desc);
+
     void addNotifyInfo();
     int getNotifyCount();
 
-    bool isChecked();
     void setChecked(bool flag);
+    bool isChecked();
+
+    void setTop(bool flag);
+    bool isTop();
 
     void setStatus(OnlineStatus);
+    bool isOnline()const;
+
+    ToolPage * toolpage();
+    void setToolPage(ToolPage * page);
 
     enum ItemState
     {
@@ -76,6 +88,7 @@ signals:
     void showChatWindow(ToolItem *);
     void itemDoubleClick(ToolItem *);
     void itemMouseHover(bool,ToolItem*);
+    void itemButtonClick(QEvent::Type,ToolItem *);
     void updateGroupActions();
 
 private slots:
@@ -88,7 +101,6 @@ private:
     void setItemState(ItemState state);
 
     ToolItemPrivate * d_ptr;
-
 };
 
 #endif // TOOLITEM_H

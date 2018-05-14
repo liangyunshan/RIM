@@ -184,11 +184,13 @@ void NetSettings::initLocalSettings()
     MQ_D(NetSettings);
     QSettings * settings =  RUtil::globalSettings();
 
-    d->tcpTextServerIpEdit->setText(settings->value(Constant::SETTING_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString());
-    d->tcpTextServerPortEdit->setText(settings->value(Constant::SETTING_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toString());
+    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
+    d->tcpTextServerIpEdit->setText(settings->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString());
+    d->tcpTextServerPortEdit->setText(settings->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toString());
 
-    d->tcpFileServerIpEdit->setText(settings->value(Constant::SETTING_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString());
-    d->tcpFileServerPortEdit->setText(settings->value(Constant::SETTING_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
+    d->tcpFileServerIpEdit->setText(settings->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString());
+    d->tcpFileServerPortEdit->setText(settings->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
+    RUtil::globalSettings()->endGroup();
 }
 
 void NetSettings::updateSettings()
@@ -202,11 +204,14 @@ void NetSettings::updateSettings()
     }
 
     QSettings * settings =  RUtil::globalSettings();
-    settings->setValue(Constant::SETTING_NETWORK_TEXT_IP,d->tcpTextServerIpEdit->text());
-    settings->setValue(Constant::SETTING_NETWORK_TEXT_PORT,d->tcpTextServerPortEdit->text());
+    settings->beginGroup(Constant::SYSTEM_NETWORK);
+    settings->setValue(Constant::SYSTEM_NETWORK_TEXT_IP,d->tcpTextServerIpEdit->text());
+    settings->setValue(Constant::SYSTEM_NETWORK_TEXT_PORT,d->tcpTextServerPortEdit->text());
 
-    settings->setValue(Constant::SETTING_NETWORK_FILE_IP,d->tcpFileServerIpEdit->text());
-    settings->setValue(Constant::SETTING_NETWORK_FILE_PORT,d->tcpFileServerPortEdit->text());
+    settings->setValue(Constant::SYSTEM_NETWORK_FILE_IP,d->tcpFileServerIpEdit->text());
+    settings->setValue(Constant::SYSTEM_NETWORK_FILE_PORT,d->tcpFileServerPortEdit->text());
+
+    settings->endGroup();
 
     if(G_TextServerIp != d->tcpTextServerIpEdit->text() || G_TextServerPort != d->tcpTextServerPortEdit->text().toUShort())
     {

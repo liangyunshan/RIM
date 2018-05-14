@@ -9,6 +9,8 @@
 #include <QStackedWidget>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QInputDialog>
+#include <QDir>
 
 #include "head.h"
 #include "constants.h"
@@ -23,6 +25,10 @@
 #include "Network/msgwrap.h"
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"
+#include "user/user.h"
+#include "user/userfriendcontainer.h"
+#include "user/userchatcontainer.h"
+#include "jsonkey.h"
 
 #define ADD_FRIEND_WIDTH 380
 #define ADD_FRIEND_HEIGHT 400
@@ -38,7 +44,7 @@ private:
         initWidget();
     }
 
-    void enableSearch(bool flag)
+    void enableAdd(bool flag)
     {
         addRelationButt->setEnabled(flag);
         q_ptr->repolish(addRelationButt);
@@ -69,6 +75,8 @@ private:
 
     RButton * addRelationButt;
     RButton * reLookupButt;
+
+    QList<ChatBaseInfo> groupChatBaseInfos;
 };
 
 void AddFriendPrivate::initWidget()
@@ -153,8 +161,7 @@ void AddFriendPrivate::initWidget()
     reLookupButt->setText(QObject::tr("Redo"));
 
     addRelationButt = new RButton(toolBox);
-    addRelationButt->setText(QObject::tr("Add"));
-    enableSearch(false);
+    enableAdd(false);
 
     toolLayout->setContentsMargins(0,0,10,10);
     toolLayout->addStretch(1);
@@ -186,6 +193,7 @@ AddFriend::AddFriend(QWidget * parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Lookup"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     RSingleton<Subject>::instance()->attach(this);
 
@@ -204,6 +212,8 @@ AddFriend::AddFriend(QWidget * parent):
 
     connect(MessDiapatch::instance(),SIGNAL(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)),this,
             SLOT(recvSearchFriendResponse(ResponseAddFriend,SearchFriendResponse)));
+    connect(MessDiapatch::instance(),SIGNAL(recvSearchChatroomResponse(ResponseAddFriend,SearchGroupResponse)),this,
+            SLOT(recvSearchChatroomResponse(ResponseAddFriend,SearchGroupResponse)));
     connect(MessDiapatch::instance(),SIGNAL(recvAddFriendResponse(ResponseAddFriend)),this,SLOT(recvAddFriendResponse(ResponseAddFriend)));
 }
 
@@ -221,11 +231,17 @@ void AddFriend::onMessage(MessageType type)
         case MESS_RELATION_FRIEND_ADD:
             {
                 if(d->searchList && d->searchList->selectedItem())
-                {
-                    d->enableSearch(!friendExisted(d->searchList->selectedItem()->getName()));
-                }
+                    d->enableAdd(!RSingleton<UserFriendContainer>::instance()->containUser(d->searchList->selectedItem()->getName()));
                 break;
             }
+        case MESS_RELATION_GROUP_ADD:
+        {
+            if(d->searchList && d->searchList->selectedItem())
+                d->enableAdd(!RSingleton<UserChatContainer>::instance()
+                             ->containChatGroupRoom(d->searchList->selectedItem()
+                                                    ->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data()).toString()));
+            break;
+        }
         default:
             break;
     }
@@ -254,11 +270,12 @@ void AddFriend::keyPressEvent(QKeyEvent *event)
 
 void AddFriend::startSearch()
 {
+    R_CHECK_ONLINE;
     MQ_D(AddFriend);
 
     SearchFriendRequest * request = new SearchFriendRequest;
     request->accountOrNickName = d->inputEdit->text();
-    request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
+    request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
     d->statusLabel->setText(tr("searching..."));
@@ -278,15 +295,47 @@ void AddFriend::reSearch()
 
 void AddFriend::addFriend()
 {
+    R_CHECK_ONLINE;
     MQ_D(AddFriend);
-    if(d->searchList->selectedItem())
-    {
-        AddFriendRequest * request = new AddFriendRequest;
-        request->stype = d->person_Radio->isChecked()?SearchPerson:SearchGroup;
-        request->accountId = G_UserBaseInfo.accountId;
-        request->operateId = d->searchList->selectedItem()->getName();
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+    QString operateId;
+    if(d->group_Radio->isChecked()){
+        ToolItem * selectedItem = d->searchList->selectedItem();
+        if(selectedItem){
+
+            if(RSingleton<UserChatContainer>::instance()->containChatGroupRoom(selectedItem->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data()).toString())){
+                itemSelected(selectedItem);
+                return;
+            }
+
+            auto findIndex = std::find_if(d->groupChatBaseInfos.cbegin(),d->groupChatBaseInfos.cend(),[&](const ChatBaseInfo & chatInfo){
+                return chatInfo.chatId == selectedItem->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data());
+            });
+
+            //需要回答验证问题
+            if(findIndex != d->groupChatBaseInfos.end()){
+                if((*findIndex).validate){
+                    bool ok = false;
+                    QString text = QInputDialog::getText(this, tr("Verify"),(*findIndex).question, QLineEdit::Normal,"", &ok);
+                    if (ok && text == (*findIndex).answer ){
+                        operateId = (*findIndex).chatId;
+                    }else{
+                        RMessageBox::warning(this,QObject::tr("warning"),tr("Input is't correct !"),RMessageBox::Yes);
+                        return;
+                    }
+                }else{
+                    operateId = (*findIndex).chatId;
+                }
+            }
+        }
+    }else if(d->searchList->selectedItem()){
+        operateId = d->searchList->selectedItem()->getName();
     }
+
+    AddFriendRequest * request = new AddFriendRequest;
+    request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->operateId = operateId;
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 void AddFriend::validateInputState(QString content)
@@ -332,24 +381,33 @@ void AddFriend::recvSearchFriendResponse(ResponseAddFriend status, SearchFriendR
             item->setDescInfo(response.result.at(i).signName);
             d->searchList->addItem(item);
         }
-
-        d->enableSearch(false);
+        d->addRelationButt->setText(QObject::tr("Add"));
+        d->enableAdd(false);
+    }else{
+        errorSearchResult(status);
     }
-    else
+}
+
+void AddFriend::recvSearchChatroomResponse(ResponseAddFriend status, SearchGroupResponse response)
+{
+    MQ_D(AddFriend);
+    if(status == FIND_FRIEND_FOUND)
     {
-         QString errorInfo;
-         switch(status)
-         {
-              case FIND_FRIEND_NOT_FOUND:
-                                         errorInfo = QObject::tr("No result");
-                                         break;
-              case FIND_FRIEND_FAILED:
-              default:
-                                        errorInfo = QObject::tr("Find failed");
-                                        break;
-         }
-         enableInput(true);
-         d->statusLabel->setText(errorInfo);
+        d->stackedWidget->setCurrentIndex(1);
+        d->groupChatBaseInfos.clear();
+
+        std::for_each(response.result.cbegin(),response.result.cend(),[&](const ChatBaseInfo & info){
+            ToolItem * item = new ToolItem(NULL);
+            item->setName(info.name);
+            item->setDescInfo(info.desc);
+            item->setProperty(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data(),info.chatId);
+            d->searchList->addItem(item);
+        });
+        d->addRelationButt->setText(QObject::tr("Apply for Group"));
+        d->enableAdd(false);
+        d->groupChatBaseInfos.swap(response.result);
+    }else{
+        errorSearchResult(status);
     }
 }
 
@@ -367,37 +425,25 @@ void AddFriend::recvAddFriendResponse(ResponseAddFriend status)
     }
 }
 
+/*!
+ * @brief 根据点击item的id来分别判断此联系人/群是否已经被添加
+ * @param[in] item 点击item
+ */
 void AddFriend::itemSelected(ToolItem * item)
 {
     MQ_D(AddFriend);
 
-    if(item && item->getName() != G_UserBaseInfo.accountId && !friendExisted(item->getName()))
-    {
-        d->enableSearch(true);
+    if(d->person_Radio->isChecked()){
+        if(item && item->getName() != G_User->BaseInfo().accountId && !RSingleton<UserFriendContainer>::instance()->containUser(item->getName()))
+            d->enableAdd(true);
+        else
+            d->enableAdd(false);
+    }else if(d->group_Radio->isChecked()){
+        if(item && !RSingleton<UserChatContainer>::instance()->containChatGroupRoom(item->property(JsonKey::key(JsonKey::ChatId).toLocal8Bit().data()).toString()))
+            d->enableAdd(true);
+        else
+            d->enableAdd(false);
     }
-    else
-    {
-        d->enableSearch(false);
-    }
-}
-
-bool AddFriend::friendExisted(QString accountId)
-{
-    QList<RGroupData *>::iterator iter = G_FriendList.begin();
-    while(iter != G_FriendList.end())
-    {
-        QList<SimpleUserInfo *>::iterator userIter = (*iter)->users.begin();
-        while(userIter != (*iter)->users.end())
-        {
-            if((*userIter)->accountId == accountId)
-            {
-                return true;
-            }
-            userIter++;
-        }
-        iter++;
-    }
-    return false;
 }
 
 void AddFriend::enableInput(bool flag)
@@ -408,3 +454,20 @@ void AddFriend::enableInput(bool flag)
     repolish(d->searchButt);
 }
 
+void AddFriend::errorSearchResult(ResponseAddFriend status)
+{
+    MQ_D(AddFriend);
+    QString errorInfo;
+    switch(status)
+    {
+         case FIND_FRIEND_NOT_FOUND:
+                                    errorInfo = QObject::tr("No result");
+                                    break;
+         case FIND_FRIEND_FAILED:
+         default:
+                                   errorInfo = QObject::tr("Find failed");
+                                   break;
+    }
+    enableInput(true);
+    d->statusLabel->setText(errorInfo);
+}

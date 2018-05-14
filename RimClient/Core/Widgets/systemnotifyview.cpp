@@ -16,6 +16,9 @@
 #include "widget/rbutton.h"
 #include "Network/msgwrap.h"
 #include "widget/rlabel.h"
+#include "user/user.h"
+#include "user/userfriendcontainer.h"
+#include "widget/rmessagebox.h"
 
 #define NOTIFY_VIEW_WIDTH 380
 #define NOTIFY_VIEW_HEIGHT 260
@@ -115,58 +118,86 @@ void SystemNotifyViewPrivate::initWidget()
  */
 void SystemNotifyViewPrivate::setType(ResponseFriendApply type)
 {
-    QHBoxLayout * layout = new QHBoxLayout;
+    QHBoxLayout * layout = nullptr;
+    if(toolWidget->layout()){
+        layout = dynamic_cast<QHBoxLayout *>(toolWidget->layout());
+        if(layout){
+            for(int i = layout->count() - 1; i >= 0 ;i--){
+                QLayoutItem * item = layout->takeAt(i);
+                if(item->widget()){
+                    delete item->widget();
+                }
+            }
+        }
+    }
+    if(layout == nullptr){
+        layout = new QHBoxLayout;
+        toolWidget->setLayout(layout);
+    }
+
     layout->setContentsMargins(0,0,10,10);
     layout->addStretch(1);
     switch(type)
     {
         case FRIEND_REQUEST:
-                            {
-                                applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_STAR,ImageManager::ICON_32));
-                                tipLabel->setText(QObject::tr("Request to add as a friend"));
-                                agreeButt = new RButton(toolWidget);
-                                agreeButt->setText(QObject::tr("Agree"));
+                {
+                    applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_STAR,ImageManager::ICON_32));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Request to add as a friend"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Apply for Group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
 
-                                refuseButt = new RButton(toolWidget);
-                                refuseButt->setText(QObject::tr("Refuse"));
+                    agreeButt = new RButton(toolWidget);
+                    agreeButt->setText(QObject::tr("Agree"));
 
-                                ignoreButt = new RButton(toolWidget);
-                                ignoreButt->setText(QObject::tr("Ignore"));
+                    refuseButt = new RButton(toolWidget);
+                    refuseButt->setText(QObject::tr("Refuse"));
 
-                                QObject::connect(agreeButt,SIGNAL(pressed()),q_ptr,SLOT(respAgree()));
-                                QObject::connect(refuseButt,SIGNAL(pressed()),q_ptr,SLOT(respRefuse()));
-                                QObject::connect(ignoreButt,SIGNAL(pressed()),q_ptr,SLOT(respIgnore()));
+                    ignoreButt = new RButton(toolWidget);
+                    ignoreButt->setText(QObject::tr("Ignore"));
 
-                                layout->addWidget(agreeButt);
-                                layout->addWidget(refuseButt);
-                                layout->addWidget(ignoreButt);
-                            }
-                            break;
+                    QObject::connect(agreeButt,SIGNAL(pressed()),q_ptr,SLOT(respAgree()));
+                    QObject::connect(refuseButt,SIGNAL(pressed()),q_ptr,SLOT(respRefuse()));
+                    QObject::connect(ignoreButt,SIGNAL(pressed()),q_ptr,SLOT(respIgnore()));
+
+                    layout->addWidget(agreeButt);
+                    layout->addWidget(refuseButt);
+                    layout->addWidget(ignoreButt);
+                }
+                break;
         case FRIEND_AGREE:
-                            {
-                                applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SUCCESS,ImageManager::ICON_32));
-                                tipLabel->setText(QObject::tr("Agree with the request"));
-                                chatButt = new RButton(toolWidget);
-                                chatButt->setText(QObject::tr("Chat"));
+                {
+                    applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_SUCCESS,ImageManager::ICON_32));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Agree with the request"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Agree with the apply for group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
 
-                                QObject::connect(chatButt,SIGNAL(pressed()),q_ptr,SLOT(respChat()));
-                                layout->addWidget(chatButt);
-                            }
-                            break;
+                    chatButt = new RButton(toolWidget);
+                    chatButt->setText(QObject::tr("Chat"));
+
+                    QObject::connect(chatButt,SIGNAL(pressed()),q_ptr,SLOT(respChat()));
+                    layout->addWidget(chatButt);
+                }
+                break;
         case FRIEND_REFUSE:
-                            {
-                                applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_ERROR,ImageManager::ICON_32));
-                                tipLabel->setText(QObject::tr("Refuse with the request"));
-                                reRequestButt = new RButton(toolWidget);
-                                reRequestButt->setText(QObject::tr("ReRequest"));
+                {
+                    applyIconLabel->setPixmap(RSingleton<ImageManager>::instance()->getIcon(ImageManager::ICON_ERROR,ImageManager::ICON_32));
+                    if(notifyInfo.stype == OperatePerson)
+                        tipLabel->setText(QObject::tr("Refuse the request"));
+                    else if(notifyInfo.stype == OperateGroup)
+                        tipLabel->setText(QObject::tr("Refuse the apply for group %1(%2)").arg(notifyInfo.chatName,notifyInfo.chatId));
 
-                                QObject::connect(reRequestButt,SIGNAL(pressed()),q_ptr,SLOT(respReRequest()));
-                                layout->addWidget(reRequestButt);
-                            }
-                            break;
+                    reRequestButt = new RButton(toolWidget);
+                    reRequestButt->setText(QObject::tr("ReRequest"));
+
+                    QObject::connect(reRequestButt,SIGNAL(pressed()),q_ptr,SLOT(respReRequest()));
+                    layout->addWidget(reRequestButt);
+                }
+                break;
+        default:
+            break;
     }
-
-    toolWidget->setLayout(layout);
 }
 
 SystemNotifyView::SystemNotifyView(QWidget *parent):
@@ -177,6 +208,7 @@ SystemNotifyView::SystemNotifyView(QWidget *parent):
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Notify"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
+    setToolBarMoveable(true);
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -216,20 +248,34 @@ void SystemNotifyView::resizeEvent(QResizeEvent *)
     move((size.width() - NOTIFY_VIEW_WIDTH)/2,(size.height() - NOTIFY_VIEW_HEIGHT)/2);
 }
 
-void SystemNotifyView::respAgree()
-{
+void SystemNotifyView::respAgree(){
+    MQ_D(SystemNotifyView);
+
+    if(d->notifyInfo.stype == OperatePerson){
+        if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
+            d->setType(FRIEND_AGREE);
+            return;
+        }
+    }
     sendResponse(FRIEND_AGREE);
+
     close();
 }
 
-void SystemNotifyView::respRefuse()
-{
+void SystemNotifyView::respRefuse(){
+    MQ_D(SystemNotifyView);
+    if(d->notifyInfo.stype == OperatePerson){
+        if(RSingleton<UserFriendContainer>::instance()->containUser(d->notifyInfo.accountId)){
+            d->setType(FRIEND_AGREE);
+            return;
+        }
+    }
     sendResponse(FRIEND_REFUSE);
+
     close();
 }
 
-void SystemNotifyView::respIgnore()
-{
+void SystemNotifyView::respIgnore(){
     close();
 }
 
@@ -242,23 +288,32 @@ void SystemNotifyView::respChat()
 
 void SystemNotifyView::respReRequest()
 {
+    R_CHECK_ONLINE;
     MQ_D(SystemNotifyView);
     AddFriendRequest * request = new AddFriendRequest;
     request->stype = d->notifyInfo.stype;
-    request->accountId = G_UserBaseInfo.accountId;
-    request->operateId = d->notifyInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
+    if(d->notifyInfo.stype == OperatePerson)
+        request->operateId = d->notifyInfo.accountId;
+    else if(d->notifyInfo.stype == OperateGroup)
+        request->operateId = d->notifyInfo.chatId;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 void SystemNotifyView::sendResponse(ResponseFriendApply result)
 {
+    R_CHECK_ONLINE;
     MQ_D(SystemNotifyView);
     OperateFriendRequest * request = new OperateFriendRequest;
     request->type = FRIEND_APPLY;
     request->stype = d->notifyInfo.stype;
     request->result = (int)result;
-    request->accountId = G_UserBaseInfo.accountId;
+    request->accountId = G_User->BaseInfo().accountId;
     request->operateId = d->notifyInfo.accountId;
+    if(d->notifyInfo.stype == OperateGroup){
+        request->chatId = d->notifyInfo.chatId;
+        request->chatName = d->notifyInfo.chatName;
+    }
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }

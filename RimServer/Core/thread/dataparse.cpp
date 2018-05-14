@@ -2,7 +2,8 @@
 
 #include <QJsonDocument>
 #include <QJsonParseError>
-#include <QScopedPointer>
+#include <QSharedPointer>
+#include <memory>
 #include <QDebug>
 
 #include "Util/rlog.h"
@@ -26,7 +27,7 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
  */
 void DataParse::processData(Database *db,const SocketInData &data)
 {
-    if(G_SERVICE_TYPE == SERVICE_TEXT)
+    if(RGlobal::G_SERVICE_TYPE == SERVICE_TEXT)
     {
         QJsonParseError errorInfo;
         QJsonDocument document = QJsonDocument::fromJson(data.data,&errorInfo);
@@ -50,7 +51,7 @@ void DataParse::processData(Database *db,const SocketInData &data)
             RLOG_ERROR("recv a error data,skip!");
         }
     }
-    else if(G_SERVICE_TYPE == SERVICE_FILE)
+    else if(RGlobal::G_SERVICE_TYPE == SERVICE_FILE)
     {
         RBuffer buffer(data.data);
         int msgType,msgCommand;
@@ -105,6 +106,15 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
         case MSG_RELATION_GROUPING_FRIEND:
               onProcessGroupingFriend(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
+        case MSG_GROUP_LIST:
+              onProcessGroupList(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_GROUP_CREATE:
+              onProcessRegistGroup(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
+        case MSG_GROUP_COMMAND:
+              onProcessGroupCommand(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
          default:
              break;
     }
@@ -122,14 +132,14 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
     if(!dataObj.isEmpty())
     {
-        TextRequest * request = new TextRequest;
+        QSharedPointer<TextRequest> request(new TextRequest);
         request->msgCommand = (MsgCommand)obj.value(JsonKey::key(JsonKey::Command)).toInt();
 
         request->accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
         request->textId = dataObj.value(JsonKey::key(JsonKey::TextId)).toString();
         request->otherSideId = dataObj.value(JsonKey::key(JsonKey::OtherSideId)).toString();
-        request->type = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
-        request->timeStamp = (SearchType)dataObj.value(JsonKey::key(JsonKey::Time)).toInt();
+        request->type = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
+        request->timeStamp = dataObj.value(JsonKey::key(JsonKey::Time)).toVariant().toULongLong();
         request->isEncryption = dataObj.value(JsonKey::key(JsonKey::Encryption)).toBool();
         request->isCompress = dataObj.value(JsonKey::key(JsonKey::Compress)).toBool();
         request->textType = (TextType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
@@ -160,6 +170,7 @@ void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
                     onProcessFileRequest(db,socketId,buffer);
                     break;
                 case MSG_FILE_CONTROL:
+                    onProcessFileControl(db,socketId,buffer);
                     break;
                 case MSG_FILE_DATA:
                     onProcessFileData(db,socketId,buffer);
@@ -171,7 +182,7 @@ void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
 
 void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 {
-    RegistRequest * request = new RegistRequest;
+    std::shared_ptr<RegistRequest> request(new RegistRequest);
     request->nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
 
@@ -180,7 +191,7 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
-    LoginRequest * request = new LoginRequest;
+    QSharedPointer<LoginRequest> request(new LoginRequest);
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
     request->status = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -190,7 +201,7 @@ void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &obj)
 {
-    UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
+    QSharedPointer<UpdateBaseInfoRequest> request (new UpdateBaseInfoRequest);
     request->baseInfo.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->baseInfo.nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->baseInfo.signName = obj.value(JsonKey::key(JsonKey::SignName)).toString();
@@ -200,15 +211,15 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     request->baseInfo.email = obj.value(JsonKey::key(JsonKey::Email)).toString();
     request->baseInfo.phoneNumber = obj.value(JsonKey::key(JsonKey::Phone)).toString();
     request->baseInfo.remark = obj.value(JsonKey::key(JsonKey::Remark)).toString();
-    request->baseInfo.face = obj.value(JsonKey::key(JsonKey::Face)).toInt();
-    request->baseInfo.customImgId = obj.value(JsonKey::key(JsonKey::FaceId)).toString();
+    request->baseInfo.isSystemIcon = obj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+    request->baseInfo.iconId = obj.value(JsonKey::key(JsonKey::IconId)).toString();
 
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
 }
 
 void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
 {
-    UserStateRequest * request = new UserStateRequest();
+    QSharedPointer<UserStateRequest> request (new UserStateRequest());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->onStatus = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -217,8 +228,8 @@ void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject
 
 void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
 {
-    SearchFriendRequest * request = new SearchFriendRequest;
-    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+    QSharedPointer<SearchFriendRequest> request (new SearchFriendRequest());
+    request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::OperateType)).toInt();
     request->accountOrNickName = obj.value(JsonKey::key(JsonKey::SearchContent)).toString();
 
     RSingleton<DataProcess>::instance()->processSearchFriend(db,socketId,request);
@@ -226,20 +237,22 @@ void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &ob
 
 void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    OperateFriendRequest * request = new OperateFriendRequest;
+    QSharedPointer<OperateFriendRequest> request (new OperateFriendRequest);
     request->type = (OperateFriend)obj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->result = (ResponseFriendApply)obj.value(JsonKey::key(JsonKey::Result)).toInt();
-    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+    request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::OperateType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
+    request->chatId = obj.value(JsonKey::key(JsonKey::ChatId)).toString();
+    request->chatName = obj.value(JsonKey::key(JsonKey::ChatName)).toString();
 
     RSingleton<DataProcess>::instance()->processRelationOperate(db,socketId,request);
 }
 
 void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 {
-    AddFriendRequest * request = new AddFriendRequest;
-    request->stype = (SearchType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
+    QSharedPointer<AddFriendRequest> request (new AddFriendRequest);
+    request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
 
@@ -248,7 +261,8 @@ void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 
 void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    FriendListRequest * request = new FriendListRequest;
+    QSharedPointer<FriendListRequest> request (new FriendListRequest);
+    request->type = static_cast<OperateListTimeType>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
@@ -256,18 +270,18 @@ void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObjec
 
 void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject &dataObj)
 {
-    GroupingFriendRequest * request = new GroupingFriendRequest;
+    QSharedPointer<GroupingFriendRequest> request (new GroupingFriendRequest);
     request->type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
     request->oldGroupId = dataObj.value(JsonKey::key(JsonKey::OldGroupId)).toString();
-    request->stype = (SearchType)dataObj.value(JsonKey::key(JsonKey::SearchType)).toInt();
+    request->stype = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
 
     QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Users)).toObject();
     request->user.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->user.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
     request->user.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
-    request->user.face = simpleObj.value(JsonKey::key(JsonKey::Face)).toInt();
-    request->user.customImgId = simpleObj.value(JsonKey::key(JsonKey::FaceId)).toString();
+    request->user.isSystemIcon = simpleObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+    request->user.iconId = simpleObj.value(JsonKey::key(JsonKey::IconId)).toString();
     request->user.remarks = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
     request->user.status = (OnlineStatus)simpleObj.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -276,21 +290,59 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
 
 void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)
 {
-    GroupingRequest * request = new GroupingRequest;
+    QSharedPointer<GroupingRequest> request (new GroupingRequest);
     request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
     request->groupId = obj.value(JsonKey::key(JsonKey::GroupId)).toString();
-    request->gtype = (GroupingType)obj.value(JsonKey::key(JsonKey::GroupType)).toInt();
+    request->gtype = (OperateType)obj.value(JsonKey::key(JsonKey::OperateType)).toInt();
     request->type = (OperateGrouping)obj.value(JsonKey::key(JsonKey::Type)).toInt();
     request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
+    request->groupIndex = obj.value(JsonKey::key(JsonKey::Index)).toInt();
 
     RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
 }
 
+void DataParse::onProcessGroupList(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<ChatGroupListRequest> request (new ChatGroupListRequest);
+    request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
+
+    RSingleton<DataProcess>::instance()->processGroupList(db,socketId,request);
+}
+
+void DataParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<RegistGroupRequest> request (new RegistGroupRequest);
+    request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
+    request->groupDesc = obj.value(JsonKey::key(JsonKey::Desc)).toString();
+    request->groupLabel = obj.value(JsonKey::key(JsonKey::Label)).toString();
+    request->searchVisible = obj.value(JsonKey::key(JsonKey::SearchVisible)).toBool();
+    request->validateAble = obj.value(JsonKey::key(JsonKey::ValidateAble)).toBool();
+    request->validateQuestion = obj.value(JsonKey::key(JsonKey::Question)).toString();
+    request->validateAnaswer = obj.value(JsonKey::key(JsonKey::Answer)).toString();
+    request->userId = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+
+    RSingleton<DataProcess>::instance()->processRegistGroup(db,socketId,request);
+}
+
+void DataParse::onProcessGroupCommand(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<GroupingCommandRequest> request (new GroupingCommandRequest);
+
+    request->type = static_cast<OperateGroupingChat>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+    request->groupId = obj.value(JsonKey::key(JsonKey::GroupId)).toString();
+    request->chatRoomId = obj.value(JsonKey::key(JsonKey::ChatRoomId)).toString();
+    request->operateId = obj.value(JsonKey::key(JsonKey::OperateId)).toString();
+
+    RSingleton<DataProcess>::instance()->processGroupCommand(db,socketId,request);
+}
+
 void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
 {
-    FileItemRequest * request = new FileItemRequest();
+    QSharedPointer<FileItemRequest> request (new FileItemRequest());
 
-    int control,itemType;
+    int control,itemType,itemKind;
     if(!obj.read(control))
         return;
     request->control = (FileTransferControl)control;
@@ -299,13 +351,17 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
         return;
     request->itemType = (FileItemType)itemType;
 
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = (FileItemKind)itemKind;
+
     if(!obj.read(request->fileName))
         return;
 
     if(!obj.read(request->size))
         return;
 
-    if(!obj.read(request->localFileName))
+    if(!obj.read(request->fileId))
         return;
 
     if(!obj.read(request->md5))
@@ -320,17 +376,46 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
     RSingleton<DataProcess>::instance()->processFileRequest(db,socketId,request);
 }
 
-void DataParse::onProcessFileControl(Database *db, int socketId, QJsonObject &obj)
+/*!
+ * @brief 响应用于文件传输控制命令
+ * @param[in] db 数据库链接
+ * @param[in] socketId 网络标识
+ * @param[in] obj 数据缓冲区
+ * @return 无
+ */
+void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
 {
+    QSharedPointer<SimpleFileItemRequest> request (new SimpleFileItemRequest());
+    int controlType = 0;
+    if(!obj.read(controlType))
+        return;
+    request->control = static_cast<FileTransferControl>(controlType);
 
+    int itemType = 0;
+    if(!obj.read(itemType))
+        return;
+    request->itemType = static_cast<FileItemType>(itemType);
+
+    int itemKind = 0;
+    if(!obj.read(itemKind))
+        return;
+    request->itemKind = static_cast<FileItemKind>(itemKind);
+
+    if(!obj.read(request->md5))
+        return;
+
+    if(!obj.read(request->fileId))
+        return;
+
+    RSingleton<DataProcess>::instance()->processFileControl(db,socketId,request);
 }
 
 void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
 {
-    FileDataRequest * request = new FileDataRequest();
+    QSharedPointer<FileDataRequest> request (new FileDataRequest());
     request->control =  T_DATA;
 
-    if(!obj.read(request->md5))
+    if(!obj.read(request->fileId))
         return;
     if(!obj.read(request->index))
         return;

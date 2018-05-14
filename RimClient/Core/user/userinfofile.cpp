@@ -2,19 +2,25 @@
 
 #include <QDataStream>
 #include <QApplication>
+#include <QDir>
+#include <algorithm>
 
 #include "Core/constants.h"
 #include "Core/head.h"
+#include "Util/rutil.h"
 
 UserInfoFile::UserInfoFile():
     QObject()
 {
-    fileName = qApp->applicationDirPath() + QString(Constant::PATH_UserPath) + "/users.bin";
+    QString basePath = qApp->applicationDirPath() + QDir::separator()+ QString(Constant::PATH_UserPath);
+    RUtil::createDir(basePath);
+    fileName =  basePath + "/users.bin";
 }
 
 bool UserInfoFile::readUsers(QList<UserInfoDesc *> &users)
 {
     QFile file;
+
     file.setFileName(fileName);
     if(file.open(QFile::ReadOnly))
     {
@@ -26,20 +32,23 @@ bool UserInfoFile::readUsers(QList<UserInfoDesc *> &users)
         dataStream>>version>>magic;
 
         if(version < RIM_VERSION)
-        {
             return false;
-        }
 
         if(magic != RIM_USER_FILE_MAGIC)
-        {
             return false;
-        }
 
         while(!dataStream.atEnd())
         {
             UserInfoDesc * desc = new UserInfoDesc;
             dataStream>>(*desc);
-            users.append(desc);
+
+            auto findeIndex = std::find_if(users.begin(),users.end(),[&desc](UserInfoDesc * tmps){
+                return tmps->accountId == desc->accountId;
+            });
+
+            if(findeIndex == users.end()){
+                users.append(desc);
+            }
         }
     }
     return false;
@@ -56,12 +65,9 @@ bool UserInfoFile::saveUsers(const QList<UserInfoDesc *> users)
         dataStream<<RIM_VERSION<<RIM_USER_FILE_MAGIC;
 
         foreach(UserInfoDesc * desc,users)
-        {
             dataStream<<(*desc);
-        }
 
-        return true;
-
+        return file.flush();
     }
     return false;
 }
