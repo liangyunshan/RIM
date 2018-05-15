@@ -35,6 +35,7 @@ class SuperConnector : public ClientNetwork::RTask
     Q_OBJECT
 public:
     explicit SuperConnector(QObject * parent = 0);
+    virtual ~SuperConnector();
     enum NetCommand
     {
         Net_None,

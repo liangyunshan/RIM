@@ -66,6 +66,8 @@ public:
     void highlightShow();
     void unHighlightShow();
 
+    bool containsInSimpleTextWidget(QPoint point);
+
 public slots:
     void updateGroupActions();
 

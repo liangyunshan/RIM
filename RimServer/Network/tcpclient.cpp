@@ -77,7 +77,7 @@ TcpClient::TcpClient()
 TcpClient::~TcpClient()
 {
     QHashIterator<int,PacketBuff*> iter(packetBuffs);
-    while (iter.hasNext())
+    while(iter.hasNext())
     {
          iter.next();
          delete iter.value();

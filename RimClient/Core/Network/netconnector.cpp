@@ -28,6 +28,14 @@ SuperConnector::SuperConnector(QObject *parent):ClientNetwork::RTask(parent),
 
 }
 
+SuperConnector::~SuperConnector()
+{
+    if(netConnected && rsocket->isValid()){
+        if(rsocket->closeSocket())
+            netConnected = false;
+    }
+}
+
 void SuperConnector::connect(int delayTime)
 {
     command = Net_Connect;

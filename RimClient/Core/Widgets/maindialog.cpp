@@ -150,6 +150,7 @@ void MainDialog::onMessage(MessageType type)
             {
                 G_User->setTextOnline(false);
                 G_User->setFileOnline(false);
+                G_User->setLogin(false);
                 RSingleton<TaskManager>::instance()->removeAll();
             }
             break;

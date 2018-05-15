@@ -90,6 +90,7 @@ void DataProcess::processUserLogin(Database * db,int socketId, QSharedPointer<Lo
     if(loginResult == LOGIN_SUCCESS)
     {
         QScopedPointer<LoginResponse> response(new LoginResponse);
+        response->loginType = request->loginType;
         RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,response->baseInfo);
         data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
 
@@ -109,7 +110,9 @@ void DataProcess::processUserLogin(Database * db,int socketId, QSharedPointer<Lo
     SendData(data);
 
     //[1]向用户对应的好友推送上线通知。
-    pushFriendMyStatus(db,socketId,request->accountId,request->status);
+    if(loginResult == LOGIN_SUCCESS){
+        pushFriendMyStatus(db,socketId,request->accountId,request->status);
+    }
 }
 
 void DataProcess::processUpdateUserInfo(Database * db,int socketId, QSharedPointer<UpdateBaseInfoRequest> request)
@@ -158,6 +161,58 @@ void DataProcess::processUserStateChanged(Database *db, int socketId, QSharedPoi
     SendData(data);
 
     pushFriendMyStatus(db,socketId,request->accountId,request->onStatus);
+}
+
+void DataProcess::processHistoryMsg(Database *db, int socketId, QSharedPointer<HistoryMessRequest> request)
+{
+    //[1]查找该用户对应的系统消息
+    QList<AddFriendRequest> systemRequest;
+    if(RSingleton<SQLProcess>::instance()->loadSystemCache(db,request->accountId,systemRequest))
+    {
+        QList<AddFriendRequest>::iterator iter = systemRequest.begin();
+        while(iter != systemRequest.end()){
+            SocketOutData reqeuestData;
+            reqeuestData.sockId = socketId;
+
+            QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
+            ofresponse->type = FRIEND_APPLY;
+            ofresponse->result = (int)FRIEND_REQUEST;
+            ofresponse->stype = (*iter).stype;
+            ofresponse->accountId = request->accountId;
+
+            UserBaseInfo baseInfo;
+            RSingleton<SQLProcess>::instance()->getUserInfo(db,(*iter).accountId,baseInfo);
+            ofresponse->requestInfo.accountId = baseInfo.accountId;
+            ofresponse->requestInfo.nickName = baseInfo.nickName;
+            ofresponse->requestInfo.signName = baseInfo.signName;
+            ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
+            ofresponse->requestInfo.iconId = baseInfo.iconId;
+
+            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+
+            SendData(reqeuestData);
+
+            iter++;
+        }
+    }
+
+    //[2]查找该用户对应的聊天历史消息
+    QList<TextRequest> textResponse;
+    if(RSingleton<SQLProcess>::instance()->loadChatCache(db,request->accountId,textResponse))
+    {
+        QList<TextRequest>::iterator iter = textResponse.begin();
+        while(iter != textResponse.end())
+        {
+            SocketOutData responseData;
+            responseData.sockId = socketId;
+
+            responseData.data = RSingleton<MsgWrap>::instance()->handleText(&(*iter));
+
+            SendData(responseData);
+
+            iter++;
+        }
+    }
 }
 
 /*!
@@ -525,58 +580,6 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
     }
 
     SendData(responseData);
-
-    //推送历史消息
-    {
-        //[1]查找该用户对应的系统消息
-        QList<AddFriendRequest> systemRequest;
-        if(RSingleton<SQLProcess>::instance()->loadSystemCache(db,request->accountId,systemRequest))
-        {
-            QList<AddFriendRequest>::iterator iter = systemRequest.begin();
-            while(iter != systemRequest.end()){
-                SocketOutData reqeuestData;
-                reqeuestData.sockId = socketId;
-
-                QScopedPointer<OperateFriendResponse> ofresponse(new OperateFriendResponse());
-                ofresponse->type = FRIEND_APPLY;
-                ofresponse->result = (int)FRIEND_REQUEST;
-                ofresponse->stype = (*iter).stype;
-                ofresponse->accountId = request->accountId;
-
-                UserBaseInfo baseInfo;
-                RSingleton<SQLProcess>::instance()->getUserInfo(db,(*iter).accountId,baseInfo);
-                ofresponse->requestInfo.accountId = baseInfo.accountId;
-                ofresponse->requestInfo.nickName = baseInfo.nickName;
-                ofresponse->requestInfo.signName = baseInfo.signName;
-                ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
-                ofresponse->requestInfo.iconId = baseInfo.iconId;
-
-                reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
-
-                SendData(reqeuestData);
-
-                iter++;
-            }
-        }
-
-        //[2]查找该用户对应的聊天历史消息
-        QList<TextRequest> textResponse;
-        if(RSingleton<SQLProcess>::instance()->loadChatCache(db,request->accountId,textResponse))
-        {
-            QList<TextRequest>::iterator iter = textResponse.begin();
-            while(iter != textResponse.end())
-            {
-                SocketOutData responseData;
-                responseData.sockId = socketId;
-
-                responseData.data = RSingleton<MsgWrap>::instance()->handleText(&(*iter));
-
-                SendData(responseData);
-
-                iter++;
-            }
-        }
-    }
 }
 
 void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPointer<GroupingRequest> request)

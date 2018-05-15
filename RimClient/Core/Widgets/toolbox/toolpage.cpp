@@ -385,6 +385,17 @@ void ToolPage::unHighlightShow()
 }
 
 /*!
+ * @brief 判断Page中simpleTextWidget是否包含位置点
+ * @param[in] point 判断包含位置点
+ * @return 是否包含当前点
+ */
+bool ToolPage::containsInSimpleTextWidget(QPoint point)
+{
+    MQ_D(ToolPage);
+    return d->simpleTextWidget->geometry().contains(point);
+}
+
+/*!
  * @brief 处理Item的SIGNAL：updateGroupActions()
  */
 void ToolPage::updateGroupActions()

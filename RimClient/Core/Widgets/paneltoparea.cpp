@@ -230,6 +230,7 @@ void PanelTopArea::setState(OnlineStatus state)
 void PanelTopArea::respSignChanged(QString content)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
 
     request->baseInfo.accountId = G_User->BaseInfo().accountId;
@@ -278,13 +279,30 @@ void PanelTopArea::updateUserInfo()
     d->userIconLabel->setPixmap(t_iconPath);
 }
 
+/*!
+ * @brief 改变用户状态
+ * @details 用户状态改变只允许在登陆状态下改变；
+ * @param[in] state 当前用户状态
+ */
 void PanelTopArea::stateChanged(OnlineStatus state)
 {
     if(G_User->isTextOnLine()){
-        UserStateRequest * request = new UserStateRequest();
-        request->accountId = G_User->BaseInfo().accountId;
-        request->onStatus = state;
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        if(!G_User->isLogin()){
+            LoginRequest * request = new LoginRequest();
+            request->accountId = G_User->getUserInfoDesc().accountId;
+            request->password = G_User->getUserInfoDesc().password;
+            request->status = state;
+            G_OnlineStatus = state;
+            request->loginType = RECONNECT_LOGIN;
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+        }
+        else
+        {
+            UserStateRequest * request = new UserStateRequest();
+            request->accountId = G_User->BaseInfo().accountId;
+            request->onStatus = state;
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+        }
     }else{
         RSingleton<TaskManager>::instance()->initTask();
         if(TextNetConnector::instance())
