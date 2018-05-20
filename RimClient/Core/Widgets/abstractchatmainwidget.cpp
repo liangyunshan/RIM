@@ -29,7 +29,7 @@ protected:
     AbstractChatMainWidgetPrivate(AbstractChatMainWidget *q):
         q_ptr(q)
     {
-        m_content.setUi(q);
+//        m_content.setUi(q);
         initWidget();
     }
 
@@ -93,7 +93,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
 
     leftLayout->addWidget(chatSplitter);
 
-    rightSideWidget = QWidget(q_ptr);
+    rightSideWidget = new QWidget(q_ptr);
     //TODO LYS-20180510 拓展为可添加多个tab窗口
 
     mainLayout->addLayout(leftLayout);
@@ -103,7 +103,9 @@ void AbstractChatMainWidgetPrivate::initWidget()
 }
 
 
-AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) : QWidget(parent)
+AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
+    d_ptr(new AbstractChatMainWidgetPrivate(this)),
+    QWidget(parent)
 {
 
 }

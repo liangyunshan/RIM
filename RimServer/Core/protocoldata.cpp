@@ -261,5 +261,10 @@ GroupingCommandResponse::GroupingCommandResponse()
     msgCommand = MSG_GROUP_COMMAND;
 }
 
+HistoryMessRequest::HistoryMessRequest()
+{
+    msgType = MSG_CONTROL;
+    msgCommand = MSG_USER_HISTORY_MSG;
+}
 
 } //namespace Protocol

@@ -15,9 +15,12 @@
 
 #include <QWidget>
 
+class AbstractChatMainWidgetPrivate;
+
 class AbstractChatMainWidget : public QWidget
 {
     Q_OBJECT
+    Q_DECLARE_PRIVATE(AbstractChatMainWidget)
 public:
     explicit AbstractChatMainWidget(QWidget *parent = 0);
     void inserHtml(QUrl &htmlUrl);
@@ -28,6 +31,9 @@ public slots:
 
 private slots:
     void finishLoadHTML(bool);
+
+private:
+    AbstractChatMainWidgetPrivate * d_ptr;
 };
 
 #endif // ABSTRACTCHATMAINWIDGET_H

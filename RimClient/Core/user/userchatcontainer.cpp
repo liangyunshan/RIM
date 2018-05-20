@@ -125,6 +125,16 @@ void UserChatContainer::addTmpGroup(const QString id, RChatGroupData *data)
     tmpCreateOrRenameMap.insert(id,data);
 }
 
+void UserChatContainer::removeTmpGroup(const QString &id)
+{
+    unique_lock<mutex> ul(lockMutex);
+    if(tmpCreateOrRenameMap.contains(id)){
+        delete tmpCreateOrRenameMap.value(id);
+        tmpCreateOrRenameMap.remove(id);
+    }
+
+}
+
 void UserChatContainer::addGroup(const QString id, int groupIndex)
 {
     lock_guard<mutex> guard(lockMutex);
@@ -159,6 +169,29 @@ void UserChatContainer::renameGroup(const QString &id)
         delete data;
         tmpCreateOrRenameMap.remove(id);
     }
+}
+
+QString UserChatContainer::revertRenameGroup(const QString &id)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    if(tmpCreateOrRenameMap.contains(id)){
+        RChatGroupData * data = tmpCreateOrRenameMap.value(id);
+        QList<RChatGroupData *>::iterator iter = std::find_if(groupList.begin(),groupList.end(),[&](const RChatGroupData * gdata){
+            if(gdata->groupId == data->groupId)
+                return true;
+            return false;
+        });
+
+        delete data;
+        tmpCreateOrRenameMap.remove(id);
+
+        if(iter != groupList.end()){
+            return (*iter)->groupName;
+        }
+    }
+
+    return QString();
 }
 
 /*!

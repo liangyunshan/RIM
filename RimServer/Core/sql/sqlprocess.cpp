@@ -218,7 +218,7 @@ ResponseAddFriend SQLProcess::processSearchGroup(Database *db, SearchFriendReque
             .add(Restrictions::eq(chatroom.table,chatroom.chatId,request->accountOrNickName))
             .orr(Restrictions::like(chatroom.table,chatroom.name,"%"+request->accountOrNickName+"%"))
             .add(Restrictions::eq(chatroom.table,chatroom.visible,SEARCH_VISIBLE));
-qDebug()<<rst.sql();
+
     QSqlQuery query(db->sqlDatabase());
 
     if(query.exec(rst.sql()))
@@ -1595,7 +1595,7 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
             add(Restrictions::eq(userchatcache.table,userchatcache.otherSideId,accountId));
 
     QSqlQuery query(db->sqlDatabase());
-    qDebug()<<rst.sql();
+
     if(query.exec(rst.sql()))
     {
         while(query.next())
@@ -1648,7 +1648,7 @@ bool SQLProcess::saveUserChat2Cache(Database *db, QSharedPointer<TextRequest> re
                {userchatcache.textType,request->textType},
                {userchatcache.encryption,request->isEncryption},
                {userchatcache.compress,request->isCompress}});
-qDebug()<<rps.sql();
+
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rps.sql())){
         return true;
@@ -1759,16 +1759,16 @@ bool SQLProcess::addFile(Database *db, ServerNetwork::FileRecvDesc *desc)
 {
     DataTable::RFile rfile;
     RPersistence rs(rfile.table);
+    QDateTime ctime = QDateTime::currentDateTime();
     rs.insert({{rfile.id,desc->fileId},
               {rfile.md5,desc->md5},
               {rfile.quoteNum,0},
               {rfile.fileName,desc->fileName},
               {rfile.src,desc->accountId},
               {rfile.dst,desc->otherId},
-              {rfile.dtime,QDateTime::currentDateTime()},
               {rfile.fileSize,desc->size},
-              {rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH}});
-
+              {rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH},
+              {rfile.dtime,ctime}});
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rs.sql()))
     {

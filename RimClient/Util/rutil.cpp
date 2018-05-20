@@ -122,6 +122,24 @@ QVariant RUtil::getGlobalValue(const QString & group,const QString &key, const Q
     return val;
 }
 
+/*!
+ * @brief 将超长的字符串转换以...结尾的字符
+ * @param[in] font 带显示区字体
+ * @param[in] origin 原始显示内容
+ * @param[in] maxLen 最大显示宽度
+ * @return 转换后的字符
+ */
+QString RUtil::replaceLongTextWidthElide(const QFont &font, const QString &origin, const int maxLen)
+{
+    QString str;
+    QFontMetrics fontWidth(font);
+    if(fontWidth.width(origin) >= maxLen)
+        str = fontWidth.elidedText(origin,Qt::ElideRight,maxLen);
+    else
+        str = origin;
+    return str;
+}
+
 QString RUtil::UUID()
 {
     QString uuid = QUuid::createUuid().toString();
@@ -295,7 +313,8 @@ void RUtil::setRelativeImgPath(QString &targetHtml,QString userID)
  * @param targetHtml 需要修改img标签内容的Html格式字符串
  * @param userID 用于拼接相对路径的用户账号ID
  */
-void RUtil::setAbsoulteImgPath(QString &targetHtml, QString userID)
+
+void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
 {
     QDomDocument domDoc;
     domDoc.setContent(targetHtml);

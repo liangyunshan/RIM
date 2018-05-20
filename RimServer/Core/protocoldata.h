@@ -106,6 +106,7 @@ enum MsgCommand
     MSG_USER_VIEW_INFO,                                /*!< 用户基本信息 */
     MSG_USER_UPDATE_INFO,                              /*!< 用户更新信息 */
     MSG_USER_STATE,                                    /*!< 用户状态 */
+    MSG_USER_HISTORY_MSG,                              /*!< 用户历史消息 */
 
     MSG_RELATION_SEARCH = 0x11,                        /*!< 查找好友 */
     MSG_REALTION_ADD,                                  /*!< 添加好友 */
@@ -394,8 +395,7 @@ enum OperateGrouping
     GROUPING_CREATE,     /*!< 创建分组 */
     GROUPING_RENAME,     /*!< 重命名分组 */
     GROUPING_DELETE,     /*!< 删除分组 */
-    GROUPING_SORT,       /*!< 分组排序 */
-    GROUPING_REFRESH     /*!< 刷新分组 */
+    GROUPING_SORT        /*!< 分组排序 */
 };
 
 /************************个人账户注册**********************/
@@ -421,6 +421,13 @@ public:
 };
 
 /************************登**陆**[Ok]********************/
+/*!
+ *  @brief  登陆类型
+ */
+enum LoginType{
+    FIRST_LOGIN,            /*!< 初次登陆 */
+    RECONNECT_LOGIN         /*!< 断网重连登陆*/
+};
 
 /*!
  *  @brief  登陆请求
@@ -430,6 +437,7 @@ class LoginRequest : public MsgPacket
 public:
     LoginRequest();
 
+    LoginType loginType;            /*!< 登陆类型 */
     QString accountId;              /*!< 登陆账号 */
     QString password;               /*!< 账号密码，采用密码加密传输 */
     OnlineStatus  status;           /*!< 用户选择的在线状态 */
@@ -442,7 +450,7 @@ class LoginResponse : public MsgPacket
 {
 public:
     LoginResponse();
-
+    LoginType loginType;            /*!< 登陆类型 */
     UserBaseInfo baseInfo;          /*!< 登陆用户的个人信息，参见 @link UserBaseInfo @endlink */
 };
 
@@ -553,14 +561,24 @@ public:
 };
 
 /***********************联系人列表操作**[Ok]********************/
+/*!
+ *  @brief  操作列表类型
+ */
+enum OperateListTimeType{
+    REQUEST_FIRST,      /*!< 第一次登陆请求 */
+    REQUEST_RECONNECT,  /*!< 断线重连 */
+    REQUEST_REFRESH     /*!< 列表刷新 */
+};
 
 /*!
  *  @brief 好友列表请求
+ *  @details 1.登陆列表请求；2.断线重连后；3.用户手动在页面执行刷新页面
  */
 class FriendListRequest : public MsgPacket
 {
 public:
     FriendListRequest();
+    OperateListTimeType type;       /*!< 刷新列表时机 */
     QString accountId;              /*!< 用户账号  */
 };
 
@@ -572,6 +590,7 @@ class FriendListResponse : public MsgPacket
 public:
     FriendListResponse();
     ~FriendListResponse();
+    OperateListTimeType type;       /*!< 刷新列表时机 */
     QString accountId;              /*!< 用户账号  */
     QList<RGroupData *> groups;     /*!< 分组信息  */
 };
@@ -661,6 +680,19 @@ public:
     UserStateResponse();
     QString accountId;              /*!< 用户账号，若账号等于自身则用于响应自己的操作；若账户为联系人列表中，则表示接收好友状态 */
     OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
+};
+
+/**********************离线消息抓取**[Ok]********************/
+/*!
+ *  @brief  离线消息抓取
+ *  @details 用户登陆或者重新连接后，应发送历史消息抓取请求
+ *  @attention 为了解决历史消息过多，导致页面加载缓慢的问题，将历史消息与页面加载处理分开，待页面准备好后，再请求历史消息；
+ */
+class HistoryMessRequest : public MsgPacket
+{
+public:
+    HistoryMessRequest();
+    QString accountId;              /*!< 用户账号 */
 };
 
 /******************************************************【群操作请求/应答命令】*****************************************************************/
@@ -766,6 +798,7 @@ class ChatGroupListRequest : public MsgPacket
 {
 public:
     ChatGroupListRequest();
+    OperateListTimeType type;        /*!< 刷新列表时机 */
     QString uuid;                    /*!< user表id */
     QString accountId;               /*!< 用户账号  */
 };
@@ -1080,6 +1113,9 @@ class SimpleFileItemRequest : public MsgPacket
 {
 public:
     SimpleFileItemRequest();
+    ~SimpleFileItemRequest(){
+
+    }
     FileTransferControl control;    /*!< 传输控制命令 @link FileTransferControl @endlink */
     FileItemType itemType;          /*!< 文件操作类型 @line FileItemType @endlink */
     FileItemKind itemKind;          /*!< 文件类型 */

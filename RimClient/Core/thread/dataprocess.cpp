@@ -49,18 +49,21 @@ void DataProcess::proLoginResponse(QJsonObject &data)
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
         {
-            response.baseInfo.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
-            response.baseInfo.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-            response.baseInfo.nickName = dataObj.value(JsonKey::key(JsonKey::NickName)).toString();
-            response.baseInfo.signName = dataObj.value(JsonKey::key(JsonKey::SignName)).toString();
-            response.baseInfo.sexual = (Sexual)dataObj.value(JsonKey::key(JsonKey::Sexual)).toInt();
-            response.baseInfo.birthday = dataObj.value(JsonKey::key(JsonKey::Birth)).toString();
-            response.baseInfo.address = dataObj.value(JsonKey::key(JsonKey::Address)).toString();
-            response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
-            response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
-            response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
-            response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
-            response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
+            response.loginType = (LoginType)dataObj.value(JsonKey::key(JsonKey::LoginType)).toInt();
+
+            QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Data)).toObject();
+            response.baseInfo.uuid = simpleObj.value(JsonKey::key(JsonKey::Uuid)).toString();
+            response.baseInfo.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+            response.baseInfo.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
+            response.baseInfo.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
+            response.baseInfo.sexual = (Sexual)simpleObj.value(JsonKey::key(JsonKey::Sexual)).toInt();
+            response.baseInfo.birthday = simpleObj.value(JsonKey::key(JsonKey::Birth)).toString();
+            response.baseInfo.address = simpleObj.value(JsonKey::key(JsonKey::Address)).toString();
+            response.baseInfo.email = simpleObj.value(JsonKey::key(JsonKey::Email)).toString();
+            response.baseInfo.phoneNumber = simpleObj.value(JsonKey::key(JsonKey::Phone)).toString();
+            response.baseInfo.remark = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+            response.baseInfo.isSystemIcon = simpleObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+            response.baseInfo.iconId = simpleObj.value(JsonKey::key(JsonKey::IconId)).toString();
         }
     }
 
@@ -189,6 +192,7 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
         QJsonObject dataObject = data.value(JsonKey::key(JsonKey::Data)).toObject();
 
         response = new FriendListResponse;
+        response->type = static_cast<OperateListTimeType>(dataObject.value(JsonKey::key(JsonKey::Type)).toInt());
         response->accountId = dataObject.value(JsonKey::key(JsonKey::AccountId)).toString();
         QJsonArray groups = dataObject.value(JsonKey::key(JsonKey::Groups)).toArray();
         for(int i = 0; i < groups.size(); i++)
@@ -211,7 +215,7 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
                 userInfo->nickName = user.value(JsonKey::key(JsonKey::NickName)).toString();
                 userInfo->signName = user.value(JsonKey::key(JsonKey::SignName)).toString();
                 userInfo->remarks = user.value(JsonKey::key(JsonKey::Remark)).toString();
-                userInfo->isSystemIcon = user.value(JsonKey::key(JsonKey::SystemIcon)).toInt();
+                userInfo->isSystemIcon = user.value(JsonKey::key(JsonKey::SystemIcon)).toVariant().toBool();
                 userInfo->iconId = user.value(JsonKey::key(JsonKey::IconId)).toString();
                 userInfo->status = (OnlineStatus)user.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -227,28 +231,18 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
 void DataProcess::proGroupingOperateResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
-    if(status == STATUS_SUCCESS)
-    {
-        QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
-        GroupingResponse response;
-        response.gtype = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
-        response.type = (OperateGrouping) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
-        response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
-        response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
-        response.groupIndex = dataObj.value(JsonKey::key(JsonKey::Index)).toInt();
-        if(response.gtype == OperatePerson)
-            MessDiapatch::instance()->onRecvFriendGroupingOperate(STATUS_SUCCESS,response);
-        else if(response.gtype == OperateGroup)
-            MessDiapatch::instance()->onRecvGroupGroupingOperate(STATUS_SUCCESS,response);
-    }else{
-        OperateType type = (OperateType)data.value(JsonKey::key(JsonKey::SubCmd)).toInt();
-        GroupingResponse response;
-        if(type == OperatePerson)
-            MessDiapatch::instance()->onRecvFriendGroupingOperate(STATUS_FAILE,response);
-        else if(type == OperateGroup)
-            MessDiapatch::instance()->onRecvGroupGroupingOperate(STATUS_FAILE,response);
 
-    }
+    QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
+    GroupingResponse response;
+    response.gtype = (OperateType)dataObj.value(JsonKey::key(JsonKey::OperateType)).toInt();
+    response.type = (OperateGrouping) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
+    response.groupId = dataObj.value(JsonKey::key(JsonKey::GroupId)).toString();
+    response.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
+    response.groupIndex = dataObj.value(JsonKey::key(JsonKey::Index)).toInt();
+    if(response.gtype == OperatePerson)
+        MessDiapatch::instance()->onRecvFriendGroupingOperate(status,response);
+    else if(response.gtype == OperateGroup)
+        MessDiapatch::instance()->onRecvGroupGroupingOperate(status,response);
 }
 
 void DataProcess::proGroupingFriendResponse(QJsonObject &data)

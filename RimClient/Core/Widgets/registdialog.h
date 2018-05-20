@@ -36,6 +36,9 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
+    void enableInput(bool flag);
+
+private:
     RegistDialogPrivate * d_ptr;
 };
 

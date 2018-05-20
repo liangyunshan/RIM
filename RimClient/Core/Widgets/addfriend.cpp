@@ -271,6 +271,7 @@ void AddFriend::keyPressEvent(QKeyEvent *event)
 void AddFriend::startSearch()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(AddFriend);
 
     SearchFriendRequest * request = new SearchFriendRequest;
@@ -296,6 +297,7 @@ void AddFriend::reSearch()
 void AddFriend::addFriend()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(AddFriend);
     QString operateId;
     if(d->group_Radio->isChecked()){

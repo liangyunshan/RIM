@@ -375,7 +375,7 @@
         timeContainer.appendChild(time);
         timeContainer.setAttribute('class','timeBox');
         content.appendChild(timeContainer);
-        timeContainer.scrollIntoView();
+        timeContainer.scrollIntoView(false);
     }
     //切换窗口大小
     function toggleWindow() {
@@ -453,7 +453,7 @@
                 }
             }
 
-            newDiv.scrollIntoView();
+            newDiv.scrollIntoView(false);
         }
     }
     // 设置提醒消息
@@ -482,7 +482,7 @@
         noticeBox.appendChild(noticeText);
         noticeContainer.appendChild(noticeBox);
         contentContainer.appendChild(noticeContainer);
-        noticeContainer.scrollIntoView();
+        noticeContainer.scrollIntoView(false);
     }
     // 收/发文件夹消息
     function appendFile(target,filePath,avatarPath,resultType) {
@@ -551,7 +551,7 @@
             newDialog.className = 'msgContent left';
             avatarContainer.className = 'avatarPic left'
         }
-        newDiv.scrollIntoView();
+        newDiv.scrollIntoView(false);
     }
     // 文件夹消息操作按钮生产
     function openFileBtn(){
@@ -722,7 +722,7 @@
         var div = document.createElement('div');
         div.style = 'clear:both';
         content_container.appendChild(div);
-        div.scrollIntoView();
+        div.scrollIntoView(false);
     }
     </script>
 </html>

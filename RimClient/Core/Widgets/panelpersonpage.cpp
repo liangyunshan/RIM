@@ -6,6 +6,9 @@
 #include <QAction>
 #include <QLineEdit>
 #include <algorithm>
+#include <QFileInfo>
+#include <functional>
+#include <QTimer>
 
 #include "head.h"
 #include "datastruct.h"
@@ -25,6 +28,7 @@
 #include "abstractchatwidget.h"
 #include "widget/rmessagebox.h"
 #include "media/mediaplayer.h"
+#include "thread/filerecvtask.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -38,7 +42,6 @@ protected:
     {
         m_modifyWindow = NULL;
         groupIsCreate = false;
-        m_listIsCreated = false;
         initWidget();
     }
 
@@ -53,7 +56,6 @@ protected:
     ToolItem * m_movedItem;                         //待移动的联系人item
     bool groupIsCreate;                             //标识分组是新创建还是已存在
     QString m_deleteID;                             //暂时将删除的分组ID保存在内存中
-    bool m_listIsCreated;                           //标识好友列表是第一次创建还是刷新显示
     QString pageNameBeforeRename;                   //重命名前分组名称，为了避免在步修改名称下依然更新服务器
 
     ModifyRemarkWindow *m_modifyWindow;
@@ -74,7 +76,7 @@ void PanelPersonPagePrivate::initWidget()
 
     toolBox = new ToolBox(contentWidget);
     QObject::connect(toolBox,SIGNAL(updateGroupActions(ToolPage *)),q_ptr,SLOT(updateGroupActions(ToolPage *)));
-    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,QString)),q_ptr,SLOT(respGroupMoved(int,QString)));
+    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,int,QString)),q_ptr,SLOT(respGroupMoved(int,int,QString)));
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
@@ -141,8 +143,6 @@ void PanelPersonPage::addGroupAndUsers()
             page->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
         }
     }
-
-    d->m_listIsCreated = true;
 }
 
 /*!
@@ -176,7 +176,7 @@ void PanelPersonPage::updateGroupDescInfo()
  * @param[in] id:QString，待删除的联系人分组id
  * @return 无
  */
-void PanelPersonPage::clearTargetGroup(const QString id)
+void PanelPersonPage::removeTargetGroup(const QString id)
 {
     MQ_D(PanelPersonPage);
     QString t_id = id;
@@ -189,6 +189,8 @@ void PanelPersonPage::clearTargetGroup(const QString id)
         bool t_result = t_delPage->removeItem(t_movedItem);
         if(t_result){
             d->toolBox->defaultPage()->addItem(t_movedItem);
+            t_movedItem->setToolPage(d->toolBox->defaultPage());
+            reconnectItem(t_movedItem,t_delPage,d->toolBox->defaultPage());
         }else{
             delete t_movedItem;
         }
@@ -227,10 +229,10 @@ void PanelPersonPage::updateContactShow(const SimpleUserInfo & info)
  * @param[in] info:SimpleUserInfo &，待更新的联系人信息
  * @return 无
  */
-void PanelPersonPage::removeContact(const SimpleUserInfo & info)
+void PanelPersonPage::removeContact(const QString accountId)
 {
     MQ_D(PanelPersonPage);
-    UserClient * userClient = RSingleton<UserManager>::instance()->client(info.accountId);
+    UserClient * userClient = RSingleton<UserManager>::instance()->client(accountId);
     if(userClient)
     {
         ToolItem * t_item = userClient->toolItem;
@@ -243,90 +245,13 @@ void PanelPersonPage::removeContact(const SimpleUserInfo & info)
             bool t_removeResult = pageItem->removeItem(t_item);
             if(t_removeResult)
             {
-                bool t_result = RSingleton<UserManager>::instance()->removeClient(info.accountId);
+                bool t_result = RSingleton<UserManager>::instance()->removeClient(accountId);
                 if(t_result)
                 {
                     delete t_item;
-                    RSingleton<UserFriendContainer>::instance()->deleteUser(pageItem->getID(),info.accountId);
+                    RSingleton<UserFriendContainer>::instance()->deleteUser(pageItem->getID(),accountId);
                 }
             }
-        }
-    }
-}
-
-/*!
- * @brief 清除本地存在但数据库中不存在的分组与联系人信息（可能有这种情况存在）
- * @param[in] 无
- * @return 无
- */
-void PanelPersonPage::clearUnrealGroupAndUser()
-{
-    MQ_D(PanelPersonPage);
-    QList<int> t_unrealPages;
-
-    for(int t_pageIndex = 0;t_pageIndex < d->toolBox->allPages().count();t_pageIndex++)
-    {
-        ToolPage * t_tempPage = d->toolBox->allPages().at(t_pageIndex);
-        QList<int>t_unrealItems;//保存本地存在但数据库中已经不存在的联系人索引值
-
-        RGroupData * groupData = RSingleton<UserFriendContainer>::instance()->element(t_tempPage->getID());
-        if(groupData){
-            QList<SimpleUserInfo *> t_users = groupData->users;
-            for(int t_itemIndex = 0;t_itemIndex<t_tempPage->items().count();t_tempPage++)
-            {
-                bool t_userMatchResult = false;
-                for(int t_userIndex = 0;t_userIndex < t_users.count();t_userIndex++)
-                {
-                    ToolItem * t_curItem = t_tempPage->items().at(t_itemIndex);
-                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_curItem);
-                    if(t_client->simpleUserInfo.accountId == t_users.at(t_userIndex)->accountId)
-                    {
-                        t_userMatchResult = true;
-                    }
-                }
-                if(!t_userMatchResult)
-                {
-                    t_unrealItems.append(t_itemIndex);
-                }
-            }
-            for(int index = 0;index<t_unrealItems.count();index++)
-            {
-                ToolItem * temp = t_tempPage->items().at(t_unrealItems.at(index));
-                bool t_removeResult = t_tempPage->removeItem(temp);
-                if(t_removeResult)
-                {
-                    UserClient * userClient = RSingleton<UserManager>::instance()->client(temp);
-                    bool t_result = RSingleton<UserManager>::instance()->removeClient(userClient->simpleUserInfo.accountId);
-                    if(t_result)
-                    {
-                        delete temp;
-                    }
-                }
-            }
-
-            t_unrealPages.append(t_pageIndex);
-        }
-    }
-    for(int t_index = 0;t_index < t_unrealPages.count();t_index++)
-    {
-        ToolPage * t_targetPage = d->toolBox->allPages().at(t_unrealPages.at(t_index));
-        if(t_targetPage)
-        {
-            foreach(ToolItem *t_removedItem,t_targetPage->items())
-            {
-                bool t_itemResult = t_targetPage->removeItem(t_removedItem);
-                if(t_itemResult)
-                {
-                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_removedItem);
-                    bool t_clientResult = RSingleton<UserManager>::instance()->removeClient(t_client->simpleUserInfo.accountId);
-                    if(t_clientResult)
-                    {
-                        delete t_removedItem;
-                    }
-                }
-            }
-            d->toolBox->removePage(t_targetPage);
-            d->toolBox->removeFromList(t_targetPage);
         }
     }
 }
@@ -336,6 +261,16 @@ void PanelPersonPage::onMessage(MessageType type)
     switch (type) {
     case MESS_TEXT_NET_ERROR:
             networkIsConnected(false);
+        break;
+    case MESS_USER_OFF_LINE:
+            {
+                std::function<void(UserClient*)> func = [](UserClient* item){
+                    item->toolItem->setStatus(STATUS_OFFLINE);
+                };
+                RSingleton<UserManager>::instance()->for_each(func);
+
+                updateGroupDescInfo();
+            }
         break;
     default:
         break;
@@ -354,11 +289,13 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
     if(status == STATUS_SUCCESS){
         RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
 
-        if(!d->m_listIsCreated){
+        if(friendList->type == REQUEST_FIRST){
             addGroupAndUsers();
-        }else{
+        }else if(friendList->type == REQUEST_RECONNECT || friendList->type == REQUEST_REFRESH){
             updateContactList();
         }
+
+        QTimer::singleShot(500,this,SLOT(loadHistoryMsg()));
     }else{
         RMessageBox::warning(this,QObject::tr("warning"),tr("Get friendList failed!"),RMessageBox::Yes);
     }
@@ -372,13 +309,12 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
 void PanelPersonPage::refreshList()
 {
     R_CHECK_ONLINE;
-    GroupingRequest * request = new GroupingRequest();
-    request->uuid = G_User->BaseInfo().uuid;
-    request->type = GROUPING_REFRESH;
-    request->gtype = OperatePerson;
+    R_CHECK_LOGIN;
 
+    FriendListRequest * request = new FriendListRequest;
+    request->type = REQUEST_REFRESH;
+    request->accountId = G_User->BaseInfo().accountId;
     RSingleton<MsgWrap>::instance()->handleMsg(request);
-    //TODO 服务器添加代码处理客户端刷新联系人列表请求
 }
 
 /*!
@@ -439,6 +375,7 @@ void PanelPersonPage::respGroupRename()
 void PanelPersonPage::respGroupDeleted()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
     ToolPage *t_page = d->toolBox->selectedPage();
     if(t_page->isDefault())
@@ -456,12 +393,14 @@ void PanelPersonPage::respGroupDeleted()
 
 /*!
  * @brief 响应分组移动
- * @param[in] index 重新排序后，分组在列表中索引
+ * @param[in] newIndex 重新排序后，分组在列表中索引
+ * @param[in] oldIndex 排序前，分组在列表中索引
  * @param[in] pageId 执行排序的分组ID
  */
-void PanelPersonPage::respGroupMoved(int index, QString pageId)
+void PanelPersonPage::respGroupMoved(int newIndex, int oldIndex, QString pageId)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     GroupingRequest * request = new GroupingRequest();
@@ -470,7 +409,7 @@ void PanelPersonPage::respGroupMoved(int index, QString pageId)
     request->gtype = OperatePerson;
     request->groupName = d->tmpNameEdit->text();
     request->groupId = pageId;
-    request->groupIndex = index;
+    request->groupIndex = newIndex;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -613,7 +552,7 @@ void PanelPersonPage::deleteUser()
 {
     MQ_D(PanelPersonPage);
 
-    ToolItem *t_toRemovedItem = d->toolBox->selectedItem();
+    ToolItem * t_toRemovedItem = d->toolBox->selectedItem();
     if(t_toRemovedItem && d->pageOfTriggeredItem){
         UserClient * client = RSingleton<UserManager>::instance()->client(t_toRemovedItem);
         if(client && d->pageOfTriggeredItem->getID().size() > 0){
@@ -641,6 +580,7 @@ void PanelPersonPage::deleteUser(ChatMessageType messtype, QString accountId)
 void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     if(client == nullptr)
         return;
     GroupingFriendRequest * t_request = new GroupingFriendRequest();
@@ -660,7 +600,7 @@ void PanelPersonPage::networkIsConnected(bool isConnected)
 {
     MQ_D(PanelPersonPage);
     if(isConnected){
-
+        //TODO 查询在线联系人状态
     }else{
         for(int i = 0;i<d->toolBox->allPages().size();i++){
             ToolPage * page = d->toolBox->allPages().at(i);
@@ -671,6 +611,42 @@ void PanelPersonPage::networkIsConnected(bool isConnected)
     }
 
     updateGroupDescInfo();
+}
+
+/*!
+ * @brief 对当前列表重新排序刷新显示
+ */
+void PanelPersonPage::resortToolPage()
+{
+    MQ_D(PanelPersonPage);
+    const QList<RGroupData *> list = RSingleton<UserFriendContainer>::instance()->list();
+
+    int index = 0;
+    std::for_each(list.begin(),list.end(),[&](RGroupData * groupData){
+        d->toolBox->sortPage(groupData->groupId,index++);
+    });
+}
+
+/*!
+ * @brief 重新对在线用户和离线用户显示排序
+ */
+void PanelPersonPage::resortOnlineToolItem()
+{
+
+}
+
+/*!
+ * @brief 因删除、移动造成item所属父类改变，需要对item的信号进行重新关联
+ * @param[in] item 待关联的item
+ * @param[in] oldPage 旧Page
+ * @param[in] newPage 新newPage
+ */
+void PanelPersonPage::reconnectItem(ToolItem *item, ToolPage *oldPage, ToolPage *newPage)
+{
+    disconnect(item,SIGNAL(updateGroupActions()),oldPage,SLOT(updateGroupActions()));
+    disconnect(item,SIGNAL(clearSelectionOthers(ToolItem*)),oldPage,SIGNAL(clearItemSelection(ToolItem*)));
+    connect(item,SIGNAL(updateGroupActions()),newPage,SLOT(updateGroupActions()));
+    connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),newPage,SIGNAL(clearItemSelection(ToolItem*)));
 }
 
 /*!
@@ -727,15 +703,15 @@ void PanelPersonPage::recvFriendItemOperate(MsgOperateResponse result, GroupingF
     case G_Friend_MOVE:
         {
             if(result == STATUS_SUCCESS){
-                QString t_sourceID = response.oldGroupId;
-                QString t_targetID = response.groupId;
-                ToolPage * t_sourcePage = d->toolBox->targetPage(t_sourceID);
-                ToolPage * t_targetPage = d->toolBox->targetPage(t_targetID);
-                bool t_rmResult = t_sourcePage->removeItem(d->m_movedItem);
+                QString sourceID = response.oldGroupId;
+                QString targetID = response.groupId;
+                ToolPage * sourcePage = d->toolBox->targetPage(sourceID);
+                ToolPage * targetPage = d->toolBox->targetPage(targetID);
+                bool t_rmResult = sourcePage->removeItem(d->m_movedItem);
                 if(t_rmResult){
-                    d->toolBox->targetPage(t_targetID)->addItem(d->m_movedItem);
-                    disconnect(d->m_movedItem,SIGNAL(updateGroupActions()),t_sourcePage,SLOT(updateGroupActions()));
-                    connect(d->m_movedItem,SIGNAL(updateGroupActions()),t_targetPage,SLOT(updateGroupActions()));
+                    d->m_movedItem->setToolPage(targetPage);
+                    targetPage->addItem(d->m_movedItem);
+                    reconnectItem(d->m_movedItem,sourcePage,targetPage);
                     RSingleton<UserFriendContainer>::instance()->moveUser(response.oldGroupId,response.groupId,response.user.accountId);
                     updateGroupDescInfo();
                 }
@@ -747,7 +723,7 @@ void PanelPersonPage::recvFriendItemOperate(MsgOperateResponse result, GroupingF
     case G_Friend_Delete:
         {
              if(result == STATUS_SUCCESS){
-                 removeContact(response.user);
+                 removeContact(response.user.accountId);
                  updateGroupDescInfo();
                  emit userDeleted(CHAT_C2C,response.user.accountId);
              }
@@ -774,6 +750,7 @@ void PanelPersonPage::updateModifyInstance(QObject *)
 void PanelPersonPage::requestModifyRemark(QString remark)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     ToolItem *t_modifyItem = d->toolBox->selectedItem();
@@ -802,91 +779,180 @@ void PanelPersonPage::requestModifyRemark(QString remark)
 
 /*!
  * @brief 在更新并收到数据更新通知后，刷新联系人列表
- * @param[in] 无
- * @return 无
+ * @details UserFriendContainer中保存了远程分组中的最新分组和用户在线情况，需要以此作为判断标准；
+ *          [1]遍历UserFriendContainer中的分组，存在几种分组情形：
+ *              1.远程分组和本地分组均可找到【可设置名称】；
+ *              2.远程分组存在，本地分组不存在【创建新的分组】；
+ *              3.远程分组不存在，本地分组存在【从本地分组中移除，再结合本地分组中联系人存在的位置】；
+ *          [2]对于每个分组中item也存在几种情形：
+ *              1.远程存在，本地不存在；【直接创建】
+ *              2.远程与本地均在同一分组；【设置基本的信息是否一致，对比头像，用户名，签名等】
+ *              3.远程和本地不在同一分组；【从其它分组移动至当前分组】
+ *              4.远程不存在，本地存在；【删除联系人，关闭对应的窗口，释放client】
+ *          [3]对分组进行排序
+ *          [4]对分组内的在线用户进行优先排序
  */
 void PanelPersonPage::updateContactList()
 {
     MQ_D(PanelPersonPage);
     const QList<RGroupData *> list = RSingleton<UserFriendContainer>::instance()->list();
-    for(int t_groupIndex = 0;t_groupIndex < list.count();t_groupIndex++)
+    for(int groupIndex = 0;groupIndex < list.count();groupIndex++)
     {
-        //更新列表中page
-        QString t_groupId = list.at(t_groupIndex)->groupId;
-        bool t_matchGroupResult = false;
-        for(int t_pageIndex = 0;t_pageIndex < d->toolBox->allPages().count();t_pageIndex++)
+        RGroupData * remoteGroupData = list.at(groupIndex);
+        ToolPage * targetPage =  d->toolBox->targetPage(remoteGroupData->groupId);
+        if(targetPage == NULL)
         {
-            ToolPage * t_tempPage = d->toolBox->allPages().at(t_pageIndex);
-            if(t_tempPage->getID() == t_groupId)
-            {
-                t_matchGroupResult = true;
-                break;
-            }
-        }
-        ToolPage * t_targetPage = d->toolBox->targetPage(t_groupId);
-        if(t_matchGroupResult)
-        {
-            //本地有与回复信息中匹配的分组
-            t_targetPage->setToolName(list.at(t_groupIndex)->groupName);
-            //更新分组中item
-            QList<SimpleUserInfo *> t_users = list.at(t_groupIndex)->users;
-            for(int t_userIndex = 0;t_userIndex < t_users.count();t_userIndex++)
-            {
-                QString t_userId = t_users.at(t_userIndex)->accountId;
-                bool t_matchUserResult = false;
-                for(int t_itemIndex = 0;t_itemIndex < t_targetPage->items().count();t_targetPage++)
-                {
-                    ToolItem * t_tempItem = t_targetPage->items().at(t_itemIndex);
-                    UserClient * t_client = RSingleton<UserManager>::instance()->client(t_tempItem);
-                    if(t_client->baseInfo.accountId == t_userId)
-                    {
-                        t_matchUserResult = true;
-                        break;
-                    }
-                }
+            //1.2
+            RGroupData * t_groupData = list.at(groupIndex);
+            ToolPage * newPage = d->toolBox->addPage(t_groupData->groupName);
+            newPage->setID(t_groupData->groupId);
+            newPage->setDefault(t_groupData->isDefault);
 
-                if(t_matchUserResult)       //数据库分组中有，且相同id的本地分组中也有目标联系人
-                {
-                    ToolItem * t_matchedItem = RSingleton<UserManager>::instance()->client(t_userId)->toolItem;
-                    t_matchedItem->setName(t_users.at(t_userIndex)->remarks);
-                    t_matchedItem->setNickName(t_users.at(t_userIndex)->nickName);
-                    t_matchedItem->setDescInfo(t_users.at(t_userIndex)->signName);
-                    t_matchedItem->setStatus(t_users.at(t_userIndex)->status);
-                }
-                else                        //数据库分组中有但相同id的本地分组中没有目标联系人
-                {
-                    ToolItem * t_newItem = ceateItem(t_users.at(t_userIndex),t_targetPage);
-                    t_targetPage->addItem(t_newItem);
-                }
-            }
-
-            updateGroupDescInfo(t_targetPage);
-        }
-        else
-        {
-            //数据库中存在但本地不存在的分组，则在本地新增分组
-            RGroupData * t_groupData = list.at(t_groupIndex);
-            ToolPage * t_newPage = d->toolBox->addPage(t_groupData->groupName);
-            t_newPage->setID(t_groupData->groupId);
-            t_newPage->setDefault(t_groupData->isDefault);
-
-            for(int j = 0; j < t_groupData->users.size(); j++)
-            {
-                SimpleUserInfo * t_userInfo = t_groupData->users.at(j);
-
-                ToolItem * t_item = ceateItem(t_userInfo,t_newPage);
-                t_newPage->addItem(t_item);
-            }
-            updateGroupDescInfo(t_newPage);
-            t_newPage->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
+            updateGroupDescInfo(newPage);
+            newPage->setMenu(ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLGROUP));
         }
     }
-    //清除本地存在但数据库中已经不存在的page和item
-    clearUnrealGroupAndUser();
+
+    //1.1
+    for(int groupIndex = 0;groupIndex < list.count();groupIndex++)
+    {
+        RGroupData * remoteGroupData = list.at(groupIndex);
+        ToolPage * targetPage =  d->toolBox->targetPage(remoteGroupData->groupId);
+        if(targetPage)
+        {
+            targetPage->setToolName(remoteGroupData->groupName);
+
+            QList<SimpleUserInfo *> t_users = remoteGroupData->users;
+
+            auto func = [](ToolItem * item,QString accountId){
+                    UserClient * client = RSingleton<UserManager>::instance()->client(item);
+                    if(client)
+                        return client->simpleUserInfo.accountId == accountId;
+                    return false;
+                };
+
+            for(int t_userIndex = 0;t_userIndex < t_users.count();t_userIndex++)
+            {
+                SimpleUserInfo * remoteSimpleUserInfo = t_users.at(t_userIndex);
+                QString t_userId = remoteSimpleUserInfo->accountId;
+
+                bool t_matchUserResult = targetPage->containsItem(std::bind(func,::placeholders::_1,remoteSimpleUserInfo->accountId));
+
+                //2.1
+                if(t_matchUserResult)
+                {
+                    UserClient * client = RSingleton<UserManager>::instance()->client(t_userId);
+                    client->simpleUserInfo = *remoteSimpleUserInfo;
+
+                    ToolItem * item = client->toolItem;
+                    item->setName(remoteSimpleUserInfo->remarks);
+                    item->setNickName(remoteSimpleUserInfo->nickName);
+                    item->setDescInfo(remoteSimpleUserInfo->signName);
+
+                    if(!remoteSimpleUserInfo->isSystemIcon && !QFileInfo(G_User->getFilePath(remoteSimpleUserInfo->iconId)).exists() && remoteSimpleUserInfo->iconId.size() > 0)
+                     {
+                         SimpleFileItemRequest * request = new SimpleFileItemRequest;
+                         request->control = T_REQUEST;
+                         request->itemType = FILE_ITEM_USER_DOWN;
+                         request->itemKind = FILE_IMAGE;
+                         request->fileId = QFileInfo(remoteSimpleUserInfo->iconId).baseName();
+                         FileRecvTask::instance()->addRecvItem(request);
+                     }else{
+                        item->setIcon(G_User->getIcon(remoteSimpleUserInfo->isSystemIcon,remoteSimpleUserInfo->iconId));
+                    }
+
+                    item->setStatus(remoteSimpleUserInfo->status);
+                }
+                else{
+                    UserClient * localUserClient = RSingleton<UserManager>::instance()->client(remoteSimpleUserInfo->accountId);
+                    //2.2
+                    if(localUserClient == NULL){
+                        ToolItem * t_newItem = ceateItem(remoteSimpleUserInfo,targetPage);
+                        targetPage->addItem(t_newItem);
+                        //1.查找用户界面需要判断此用户是否已经被添加了
+                        RSingleton<Subject>::instance()->notify(MESS_RELATION_FRIEND_ADD);
+                    }
+                    //2.3
+                    else{
+                        ToolPage * t_sourcePage = localUserClient->toolItem->toolpage();
+                        bool flag = t_sourcePage->removeItem(localUserClient->toolItem);
+                        if(flag){
+                            targetPage->addItem(localUserClient->toolItem);
+                            localUserClient->toolItem->setToolPage(targetPage);
+                            reconnectItem(localUserClient->toolItem,t_sourcePage,targetPage);
+
+                            localUserClient->toolItem->setName(remoteSimpleUserInfo->remarks);
+                            localUserClient->toolItem->setNickName(remoteSimpleUserInfo->nickName);
+                            localUserClient->toolItem->setDescInfo(remoteSimpleUserInfo->signName);
+
+                            if(!remoteSimpleUserInfo->isSystemIcon && !QFileInfo(G_User->getFilePath(remoteSimpleUserInfo->iconId)).exists() && remoteSimpleUserInfo->iconId.size() > 0)
+                             {
+                                 SimpleFileItemRequest * request = new SimpleFileItemRequest;
+                                 request->control = T_REQUEST;
+                                 request->itemType = FILE_ITEM_USER_DOWN;
+                                 request->itemKind = FILE_IMAGE;
+                                 request->fileId = QFileInfo(remoteSimpleUserInfo->iconId).baseName();
+                                 FileRecvTask::instance()->addRecvItem(request);
+                             }else{
+                                localUserClient->toolItem->setIcon(G_User->getIcon(remoteSimpleUserInfo->isSystemIcon,remoteSimpleUserInfo->iconId));
+                            }
+
+                            localUserClient->toolItem->setStatus(remoteSimpleUserInfo->status);
+                        }
+                    }
+                }
+            }
+            updateGroupDescInfo(targetPage);
+        }
+    }
+
+    QList<QString> unExistedPages;
+    const QList<ToolPage *> oldPages =  d->toolBox->allPages();
+    for(int pageIndex = 0; pageIndex < oldPages.count(); pageIndex++)
+    {
+        ToolPage * targetPage = oldPages.at(pageIndex);
+        RGroupData * groupData = RSingleton<UserFriendContainer>::instance()->element(targetPage->getID());
+        if(groupData == nullptr){
+            unExistedPages.append(targetPage->getID());
+        }
+    }
+
+    //1.3
+    std::for_each(unExistedPages.begin(),unExistedPages.end(),[this](QString groupId){
+        this->removeTargetGroup(groupId);
+    });
+
+    //2.4
+    const QList<ToolPage *> newPages =  d->toolBox->allPages();
+    for(int pageIndex = 0; pageIndex < newPages.count(); pageIndex++)
+    {
+        ToolPage * targetPage = newPages.at(pageIndex);
+        RGroupData * groupData = RSingleton<UserFriendContainer>::instance()->element(targetPage->getID());
+        if(groupData){
+            QList<ToolItem *> items = targetPage->items();
+            for(int itemIndex = items.count() - 1 ; itemIndex >= 0; itemIndex--)
+            {
+                ToolItem * t_curItem = items.at(itemIndex);
+                UserClient * client = RSingleton<UserManager>::instance()->client(t_curItem);
+                bool contained = RSingleton<UserFriendContainer>::instance()->containUser(client->simpleUserInfo.accountId);
+
+                if(!contained){
+                    removeContact(client->simpleUserInfo.accountId);
+                }
+            }
+        }
+    }
+
+    updateGroupDescInfo();
+
+    //3
+    resortToolPage();
+
+    //4
 }
 
 /*!
- * @brief 接收分组操作接口
+ * @brief 接收分组操作结果。若执行错误，则需要撤销之前的操作。
  * @details 以下操作需要同步至UserFriendContainer，确保UserFriendContainer和数据库中保持一致。
  *          1.创建分组：
  *          2.重命名分组：
@@ -897,10 +963,11 @@ void PanelPersonPage::updateContactList()
 void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingResponse response)
 {
     MQ_D(PanelPersonPage);
-    if(status == STATUS_SUCCESS){
-        if(response.uuid != G_User->BaseInfo().uuid)
-            return;
 
+    if(response.uuid != G_User->BaseInfo().uuid)
+        return;
+
+    if(status == STATUS_SUCCESS){
         switch(response.type){
             case GROUPING_CREATE:{
                     RSingleton<UserFriendContainer>::instance()->addGroup(response.groupId,response.groupIndex);
@@ -911,7 +978,7 @@ void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingRe
                 }
                 break;
             case GROUPING_DELETE:{
-                    clearTargetGroup(d->m_deleteID);
+                    removeTargetGroup(d->m_deleteID);
                 }
                 break;
             case GROUPING_SORT:{
@@ -922,9 +989,42 @@ void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingRe
             default:break;
         }
         updateGroupDescInfo();
-    }else{
+    }else if(status == STATUS_FAILE){
+        switch(response.type){
+            case GROUPING_CREATE:{
+                    RSingleton<UserFriendContainer>::instance()->removeTmpGroup(response.groupId);
+                    removeTargetGroup(response.groupId);
+                }
+                break;
+            case GROUPING_RENAME:{
+                    QString originGroupName = RSingleton<UserFriendContainer>::instance()->revertRenameGroup(response.groupId);
+                    ToolPage * selectedPage = d->toolBox->targetPage(response.groupId);
+                    if(selectedPage)
+                        selectedPage->setToolName(originGroupName);
+                }
+                break;
+            case GROUPING_DELETE:{
+                    d->m_deleteID = QString();
+                }
+                break;
+            case GROUPING_SORT:{
+                    d->toolBox->revertSortPage(response.groupId);
+                }
+                break;
+            default:break;
+        }
         RMessageBox::warning(this,QObject::tr("warning"),tr("Opearate failed!"),RMessageBox::Yes);
     }
+}
+
+void PanelPersonPage::loadHistoryMsg()
+{
+    R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
+
+    HistoryMessRequest * request = new HistoryMessRequest();
+    request->accountId = G_User->BaseInfo().accountId;
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
 
 /*!
@@ -946,6 +1046,19 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     item->setName(userInfo->remarks);
     item->setNickName(userInfo->nickName);
     item->setDescInfo(userInfo->signName);
+
+    if(!userInfo->isSystemIcon && !QFile(G_User->getFilePath(userInfo->iconId)).exists() && userInfo->iconId.size() > 0)
+     {
+         SimpleFileItemRequest * request = new SimpleFileItemRequest;
+         request->control = T_REQUEST;
+         request->itemType = FILE_ITEM_USER_DOWN;
+         request->itemKind = FILE_IMAGE;
+         request->fileId = QFileInfo(userInfo->iconId).baseName();
+         FileRecvTask::instance()->addRecvItem(request);
+     }else{
+        item->setIcon(G_User->getIcon(userInfo->isSystemIcon,userInfo->iconId));
+    }
+
     item->setStatus(userInfo->status);
 
     emit userStateChanged(userInfo->status,userInfo->accountId);
@@ -963,6 +1076,7 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 void PanelPersonPage::renameEditFinished()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
     if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {
@@ -1007,6 +1121,7 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
     {
         movePersonTo->clear();
     }
+
     for(int index=0;index<infoList.count();index++)
     {
         if(page->pageInfo().uuid != infoList.at(index).uuid)
@@ -1032,6 +1147,7 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
 void PanelPersonPage::movePersonTo()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     QAction * target = qobject_cast<QAction *>(QObject::sender());
@@ -1061,28 +1177,36 @@ void PanelPersonPage::movePersonTo()
 }
 
 /*!
- * @brief 响应好友状态更新
- * @details 根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ * @brief 响应自己/好友状态更新
+ * @details 【1】好友更新：根据接收到的信息，更新当前好友的列表信息，同时更新当前页面中的控件的显示。
+ *          【2】自己更新：若为离线状态，则需要将当前联系人列表中分组在线数量进行修改；
  * @param[in] result 操作结果
  * @param[in] response 好友状态信息
  * @return 无
  */
 void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateResponse response)
 {
-    if(result == STATUS_SUCCESS && response.accountId != G_User->BaseInfo().accountId)
+    if(result == STATUS_SUCCESS)
     {
-        UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
-        if(client)
-        {
-            client->toolItem->setStatus(response.onStatus);
-            client->simpleUserInfo.status = response.onStatus;
-            updateGroupDescInfo();
-            if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+        if(response.accountId != G_User->BaseInfo().accountId){
+            UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+            if(client)
             {
-                if(G_User->systemSettings()->soundAvailable)
-                    RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+                client->toolItem->setStatus(response.onStatus);
+                client->simpleUserInfo.status = response.onStatus;
+                updateGroupDescInfo();
+                if(response.onStatus != STATUS_OFFLINE && response.onStatus != STATUS_HIDE)
+                {
+                    if(G_User->systemSettings()->soundAvailable)
+                        RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+                }
+                emit userStateChanged(response.onStatus,response.accountId);
             }
-            emit userStateChanged(response.onStatus,response.accountId);
+        }else{
+            //执行断网操作
+            if(response.onStatus == STATUS_OFFLINE){
+                RSingleton<Subject>::instance()->notify(MESS_USER_OFF_LINE);
+            }
         }
     }
 }

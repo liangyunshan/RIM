@@ -3,6 +3,10 @@
 #include <QUdpSocket>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <winsock2.h>
+#endif
+
 #include "Util/rlog.h"
 #include "Util/rutil.h"
 #include "netglobal.h"
@@ -48,7 +52,6 @@ void RecveiveTask::run()
     lastRecvBuff.clear();
 
     char recvBuff[MSG_RECV_BUFF] = {0};
-//    tcpSocket->setBlock(false);
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);
@@ -74,14 +77,19 @@ void RecveiveTask::run()
                 recvData(recvBuff,recvLen);
             }
         }
+        //Socket 关闭/出错
+        else if(recvLen < 0)
+        {
+            int error = tcpSocket->getLastError();
+            if(errno == EAGAIN || errno == EWOULDBLOCK || error == (int)WSAETIMEDOUT){
+                continue;
+            }
 
-//        else
-//        {
-//            RLOG_ERROR("receive a pack not completely %d",tcpSocket->getLastError());
-//            tcpSocket->closeSocket();
-//            emit socketError(tcpSocket->getLastError());
-//            break;
-//        }
+            RLOG_ERROR("remoate socket cloesed %d",tcpSocket->getLastError());
+            tcpSocket->closeSocket();
+            emit socketError(tcpSocket->getLastError());
+            break;
+        }
     }
 
     runningFlag = false;
@@ -159,9 +167,7 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                     int leftLen = recvLen - processLen;
 
                     if(leftLen <= 0)
-                    {
                         break;
-                    }
 
                     if(leftLen >= sizeof(DataPacket))
                     {

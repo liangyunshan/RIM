@@ -379,6 +379,7 @@ void EditPersonInfoWindow::openLocalImage()
 void EditPersonInfoWindow::updateUserBaseInfo()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(EditPersonInfoWindow);
 
     if(d->m_phone_edit->text().size() > 0 && !RSingleton<RegExp>::instance()->getValidate(RegExp::PHONE_NUM,d->m_phone_edit->text()))

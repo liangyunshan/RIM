@@ -21,15 +21,14 @@ using namespace ProtocolType;
 #include "Widgets/nativewindow/MainWindow.h"
 #include "Widgets/widget/rmessagebox.h"
 
-#include "thread/msgreceiveproctask.h"
-#include "thread/filereceiveproctask.h"
 #include "thread/taskmanager.h"
-#include "thread/filerecvtask.h"
 
 #include "Network/rsocket.h"
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
-#include "Network/netconnector.h"
+
+#include <Dbghelp.h>
+#pragma comment( lib, "DbgHelp")
 
 /*!
   运行目录结构
@@ -51,8 +50,35 @@ using namespace ProtocolType;
 #pragma execution_character_set("utf-8")
 #endif
 
+inline void CreateMiniDump(PEXCEPTION_POINTERS pep, LPCTSTR strFileName)
+{
+    HANDLE hFile = CreateFile(strFileName, GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+
+    if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
+    {
+        MINIDUMP_EXCEPTION_INFORMATION mdei;
+        mdei.ThreadId = GetCurrentThreadId();
+        mdei.ExceptionPointers = pep;
+        mdei.ClientPointers = NULL;
+
+        ::MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, (pep != 0) ? &mdei : 0, NULL, 0);
+
+        CloseHandle(hFile);
+    }
+}
+
+LONG __stdcall MyUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo)
+{
+    CreateMiniDump(pExceptionInfo, L"core.dmp");
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
 int main(int argc, char *argv[])
 {
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     Application app(argc, argv);
 
     // Background color
@@ -85,7 +111,7 @@ int main(int argc, char *argv[])
     RUtil::setGlobalSettings(settings);
 
     RUtil::createDir(configFullPath);
-    RUtil::createDir(qApp->applicationDirPath() + QString(Constant::PATH_UserPath));
+    RUtil::createDir(qApp->applicationDirPath()  + QDir::separator() + QString(Constant::PATH_UserPath));
     RUtil::createDir(configFullPath + QString(Constant::CONFIG_StylePath));
 
     if(!RSingleton<RLog>::instance()->init())
@@ -135,7 +161,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<MsgOperateResponse>("MsgOperateResponse");
     qRegisterMetaType<TextReply>("TextReply");
     qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
-    qRegisterMetaType<ChatInfoUnitList>("TextUnit::ChatInfoUnitList");
+    qRegisterMetaType<ChatInfoUnitList>("ChatInfoUnitList");
     qRegisterMetaType<ResponseLogin>("ResponseLogin");
     qRegisterMetaType<LoginResponse>("LoginResponse");
     qRegisterMetaType<RegistResponse>("RegistResponse");
@@ -152,11 +178,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingChatResponse>("GroupingChatResponse");
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
 
-    RSingleton<TaskManager>::instance()->addTask(new TextNetConnector());
-    RSingleton<TaskManager>::instance()->addTask(new FileNetConnector());
-    RSingleton<TaskManager>::instance()->addTask(new MsgReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new FileReceiveProcTask());
-    RSingleton<TaskManager>::instance()->addTask(new FileRecvTask());
+    RSingleton<TaskManager>::instance()->initTask();
 
     LoginDialog dialog;
     dialog.show();

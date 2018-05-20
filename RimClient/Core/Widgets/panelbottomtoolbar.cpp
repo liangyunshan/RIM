@@ -180,7 +180,8 @@ void PanelBottomToolBar::viewFileServerState()
 {
     MQ_D(PanelBottomToolBar);
     if(!G_User->isFileOnLine()){
-        FileNetConnector::instance()->reconnect();
+        if(FileNetConnector::instance())
+            FileNetConnector::instance()->reconnect();
     }else{
         RMessageBox::information(nullptr,tr("information"),tr("File server connected!"),RMessageBox::Yes);
         //TODO 20180503 检测文件服务器连接状态

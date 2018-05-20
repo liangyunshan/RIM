@@ -168,9 +168,23 @@ bool UserFriendContainer::deleteGroup(const QString &groupId)
  * @param[in] id 分组uuid
  * @param[in] data 分组数据信息
  */
-void UserFriendContainer::addTmpGroup(const QString id, RGroupData *data)
+void UserFriendContainer::addTmpGroup(const QString &id, RGroupData *data)
 {
+    unique_lock<mutex> ul(lockMutex);
     tmpCreateOrRenameMap.insert(id,data);
+}
+
+/*!
+ * @brief 执行创建分组失败，从临时列表中移除所添加的分组信息
+ * @param[in] id 待删除的临时分组ID
+ */
+void UserFriendContainer::removeTmpGroup(const QString &id)
+{
+    unique_lock<mutex> ul(lockMutex);
+    if(tmpCreateOrRenameMap.contains(id)){
+        delete tmpCreateOrRenameMap.value(id);
+        tmpCreateOrRenameMap.remove(id);
+    }
 }
 
 void UserFriendContainer::addGroup(const QString id, int groupIndex)
@@ -210,6 +224,34 @@ void UserFriendContainer::renameGroup(const QString & id)
 }
 
 /*!
+ * @brief 撤销重命名
+ * @param[in] id 待撤销重命名分组的id
+ * @return 未命名前的分组名称
+ */
+QString UserFriendContainer::revertRenameGroup(const QString &id)
+{
+    lock_guard<mutex> guard(lockMutex);
+
+    if(tmpCreateOrRenameMap.contains(id)){
+        RGroupData * data = tmpCreateOrRenameMap.value(id);
+        QList<RGroupData *>::iterator iter = std::find_if(friendList.begin(),friendList.end(),[&](const RGroupData * gdata){
+            if(gdata->groupId == data->groupId)
+                return true;
+            return false;
+        });
+
+        delete data;
+        tmpCreateOrRenameMap.remove(id);
+
+        if(iter != friendList.end()){
+            return (*iter)->groupName;
+        }
+    }
+
+    return QString();
+}
+
+/*!
  * @brief 调整分组顺序
  * @param[in] pageId 新排序的分组ID
  * @param[in] newPageIndex 新排序的分组索引
@@ -237,7 +279,7 @@ void UserFriendContainer::sortGroup(const QString & groupId, int newPageIndex)
  * @param[in] accountId 待删除的用户ID
  * @return 是否删除成功
  */
-bool UserFriendContainer::deleteUser(const QString groupId, const QString &accountId)
+bool UserFriendContainer::deleteUser(const QString groupId, const QString accountId)
 {
     lock_guard<mutex> guard(lockMutex);
 

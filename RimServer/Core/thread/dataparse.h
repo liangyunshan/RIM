@@ -40,6 +40,7 @@ private:
     void onProcessUserLogin(Database * db,int socketId, QJsonObject & obj);
     void onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &obj);
     void onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj);
+    void onProcessHistoryMsg(Database * db,int socketId,QJsonObject &obj);
 
     void onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj);
     void onProcessAddFriend(Database * db,int socketId,QJsonObject &obj);

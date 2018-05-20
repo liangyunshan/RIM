@@ -200,7 +200,7 @@ QString User::getIcon(bool isSystemIcon, const QString &iconId, ChatT group)
     }
 
     QFileInfo fileInfo(tmpIconPath);
-    if(fileInfo.exists())
+    if(fileInfo.isFile() && fileInfo.exists())
         return(tmpIconPath);
     else
         return RSingleton<ImageManager>::instance()->getSystemUserIcon();
@@ -284,4 +284,24 @@ void User::setFileOnline(bool flag)
 bool User::isFileOnLine()
 {
     return fileOnLine;
+}
+
+void User::setLogin(bool flag)
+{
+    userLogined = flag;
+}
+
+bool User::isLogin()
+{
+    return userLogined;
+}
+
+void User::setUserInfoDesc(UserInfoDesc &desc)
+{
+    this->userLoginBaseInfo = desc;
+}
+
+UserInfoDesc User::getUserInfoDesc()
+{
+    return this->userLoginBaseInfo;
 }

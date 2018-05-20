@@ -7,6 +7,7 @@
  *  @date      2018.01.09
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note 20180510:wey:增加socket设置选项
  */
 
 #ifndef RSOCKET_H
@@ -36,6 +37,8 @@ public:
 
     bool setBlock(bool flag);
     bool isBock(){return blockAble;}
+
+    int setSockopt(int optname,const char * optval,int optlen);
 
     bool isValid(){return socketValid;}
 

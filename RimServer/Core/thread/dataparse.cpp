@@ -115,6 +115,9 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
         case MSG_GROUP_COMMAND:
               onProcessGroupCommand(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
               break;
+        case MSG_USER_HISTORY_MSG:
+              onProcessHistoryMsg(db,socketId,obj.value(JsonKey::key(JsonKey::Data)).toObject());
+              break;
          default:
              break;
     }
@@ -192,6 +195,7 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<LoginRequest> request(new LoginRequest);
+    request->loginType = (LoginType)obj.value(JsonKey::key(JsonKey::LoginType)).toInt();
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
     request->password = obj.value(JsonKey::key(JsonKey::Pass)).toString();
     request->status = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -224,6 +228,14 @@ void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject
     request->onStatus = (OnlineStatus)obj.value(JsonKey::key(JsonKey::Status)).toInt();
 
     RSingleton<DataProcess>::instance()->processUserStateChanged(db,socketId,request);
+}
+
+void DataParse::onProcessHistoryMsg(Database *db, int socketId, QJsonObject &obj)
+{
+    QSharedPointer<HistoryMessRequest> request (new HistoryMessRequest());
+    request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
+
+    RSingleton<DataProcess>::instance()->processHistoryMsg(db,socketId,request);
 }
 
 void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
@@ -262,6 +274,7 @@ void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<FriendListRequest> request (new FriendListRequest);
+    request->type = static_cast<OperateListTimeType>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
 
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);

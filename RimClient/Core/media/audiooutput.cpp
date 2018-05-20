@@ -7,7 +7,7 @@
 
 #include <QDebug>
 
-AudioOutput::AudioOutput()
+AudioOutput::AudioOutput():audio(nullptr)
 {
 
 }
@@ -40,7 +40,7 @@ bool AudioOutput::setAudioFormat(QAudioFormat &audioFormat)
     return true;
 }
 
-bool AudioOutput::start()
+bool AudioOutput::start(QString fileName)
 {
     if(sourceFile.isOpen())
         sourceFile.close();

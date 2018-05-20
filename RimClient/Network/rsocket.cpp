@@ -1,7 +1,6 @@
 ﻿#include "rsocket.h"
 
 #include <QtGlobal>
-
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -66,9 +65,7 @@ bool RSocket::createSocket()
 bool RSocket::bind(const char *ip, unsigned short port)
 {
     if(!isValid())
-    {
         return false;
-    }
 
     sockaddr_in saddr;
     saddr.sin_family = AF_INET;
@@ -95,9 +92,7 @@ bool RSocket::bind(const char *ip, unsigned short port)
 bool RSocket::listen()
 {
     if(!isValid())
-    {
         return false;
-    }
 
     int ret = ::listen(tcpSocket,10);
     if(ret == SOCKET_ERROR)
@@ -124,7 +119,7 @@ bool RSocket::closeSocket()
             return true;
         }
 #ifdef Q_OS_WIN
-        RLOG_ERROR("Close socket error [ErrorCode:%d]!",GetLastError());
+        RLOG_ERROR("Close socket error [ErrorCode:%d]!",WSAGetLastError());
 #endif
     }
     return false;
@@ -139,9 +134,8 @@ RSocket RSocket::accept()
 {
     RSocket tmpSocket;
     if(!isValid())
-    {
         return tmpSocket;
-    }
+
     sockaddr_in clientAddr;
     int len = sizeof(clientAddr);
 
@@ -170,8 +164,7 @@ RSocket RSocket::accept()
      */
 int RSocket::recv(char *buff, int length)
 {
-    if(!isValid() || buff == NULL)
-    {
+    if(!isValid() || buff == NULL){
         return -1;
     }
 
@@ -192,9 +185,7 @@ int RSocket::recv(char *buff, int length)
 int RSocket::send(const char *buff, const int length)
 {
     if(!isValid() || buff == NULL)
-    {
         return -1;
-    }
 
     int sendLen = 0;
     while(sendLen != length)
@@ -221,9 +212,7 @@ int RSocket::send(const char *buff, const int length)
 bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
 {
     if(!isValid())
-    {
         return false;
-    }
 
     sockaddr_in remoteAddr;
     remoteAddr.sin_family = AF_INET;
@@ -260,9 +249,8 @@ bool RSocket::connect(const char *remoteIp, const unsigned short remotePort, int
 bool RSocket::setBlock(bool flag)
 {
     if(!isValid())
-    {
         return false;
-    }
+
 #if defined(Q_OS_WIN)
     unsigned long ul = 0;
     if(!flag)
@@ -293,9 +281,25 @@ bool RSocket::setBlock(bool flag)
     return true;
 }
 
+/*!
+ * @brief 设置socket的属性
+ * @param[in] level sock级别：SOL_SOCKET
+ * @param[in] optname 属性名
+ * @param[in] optval 属性值
+ * @param[in] optlen 属性长度
+ * @return 执行结果，无错误为0，其它为对应的错误，参考https://msdn.microsoft.com/en-us/library/windows/desktop/ms740476(v=vs.85).aspx
+ */
+int RSocket::setSockopt(int optname, const char *optval, int optlen)
+{
+    if(!isValid())
+        return false;
+
+    return setsockopt(tcpSocket,SOL_SOCKET,optname,optval,optlen);
+}
+
 int RSocket::getLastError()
 {
-    return errorCode;
+    return WSAGetLastError();
 }
 
 }//namespace ServerNetwork

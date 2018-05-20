@@ -42,6 +42,7 @@ public:
     bool removeFromList(ToolPage *);
 
     void sortPage(const QString & groupId, int newPageIndex);
+    void revertSortPage(const QString & groupId);
 
     ToolPage * selectedPage();
     ToolItem * selectedItem();
@@ -59,7 +60,7 @@ public:
 signals:
     void updateGroupActions(ToolPage *);
     void noticePageRemoved(ToolPage *);
-    void pageIndexMoved(int newIndex,QString pageId);
+    void pageIndexMoved(int newIndex,int oldIndex,QString pageId);
 
 private slots:
     void setSlectedPage(ToolPage*);
@@ -69,7 +70,7 @@ private slots:
     void pageRemoved(ToolPage *);
 
 private:
-    void indexInLayout(QPoint,int &);
+    void pageIndexInLayout(QPoint,int &);
     ToolPage *pageInPos(const QPoint &);
     void highLightTarget(const QPoint &);
 
@@ -85,6 +86,14 @@ protected:
 private:
     ToolBoxPrivate * d_ptr;
 
+    /*!
+     *  @brief 排序记录
+     *  @details 排序后，记录分组的排序结果，便于撤销排序
+     */
+    struct SortRecord{
+        int newIndex;
+        int oldIndex;
+    };
 };
 
 #endif // TOOLBOX_H

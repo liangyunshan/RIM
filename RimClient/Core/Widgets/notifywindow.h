@@ -20,6 +20,7 @@
 
 class NotifyWindowPrivate;
 class ToolItem;
+class SystemTrayIcon;
 
 class NotifyWindow : public Widget ,public Observer
 {
@@ -29,25 +30,25 @@ public:
     explicit NotifyWindow(QWidget * parent = 0);
     ~NotifyWindow();
 
-    QString addNotifyInfo(NotifyInfo info);
+    void bindTrayIcon(SystemTrayIcon * trayIcon);
+    QString addNotifyInfo(NotifyInfo &info);
 
     void showMe();
     void hideMe();
 
     void onMessage(MessageType type);
 
-protected:
-    void resizeEvent(QResizeEvent *);
-
 signals:
     void showWindow();
     void hideWindow();
     void showSystemNotifyInfo(NotifyInfo info,int notifyCount);
+    void ignoreAllNotifyInfo();
 
 private slots:
     void viewAll();
     void ignoreAll();
     void viewNotify(ToolItem * item);
+    void viewNotify(QString notifyId);
 
 private:
     NotifyWindowPrivate * d_ptr;
