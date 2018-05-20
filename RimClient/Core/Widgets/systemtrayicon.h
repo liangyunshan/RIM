@@ -1,6 +1,10 @@
 ﻿/*!
  *  @brief     系统托盘
- *  @details   用于在系统的任务栏中显示基本快捷操作信息
+ *  @details   用于在系统的任务栏中显示基本快捷操作信息;
+ *             [1]支持在系统工具栏显示托盘；
+ *             [2]支持闪烁显示提示信息;
+ *             [3]支持双击查看提示信息;
+ *             [4]支持邮件菜单操作
  *  @file      systemtrayicon.h
  *  @author    wey
  *  @version   1.0
@@ -9,6 +13,9 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180126:wey:增加图标根据不同的状态删除
+ *      20180507:wey:增加移除全部通知消息
+ *      20180510:wey:增加双击托盘查看当前消息
+ *  @
  */
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H
@@ -50,7 +57,7 @@ public:
     {
         NoneNotify,         /*!< 无通知 */
         SystemNotify,       /*!< 系统通知 */
-        UserNotify          /*!< 用户通知 */
+        UserNotify          /*!< 用户通知(包括群用户) */
     };
 
     void setModel(SystemTrayIcon::SystemTrayModel model);
@@ -68,10 +75,12 @@ signals:
     void lockPanel();
     void showMainPanel();
     void quitApp();
+    void showNotifyInfo(QString id);
 
 private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
     void switchNotifyImage();
+    void removeAll();
 
 private:
     /*!

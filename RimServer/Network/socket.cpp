@@ -71,7 +71,7 @@ bool RSocket::bind(const char *ip, unsigned short port)
     sockaddr_in saddr;
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(port);
-    saddr.sin_addr.s_addr = inet_addr(ip);
+    saddr.sin_addr.s_addr = htonl(INADDR_ANY)/*inet_addr(ip)*/;
 
     int ret = ::bind(tcpSocket,(sockaddr*)&saddr,sizeof(saddr));
     if(ret == SOCKET_ERROR)

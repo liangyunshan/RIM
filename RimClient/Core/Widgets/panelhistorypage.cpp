@@ -20,6 +20,7 @@
 #include "Util/imagemanager.h"
 #include "user/user.h"
 #include "messdiapatch.h"
+#include "thread/historyrecordtask.h"
 
 #include "actionmanager/actionmanager.h"
 
@@ -267,7 +268,8 @@ void PanelHistoryPage::userInfoChanged(QString remarks, QString accountId)
     if(findIndex != d->itemsMap.end()){
         (*findIndex).first->setName(remarks);
         (*findIndex).second->nickName = remarks;
-        RSingleton<SQLProcess>::instance()->updateOneHistoryRecord(G_User->database(),*((*findIndex).second));
+        auto func = std::bind(&SQLProcess::updateOneHistoryRecord,RSingleton<SQLProcess>::instance(),G_User->database(),*((*findIndex).second));
+        HistoryRecordTask::instance()->executeTask(func);
     }
 }
 
@@ -287,11 +289,8 @@ void PanelHistoryPage::loadHistoryList()
 {
     QList<HistoryChatRecord> recordList;
     if(RSingleton<SQLProcess>::instance()->loadChatHistoryChat(G_User->database(),recordList)){
-        //TODO 20180422直接将谓语改成传递类成员函数
-        std::for_each(recordList.begin(),recordList.end(),[&](HistoryChatRecord  record){
-            createHistoryItem(record);
-        });
-//        std::for_each(recordList.begin(),recordList.end(),std::bind1st(std::mem_fun(&PanelHistoryPage::createHistoryItem), this));
+        auto func = std::bind(&PanelHistoryPage::createHistoryItem,this,std::placeholders::_1);
+        std::for_each(recordList.begin(),recordList.end(),func);
     }
 }
 
@@ -322,10 +321,13 @@ void PanelHistoryPage::addHistoryItem(HistoryChatRecord record)
             d->listBox->reInsert(item,0);
         }
         (*findIndex).second->dtime = record.dtime;
-        RSingleton<SQLProcess>::instance()->updateOneHistoryRecord(G_User->database(),record);
+
+        auto func = std::bind(&SQLProcess::updateOneHistoryRecord,RSingleton<SQLProcess>::instance(),G_User->database(),record);
+        HistoryRecordTask::instance()->executeTask(func);
     }else{
         item = createHistoryItem(record);
-        RSingleton<SQLProcess>::instance()->addOneHistoryRecord(G_User->database(),record);
+        auto func = std::bind(&SQLProcess::addOneHistoryRecord,RSingleton<SQLProcess>::instance(),G_User->database(),record);
+        HistoryRecordTask::instance()->executeTask(func);
     }
 
     //加入至除置顶item外最靠前位置

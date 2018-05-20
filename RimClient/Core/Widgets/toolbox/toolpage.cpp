@@ -241,6 +241,12 @@ QList<ToolItem *>& ToolPage::items()
     return d->toolItems;
 }
 
+bool ToolPage::containsItem(std::function<bool(ToolItem *)> func)
+{
+    MQ_D(ToolPage);
+    return  (std::find_if(d->toolItems.begin(),d->toolItems.end(),func) != d->toolItems.end());
+}
+
 /*!
  * @brief 删除目标item
  * @param[in] item:ToolItem *待删除的目标item
@@ -376,6 +382,17 @@ void ToolPage::unHighlightShow()
     d->simpleTextWidget->setProperty("enter",false);
     style()->unpolish(d->simpleTextWidget);
     style()->polish(d->simpleTextWidget);
+}
+
+/*!
+ * @brief 判断Page中simpleTextWidget是否包含位置点
+ * @param[in] point 判断包含位置点
+ * @return 是否包含当前点
+ */
+bool ToolPage::containsInSimpleTextWidget(QPoint point)
+{
+    MQ_D(ToolPage);
+    return d->simpleTextWidget->geometry().contains(point);
 }
 
 /*!

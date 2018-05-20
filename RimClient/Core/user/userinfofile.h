@@ -7,6 +7,7 @@
  *  @date      2017.12.12
  *  @warning
  *  @copyright NanJing RenGu.
+ *  @note   20180509:wey:增加读取去重
  */
 #ifndef USERINFOFILE_H
 #define USERINFOFILE_H

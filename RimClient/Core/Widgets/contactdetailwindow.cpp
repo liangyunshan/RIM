@@ -291,13 +291,14 @@ void ContactDetailWindow::onMessage(MessageType type)
 }
 
 /*!
-     * @brief 资料显示界面中显示联系人的基本信息
-     * @param[in] info：const SimpleUserInfo &
-     * @return 无
-     */
+ * @brief 资料显示界面中显示联系人的基本信息
+ * @param[in] info：const SimpleUserInfo &
+ * @return 无
+ */
 void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(ContactDetailWindow);
     d->m_account_edit->setText(info.accountId);
     d->m_nickName_edit->setText(info.nickName);

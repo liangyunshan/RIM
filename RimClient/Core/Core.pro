@@ -12,6 +12,9 @@ QT       += webenginewidgets
 
 contains(QT_MAJOR_VERSION, 5): QT += widgets gui-private
 
+QMAKE_LFLAGS_RELEASE += /MAP
+QMAKE_CFLAGS_RELEASE += /Zi
+QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 
 #是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
@@ -151,7 +154,8 @@ SOURCES += \
     Widgets/chataudioarea.cpp \
     Widgets/document.cpp \
     Widgets/previewpage.cpp\
-    Widgets/widget/rcomboboxitem.cpp
+    Widgets/widget/rcomboboxitem.cpp \
+    thread/historyrecordtask.cpp
 
 HEADERS  += \
     Widgets/abstractchatwidget.h \
@@ -245,7 +249,8 @@ HEADERS  += \
     Widgets/chataudioarea.h \
     Widgets/document.h \
     Widgets/previewpage.h\
-    Widgets/widget/rcomboboxitem.h
+    Widgets/widget/rcomboboxitem.h \
+    thread/historyrecordtask.h
 
 DISTFILES += \
     Widgets/Widgets.pri

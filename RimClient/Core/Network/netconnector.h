@@ -30,12 +30,12 @@ namespace ClientNetwork {
 class RTask;
 }
 
-
 class SuperConnector : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
     explicit SuperConnector(QObject * parent = 0);
+    virtual ~SuperConnector();
     enum NetCommand
     {
         Net_None,
@@ -53,6 +53,7 @@ public:
     bool isBock(){return rsocket->isBock();}
 
     bool isSockValid(){return rsocket->isValid();}
+    bool isConnected()const {return netConnected;}
 
     ClientNetwork::RSocket * socket(){return rsocket;}
 
@@ -65,10 +66,6 @@ protected:
     virtual void doDisconnect()=0;
 
     void run();
-
-signals:
-    void connected(bool flag);
-    void socketError();
 
 protected slots:
     virtual void respSocketError(int errorCode)=0;

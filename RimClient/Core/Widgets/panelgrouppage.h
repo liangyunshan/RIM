@@ -44,7 +44,7 @@ private slots:
     void respGroupCreate();
     void respGroupRename();
     void respGroupDeleted();
-    void respGroupMoved(int index,QString pageId);
+    void respGroupMoved(int oldIndex, int newIndex, QString pageId);
     void searchGroup();
 
     void createNewGroup();
@@ -73,7 +73,7 @@ private:
     void createGroup();
     void updateGroupDescInfo();
     void updateGroupDescInfo(ToolPage *page);
-    void clearTargetGroup(const QString id);
+    void removeTargetGroup(const QString id);
     ToolItem * ceateItem(SimpleChatInfo * chatInfo, ToolPage * page);
     void updateChatShow(const SimpleChatInfo & info);
     void removeContact(const QString chatRoomId);

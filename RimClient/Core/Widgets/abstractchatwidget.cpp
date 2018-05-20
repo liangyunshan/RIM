@@ -57,6 +57,7 @@
 #include "user/user.h"
 #include "chataudioarea.h"
 #include "media/audioinput.h"
+#include "media/audiooutput.h"
 #include "widget/rmessagebox.h"
 
 #ifdef Q_OS_WIN
@@ -152,14 +153,11 @@ void AbstractChatWidgetPrivate::initWidget()
     userLayout->setSpacing(5);
     userInfo_IconLabel = new RIconLabel(userInfoWidget);
     userInfo_IconLabel->setTransparency(true);
-    userInfo_IconLabel->setPixmap(RSingleton<ImageManager>::instance()->getSystemUserIcon());
     userInfo_IconLabel->setFixedSize(CHAT_USER_ICON_SIZE,CHAT_USER_ICON_SIZE);
 
     userInfo_NameLabel = new QLabel();
     userInfo_NameLabel->setObjectName("Chat_User_NameLabel");
     userInfo_NameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
-
-    q_ptr->setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(RSingleton<ImageManager>::instance()->getSystemUserIcon()));
 
     userLayout->addWidget(userInfo_IconLabel);
     userLayout->addWidget(userInfo_NameLabel);
@@ -207,12 +205,10 @@ void AbstractChatWidgetPrivate::initWidget()
 
     /**********聊天对话框***************/
     chatWidget = new QWidget(leftWidget);
-    QHBoxLayout * tmpLayout = new QHBoxLayout();
-    tmpLayout->setContentsMargins(0,0,0,0);
-    tmpLayout->setSpacing(0);
 
     PreviewPage *page = new PreviewPage(q_ptr);
     view = new QWebEngineView(chatWidget);
+    view->setStyleSheet("background-color:red");
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
 
@@ -230,8 +226,6 @@ void AbstractChatWidgetPrivate::initWidget()
     webLayout->addWidget(view);
     webLayout->addWidget(chatAudioArea);
     chatWidget->setLayout(webLayout);
-
-//    chatWidget->setLayout(tmpLayout);
 
     QWidget * chatInputContainter = new QWidget(leftWidget);
     chatInputContainter->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -436,6 +430,7 @@ AbstractChatWidget::~AbstractChatWidget()
         delete d->p_shotTimer;
         d->p_shotTimer = NULL;
     }
+    d->chatWidget->deleteLater();
 
     delete d;
 }
@@ -467,6 +462,8 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     MQ_D(AbstractChatWidget);
     d->userInfo = info;
     d->userInfo_NameLabel->setText(info.nickName);
+    d->userInfo_IconLabel->setPixmap(G_User->getIcon(d->userInfo.isSystemIcon,d->userInfo.iconId));
+    setWindowIcon(RSingleton<ImageManager>::instance()->getCircularIcons(G_User->getIcon(info.isSystemIcon,info.iconId)));
     setWindowTitle(info.nickName);
 }
 
@@ -561,12 +558,10 @@ void AbstractChatWidget::appendRecvMsg(TextRequest recvMsg)
         d->m_preMsgTime = t_curMsgTime;
     }
 
+    RUtil::removeEccapeDoubleQuote(t_localHtml);
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
-    RUtil::escapeQuote(t_localHtml);
-    RUtil::removeEccapeQuote(t_localHtml);
 
-    User tmpUser(d->userInfo.accountId);
-    t_headPath = tmpUser.getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
     t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
@@ -576,10 +571,10 @@ void AbstractChatWidget::appendRecvMsg(TextRequest recvMsg)
  * @brief AbstractChatWidget::playVoiceMessage 播放语音
  * @param path 语音文件路径
  */
-void AbstractChatWidget::playVoiceMessage(QString path)
+void AbstractChatWidget::playVoiceMessage(QString audioName)
 {
-    Q_UNUSED(path);
-    qDebug(path.toLocal8Bit().data());
+    RSingleton<AudioOutput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
+    RSingleton<AudioOutput>::instance()->start(audioName);
 }
 
 //更新快捷键
@@ -729,6 +724,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 {
     Q_UNUSED(flag)
     MQ_D(AbstractChatWidget);
+
 //test
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
@@ -754,7 +750,8 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
-    RUtil::escapeQuote(t_sendHtml);
+    RUtil::escapeSingleQuote(t_sendHtml);
+    RUtil::escapeDoubleQuote(t_sendHtml);
 
     //存储发送信息到数据库
 //    TextUnit::ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(t_sendHtml.toLocal8Bit());
@@ -887,6 +884,8 @@ void AbstractChatWidget::prepareSendAudio()
            desc->otherSideId = d->userInfo.accountId;
 
            FileRecvTask::instance()->addSendItem(desc);
+
+           appendVoiceMsg(SEND,QFileInfo(lastRecordFileFullName).fileName());
        }
     }
     d->chatAudioArea->setVisible(false);
@@ -965,7 +964,7 @@ void AbstractChatWidget::switchWindowSize()
  * \brief AbstractChatWidget::appendChatRecord 将信息追加显示在聊天信息记录界面上
  * \param html 收到的html格式的聊天信息
  */
-void AbstractChatWidget::appendChatRecord(msgTarget source, const TextUnit::ChatInfoUnit &unitMsg)
+void AbstractChatWidget::appendChatRecord(MsgTarget source, const TextUnit::ChatInfoUnit &unitMsg)
 {
     MQ_D(AbstractChatWidget);
     QString t_showMsgScript = QString("");
@@ -999,23 +998,16 @@ void AbstractChatWidget::appendChatRecord(msgTarget source, const TextUnit::Chat
     }
 
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
-    RUtil::escapeQuote(t_localHtml);
-    RUtil::removeEccapeQuote(t_localHtml);
+    RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)
-    {
-        User tmpUser(d->userInfo.accountId);
-        t_headPath = tmpUser.getIconAbsoultePath(false,d->userInfo.iconId);
-    }
+        t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
     else
-    {       
-        User tmpUser(G_User->BaseInfo().accountId);
-        t_headPath = tmpUser.getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
-    }
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+
     t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
-    appendVoiceMsg(SEND);
 
 }
 
@@ -1036,7 +1028,7 @@ void AbstractChatWidget::setFontIconFilePath()
  * @param format 时间显示格式
  * @param content 显示内容
  */
-void AbstractChatWidget::appendChatTimeNote(QDateTime content,timeFormat format)
+void AbstractChatWidget::appendChatTimeNote(QDateTime content,TimeFormat format)
 {
     MQ_D(AbstractChatWidget);
     QString t_curMsgTime = QString("");
@@ -1064,7 +1056,7 @@ void AbstractChatWidget::appendChatTimeNote(QDateTime content,timeFormat format)
  * @param type  信息类型
  * @param content 信息内容
  */
-void AbstractChatWidget::appendChatNotice(QString content,noticeType type)
+void AbstractChatWidget::appendChatNotice(QString content,NoticeType type)
 {
     MQ_D(AbstractChatWidget);
     if(content.isEmpty())
@@ -1078,15 +1070,17 @@ void AbstractChatWidget::appendChatNotice(QString content,noticeType type)
 /*!
  * @brief AbstractChatWidget::appendVoiceMsg 显示语音消息
  */
-void AbstractChatWidget::appendVoiceMsg(msgTarget source)
+void AbstractChatWidget::appendVoiceMsg(MsgTarget source,QString recordFileName)
 {
     MQ_D(AbstractChatWidget);
-    QString t_headPath = QString("");
 
-    User tmpUser(G_User->BaseInfo().accountId);
-    t_headPath = tmpUser.getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
-    QString t_showVoiceMsgScript = QString("");
-    QString t_voicePayh = QString("5b9b3f14e9344b4d87135365b4ff7653.raw");
-    t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(t_voicePayh).arg(t_headPath);
+    QString t_headPath;
+    if(source == SEND){
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }else if(source == RECV){
+        t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    }
+
+    QString t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
 }

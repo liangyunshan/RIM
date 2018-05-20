@@ -16,6 +16,8 @@
  *      20180305:LYS:添加创建好友列表或者刷新好友列表标志m_listIsCreated:bool
  *      20180417:wey:修复删除好友时，全局列表UserFriendContainter中未删除对应item，造成再次添加时按钮不可用的bug
  *      20180419:wey:添加分组移动排序操作
+ *      20180509:wey:添加分组操作失败回滚操作
+ *      20180511:wey:添加列表刷新
  */
 #ifndef PANELPERSONPAGE_H
 #define PANELPERSONPAGE_H
@@ -58,7 +60,7 @@ private slots:
     void respGroupCreate();
     void respGroupRename();
     void respGroupDeleted();
-    void respGroupMoved(int index,QString pageId);
+    void respGroupMoved(int newIndex, int oldIndex, QString pageId);
 
     void createChatWindow(ToolItem * item);
 
@@ -84,6 +86,8 @@ private slots:
 
     void recvFriendPageOperate(MsgOperateResponse status, GroupingResponse response);
 
+    void loadHistoryMsg();
+
 public slots:
     void renameEditFinished();
     void updateGroupActions(ToolPage *);
@@ -95,16 +99,19 @@ private:
     void updateGroupDescInfo(ToolPage * page);
     void updateGroupDescInfo();
     ToolItem * ceateItem(SimpleUserInfo *info, ToolPage *page);
-    void clearTargetGroup(const QString id);
+    void removeTargetGroup(const QString id);
     void updateContactShow(const SimpleUserInfo &);
-    void removeContact(const SimpleUserInfo &);
-    void clearUnrealGroupAndUser();
+    void removeContact(const QString accountId);
 
     void createDetailView(UserClient * client);
     void showOrCreateChatWindow(UserClient * client);
     void sendDeleteUserRequest(UserClient * client , QString groupId);
 
     void networkIsConnected(bool isConnected);
+
+    void resortToolPage();
+    void resortOnlineToolItem();
+    void reconnectItem(ToolItem * item,ToolPage * oldPage,ToolPage * newPage);
 
 private:
     PanelPersonPagePrivate * d_ptr;

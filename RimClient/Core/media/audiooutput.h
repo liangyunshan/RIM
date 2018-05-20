@@ -26,7 +26,7 @@ public:
     void setAudioSaveDir(QString path);
     bool setAudioFormat(QAudioFormat & audioFormat);
 
-    bool start();
+    bool start(QString fileName);
     bool stop();
 
 private slots:
@@ -38,7 +38,6 @@ private:
     QFile sourceFile;
 
     QString audioSaveDir;
-    QString fileName;
 };
 
 #endif // AUDIOOUTPUT_H

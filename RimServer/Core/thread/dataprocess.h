@@ -34,6 +34,7 @@ public:
     void processUserLogin(Database *db, int socketId, QSharedPointer<LoginRequest> request);
     void processUpdateUserInfo(Database * db, int socketId, QSharedPointer<UpdateBaseInfoRequest> request);
     void processUserStateChanged(Database *db, int socketId, QSharedPointer<UserStateRequest> request);
+    void processHistoryMsg(Database *db, int socketId, QSharedPointer<HistoryMessRequest> request);
 
     void processSearchFriend(Database * db, int socketId, QSharedPointer<SearchFriendRequest> request);
     void processAddFriend(Database * db, int socketId, QSharedPointer<AddFriendRequest> request);

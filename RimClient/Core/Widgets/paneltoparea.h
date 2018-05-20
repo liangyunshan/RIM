@@ -44,6 +44,9 @@ private slots:
 public slots:
     void stateChanged(OnlineStatus state);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event);
+
 private:
     void updateUserInfo();
     void loadCustomUserImage();

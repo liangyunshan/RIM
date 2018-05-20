@@ -63,7 +63,7 @@ void PanelGroupPagePrivate::initWidget()
 
     toolBox = new ToolBox(contentWidget);
     QObject::connect(toolBox,SIGNAL(updateGroupActions(ToolPage *)),q_ptr,SLOT(updateGroupActions(ToolPage *)));
-    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,QString)),q_ptr,SLOT(respGroupMoved(int,QString)));
+    QObject::connect(toolBox,SIGNAL(pageIndexMoved(int,int,QString)),q_ptr,SLOT(respGroupMoved(int,int,QString)));
     QHBoxLayout * contentLayout = new QHBoxLayout();
     contentLayout->setContentsMargins(0,0,0,0);
     contentLayout->setSpacing(0);
@@ -205,6 +205,7 @@ void PanelGroupPage::respGroupRename()
 void PanelGroupPage::respGroupDeleted()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelGroupPage);
 
     ToolPage *t_page = d->toolBox->selectedPage();
@@ -228,9 +229,10 @@ void PanelGroupPage::respGroupDeleted()
  * @param[in] index 重新排序后，分组在列表中索引
  * @param[in] pageId 执行排序的分组ID
  */
-void PanelGroupPage::respGroupMoved(int index, QString pageId)
+void PanelGroupPage::respGroupMoved(int oldIndex, int newIndex, QString pageId)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelGroupPage);
 
     GroupingRequest * request = new GroupingRequest();
@@ -239,7 +241,7 @@ void PanelGroupPage::respGroupMoved(int index, QString pageId)
     request->gtype = OperateGroup;
     request->groupName = d->tmpNameEdit->text();
     request->groupId = pageId;
-    request->groupIndex = index;
+    request->groupIndex = oldIndex;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
 }
@@ -267,6 +269,7 @@ void PanelGroupPage::modifyGroupInfo()
 void PanelGroupPage::exitGroup()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelGroupPage);
 
     GroupClient * client = RSingleton<GroupManager>::instance()->client(d->toolBox->selectedItem());
@@ -293,10 +296,10 @@ void PanelGroupPage::exitGroup()
 void PanelGroupPage::recvGroupPageOperate(MsgOperateResponse status,GroupingResponse response)
 {
     MQ_D(PanelGroupPage);
-    if(status == STATUS_SUCCESS){
-        if(response.uuid != G_User->BaseInfo().uuid)
-            return;
+    if(response.uuid != G_User->BaseInfo().uuid)
+        return;
 
+    if(status == STATUS_SUCCESS){
         switch(response.type){
             case GROUPING_CREATE:{
                     RSingleton<UserChatContainer>::instance()->addGroup(response.groupId,response.groupIndex);
@@ -307,7 +310,7 @@ void PanelGroupPage::recvGroupPageOperate(MsgOperateResponse status,GroupingResp
                 }
                 break;
             case GROUPING_DELETE:{
-                    clearTargetGroup(d->m_deleteID);
+                    removeTargetGroup(d->m_deleteID);
                 }
                 break;
             case GROUPING_SORT:{
@@ -318,7 +321,30 @@ void PanelGroupPage::recvGroupPageOperate(MsgOperateResponse status,GroupingResp
             default:break;
         }
         updateGroupDescInfo();
-    }else{
+    }else if(status == STATUS_FAILE){
+        switch(response.type){
+            case GROUPING_CREATE:{
+                    RSingleton<UserChatContainer>::instance()->removeTmpGroup(response.groupId);
+                    removeTargetGroup(response.groupId);
+                }
+                break;
+            case GROUPING_RENAME:{
+                    QString originGroupName = RSingleton<UserChatContainer>::instance()->revertRenameGroup(response.groupId);
+                    ToolPage * selectedPage = d->toolBox->targetPage(response.groupId);
+                    if(selectedPage)
+                        selectedPage->setToolName(originGroupName);
+                }
+                break;
+            case GROUPING_DELETE:{
+                    d->m_deleteID = QString();
+                }
+                break;
+            case GROUPING_SORT:{
+                    d->toolBox->revertSortPage(response.groupId);
+                }
+                break;
+            default:break;
+        }
         RMessageBox::warning(this,QObject::tr("warning"),tr("Opearate failed!"),RMessageBox::Yes);
     }
 }
@@ -513,6 +539,7 @@ void PanelGroupPage::respItemButtonClick(QEvent::Type type, ToolItem *item)
 void PanelGroupPage::renameEditFinished()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelGroupPage);
     if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {
@@ -741,7 +768,7 @@ void PanelGroupPage::updateGroupDescInfo()
  * @param[in] id:QString，待删除的群分组id
  * @return 无
  */
-void PanelGroupPage::clearTargetGroup(const QString id)
+void PanelGroupPage::removeTargetGroup(const QString id)
 {
     MQ_D(PanelGroupPage);
     QString t_id = id;

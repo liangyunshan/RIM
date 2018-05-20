@@ -54,6 +54,11 @@ public:
 
     void onAddHistoryItem(HistoryChatRecord &record);
 
+    void onTextConnected(bool flag);
+    void onTextSocketError();
+    void onFileConnected(bool flag);
+    void onFileSocketError();
+
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
     void recvLoginResponse(ResponseLogin status,LoginResponse response);
@@ -85,6 +90,11 @@ signals:
     void screenChange();
 
     void createHisotryItem(HistoryChatRecord);
+
+    void textConnected(bool);
+    void textSocketError();
+    void fileConnected(bool);
+    void fileSocketError();
 
 private:
     MessDiapatch(QObject *parent = 0);

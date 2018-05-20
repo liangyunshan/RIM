@@ -265,6 +265,7 @@ RegistGroupDialog::RegistGroupDialog(QWidget *parent):
 void RegistGroupDialog::prepareRegist()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(RegistGroupDialog);
 
     SearchVisible visible = (SearchVisible)d->visibleGroup->checkedId();

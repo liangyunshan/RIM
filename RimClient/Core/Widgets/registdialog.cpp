@@ -40,9 +40,14 @@ public:
         errorInfo->setText(info);
     }
 
-    void clearErrorInfo()
-    {
+    void clearErrorInfo(){
         setErrorInfo("");
+    }
+
+    void clearInput(){
+        nickNameEdit->clear();
+        passwordEdit->clear();
+        confirmPassEdit->clear();
     }
 
     RegistDialog * q_ptr;
@@ -166,7 +171,7 @@ RegistDialog::RegistDialog(QWidget *parent):
         bar->setWindowTitle(windowTitle());
     }
 
-    connect(TextNetConnector::instance(),SIGNAL(connected(bool)),this,SLOT(respConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(recvRegistResponse(ResponseRegister,RegistResponse)),this,SLOT(recvResponse(ResponseRegister,RegistResponse)));
 }
 
@@ -220,12 +225,15 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
+    MQ_D(RegistDialog);
     TextNetConnector::instance()->connect();
+    enableInput(false);
 }
 
 void RegistDialog::respConnect(bool flag)
 {
     MQ_D(RegistDialog);
+    enableInput(true);
     if(flag)
     {
         RegistRequest * request = new RegistRequest;
@@ -250,8 +258,10 @@ void RegistDialog::closeEvent(QCloseEvent *event)
 
 void RegistDialog::recvResponse(ResponseRegister status, RegistResponse resp)
 {
+    MQ_D(RegistDialog);
     if(status == REGISTER_SUCCESS)
     {
+        d->clearInput();
         RMessageBox::information(this,tr("Information"),tr("Registered successfully!  Remember Id: %1 ").arg(resp.accountId),RMessageBox::Yes);
     }
     else
@@ -260,14 +270,28 @@ void RegistDialog::recvResponse(ResponseRegister status, RegistResponse resp)
         switch(status)
         {
             case REGISTER_SERVER_REFUSED:
-                                     errorInfo = QObject::tr("Server unreachable");
-                                     break;
+                 errorInfo = QObject::tr("Server unreachable");
+                 break;
             case REGISTER_FAILED:
             default:
-                                     errorInfo = QObject::tr("Registration failure");
-                                     break;
+                 errorInfo = QObject::tr("Registration failure");
+                 break;
         }
         RMessageBox::warning(this,tr("Warning"),tr("Registration failed!"),RMessageBox::Yes);
     }
+}
+
+void RegistDialog::enableInput(bool flag)
+{
+    MQ_D(RegistDialog);
+    d->nickNameEdit->setEnabled(flag);
+    d->passwordEdit->setEnabled(flag);
+    d->confirmPassEdit->setEnabled(flag);
+    d->confirmButt->setEnabled(flag);
+
+    repolish(d->nickNameEdit);
+    repolish(d->passwordEdit);
+    repolish(d->confirmPassEdit);
+    repolish(d->confirmButt);
 }
 

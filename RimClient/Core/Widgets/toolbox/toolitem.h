@@ -13,6 +13,7 @@
  *             20180224:wey:添加item在线状态；
  *             20180305:LYS:鼠标右键选中item后更新当前的item
  *             20180424:wey:调整item布局，新增timeLabel
+ *             20180509:wey:修复desclabel内容过长，出现滚动条
  */
 #ifndef TOOLITEM_H
 #define TOOLITEM_H
@@ -60,6 +61,9 @@ public:
 
     void setStatus(OnlineStatus);
     bool isOnline()const;
+
+    ToolPage * toolpage();
+    void setToolPage(ToolPage * page);
 
     enum ItemState
     {

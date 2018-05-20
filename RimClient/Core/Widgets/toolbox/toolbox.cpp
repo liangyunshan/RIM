@@ -43,16 +43,18 @@ private:
     QScrollArea * scrollArea;
     QWidget * contentWidget;
 
-    QList<ToolPage *> pages;                        /*!< 装载多个信息页面 */
+    QList<ToolPage *> pages;              /*!< 装载多个信息页面 */
 
     ToolPage * currentPage;
     ToolItem * currentItem;
-
     QMenu * menu;
 
+    int originSortedIndex;                /*!< 初始排序索引 */
     bool m_leftPressed;
     QPoint m_startPos;
-    QList<int> m_laterExpandPages;
+    QList<int> m_laterExpandPages;        /*!< 移动过程中展开的page集合索引 */
+
+    std::map<QString,ToolBox::SortRecord> sortRecords;   /*!< 排序记录集合,排序后保存临时记录索引，若失败从此中恢复 */
 };
 
 void ToolBoxPrivate::initWidget()
@@ -117,42 +119,33 @@ ToolPage * ToolBox::addPage(QString text)
 }
 
 /*!
-     * @brief 移除targetPage
-     * @details
-     * @param[in] targetPage:ToolPage *
-     * @details 仅将目标page从布局中移除但仍保留在pages列表中
-     * @return 移除targetPage结果
-     */
+ * @brief 移除targetPage
+ * @details
+ * @param[in] targetPage:ToolPage *
+ * @details 仅将目标page从布局中移除但仍保留在pages列表中
+ * @return 移除targetPage结果
+ */
 bool ToolBox::removePage(ToolPage *targetPage)
 {
     MQ_D(ToolBox);
-    if(d->pages.size() > 0)
-    {
+    if(d->pages.size() > 0){
         QVBoxLayout * layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
 
-        if(layout)
-        {
+        if(layout){
             int index = -1;
-            for(int i = 0; i < layout->count();i++)
-            {
-                if(layout->itemAt(i)->widget())
-                {
+            for(int i = 0; i < layout->count();i++){
+                if(layout->itemAt(i)->widget()){
                     ToolPage * t_page = dynamic_cast<ToolPage *>(layout->itemAt(i)->widget());
-                    if(t_page == targetPage)
-                    {
+                    if(t_page == targetPage){
                         index = i;
                         break;
                     }
                 }
             }
 
-            if(index >= 0)
-            {
+            if(index >= 0){
                 QLayoutItem * layItem = layout->takeAt(index);
-                if(layItem->widget())
-                {
-//                    bool removeResult = d->pages.removeOne(targetPage);
-//                    return removeResult;
+                if(layItem->widget()){
                     emit noticePageRemoved(targetPage);
                     return true;
                 }
@@ -191,7 +184,49 @@ void ToolBox::sortPage(const QString &groupId, int newPageIndex)
 
     if(iter != d->pages.end() && index >=0 && index < d->pages.size() && newPageIndex < d->pages.size()){
         ToolPage * tmpPage = d->pages.takeAt(index);
+
+        removePage(tmpPage);
+        QVBoxLayout * t_layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+        if(t_layout){
+            if(newPageIndex >= t_layout->count())
+                newPageIndex -= 1;
+
+            t_layout->insertWidget(newPageIndex,tmpPage);
+        }
+
         d->pages.insert(newPageIndex,tmpPage);
+    }
+}
+
+/*!
+ * @brief 撤销指定分组的排序
+ * @param[in] groupId 待撤销的分组ID
+ */
+void ToolBox::revertSortPage(const QString &groupId)
+{
+    MQ_D(ToolBox);
+    std::map<QString,ToolBox::SortRecord> ::iterator iter =  d->sortRecords.find(groupId);
+    if(iter != d->sortRecords.end()){
+        int newIndex = (*iter).second.newIndex;
+        int oldIndex = (*iter).second.oldIndex;
+        QVBoxLayout * boxLayout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+        if(boxLayout){
+            //从后向前移动
+            if(oldIndex >= newIndex){
+                if(boxLayout->itemAt(newIndex)->widget()){
+                    QLayoutItem * layItem = boxLayout->takeAt(newIndex);
+                    boxLayout->insertItem(oldIndex,layItem);
+                }
+            }
+            //从前向后移动
+            else{
+                if(boxLayout->itemAt(newIndex)->widget()){
+                    QLayoutItem * layItem = boxLayout->takeAt(newIndex);
+                    boxLayout->insertItem(oldIndex - 1,layItem);
+                }
+            }
+        }
+        d->sortRecords.erase(iter);
     }
 }
 
@@ -382,7 +417,7 @@ void ToolBox::pageRemoved(ToolPage * removedPage)
  *            sortedIndex：int&，保存page应该在布局中插入的位置
  * @return 无
  */
-void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
+void ToolBox::pageIndexInLayout(QPoint pos, int &sortedIndex)
 {
     MQ_D(ToolBox);
     if(pageInPos(pos))
@@ -397,13 +432,13 @@ void ToolBox::indexInLayout(QPoint pos, int &sortedIndex)
     }else{
         sortedIndex = d->pages.count()-1;
     }
-
 }
 
 /*!
  * @brief 判断鼠标拖拽时是否是page,是则返回page，否则返回NULL
  * @param[in] pressedPos:const QPoint &(鼠标拖拽时点击的位置)
- * @details 将展开的page暂时闭合，结束取值后再展开
+ * @details [1]将展开的page暂时闭合，结束取值后再展开;
+ *          [2]page判断包含时，并未采用page真实尺寸检测，而是使用page中SimpleTextWidget区域来检测是否包含鼠标点。
  * @return 鼠标拖拽的是page则返回page，否则返回NULL
  */
 ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
@@ -411,14 +446,14 @@ ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
     MQ_D(ToolBox);
     ToolPage * t_returnPage = NULL;
     QList <int> t_expandedPages;
-    for(int t_index=0;t_index<pageCount();t_index++)
+    for(int t_index = 0; t_index < pageCount();t_index++)
     {
         if(d->pages.at(t_index)->isExpanded()){
             t_expandedPages.append(t_index);
             d->pages.at(t_index)->setExpand(false);
         }
 
-        if(d->pages.at(t_index)->geometry().contains(pressedPos)){
+        if(d->pages.at(t_index)->containsInSimpleTextWidget(d->pages.at(t_index)->mapFromParent(pressedPos))){
             t_returnPage = d->pages.at(t_index);
             break;
         }
@@ -483,22 +518,24 @@ void ToolBox::mouseReleaseEvent(QMouseEvent *event)
 void ToolBox::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(ToolBox);
-    if(d->m_leftPressed)
+
+    if(event->button()&Qt::LeftButton)
     {
+        if((event->pos() -  d->m_startPos).manhattanLength() < QApplication::startDragDistance())
+            return;
+
         ToolPage * t_movedPage = pageInPos(d->m_startPos);    //FIXME LYS
         if(!t_movedPage)
-        {
             return;
-        }
 
-        for(int t_index=0;t_index<pageCount();t_index++)
-        {
-            if(d->pages.at(t_index)->isExpanded())
-            {
+        for(int t_index=0;t_index<pageCount();t_index++){
+            if(d->pages.at(t_index)->isExpanded()){
                 d->m_laterExpandPages.append(t_index);
                 d->pages.at(t_index)->setExpand(false);
             }
         }
+
+        pageIndexInLayout(event->pos(),d->originSortedIndex);
 
         QPoint t_hotPot = d->m_startPos - t_movedPage->pos();
 
@@ -508,16 +545,13 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
         QPixmap t_pixMap(t_movedPage->titleRect().size());
         t_movedPage->render(&t_pixMap);
 
-        if((event->pos()-d->m_startPos).manhattanLength()<QApplication::startDragDistance())
-        {
-            QDrag *t_drag = new QDrag(this);
-            t_drag->setMimeData(t_MimData);
-            t_drag->setPixmap(t_pixMap);
-            t_drag->setHotSpot(t_hotPot);
+        QDrag *t_drag = new QDrag(this);
+        t_drag->setMimeData(t_MimData);
+        t_drag->setPixmap(t_pixMap);
+        t_drag->setHotSpot(t_hotPot);
 
-            Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
-            Q_UNUSED(dropAction);
-        }
+        Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
+        Q_UNUSED(dropAction);
         return;
     }
     QWidget::mouseMoveEvent(event);
@@ -562,11 +596,9 @@ void ToolBox::dropEvent(QDropEvent *event)
         int t_movedIndex = -1;
 
         if(pageInPos(event->pos()) == t_movedPage)
-        {
             return;
-        }
 
-        indexInLayout(event->pos(),t_movedIndex);
+        pageIndexInLayout(event->pos(),t_movedIndex);
         if(t_movedIndex != -1)
         {
             removePage(t_movedPage);
@@ -577,7 +609,8 @@ void ToolBox::dropEvent(QDropEvent *event)
                     t_movedIndex -= 1;
 
                 t_layout->insertWidget(t_movedIndex,t_movedPage);
-                emit pageIndexMoved(t_movedIndex,t_movedPage->getID());
+                d->sortRecords.insert({t_movedPage->getID(),{t_movedIndex,d->originSortedIndex}});
+                emit pageIndexMoved(t_movedIndex,d->originSortedIndex,t_movedPage->getID());
             }
         }
     }
@@ -585,7 +618,8 @@ void ToolBox::dropEvent(QDropEvent *event)
     d->m_leftPressed = false;
 
     for(int t_index=0;t_index<d->m_laterExpandPages.count();t_index++){
-        d->pages.at(d->m_laterExpandPages.at(t_index))->setExpand(true);
+        if(t_index < d->pages.size())
+            d->pages.at(d->m_laterExpandPages.at(t_index))->setExpand(true);
     }
     d->m_laterExpandPages.clear();
 

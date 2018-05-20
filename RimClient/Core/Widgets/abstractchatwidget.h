@@ -22,19 +22,19 @@ class AbstractChatWidget : public Widget , public Observer
     Q_OBJECT
     Q_DECLARE_PRIVATE(AbstractChatWidget)
 public:
-    enum msgTarget
+    enum MsgTarget
     {        
         SEND,   //发出信息
         RECV    //收到信息
     };
-    enum noticeType
+    enum NoticeType
     {
         FAULT,      //错误
         NORMAL,     //正常
         INFO,       //普通提示
         NONOTICE    //无标识
     };
-    enum timeFormat
+    enum TimeFormat
     {
         TIME,       //时间
         DATETIME    //日期+时间
@@ -50,7 +50,9 @@ public:
     void onMessage(MessageType type);
     void shakeWindow();
     void appendRecvMsg(TextRequest recvMsg);
-    void playVoiceMessage(QString path);
+    void playVoiceMessage(QString audioName);
+
+    void appendVoiceMsg(MsgTarget source, QString recordFileName);
 
 public slots:
     void slot_UpdateKeySequence();
@@ -70,8 +72,9 @@ private slots:
     void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
     void finishLoadHTML(bool);
 
-    /**********录音处理**********/
     void noticeWebViewShift(bool);
+
+    /**********录音处理**********/
     void respShowAudioArea(bool);
     void prepareSendAudio();
     void preapreCancelAudio();
@@ -82,11 +85,10 @@ protected:
 
 private:
     void switchWindowSize();
-    void appendChatRecord(msgTarget source, const TextUnit::ChatInfoUnit &unitMsg);
+    void appendChatRecord(MsgTarget source, const TextUnit::ChatInfoUnit &unitMsg);
     void setFontIconFilePath();
-    void appendChatTimeNote(QDateTime content,timeFormat format = TIME);
-    void appendChatNotice(QString content,noticeType type = NONOTICE);
-    void appendVoiceMsg(msgTarget source);
+    void appendChatTimeNote(QDateTime content,TimeFormat format = TIME);
+    void appendChatNotice(QString content,NoticeType type = NONOTICE);
 
 private:
     AbstractChatWidgetPrivate * d_ptr;
