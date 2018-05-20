@@ -11,7 +11,6 @@
 #include <QDir>
 #include <QDomDocument>
 #include <QDomElement>
-#include <QDebug>
 
 #include "../Core/constants.h"
 
@@ -205,6 +204,28 @@ qint64 RUtil::currentSecsSinceEpoch()
     return epochTime.secsTo(QDateTime::currentDateTime());
 }
 
+/*!
+ * @brief RUtil::addMSecsToEpoch 将毫秒数加上格林尼治时间为实际时间
+ * @param[in] mSeonds 格林尼治时间以来的毫秒数
+ * @return 实际时间
+ */
+QDateTime RUtil::addMSecsToEpoch(qint64 mSeonds)
+{
+    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    return epochTime.addMSecs(mSeonds);
+}
+
+/*!
+ * @brief RUtil::addMSecsToEpoch 将秒数加上格林尼治时间为实际时间
+ * @param[in] mSeonds 格林尼治时间以来的秒数
+ * @return 实际时间
+ */
+QDateTime RUtil::addSecsToEpoch(qint64 seonds)
+{
+    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    return epochTime.addSecs(seonds);
+}
+
 bool RUtil::validateIpFormat(QString dest)
 {
     QString matchIp = "(\\d|([1-9]\\d)|(1\\d{2})|(2[0-4]\\d)|(25[0-5]))";
@@ -317,7 +338,6 @@ void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
             }
         }
     }
-    qDebug()<<domDoc.toString();
     targetHtml = domDoc.toString();
 }
 

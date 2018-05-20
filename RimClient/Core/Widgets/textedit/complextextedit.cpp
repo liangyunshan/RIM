@@ -18,7 +18,7 @@ QHash<QMovie*,QUrl> urls;
 ComplexTextEdit::ComplexTextEdit(QWidget *parent):
     BaseTextEdit(parent)
 {
-    m_ShowType = TextUnit::Type_NotOnlyHead;
+    m_ShowType = Type_NotOnlyHead;
     startRecordRowid = 0;
     endRecordRowid = 0;
 
@@ -42,36 +42,36 @@ ComplexTextEdit::~ComplexTextEdit()
 }
 
 //设置界面需要显示的聊天记录的字体样式
-void ComplexTextEdit::setChatFormat(const QTextCharFormat &format, TextUnit::BaseTextEditType type)
+void ComplexTextEdit::setChatFormat(const QTextCharFormat &format, BaseTextEditType type)
 {
     switch(type)
     {
-        case TextUnit::Type_Default:
+        case Type_Default:
         {
             m_Type_Default_Format = format;
         }
             break;
-        case TextUnit::Type_UserHead_Friend:
+        case Type_UserHead_Friend:
         {
             m_Type_UserHead_Friend_Format = format;
         }
             break;
-        case TextUnit::Type_UserHead_Me:
+        case Type_UserHead_Me:
         {
             m_Type_UserHead_Me_Format = format;
         }
             break;
-        case TextUnit::Type_ChatDetail:
+        case Type_ChatDetail:
         {
             m_Type_ChatDetail_Format = format;
         }
             break;
-        case TextUnit::Type_RecordTime:
+        case Type_RecordTime:
         {
             m_Type_RecordTime_Format = format;
         }
             break;
-        case TextUnit::Type_Tip:
+        case Type_Tip:
         {
             m_Type_Tip_Format = format;
         }
@@ -80,36 +80,36 @@ void ComplexTextEdit::setChatFormat(const QTextCharFormat &format, TextUnit::Bas
     updateChatShow();
 }
 
-void ComplexTextEdit::setChatFont(const QFont &font, TextUnit::BaseTextEditType type)
+void ComplexTextEdit::setChatFont(const QFont &font, BaseTextEditType type)
 {
     switch(type)
     {
-        case TextUnit::Type_Default:
+        case Type_Default:
         {
             m_Type_Default_Format.setFont(font);
         }
             break;
-        case TextUnit::Type_UserHead_Friend:
+        case Type_UserHead_Friend:
         {
             m_Type_UserHead_Friend_Format.setFont(font);
         }
             break;
-        case TextUnit::Type_UserHead_Me:
+        case Type_UserHead_Me:
         {
             m_Type_UserHead_Me_Format.setFont(font);
         }
             break;
-        case TextUnit::Type_ChatDetail:
+        case Type_ChatDetail:
         {
             m_Type_ChatDetail_Format.setFont(font);
         }
             break;
-        case TextUnit::Type_RecordTime:
+        case Type_RecordTime:
         {
             m_Type_RecordTime_Format.setFont(font);
         }
             break;
-        case TextUnit::Type_Tip:
+        case Type_Tip:
         {
             m_Type_Tip_Format.setFont(font);
         }
@@ -121,79 +121,6 @@ void ComplexTextEdit::setChatFont(const QFont &font, TextUnit::BaseTextEditType 
             break;
     }
     updateChatShow();
-}
-
-
-//添加自己发送的聊天信息
-void ComplexTextEdit::insertChatText(const TextUnit::ChatInfoUnit record)
-{
-    compareRowId(record.rowid);
-
-    QTextFrameFormat frameFormat;                  //创建框架格式
-    frameFormat.setBackground(Qt::white);           //设置背景色
-    frameFormat.setMargin(3);
-    frameFormat.setBorder(1);
-
-    QTextBlockFormat blockFormat_head = QTextBlockFormat();
-    blockFormat_head.setLeftMargin(1);
-    blockFormat_head.setRightMargin(1);
-    blockFormat_head.setTopMargin(1);
-    blockFormat_head.setBottomMargin(1);
-
-    QTextBlockFormat blockFormat_contents = QTextBlockFormat();
-    blockFormat_contents.setLeftMargin(15);
-    blockFormat_contents.setRightMargin(15);
-    blockFormat_contents.setTopMargin(3);
-    blockFormat_contents.setBottomMargin(10);
-
-    //描述聊天信息的用户标识和时间标识等，目前采用固定的格式
-    //用户名+聊天信息时间戳
-    QString me = QString("%1 %2").arg(record.user.name).arg(record.time);
-
-    //TODO: 根据当前的记录类型，向前添加或向后添加
-    bool isInsertByEnd = false;
-    if(record.rowid<=startRecordRowid && record.rowid != -1)
-    {
-        this->moveCursor(QTextCursor::Start);
-    }
-    else
-    {
-        this->moveCursor(QTextCursor::End);
-        isInsertByEnd = true;
-    }
-
-    //
-    QTextCursor cursor  = this->textCursor();
-    cursor.insertBlock(blockFormat_head);
-    if(record.user.id == G_User->BaseInfo().accountId.toInt())
-    {
-        cursor.insertText(me ,m_Type_UserHead_Me_Format);
-    }
-    else
-    {
-        cursor.insertText(me ,m_Type_UserHead_Friend_Format);
-    }
-
-    cursor.insertBlock(blockFormat_contents);
-    this->insertChatFormatText(record.contents);
-
-    if(isInsertByEnd)
-    {
-        //移动滚动条到底部
-        QScrollBar *scrollbar = this->verticalScrollBar();
-        if (scrollbar)
-        {
-            scrollbar->setSliderPosition(scrollbar->maximum());
-        }
-    }
-
-    //
-//    this->moveCursor(QTextCursor::End);
-//    this->textCursor().insertText(me ,m_Type_UserHead_Me_Format);
-//    this->textCursor().insertFrame(frameFormat_chatinfo);   //在光标处插入框架
-//    this->insertPlainText(record.contents);
-    //
-
 }
 
 //添加标注提示信息

@@ -21,10 +21,6 @@ class BaseTextEdit : public QTextEdit
 public:
     BaseTextEdit(QWidget * parent = 0 );
 
-    int transTextToUnit(TextUnit::ChatInfoUnit &unit);
-
-    QString toChatFormaText();
-    void insertChatFormatText(const QString &text);
     void insertCopyImage(QImage &image);
     void setInputTextColor(QColor Color);
     void getInputedImgs(QStringList &imgDirs);

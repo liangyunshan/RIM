@@ -46,6 +46,9 @@ public:
     static qint64 currentMSecsSinceEpoch();
     static qint64 currentSecsSinceEpoch();
 
+    static QDateTime addMSecsToEpoch(qint64 mSeonds);
+    static QDateTime addSecsToEpoch(qint64 seonds);
+
     static bool validateIpFormat(QString dest);
 
     static QImage convertToGray(const QImage &);

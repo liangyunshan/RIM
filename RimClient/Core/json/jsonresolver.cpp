@@ -23,9 +23,9 @@ JsonResolver::JsonResolver()
 
 }
 
-TextUnit::ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
+ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
 {
-    TextUnit::ChatInfoUnit unit;
+    ChatInfoUnit unit;
 
     QJsonParseError jsonError;
     QJsonDocument doucment = QJsonDocument::fromJson(byteArray, &jsonError);
@@ -35,54 +35,18 @@ TextUnit::ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
         if(doucment.isObject())
         {
             QJsonObject obj = doucment.object();
-            if(obj.contains("UserID"))
-            {
-                unit.user.id = obj.value("UserID").toInt();
-            }
-            if(obj.contains("UserName"))
-            {
-                unit.user.name = obj.value("UserName").toString();
-            }
-            if(obj.contains("UserHead"))
-            {
-                unit.user.head = obj.value("UserHead").toString();
-            }
-            if(obj.contains("RecordTime"))
-            {
-                unit.time = obj.value("RecordTime").toString();
-            }
-            if(obj.contains("RecordFont"))
-            {
-                QJsonValue font_Value = obj.value("RecordFont");
-                if(font_Value.isObject())
-                {
-                    QJsonObject font_obj = font_Value.toObject();
-                    if(font_obj.contains("FontName"))
-                    {
-                        unit.font.fontName = font_obj.value("FontName").toString();
-                    }
-                    if(font_obj.contains("FontSize"))
-                    {
-                        unit.font.fontSize = font_obj.value("FontSize").toInt();
-                    }
-                    if(font_obj.contains("FontIsBold"))
-                    {
-                        unit.font.fontIsBold = font_obj.value("FontIsBold").toBool();
-                    }
-                    if(font_obj.contains("FontIsItalic"))
-                    {
-                        unit.font.fontIsItalic = font_obj.value("FontIsItalic").toBool();
-                    }
-                    if(font_obj.contains("FontIsUnderline"))
-                    {
-                        unit.font.fontIsUnderline = font_obj.value("FontIsUnderline").toBool();
-                    }
-                    if(font_obj.contains("FontColorRGBA"))
-                    {
-                        unit.font.fontColorRGBA = font_obj.value("FontColorRGBA").toInt();
-                    }
-                }
-            }
+//            if(obj.contains("UserID"))
+//            {
+//                unit.user.id = obj.value("UserID").toInt();
+//            }
+//            if(obj.contains("UserName"))
+//            {
+//                unit.user.name = obj.value("UserName").toString();
+//            }
+//            if(obj.contains("UserHead"))
+//            {
+//                unit.user.head = obj.value("UserHead").toString();
+//            }
             if(obj.contains("RecordContents"))
             {
                 unit.contents = obj.value("RecordContents").toString();
@@ -94,7 +58,7 @@ TextUnit::ChatInfoUnit JsonResolver::ReadJSONFile(QByteArray byteArray)
 }
 
 //编辑json数据发送
-QByteArray JsonResolver::WriteJSONFile(TextUnit::ChatInfoUnit unit)
+QByteArray JsonResolver::WriteJSONFile(ChatInfoUnit unit)
 {
     QJsonDocument document;
     this->transUnitToQJsonDocument(unit,document);
@@ -103,24 +67,13 @@ QByteArray JsonResolver::WriteJSONFile(TextUnit::ChatInfoUnit unit)
 }
 
 //将编辑区域内的聊天内容封装成json文件，返回QJsonDocument对象
-int JsonResolver::transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJsonDocument &doc)
+int JsonResolver::transUnitToQJsonDocument(const ChatInfoUnit unit, QJsonDocument &doc)
 {
-    // 构建字体对象
-    QJsonObject font;
-    font.insert("FontName",unit.font.fontName);
-    font.insert("FontSize",unit.font.fontSize);
-    font.insert("FontIsBold",unit.font.fontIsBold);
-    font.insert("FontIsItalic",unit.font.fontIsItalic);
-    font.insert("FontIsUnderline",unit.font.fontIsUnderline);
-    font.insert("FontColorRGBA",unit.font.fontColorRGBA);
-
     // 构建 Json 对象
     QJsonObject Unit;
-    Unit.insert("UserID", unit.user.id);
-    Unit.insert("UserName", unit.user.name);
-    Unit.insert("UserHead", unit.user.head);
-    Unit.insert("RecordTime", unit.time);
-    Unit.insert("RecordFont", QJsonValue(font));
+//    Unit.insert("UserID", unit.user.id);
+//    Unit.insert("UserName", unit.user.name);
+//    Unit.insert("UserHead", unit.user.head);
     Unit.insert("RecordContents", unit.contents);
 
     // 构建 JSON 文档
@@ -129,9 +82,9 @@ int JsonResolver::transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJ
 }
 
 //解析html数据: out:解析后的组装html,html:源html数据,type:解析类型
-int JsonResolver::parseHtml(QString &out, const QString &html, TextUnit::ParseType type)
+int JsonResolver::parseHtml(QString &out, const QString &html, ParseType type)
 {
-    if(type!=TextUnit::Parase_Send && type!=TextUnit::Parase_Recv)
+    if(type!=Parase_Send && type!=Parase_Recv)
     {
         return -1;
     }
@@ -159,7 +112,7 @@ int JsonResolver::parseHtml(QString &out, const QString &html, TextUnit::ParseTy
     return 0;
 }
 
-void JsonResolver::readHtmlindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+void JsonResolver::readHtmlindexElement(QXmlStreamReader *xml, QString &html, ParseType type)
 {
     Q_ASSERT(xml->isStartElement() && xml->name() == "html");
 
@@ -183,7 +136,7 @@ void JsonResolver::readHtmlindexElement(QXmlStreamReader *xml, QString &html, Te
     html += "</body>";
 }
 
-void JsonResolver::readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+void JsonResolver::readBodyindexElement(QXmlStreamReader *xml, QString &html, ParseType type)
 {
     //
     Q_ASSERT(xml->isStartElement() && xml->name() == "body");
@@ -205,7 +158,7 @@ void JsonResolver::readBodyindexElement(QXmlStreamReader *xml, QString &html, Te
     //
 }
 
-void JsonResolver::readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+void JsonResolver::readPindexElement(QXmlStreamReader *xml, QString &html, ParseType type)
 {
     //
     Q_ASSERT(xml->isStartElement() && xml->name() == "p");
@@ -232,14 +185,14 @@ void JsonResolver::readPindexElement(QXmlStreamReader *xml, QString &html, TextU
     //
 }
 
-void JsonResolver::readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type)
+void JsonResolver::readImgindexElement(QXmlStreamReader *xml, QString &html, ParseType type)
 {
 
     Q_ASSERT(xml->isStartElement() && xml->name() == "img");
 
     QString filepath = xml->attributes().value("","src").toString();
     QString image ;
-    if(type == TextUnit::Parase_Send)
+    if(type == Parase_Send)
     {
         image = filePathToImgString(filepath);
     }
@@ -257,7 +210,7 @@ void JsonResolver::readImgindexElement(QXmlStreamReader *xml, QString &html, Tex
     xml->skipCurrentElement();
 }
 
-void JsonResolver::readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType)
+void JsonResolver::readSpanindexElement(QXmlStreamReader *xml, QString &html, ParseType)
 {
     //
     Q_ASSERT(xml->isStartElement() && xml->name() == "span");

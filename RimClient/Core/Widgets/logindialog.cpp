@@ -56,7 +56,7 @@
 #include "file/filedesc.h"
 #include "user/user.h"
 #include "widget/rcomboboxitem.h"
-using namespace TextUnit ;
+#include "thread/chatmsgprocess.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {

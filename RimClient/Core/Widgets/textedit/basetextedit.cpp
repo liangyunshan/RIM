@@ -79,47 +79,6 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter(obj, event);
 }
 
-//将内容打包成网络包 ChatInfoUnit
-int BaseTextEdit::transTextToUnit(TextUnit::ChatInfoUnit &unit)
-{
-    QFont font = this->font();
-    QColor color = this->textColor();
-    QString contents = this->toChatFormaText().replace("'","\"");
-
-    unit.rowid = -1;
-    unit.user.id = G_User->BaseInfo().accountId.toInt();
-    unit.user.name = G_User->BaseInfo().nickName;
-    unit.user.head = ":/icon/resource/icon/person_1.png"; //用户头像
-    unit.time = QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss");
-    unit.font.fontName = font.key();
-    unit.font.fontSize = font.pointSize();
-    unit.font.fontIsBold = font.bold();
-    unit.font.fontIsItalic = font.italic();
-    unit.font.fontIsUnderline = font.underline();
-    unit.font.fontColorRGBA = color.rgba();
-    unit.contents = contents;
-
-    return 0;
-}
-
-//[1] 界面显示的数据->封装网络聊天数据 string->format
-QString BaseTextEdit::toChatFormaText()
-{
-    QString ui_html = toHtml();
-    QString contents ;
-    RSingleton<JsonResolver>::instance()->parseHtml(contents,ui_html,TextUnit::Parase_Send);
-    return contents;
-}
-
-//[2] 将网络封装的聊天数据->解析为界面可以显示的数据 format->string
-void BaseTextEdit::insertChatFormatText(const QString &format)
-{
-    //解析数据，显示在界面
-    QString contents ;
-    RSingleton<JsonResolver>::instance()->parseHtml(contents,format,TextUnit::Parase_Recv);
-    this->insertHtml(contents);
-}
-
 /*!
  * @brief BaseTextEdit::insertCopyImage 将图片插入到文本框当前位置
  * @param image 待插入的图片

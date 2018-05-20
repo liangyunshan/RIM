@@ -15,7 +15,6 @@
 #include "observer.h"
 
 class AbstractChatWidgetPrivate;
-class DatabaseThread;
 
 class AbstractChatWidget : public Widget , public Observer
 {
@@ -43,8 +42,7 @@ public:
     ~AbstractChatWidget();
 
     QString widgetId();
-    void recvChatMsg(QByteArray);
-    void showRecentlyChatMsg(int count=1);
+    void showRecentlyChatMsg(uint count=1);
     void setUserInfo(SimpleUserInfo info);
     void initChatRecord();
     void onMessage(MessageType type);
@@ -69,7 +67,7 @@ private slots:
     void slot_ScreenTimeout();
     void slot_ButtClick_SendMsg(bool flag);
     void slot_CheckSendEnter();
-    void slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList);
+    void slot_DatabaseThread_ResultReady(int,ChatInfoUnitList);
     void finishLoadHTML(bool);
 
     void noticeWebViewShift(bool);
@@ -85,7 +83,7 @@ protected:
 
 private:
     void switchWindowSize();
-    void appendChatRecord(MsgTarget source, const TextUnit::ChatInfoUnit &unitMsg);
+    void appendChatRecord(MsgTarget source, const ChatInfoUnit &unitMsg);
     void setFontIconFilePath();
     void appendChatTimeNote(QDateTime content,TimeFormat format = TIME);
     void appendChatNotice(QString content,NoticeType type = NONOTICE);
