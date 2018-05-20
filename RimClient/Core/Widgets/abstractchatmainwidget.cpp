@@ -114,7 +114,9 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) : QWidget(parent
  */
 void AbstractChatMainWidget::inserHtml(QUrl &htmlUrl)
 {
-
+    MQ_D(AbstractChatMainWidget);
+    d->view->load(htmlUrl);
+    d->view->show();
 }
 
 /*!
