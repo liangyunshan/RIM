@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <QFileInfo>
 #include <functional>
+#include <QTimer>
 
 #include "head.h"
 #include "datastruct.h"
@@ -188,6 +189,8 @@ void PanelPersonPage::removeTargetGroup(const QString id)
         bool t_result = t_delPage->removeItem(t_movedItem);
         if(t_result){
             d->toolBox->defaultPage()->addItem(t_movedItem);
+            t_movedItem->setToolPage(d->toolBox->defaultPage());
+            reconnectItem(t_movedItem,t_delPage,d->toolBox->defaultPage());
         }else{
             delete t_movedItem;
         }
@@ -291,6 +294,8 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
         }else if(friendList->type == REQUEST_RECONNECT || friendList->type == REQUEST_REFRESH){
             updateContactList();
         }
+
+        QTimer::singleShot(500,this,SLOT(loadHistoryMsg()));
     }else{
         RMessageBox::warning(this,QObject::tr("warning"),tr("Get friendList failed!"),RMessageBox::Yes);
     }
@@ -304,6 +309,7 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
 void PanelPersonPage::refreshList()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
 
     FriendListRequest * request = new FriendListRequest;
     request->type = REQUEST_REFRESH;
@@ -369,6 +375,7 @@ void PanelPersonPage::respGroupRename()
 void PanelPersonPage::respGroupDeleted()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
     ToolPage *t_page = d->toolBox->selectedPage();
     if(t_page->isDefault())
@@ -393,6 +400,7 @@ void PanelPersonPage::respGroupDeleted()
 void PanelPersonPage::respGroupMoved(int newIndex, int oldIndex, QString pageId)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     GroupingRequest * request = new GroupingRequest();
@@ -544,7 +552,7 @@ void PanelPersonPage::deleteUser()
 {
     MQ_D(PanelPersonPage);
 
-    ToolItem *t_toRemovedItem = d->toolBox->selectedItem();
+    ToolItem * t_toRemovedItem = d->toolBox->selectedItem();
     if(t_toRemovedItem && d->pageOfTriggeredItem){
         UserClient * client = RSingleton<UserManager>::instance()->client(t_toRemovedItem);
         if(client && d->pageOfTriggeredItem->getID().size() > 0){
@@ -572,6 +580,7 @@ void PanelPersonPage::deleteUser(ChatMessageType messtype, QString accountId)
 void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     if(client == nullptr)
         return;
     GroupingFriendRequest * t_request = new GroupingFriendRequest();
@@ -614,7 +623,7 @@ void PanelPersonPage::resortToolPage()
 
     int index = 0;
     std::for_each(list.begin(),list.end(),[&](RGroupData * groupData){
-//        d->toolBox->sortPage(groupData->groupId,index++);
+        d->toolBox->sortPage(groupData->groupId,index++);
     });
 }
 
@@ -624,6 +633,20 @@ void PanelPersonPage::resortToolPage()
 void PanelPersonPage::resortOnlineToolItem()
 {
 
+}
+
+/*!
+ * @brief 因删除、移动造成item所属父类改变，需要对item的信号进行重新关联
+ * @param[in] item 待关联的item
+ * @param[in] oldPage 旧Page
+ * @param[in] newPage 新newPage
+ */
+void PanelPersonPage::reconnectItem(ToolItem *item, ToolPage *oldPage, ToolPage *newPage)
+{
+    disconnect(item,SIGNAL(updateGroupActions()),oldPage,SLOT(updateGroupActions()));
+    disconnect(item,SIGNAL(clearSelectionOthers(ToolItem*)),oldPage,SIGNAL(clearItemSelection(ToolItem*)));
+    connect(item,SIGNAL(updateGroupActions()),newPage,SLOT(updateGroupActions()));
+    connect(item,SIGNAL(clearSelectionOthers(ToolItem*)),newPage,SIGNAL(clearItemSelection(ToolItem*)));
 }
 
 /*!
@@ -688,8 +711,7 @@ void PanelPersonPage::recvFriendItemOperate(MsgOperateResponse result, GroupingF
                 if(t_rmResult){
                     d->m_movedItem->setToolPage(targetPage);
                     targetPage->addItem(d->m_movedItem);
-                    disconnect(d->m_movedItem,SIGNAL(updateGroupActions()),sourcePage,SLOT(updateGroupActions()));
-                    connect(d->m_movedItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
+                    reconnectItem(d->m_movedItem,sourcePage,targetPage);
                     RSingleton<UserFriendContainer>::instance()->moveUser(response.oldGroupId,response.groupId,response.user.accountId);
                     updateGroupDescInfo();
                 }
@@ -728,6 +750,7 @@ void PanelPersonPage::updateModifyInstance(QObject *)
 void PanelPersonPage::requestModifyRemark(QString remark)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     ToolItem *t_modifyItem = d->toolBox->selectedItem();
@@ -818,7 +841,10 @@ void PanelPersonPage::updateContactList()
                 //2.1
                 if(t_matchUserResult)
                 {
-                    ToolItem * item = RSingleton<UserManager>::instance()->client(t_userId)->toolItem;
+                    UserClient * client = RSingleton<UserManager>::instance()->client(t_userId);
+                    client->simpleUserInfo = *remoteSimpleUserInfo;
+
+                    ToolItem * item = client->toolItem;
                     item->setName(remoteSimpleUserInfo->remarks);
                     item->setNickName(remoteSimpleUserInfo->nickName);
                     item->setDescInfo(remoteSimpleUserInfo->signName);
@@ -852,8 +878,26 @@ void PanelPersonPage::updateContactList()
                         bool flag = t_sourcePage->removeItem(localUserClient->toolItem);
                         if(flag){
                             targetPage->addItem(localUserClient->toolItem);
-                            disconnect(localUserClient->toolItem,SIGNAL(updateGroupActions()),t_sourcePage,SLOT(updateGroupActions()));
-                            connect(localUserClient->toolItem,SIGNAL(updateGroupActions()),targetPage,SLOT(updateGroupActions()));
+                            localUserClient->toolItem->setToolPage(targetPage);
+                            reconnectItem(localUserClient->toolItem,t_sourcePage,targetPage);
+
+                            localUserClient->toolItem->setName(remoteSimpleUserInfo->remarks);
+                            localUserClient->toolItem->setNickName(remoteSimpleUserInfo->nickName);
+                            localUserClient->toolItem->setDescInfo(remoteSimpleUserInfo->signName);
+
+                            if(!remoteSimpleUserInfo->isSystemIcon && !QFileInfo(G_User->getFilePath(remoteSimpleUserInfo->iconId)).exists() && remoteSimpleUserInfo->iconId.size() > 0)
+                             {
+                                 SimpleFileItemRequest * request = new SimpleFileItemRequest;
+                                 request->control = T_REQUEST;
+                                 request->itemType = FILE_ITEM_USER_DOWN;
+                                 request->itemKind = FILE_IMAGE;
+                                 request->fileId = QFileInfo(remoteSimpleUserInfo->iconId).baseName();
+                                 FileRecvTask::instance()->addRecvItem(request);
+                             }else{
+                                localUserClient->toolItem->setIcon(G_User->getIcon(remoteSimpleUserInfo->isSystemIcon,remoteSimpleUserInfo->iconId));
+                            }
+
+                            localUserClient->toolItem->setStatus(remoteSimpleUserInfo->status);
                         }
                     }
                 }
@@ -862,15 +906,29 @@ void PanelPersonPage::updateContactList()
         }
     }
 
-    //2.4
     QList<QString> unExistedPages;
-    const QList<ToolPage *> pages =  d->toolBox->allPages();
-    for(int pageIndex = 0; pageIndex < pages.count(); pageIndex++)
+    const QList<ToolPage *> oldPages =  d->toolBox->allPages();
+    for(int pageIndex = 0; pageIndex < oldPages.count(); pageIndex++)
     {
-        ToolPage * targetPage = pages.at(pageIndex);
+        ToolPage * targetPage = oldPages.at(pageIndex);
+        RGroupData * groupData = RSingleton<UserFriendContainer>::instance()->element(targetPage->getID());
+        if(groupData == nullptr){
+            unExistedPages.append(targetPage->getID());
+        }
+    }
+
+    //1.3
+    std::for_each(unExistedPages.begin(),unExistedPages.end(),[this](QString groupId){
+        this->removeTargetGroup(groupId);
+    });
+
+    //2.4
+    const QList<ToolPage *> newPages =  d->toolBox->allPages();
+    for(int pageIndex = 0; pageIndex < newPages.count(); pageIndex++)
+    {
+        ToolPage * targetPage = newPages.at(pageIndex);
         RGroupData * groupData = RSingleton<UserFriendContainer>::instance()->element(targetPage->getID());
         if(groupData){
-
             QList<ToolItem *> items = targetPage->items();
             for(int itemIndex = items.count() - 1 ; itemIndex >= 0; itemIndex--)
             {
@@ -882,15 +940,8 @@ void PanelPersonPage::updateContactList()
                     removeContact(client->simpleUserInfo.accountId);
                 }
             }
-        }else{
-            unExistedPages.append(targetPage->getID());
         }
     }
-
-    //1.3
-    std::for_each(unExistedPages.begin(),unExistedPages.end(),[this](QString groupId){
-        this->removeTargetGroup(groupId);
-    });
 
     updateGroupDescInfo();
 
@@ -966,6 +1017,16 @@ void PanelPersonPage::recvFriendPageOperate(MsgOperateResponse status,GroupingRe
     }
 }
 
+void PanelPersonPage::loadHistoryMsg()
+{
+    R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
+
+    HistoryMessRequest * request = new HistoryMessRequest();
+    request->accountId = G_User->BaseInfo().accountId;
+    RSingleton<MsgWrap>::instance()->handleMsg(request);
+}
+
 /*!
  * @brief 创建单元Item
  * @param[in] userInfo 用户基本信息
@@ -1015,6 +1076,7 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
 void PanelPersonPage::renameEditFinished()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
     if(d->tmpNameEdit->text().size() > 0 && d->tmpNameEdit->text() != d->pageNameBeforeRename)
     {
@@ -1059,6 +1121,7 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
     {
         movePersonTo->clear();
     }
+
     for(int index=0;index<infoList.count();index++)
     {
         if(page->pageInfo().uuid != infoList.at(index).uuid)
@@ -1084,6 +1147,7 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
 void PanelPersonPage::movePersonTo()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(PanelPersonPage);
 
     QAction * target = qobject_cast<QAction *>(QObject::sender());

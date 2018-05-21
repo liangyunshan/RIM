@@ -261,6 +261,8 @@ bool FileSender::handleDataSend(QByteArray &data)
             }
         }
 
+        msleep(10);
+
         if(sendLen == packet.totalLen)
         {
             return true;

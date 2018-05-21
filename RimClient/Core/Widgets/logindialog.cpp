@@ -56,7 +56,7 @@
 #include "file/filedesc.h"
 #include "user/user.h"
 #include "widget/rcomboboxitem.h"
-using namespace TextUnit ;
+#include "thread/chatmsgprocess.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -332,20 +332,18 @@ void LoginDialog::respTextConnect(bool flag)
         RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
-        //若G_User为NULL，则说明还未登陆过
+        LoginRequest * request = new LoginRequest();
+        request->accountId = d->userList->currentText();
+        request->password = RUtil::MD5( d->password->text());
+        request->status = d->onlineState->state();
+        G_OnlineStatus = d->onlineState->state();
+        //若G_User为NULL，则说明为初次登陆
         if(!G_User){
-#ifndef __NO_SERVER__
-            LoginRequest * request = new LoginRequest();
-            request->accountId = d->userList->currentText();
-            request->password = RUtil::MD5( d->password->text());
-            request->status = d->onlineState->state();
-            G_OnlineStatus = d->onlineState->state();
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
-#else
-            recvLoginResponse(LOGIN_SUCCESS,LoginResponse());
-#endif
+            request->loginType = FIRST_LOGIN;
+        }else{
+            request->loginType = RECONNECT_LOGIN;
         }
-        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
+        RSingleton<MsgWrap>::instance()->handleMsg(request);
     }
 
     enableInput(true);
@@ -715,13 +713,12 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
     if(status == LOGIN_SUCCESS)
     {
-        int index = -1;
         UserBaseInfo baseInfo = response.baseInfo;
-        if( (index = isContainUser()) >= 0)
-        {
-            if(index < d->localUserInfo.size())
-            {
-                UserInfoDesc * uinfo = d->localUserInfo.at(index);
+        if(response.loginType == FIRST_LOGIN){
+            int index = -1;
+            UserInfoDesc * uinfo;
+            if( (index = isContainUser()) >= 0 && index < d->localUserInfo.size()){
+                uinfo = d->localUserInfo.at(index);
                 uinfo->userName = response.baseInfo.nickName;
                 uinfo->accountId = response.baseInfo.accountId;
                 uinfo->originPassWord = d->password->text();
@@ -744,35 +741,41 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
 
                 RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
-        }
-        else
-        {
-            UserInfoDesc * desc = new UserInfoDesc;
-            desc->userName = response.baseInfo.nickName;
-            desc->accountId = response.baseInfo.accountId;
-            desc->originPassWord = d->password->text();
-            desc->password = RUtil::MD5(d->password->text());
-            desc->isAutoLogin = d->autoLogin->isChecked();
-            desc->isRemberPassword = d->rememberPassord->isChecked();
-            desc->loginState = (int)d->onlineState->state();
-            desc->isSystemIcon = response.baseInfo.isSystemIcon;
+            else
+            {
+                uinfo = new UserInfoDesc;
+                uinfo->userName = response.baseInfo.nickName;
+                uinfo->accountId = response.baseInfo.accountId;
+                uinfo->originPassWord = d->password->text();
+                uinfo->password = RUtil::MD5(d->password->text());
+                uinfo->isAutoLogin = d->autoLogin->isChecked();
+                uinfo->isRemberPassword = d->rememberPassord->isChecked();
+                uinfo->loginState = (int)d->onlineState->state();
+                uinfo->isSystemIcon = response.baseInfo.isSystemIcon;
 
-            if(response.baseInfo.iconId.size() == 0){
-                desc->iconId = d->defaultUserIconPath;
-                baseInfo.iconId = desc->iconId;
-            }else{
-                desc->iconId = response.baseInfo.iconId;
+                if(response.baseInfo.iconId.size() == 0){
+                    uinfo->iconId = d->defaultUserIconPath;
+                    baseInfo.iconId = uinfo->iconId;
+                }else{
+                    uinfo->iconId = response.baseInfo.iconId;
+                }
+
+                d->localUserInfo.prepend(uinfo);
+                RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
             }
 
-            d->localUserInfo.prepend(desc);
-            RSingleton<UserInfoFile>::instance()->saveUsers(d->localUserInfo);
+            G_User = new User(baseInfo);
+            G_User->setUserInfoDesc(*uinfo);
+
+        }else if(response.loginType == RECONNECT_LOGIN){
+
         }
 
         //TODO 对文件服务器进行重连、状态显示等操作
         FileNetConnector::instance()->connect();
 
-        G_User = new User(baseInfo);
         G_User->setTextOnline(true);
+        G_User->setLogin(true);
 
         if(!baseInfo.isSystemIcon && !QFile(G_User->getFilePath(baseInfo.iconId)).exists() && baseInfo.iconId.size() > 0)
          {
@@ -784,40 +787,49 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
              FileRecvTask::instance()->addRecvItem(request);
          }
 
-//        QString apppath = qApp->applicationDirPath() + QString(Constant::PATH_UserPath);
-//        G_Temp_Picture_Path = QString("%1/%2/%3").arg(apppath).arg(G_User->BaseInfo().accountId).arg(Constant::UserTempName);
-//        RUtil::createDir(G_Temp_Picture_Path);
+        if(response.loginType == FIRST_LOGIN){
+            setVisible(false);
+            d->trayIcon->disconnect();
+            d->trayIcon->setModel(SystemTrayIcon::System_Main);
 
-        setVisible(false);
-        d->trayIcon->disconnect();
-        d->trayIcon->setModel(SystemTrayIcon::System_Main);
+            if(!d->mainDialog){
+                d->mainDialog = new MainDialog();
+            }
 
-        if(!d->mainDialog){
-            d->mainDialog = new MainDialog();
+            {
+                RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
+                connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
+                connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
+                connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+            }
+
+            d->mainDialog->show();
+            d->mainDialog->setLogInState(d->onlineState->state());
+
+            FriendListRequest * request = new FriendListRequest;
+            request->type = REQUEST_FIRST;
+            request->accountId = baseInfo.accountId;
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+            ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
+            groupRequest->type = REQUEST_FIRST;
+            groupRequest->uuid = baseInfo.uuid;
+            RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
+        }else if(response.loginType == RECONNECT_LOGIN){
+
+            FriendListRequest * request = new FriendListRequest;
+            request->type = REQUEST_REFRESH;
+            request->accountId = G_User->BaseInfo().accountId;
+            RSingleton<MsgWrap>::instance()->handleMsg(request);
+
+            RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
         }
-
-        {
-            RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
-            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
-            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
-            connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
-        }
-
-        d->mainDialog->show();
-        d->mainDialog->setLogInState(d->onlineState->state());
-
-        FriendListRequest * request = new FriendListRequest;
-        request->type = REQUEST_FIRST;
-        request->accountId = baseInfo.accountId;
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
-
-        ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
-        groupRequest->type = REQUEST_FIRST;
-        groupRequest->uuid = baseInfo.uuid;
-        RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
     }
     else
     {
+        if(G_User)
+            G_User->setLogin(false);
+
         QString errorInfo;
         switch(status)
         {
@@ -918,6 +930,7 @@ void LoginDialog::procRecvServerTextReply(TextReply reply)
 void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(LoginDialog);
     if(FileRecvTask::instance()->containsTask(request.fileId))
     {

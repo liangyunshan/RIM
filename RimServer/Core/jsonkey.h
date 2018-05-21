@@ -32,6 +32,7 @@ public:
         Data,
         NickName,
         Pass,
+        LoginType,
         AccountId,
         SignName,
         Sexual,

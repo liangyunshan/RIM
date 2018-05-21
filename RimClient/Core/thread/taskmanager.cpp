@@ -5,6 +5,7 @@
 #include "thread/msgreceiveproctask.h"
 #include "thread/filereceiveproctask.h"
 #include "thread/filerecvtask.h"
+#include "thread/historyrecordtask.h"
 #include "Network/netconnector.h"
 
 TaskManager::TaskManager(QObject *parent) : QObject(parent)
@@ -23,6 +24,8 @@ void TaskManager::initTask()
     addTask(MSG_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new MsgReceiveProcTask()));
     addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
     addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
+
+    addTask(HISTORY_RECORD,shared_ptr<ClientNetwork::RTask>(new HistoryRecordTask()));
 }
 
 /*!

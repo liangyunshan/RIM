@@ -86,6 +86,8 @@ private slots:
 
     void recvFriendPageOperate(MsgOperateResponse status, GroupingResponse response);
 
+    void loadHistoryMsg();
+
 public slots:
     void renameEditFinished();
     void updateGroupActions(ToolPage *);
@@ -109,6 +111,7 @@ private:
 
     void resortToolPage();
     void resortOnlineToolItem();
+    void reconnectItem(ToolItem * item,ToolPage * oldPage,ToolPage * newPage);
 
 private:
     PanelPersonPagePrivate * d_ptr;

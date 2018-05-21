@@ -106,6 +106,7 @@ enum MsgCommand
     MSG_USER_VIEW_INFO,                                /*!< 用户基本信息 */
     MSG_USER_UPDATE_INFO,                              /*!< 用户更新信息 */
     MSG_USER_STATE,                                    /*!< 用户状态 */
+    MSG_USER_HISTORY_MSG,                              /*!< 用户历史消息 */
 
     MSG_RELATION_SEARCH = 0x11,                        /*!< 查找好友 */
     MSG_REALTION_ADD,                                  /*!< 添加好友 */
@@ -420,6 +421,13 @@ public:
 };
 
 /************************登**陆**[Ok]********************/
+/*!
+ *  @brief  登陆类型
+ */
+enum LoginType{
+    FIRST_LOGIN,            /*!< 初次登陆 */
+    RECONNECT_LOGIN         /*!< 断网重连登陆*/
+};
 
 /*!
  *  @brief  登陆请求
@@ -429,6 +437,7 @@ class LoginRequest : public MsgPacket
 public:
     LoginRequest();
 
+    LoginType loginType;            /*!< 登陆类型 */
     QString accountId;              /*!< 登陆账号 */
     QString password;               /*!< 账号密码，采用密码加密传输 */
     OnlineStatus  status;           /*!< 用户选择的在线状态 */
@@ -441,7 +450,7 @@ class LoginResponse : public MsgPacket
 {
 public:
     LoginResponse();
-
+    LoginType loginType;            /*!< 登陆类型 */
     UserBaseInfo baseInfo;          /*!< 登陆用户的个人信息，参见 @link UserBaseInfo @endlink */
 };
 
@@ -673,6 +682,19 @@ public:
     OnlineStatus onStatus;          /*!< 在线状态 @link OnlineStatus @endlink */
 };
 
+/**********************离线消息抓取**[Ok]********************/
+/*!
+ *  @brief  离线消息抓取
+ *  @details 用户登陆或者重新连接后，应发送历史消息抓取请求
+ *  @attention 为了解决历史消息过多，导致页面加载缓慢的问题，将历史消息与页面加载处理分开，待页面准备好后，再请求历史消息；
+ */
+class HistoryMessRequest : public MsgPacket
+{
+public:
+    HistoryMessRequest();
+    QString accountId;              /*!< 用户账号 */
+};
+
 /******************************************************【群操作请求/应答命令】*****************************************************************/
 /*!
  *  @brief 群消息接收等级
@@ -776,6 +798,7 @@ class ChatGroupListRequest : public MsgPacket
 {
 public:
     ChatGroupListRequest();
+    OperateListTimeType type;        /*!< 刷新列表时机 */
     QString uuid;                    /*!< user表id */
     QString accountId;               /*!< 用户账号  */
 };

@@ -49,18 +49,21 @@ void DataProcess::proLoginResponse(QJsonObject &data)
         QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
         if(!dataObj.isEmpty())
         {
-            response.baseInfo.uuid = dataObj.value(JsonKey::key(JsonKey::Uuid)).toString();
-            response.baseInfo.accountId = dataObj.value(JsonKey::key(JsonKey::AccountId)).toString();
-            response.baseInfo.nickName = dataObj.value(JsonKey::key(JsonKey::NickName)).toString();
-            response.baseInfo.signName = dataObj.value(JsonKey::key(JsonKey::SignName)).toString();
-            response.baseInfo.sexual = (Sexual)dataObj.value(JsonKey::key(JsonKey::Sexual)).toInt();
-            response.baseInfo.birthday = dataObj.value(JsonKey::key(JsonKey::Birth)).toString();
-            response.baseInfo.address = dataObj.value(JsonKey::key(JsonKey::Address)).toString();
-            response.baseInfo.email = dataObj.value(JsonKey::key(JsonKey::Email)).toString();
-            response.baseInfo.phoneNumber = dataObj.value(JsonKey::key(JsonKey::Phone)).toString();
-            response.baseInfo.remark = dataObj.value(JsonKey::key(JsonKey::Remark)).toString();
-            response.baseInfo.isSystemIcon = dataObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
-            response.baseInfo.iconId = dataObj.value(JsonKey::key(JsonKey::IconId)).toString();
+            response.loginType = (LoginType)dataObj.value(JsonKey::key(JsonKey::LoginType)).toInt();
+
+            QJsonObject simpleObj = dataObj.value(JsonKey::key(JsonKey::Data)).toObject();
+            response.baseInfo.uuid = simpleObj.value(JsonKey::key(JsonKey::Uuid)).toString();
+            response.baseInfo.accountId = simpleObj.value(JsonKey::key(JsonKey::AccountId)).toString();
+            response.baseInfo.nickName = simpleObj.value(JsonKey::key(JsonKey::NickName)).toString();
+            response.baseInfo.signName = simpleObj.value(JsonKey::key(JsonKey::SignName)).toString();
+            response.baseInfo.sexual = (Sexual)simpleObj.value(JsonKey::key(JsonKey::Sexual)).toInt();
+            response.baseInfo.birthday = simpleObj.value(JsonKey::key(JsonKey::Birth)).toString();
+            response.baseInfo.address = simpleObj.value(JsonKey::key(JsonKey::Address)).toString();
+            response.baseInfo.email = simpleObj.value(JsonKey::key(JsonKey::Email)).toString();
+            response.baseInfo.phoneNumber = simpleObj.value(JsonKey::key(JsonKey::Phone)).toString();
+            response.baseInfo.remark = simpleObj.value(JsonKey::key(JsonKey::Remark)).toString();
+            response.baseInfo.isSystemIcon = simpleObj.value(JsonKey::key(JsonKey::SystemIcon)).toBool();
+            response.baseInfo.iconId = simpleObj.value(JsonKey::key(JsonKey::IconId)).toString();
         }
     }
 

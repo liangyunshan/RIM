@@ -20,22 +20,22 @@ class JsonResolver : public QObject
 public:
     JsonResolver();
 
-    TextUnit::ChatInfoUnit ReadJSONFile(QByteArray byteArray);
-    QByteArray WriteJSONFile(TextUnit::ChatInfoUnit unit);
-    int transUnitToQJsonDocument(const TextUnit::ChatInfoUnit unit, QJsonDocument &doc);
+    ChatInfoUnit ReadJSONFile(QByteArray byteArray);
+    QByteArray WriteJSONFile(ChatInfoUnit unit);
+    int transUnitToQJsonDocument(const ChatInfoUnit unit, QJsonDocument &doc);
 
     QString imgStringTofilePath(QString &img);
     QString filePathToImgString(QString &path);
 
-    int parseHtml(QString &out, const QString &html, TextUnit::ParseType type);
+    int parseHtml(QString &out, const QString &html, ParseType type);
 
 
 private:
-    void readHtmlindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readBodyindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readPindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
-    void readImgindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType type);
-    void readSpanindexElement(QXmlStreamReader *xml, QString &html, TextUnit::ParseType);
+    void readHtmlindexElement(QXmlStreamReader *xml, QString &html, ParseType);
+    void readBodyindexElement(QXmlStreamReader *xml, QString &html, ParseType);
+    void readPindexElement(QXmlStreamReader *xml, QString &html, ParseType);
+    void readImgindexElement(QXmlStreamReader *xml, QString &html, ParseType type);
+    void readSpanindexElement(QXmlStreamReader *xml, QString &html, ParseType);
     void skipUnknownElement(QXmlStreamReader *xml);
 };
 

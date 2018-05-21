@@ -289,6 +289,7 @@ void SystemNotifyView::respChat()
 void SystemNotifyView::respReRequest()
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(SystemNotifyView);
     AddFriendRequest * request = new AddFriendRequest;
     request->stype = d->notifyInfo.stype;
@@ -303,6 +304,7 @@ void SystemNotifyView::respReRequest()
 void SystemNotifyView::sendResponse(ResponseFriendApply result)
 {
     R_CHECK_ONLINE;
+    R_CHECK_LOGIN;
     MQ_D(SystemNotifyView);
     OperateFriendRequest * request = new OperateFriendRequest;
     request->type = FRIEND_APPLY;

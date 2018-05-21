@@ -70,9 +70,15 @@ public:
     void setFileOnline(bool flag = true);
     bool isFileOnLine();
 
+    void setLogin(bool flag = true);
+    bool isLogin();
+
     SystemSettingKey * systemSettings(){return this->systemSetting;}
 
     UserBaseInfo & BaseInfo(){return userBaseInfo;}
+
+    void setUserInfoDesc(UserInfoDesc &desc);
+    UserInfoDesc getUserInfoDesc();
 
 private:
     void createUserHome(const QString id);
@@ -80,9 +86,11 @@ private:
 private:
     static User * puser;
 
+    UserInfoDesc userLoginBaseInfo;  /*!< 用户登陆时基本信息 */
     UserBaseInfo userBaseInfo;       /*!< 用户基本数据信息 */
-    bool textOnLine;                 /*!< 信息服务器在线 */
+    bool textOnLine;                 /*!< 信息服务器在线，发送消息前检测是否在线以及是否登陆 */
     bool fileOnLine;                 /*!< 文件服务器在线 */
+    bool userLogined;                /*!< 用户是否登陆 */
 
     QString userHome;
     QString userDBPath;

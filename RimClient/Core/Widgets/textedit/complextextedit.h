@@ -21,10 +21,9 @@ public:
     ComplexTextEdit(QWidget * parent = 0);
     ~ComplexTextEdit();
 
-    void setChatFormat(const QTextCharFormat &format, TextUnit::BaseTextEditType type);
-    void setChatFont(const QFont &font, TextUnit::BaseTextEditType type);
+    void setChatFormat(const QTextCharFormat &format, BaseTextEditType type);
+    void setChatFont(const QFont &font, BaseTextEditType type);
 
-    void insertChatText(const TextUnit::ChatInfoUnit record);
     void insertTipChatText(const QString tip);
     void setSimpleUserInfo(SimpleUserInfo user);
 
@@ -44,7 +43,7 @@ private:
     void compareRowId(int rowid);
 
 private:
-    TextUnit::ShowType m_ShowType;
+    ShowType m_ShowType;
     QTextCharFormat m_Type_Default_Format;
     QTextCharFormat m_Type_UserHead_Friend_Format;
     QTextCharFormat m_Type_UserHead_Me_Format;

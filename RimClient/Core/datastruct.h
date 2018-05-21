@@ -175,92 +175,68 @@ struct SystemSettingKey
     bool compressCheck;
 };
 
-namespace TextUnit
-{
-    enum ShowType{
-        Type_OnlyHead = 0,
-        Type_NotOnlyHead ,
-    };
-    enum BaseTextEditType{
-        Type_Default = 0,           //编辑器类型:默认
-        Type_UserHead_Friend,       //编辑器类型:用户头
-        Type_UserHead_Me ,          //编辑器类型:用户头
-        Type_ChatDetail ,           //编辑器类型:聊天内容
-        Type_RecordTime ,           //编辑器类型:记录时间
-        Type_Tip                    //编辑器类型:提示信息
-    };
+//++++++++++++++++++++++++++++TextUnit++++++++++++++++++++++++++
+enum ShowType{
+    Type_OnlyHead = 0,
+    Type_NotOnlyHead ,
+};
+enum BaseTextEditType{
+    Type_Default = 0,           //编辑器类型:默认
+    Type_UserHead_Friend,       //编辑器类型:用户头
+    Type_UserHead_Me ,          //编辑器类型:用户头
+    Type_ChatDetail ,           //编辑器类型:聊天内容
+    Type_RecordTime ,           //编辑器类型:记录时间
+    Type_Tip                    //编辑器类型:提示信息
+};
 
-    struct UserInfo{
-        int id;
-        QString name;
-        QString head;
-    };//用户描述
+struct UserInfo{
+    int id;
+    QString name;
+    QString head;
+};//用户描述
 
-    const char ChatFormatType_Text[] = "Text";
-    const char ChatFormatType_Emoj[] = "Emoj";
-    const char ChatFormatType_Image[] = "Image";
+const char ChatFormatType_Text[] = "Text";
+const char ChatFormatType_Emoj[] = "Emoj";
+const char ChatFormatType_Image[] = "Image";
 
-    struct UserChatFont{
-        QString fontName;
-        qint32  fontSize;
-        bool    fontIsBold;
-        bool    fontIsItalic;
-        bool    fontIsUnderline;
-        qint64  fontColorRGBA;
+/*!
+ *  @brief 聊天记录内容
+ */
+struct ChatInfoUnit{
 
-        UserChatFont (){
-            fontName = "Unknown";
-            fontSize = 0;
-            fontIsBold = false;
-            fontIsItalic = false;
-            fontIsUnderline = false;
-            fontColorRGBA = 0x00000000;
-        }
-    };//聊天内容字体描述
+    ChatInfoUnit ():contentType(MSG_TEXT_TEXT){
 
-    enum RecvOrSendInfoType{
-        Rim_Type_Recv = 0,
-        Rim_Type_Send = 1
-    };
+    }
+    QString id;
+    MsgCommand contentType;             /*!< 内容类型（html消息/语音消息） */
+    QString accountId;                  /*!< 聊天对象账户、群账户 */
+    QString nickName;                   /*!< 聊天对象昵称、群名称 */
+    qint64 dtime;                       /*!< 日期 */
+    QString contents;                   /*!< 聊天内容（html内容/语音文件名称） */
+};
 
-    struct ChatInfoUnit{
-        int rowid;
-        UserInfo user;
-        QString time;
-        UserChatFont font;
-        QString contents;
+enum ParseType{
+    Parase_Send,    //解析本地的控件的html
+    Parase_Recv     //解析网络端发送来的html
+};//聊天数据包解析类型,替换图形为字符串数据
 
-        ChatInfoUnit (){
-            rowid = 0;
-            user.id = 0;
-            user.name = "Unknown";
-            user.head = "Unknown";
-            time = "";
-            contents = "";
-        }
-    };//一条聊天记录描述
+typedef QList<ChatInfoUnit> ChatInfoUnitList;
 
-    enum ParseType{
-        Parase_Send,    //解析本地的控件的html
-        Parase_Recv     //解析网络端发送来的html
-    };//聊天数据包解析类型,替换图形为字符串数据
+const QString _Sql_UserList_TableName_ = "UserList";
+const QString _Sql_UserList_UserId_ = "UserId";
+const QString _Sql_UserList_UserName_ = "UserName";
 
-    typedef QList<ChatInfoUnit> ChatInfoUnitList;
+const QString _Sql_User_TableName_ = "User_";
+const QString _Sql_User_UserId_ = "UserId";
+const QString _Sql_User_UserName_ = "UserName";
+const QString _Sql_User_Userhead_ = "Userhead";
+const QString _Sql_User_RecordTime_ = "RecordTime";
+const QString _Sql_User_RecordContents_ = "RecordContents";
+const QString _Sql_User_RecordTxt_ = "RecordTxt";
+const QString _Sql_User_Rowid_ = "rowid";
 
-    const QString _Sql_UserList_TableName_ = "UserList";
-    const QString _Sql_UserList_UserId_ = "UserId";
-    const QString _Sql_UserList_UserName_ = "UserName";
+const unsigned short DefaultQueryRow = 3;  //默认查找的记录数
 
-    const QString _Sql_User_TableName_ = "User_";
-    const QString _Sql_User_UserId_ = "UserId";
-    const QString _Sql_User_UserName_ = "UserName";
-    const QString _Sql_User_Userhead_ = "Userhead";
-    const QString _Sql_User_RecordTime_ = "RecordTime";
-    const QString _Sql_User_RecordContents_ = "RecordContents";
-    const QString _Sql_User_RecordTxt_ = "RecordTxt";
-    const QString _Sql_User_Rowid_ = "rowid";
-
-    const unsigned short DefaultQueryRow = 3;  //默认查找的记录数
-}
+//++++++++++++++++++++++++++++TextUnit++++++++++++++++++++++++++
 
 #endif // DATASTRUCT_H

@@ -38,7 +38,7 @@ private:
     bool runningFlag;
 
 signals:
-    void resultReady(int ,TextUnit::ChatInfoUnitList);
+    void resultReady(int ,ChatInfoUnitList);
 
 };
 

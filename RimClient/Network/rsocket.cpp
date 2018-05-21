@@ -193,6 +193,7 @@ int RSocket::send(const char *buff, const int length)
         int ret = ::send(tcpSocket,buff+sendLen,length-sendLen,0);
         if (ret <= 0)
         {
+            qDebug()<<GetLastError();
             sendLen = -1;
             break;
         }

@@ -285,3 +285,23 @@ bool User::isFileOnLine()
 {
     return fileOnLine;
 }
+
+void User::setLogin(bool flag)
+{
+    userLogined = flag;
+}
+
+bool User::isLogin()
+{
+    return userLogined;
+}
+
+void User::setUserInfoDesc(UserInfoDesc &desc)
+{
+    this->userLoginBaseInfo = desc;
+}
+
+UserInfoDesc User::getUserInfoDesc()
+{
+    return this->userLoginBaseInfo;
+}

@@ -159,18 +159,23 @@ QByteArray MsgWrap::handleLoginResponse(LoginResponse *packet)
 {
     QJsonObject data;
 
-    data.insert(JsonKey::key(JsonKey::Uuid),packet->baseInfo.uuid);
-    data.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
-    data.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
-    data.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
-    data.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
-    data.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
-    data.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
-    data.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
-    data.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
-    data.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
-    data.insert(JsonKey::key(JsonKey::SystemIcon),packet->baseInfo.isSystemIcon);
-    data.insert(JsonKey::key(JsonKey::IconId),packet->baseInfo.iconId);
+    data.insert(JsonKey::key(JsonKey::LoginType),packet->loginType);
+
+    QJsonObject simpleObj;
+    simpleObj.insert(JsonKey::key(JsonKey::Uuid),packet->baseInfo.uuid);
+    simpleObj.insert(JsonKey::key(JsonKey::AccountId),packet->baseInfo.accountId);
+    simpleObj.insert(JsonKey::key(JsonKey::NickName),packet->baseInfo.nickName);
+    simpleObj.insert(JsonKey::key(JsonKey::SignName),packet->baseInfo.signName);
+    simpleObj.insert(JsonKey::key(JsonKey::Sexual),packet->baseInfo.sexual);
+    simpleObj.insert(JsonKey::key(JsonKey::Birth),packet->baseInfo.birthday);
+    simpleObj.insert(JsonKey::key(JsonKey::Address),packet->baseInfo.address);
+    simpleObj.insert(JsonKey::key(JsonKey::Email),packet->baseInfo.email);
+    simpleObj.insert(JsonKey::key(JsonKey::Phone),packet->baseInfo.phoneNumber);
+    simpleObj.insert(JsonKey::key(JsonKey::Remark),packet->baseInfo.remark);
+    simpleObj.insert(JsonKey::key(JsonKey::SystemIcon),packet->baseInfo.isSystemIcon);
+    simpleObj.insert(JsonKey::key(JsonKey::IconId),packet->baseInfo.iconId);
+
+    data.insert(JsonKey::key(JsonKey::Data),simpleObj);
 
     return wrappedPack(packet,LOGIN_SUCCESS,data);
 }

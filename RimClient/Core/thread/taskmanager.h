@@ -31,11 +31,12 @@ public:
     explicit TaskManager(QObject *parent = 0);
 
     enum TaskType{
-       TEXT_NET_CONC = 0x01,           /*!< 文本网络连接 */
+       TEXT_NET_CONC = 0x01,    /*!< 文本网络连接 */
        FILE_NET_CONC,           /*!< 文件网络连接 */
        MSG_RECV_PROC,           /*!< 文本接收线程 */
        FILE_RECV_PROC,          /*!< 文件接收线程*/
-       FILE_RECV                /*!< 文件发送处理队列线程 */
+       FILE_RECV,               /*!< 文件发送处理队列线程 */
+       HISTORY_RECORD           /*!< 历史聊天记录 */
     };
 
     void initTask();

@@ -54,7 +54,7 @@ private:
     QPoint m_startPos;
     QList<int> m_laterExpandPages;        /*!< 移动过程中展开的page集合索引 */
 
-    std::map<QString,ToolBox::SortRecord> sortRecords;   /*!< 排序记录集合 */
+    std::map<QString,ToolBox::SortRecord> sortRecords;   /*!< 排序记录集合,排序后保存临时记录索引，若失败从此中恢复 */
 };
 
 void ToolBoxPrivate::initWidget()
@@ -184,6 +184,16 @@ void ToolBox::sortPage(const QString &groupId, int newPageIndex)
 
     if(iter != d->pages.end() && index >=0 && index < d->pages.size() && newPageIndex < d->pages.size()){
         ToolPage * tmpPage = d->pages.takeAt(index);
+
+        removePage(tmpPage);
+        QVBoxLayout * t_layout = dynamic_cast<QVBoxLayout *>(d->contentWidget->layout());
+        if(t_layout){
+            if(newPageIndex >= t_layout->count())
+                newPageIndex -= 1;
+
+            t_layout->insertWidget(newPageIndex,tmpPage);
+        }
+
         d->pages.insert(newPageIndex,tmpPage);
     }
 }
@@ -427,7 +437,8 @@ void ToolBox::pageIndexInLayout(QPoint pos, int &sortedIndex)
 /*!
  * @brief 判断鼠标拖拽时是否是page,是则返回page，否则返回NULL
  * @param[in] pressedPos:const QPoint &(鼠标拖拽时点击的位置)
- * @details 将展开的page暂时闭合，结束取值后再展开
+ * @details [1]将展开的page暂时闭合，结束取值后再展开;
+ *          [2]page判断包含时，并未采用page真实尺寸检测，而是使用page中SimpleTextWidget区域来检测是否包含鼠标点。
  * @return 鼠标拖拽的是page则返回page，否则返回NULL
  */
 ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
@@ -435,14 +446,14 @@ ToolPage *ToolBox::pageInPos(const QPoint & pressedPos)
     MQ_D(ToolBox);
     ToolPage * t_returnPage = NULL;
     QList <int> t_expandedPages;
-    for(int t_index=0;t_index<pageCount();t_index++)
+    for(int t_index = 0; t_index < pageCount();t_index++)
     {
         if(d->pages.at(t_index)->isExpanded()){
             t_expandedPages.append(t_index);
             d->pages.at(t_index)->setExpand(false);
         }
 
-        if(d->pages.at(t_index)->geometry().contains(pressedPos)){
+        if(d->pages.at(t_index)->containsInSimpleTextWidget(d->pages.at(t_index)->mapFromParent(pressedPos))){
             t_returnPage = d->pages.at(t_index);
             break;
         }
@@ -507,6 +518,8 @@ void ToolBox::mouseReleaseEvent(QMouseEvent *event)
 void ToolBox::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(ToolBox);
+
+    if(event->button()&Qt::LeftButton)
     {
         if((event->pos() -  d->m_startPos).manhattanLength() < QApplication::startDragDistance())
             return;

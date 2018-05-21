@@ -59,6 +59,7 @@
 #include "media/audioinput.h"
 #include "media/audiooutput.h"
 #include "widget/rmessagebox.h"
+#include "thread/chatmsgprocess.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -85,7 +86,6 @@ protected:
         initWidget();
         windowId = RUtil::UUID();
         isMaxSize = false;
-        p_DatabaseThread = NULL;
         p_shotProcess = NULL;
         p_shotTimer = NULL;
         b_isScreeHide = false;
@@ -126,7 +126,6 @@ protected:
 
     SimpleUserInfo userInfo;               /*!< 当前聊天对象基本信息 */
     QString windowId;                      /*!< 窗口身份ID，只在创建时指定，可用于身份判断 */
-    DatabaseThread * p_DatabaseThread;
     QProcess *p_shotProcess;
     QTimer *p_shotTimer;
     bool b_isScreeHide;
@@ -441,20 +440,12 @@ QString AbstractChatWidget::widgetId()
     return d->windowId;
 }
 
-void AbstractChatWidget::recvChatMsg(QByteArray msg)
+void AbstractChatWidget::showRecentlyChatMsg(uint count)
 {
     MQ_D(AbstractChatWidget);
-    int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
-}
-
-void AbstractChatWidget::showRecentlyChatMsg(int count)
-{
-    MQ_D(AbstractChatWidget);
-    int user_query_id = d->userInfo.accountId.toInt();
-    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,count));
+    uint start = 0;
+    //TODO LYS-获取单聊信息记录列表中当前联系人的聊天信息起始位置
+    RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->userInfo.accountId,start,count);
 }
 
 void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
@@ -469,21 +460,12 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
 
 void AbstractChatWidget::initChatRecord()
 {
-    MQ_D(AbstractChatWidget);
-    d->p_DatabaseThread = new DatabaseThread(this);
-    d->p_DatabaseThread->setDatabase(G_User->database());
-
-    connect(d->p_DatabaseThread,SIGNAL(resultReady(int,TextUnit::ChatInfoUnitList)),
-            this,SLOT(slot_DatabaseThread_ResultReady(int,TextUnit::ChatInfoUnitList)),Qt::QueuedConnection);
-    connect(d->p_DatabaseThread,SIGNAL(finished()),
-            d->p_DatabaseThread,SLOT(deleteLater()));
-    d->p_DatabaseThread->start();
-
-    int user_query_id = d->userInfo.accountId.toInt();
-    bool ret = RSingleton<SQLProcess>::instance()->initTableUser_id(G_User->database(),d->userInfo);
-    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow));
-    Q_UNUSED(ret);
+    ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
+//    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList &)),
+//            this,SLOT());
+    connect(chatProcess,SIGNAL(finished()),
+            chatProcess,SLOT(deleteLater()));
+    //showRecentlyChatMsg(3);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -586,8 +568,9 @@ void AbstractChatWidget::slot_UpdateKeySequence()
 //响应聊天框的历史信息查询
 void AbstractChatWidget::slot_QueryHistoryRecords(int user_query_id, int currStartRow)
 {
-    MQ_D(AbstractChatWidget);
-    d->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,currStartRow));
+    Q_UNUSED(user_query_id);
+    Q_UNUSED(currStartRow);
+    //TODO LYS-实现查询历史消息记录
 }
 
 void AbstractChatWidget::resizeOnce()
@@ -743,8 +726,11 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     d->chatInputArea->extractPureHtml(t_simpleHtml);
 
     QString t_localHtml = t_simpleHtml;
-    TextUnit::ChatInfoUnit t_unit;
-    t_unit.time = QDateTime::currentDateTime().toString("yyyy/M/d h:mm:ss");
+    ChatInfoUnit t_unit;
+    t_unit.contentType = MSG_TEXT_TEXT;
+    t_unit.accountId = d->userInfo.accountId;
+    t_unit.nickName = d->userInfo.nickName;
+    t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.contents = t_localHtml;
     appendChatRecord(SEND,t_unit);
 
@@ -754,8 +740,8 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     RUtil::escapeDoubleQuote(t_sendHtml);
 
     //存储发送信息到数据库
-//    TextUnit::ChatInfoUnit unit = RSingleton<JsonResolver>::instance()->ReadJSONFile(t_sendHtml.toLocal8Bit());
-//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
+    t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
+    RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
 
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;
@@ -803,21 +789,15 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 //        }
 //    }
 
-//    RSingleton<SQLProcess>::instance()->insertTableUserChatInfo(G_User->database(),unit,d->userInfo);
-
-//    int user_query_id = d->userInfo.accountId.toInt();
-//    int lastRow = RSingleton<SQLProcess>::instance()->queryTotleRecord(G_User->database(),user_query_id);
-//    d_ptr->p_DatabaseThread->addSqlQueryTask(user_query_id,RSingleton<SQLProcess>::instance()->querryRecords(user_query_id,lastRow,1));
-
     d->chatInputArea->clear();
 }
 
 //响应数据库线程查询结果
-void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, TextUnit::ChatInfoUnitList list)
+void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, ChatInfoUnitList list)
 {
     if(id == 0)
     {
-        foreach(TextUnit::ChatInfoUnit unit,list)
+        foreach(ChatInfoUnit unit,list)
         {
             //获取收到的Html消息,进行处理后显示在聊天记录中
             appendChatRecord(RECV,unit);
@@ -964,12 +944,12 @@ void AbstractChatWidget::switchWindowSize()
  * \brief AbstractChatWidget::appendChatRecord 将信息追加显示在聊天信息记录界面上
  * \param html 收到的html格式的聊天信息
  */
-void AbstractChatWidget::appendChatRecord(MsgTarget source, const TextUnit::ChatInfoUnit &unitMsg)
+void AbstractChatWidget::appendChatRecord(MsgTarget source, const ChatInfoUnit &unitMsg)
 {
     MQ_D(AbstractChatWidget);
     QString t_showMsgScript = QString("");
     QString t_localHtml = unitMsg.contents;
-    QDateTime t_curMsgTime = QDateTime::fromString(unitMsg.time,"yyyy/M/d h:mm:ss");
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
     QString t_headPath = QString("");
 
     if(d->m_preMsgTime.isNull())
@@ -1001,14 +981,17 @@ void AbstractChatWidget::appendChatRecord(MsgTarget source, const TextUnit::Chat
     RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)
-        t_headPath = G_User->getIconAbsoultePath(d->userInfo.isSystemIcon,d->userInfo.iconId);
+    {
+        User tmpUser(d->userInfo.accountId);
+        t_headPath = tmpUser.getIconAbsoultePath(false,d->userInfo.iconId);
+    }
     else
+    {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
-
+    }
     t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
-
 }
 
 /*!

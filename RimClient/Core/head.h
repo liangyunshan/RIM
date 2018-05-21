@@ -34,5 +34,6 @@
  *[3]【若为在线状态，下拉列表改变执行状态更新操作；若为离线状态，下拉列表切换执行重连操作】；
 */
 #define R_CHECK_ONLINE if(!G_User->isTextOnLine()) return
+#define R_CHECK_LOGIN if(!G_User->isLogin()) return
 
 #endif // HEAD_H
