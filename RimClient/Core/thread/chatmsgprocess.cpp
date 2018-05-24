@@ -11,14 +11,37 @@
 #include <QVariant>
 
 ChatMsgProcess::ChatMsgProcess(QObject *obj):
-    p_Obj(obj)
+    RTask(obj)
 {
 
 }
 
 ChatMsgProcess::~ChatMsgProcess()
 {
+    stopMe();
+    wait();
+}
 
+void ChatMsgProcess::startMe()
+{
+    RTask::startMe();
+    runningFlag = true;
+
+    if(!isRunning())
+    {
+        start();
+    }
+    else
+    {
+        runWaitCondition.wakeOne();
+    }
+}
+
+void ChatMsgProcess::stopMe()
+{
+    RTask::stopMe();
+    runningFlag = false;
+    runWaitCondition.wakeOne();
 }
 
 /*!
@@ -34,14 +57,8 @@ void ChatMsgProcess::appendC2CStoreTask(ChatInfoUnit &msgUnit)
     t_newStoreTask.msg = msgUnit;
     t_newStoreTask.count = 0;
     m_TaskQueue.enqueue(t_newStoreTask);
-    if(!isRunning())
-    {
-        start();
-    }
-    else
-    {
-        runWaitCondition.wakeOne();
-    }
+
+    startMe();
 }
 
 /*!
@@ -61,14 +78,8 @@ void ChatMsgProcess::appendC2CQueryTask(QString otherID, uint begin, uint count)
     t_newQueryTask.start = begin;
     t_newQueryTask.count = count;
     m_TaskQueue.enqueue(t_newQueryTask);
-    if(!isRunning())
-    {
-        start();
-    }
-    else
-    {
-        runWaitCondition.wakeOne();
-    }
+
+    startMe();
 }
 
 /*!
@@ -84,14 +95,8 @@ void ChatMsgProcess::appendGroupStoreTask(ChatInfoUnit &msgUnit)
     t_newStoreTask.msg = msgUnit;
     t_newStoreTask.count = 0;
     m_TaskQueue.enqueue(t_newStoreTask);
-    if(!isRunning())
-    {
-        start();
-    }
-    else
-    {
-        runWaitCondition.wakeOne();
-    }
+
+    startMe();
 }
 
 /*!
@@ -111,55 +116,53 @@ void ChatMsgProcess::appendGoupQueryTask(QString groupID, uint begin, uint count
     t_newQueryTask.start = begin;
     t_newQueryTask.count = count;
     m_TaskQueue.enqueue(t_newQueryTask);
-    if(!isRunning())
-    {
-        start();
-    }
-    else
-    {
-        runWaitCondition.wakeOne();
-    }
+
+    startMe();
 }
 
 void ChatMsgProcess::run()
 {
-    if(m_TaskQueue.isEmpty())
+    while (runningFlag)
     {
-        m_Pause.lock();
-        runWaitCondition.wait(&m_Pause);
-        m_Pause.unlock();
-    }
-
-    while (!m_TaskQueue.isEmpty())
-    {
-        TaskQueue task = m_TaskQueue.head();
-        switch (task.actType) {
-        case SAVE_MSG:
-            if(task.tskType == C2C_TASK)
-            {
-                saveC2CTaskMsg(task.msg);
-            }
-            else
-            {
-                saveGroupTaskMsg(task.msg);
-            }
-
-            break;
-        case QUERY_MSG:
-            if(task.tskType == C2C_TASK)
-            {
-                queryC2CTaskMsg(task.msg.accountId,task.start,task.count);
-            }
-            else
-            {
-                queryGroupTaskMsg(task.msg.accountId,task.start,task.count);
-            }
-
-            break;
-        default:
-            break;
+        while(runningFlag && m_TaskQueue.isEmpty())
+        {
+            m_Pause.lock();
+            runWaitCondition.wait(&m_Pause);
+            m_Pause.unlock();
         }
-        m_TaskQueue.removeFirst();
+        if(runningFlag && m_TaskQueue.size() > 0)
+        {
+            m_Pause.lock();
+            TaskQueue m_task = m_TaskQueue.dequeue();
+            m_Pause.unlock();
+
+            switch (m_task.actType) {
+            case SAVE_MSG:
+                if(m_task.tskType == C2C_TASK)
+                {
+                    saveC2CTaskMsg(m_task.msg);
+                }
+                else
+                {
+                    saveGroupTaskMsg(m_task.msg);
+                }
+
+                break;
+            case QUERY_MSG:
+                if(m_task.tskType == C2C_TASK)
+                {
+                    queryC2CTaskMsg(m_task.msg.accountId,m_task.start,m_task.count);
+                }
+                else
+                {
+                    queryGroupTaskMsg(m_task.msg.accountId,m_task.start,m_task.count);
+                }
+
+                break;
+            default:
+                break;
+            }
+        }
     }
 }
 

@@ -52,7 +52,10 @@ SOURCES += \
     win32net/msgsender.cpp \
     rsocket.cpp \
     rtask.cpp \
-    win32net/msgreceive.cpp
+    win32net/msgreceive.cpp \
+    aes/AES.cpp \
+    aes/StdAfx.cpp \
+    aes/raes.cpp
 
 HEADERS +=\
         network_global.h \
@@ -60,5 +63,8 @@ HEADERS +=\
     win32net/msgsender.h \
     rsocket.h \
     rtask.h \
-    win32net/msgreceive.h
+    win32net/msgreceive.h \
+    aes/AES.h \
+    aes/StdAfx.h \
+    aes/raes.h
 
