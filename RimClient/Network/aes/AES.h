@@ -1,8 +1,14 @@
-///////////////////////////////
-// http://mingcn.cnblogs.com //
-//  xelz CopyRight (c) 2010  //
-///////////////////////////////
-
+/*!
+ *  @brief     AES信息加密解密算法文件
+ *  @details   封装处理了数据的加密和解密算法功能,C++实现
+ *  @file      AES.h
+ *  @author    shangchao
+ *  @version   1.0
+ *  @date      2018.05.24
+ *  @warning
+ *  @copyright NanJing RenGu.
+ *  @note
+ */
 
 #if !defined(AFX_AES_H__6BDD3760_BDE8_4C42_85EE_6F7A434B81C4__INCLUDED_)
 #define AFX_AES_H__6BDD3760_BDE8_4C42_85EE_6F7A434B81C4__INCLUDED_
