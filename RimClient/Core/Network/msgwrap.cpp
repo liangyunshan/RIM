@@ -1,4 +1,4 @@
-﻿#include "msgwrap.h"
+#include "msgwrap.h"
 
 #include <QJsonDocument>
 #include <QMutexLocker>
@@ -295,6 +295,9 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
     QJsonDocument document;
     document.setObject(obj);
     QByteArray array = document.toJson(QJsonDocument::Compact);
+
+    //压缩
+//    QByteArray newArray = qCompress(array,5);
 
     if(packet->isAutoDelete)
         delete packet;

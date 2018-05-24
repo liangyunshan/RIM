@@ -11,6 +11,8 @@
 #include "Util/rutil.h"
 #include "netglobal.h"
 
+#include "aes/raes.h"
+
 #define MSG_RECV_BUFF 1024
 
 namespace ClientNetwork{
@@ -18,7 +20,7 @@ namespace ClientNetwork{
 RecveiveTask::RecveiveTask(QObject *parent) :
     tcpSocket(NULL),RTask(parent)
 {
-
+    m_RAES = new RAES();
 }
 
 void RecveiveTask::setSock(RSocket *sock)
@@ -120,6 +122,10 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                     {
                         dataBuff.resize(packet.currentLen);
                         memcpy(dataBuff.data(),recvData + processLen,packet.currentLen);
+
+                        //解密数据
+//                        QByteArray unAeDataBuff = m_RAES->unAesData(dataBuff);
+
                         processData(dataBuff);
                     }
                     //[1.1.2]多包数据(只保存数据部分)

@@ -8,12 +8,15 @@
 #include "netglobal.h"
 #include "Util/rlog.h"
 
+#include "aes/raes.h"
+
 namespace ClientNetwork{
 
 SendTask::SendTask(QThread *parent):tcpSocket(NULL),
     RTask(parent)
 {
     SendPackId = qrand()%1024 + 1000;
+    m_RAES = new RAES();
 }
 
 void SendTask::setSock(RSocket * sock)
@@ -108,6 +111,9 @@ bool TextSender::handleDataSend(QByteArray &data)
         SendPackMutex.lock();
         packet.packId = ++SendPackId;
         SendPackMutex.unlock();
+
+        //加密数据,shangchao
+//        data = m_RAES->aesData(data);
 
         packet.totalIndex = qCeil(((float)data.length() / MAX_PACKET));
         packet.totalLen = data.size();
