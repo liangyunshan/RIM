@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QSettings>
+#include <QSplashScreen>
 
 #include "Util/rutil.h"
 #include "Widgets/logindialog.h"
@@ -26,6 +27,8 @@ using namespace ProtocolType;
 #include "Network/rsocket.h"
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
+
+#include "Widgets/splashlogindialog.h"
 
 #include <Dbghelp.h>
 #pragma comment( lib, "DbgHelp")
@@ -179,9 +182,13 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
 
     RSingleton<TaskManager>::instance()->initTask();
-
+#ifndef __LOCAL_CONTACT__
     LoginDialog dialog;
     dialog.show();
+#else
+    SplashLoginDialog dialog;
+    dialog.show();
+#endif
 
     return app.exec();
 }

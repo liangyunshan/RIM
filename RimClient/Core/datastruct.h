@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QString>
 #include <QDataStream>
+#include <QVector>
 
 #include "protocoldata.h"
 using namespace ProtocolType;
@@ -174,6 +175,43 @@ struct SystemSettingKey
     bool encryptionCheck;
     bool compressCheck;
 };
+
+/*************************参数配置文件*********************************/
+/*!
+ *  @brief 参数配置.txt
+ */
+namespace ParameterSettings {
+
+/*!
+ *  @brief  基本信息
+ */
+struct BaseInfo{
+    QString nodeId;             /*!< 本节点号 */
+    QString localIp;            /*!< 本机IP地址 */
+    QString lon;                /*!< 节点经度 */
+    QString lat;                /*!< 节点纬度 */
+};
+
+/*!
+ *  @brief  外发信息配置条目
+ */
+struct OuterNetConfig{
+    QString nodeId;                 /*!< 节点号 */
+    QString channel;                /*!< 通道 */
+    QString communicationMethod;    /*!< 通信方式 */
+    QString messageFormat;          /*!< 报文格式 */
+    QString distributeMessageType;  /*!< 下发报文类别 */
+};
+
+/*!
+ *  @brief  信息收发参数配置
+ */
+struct ParaSettings{
+    BaseInfo baseInfo;                          /*!< 基本信息 */
+    QVector<OuterNetConfig> outerNetConfig;     /*!< 外发信息配置 */
+};
+
+}
 
 //++++++++++++++++++++++++++++TextUnit++++++++++++++++++++++++++
 enum ShowType{

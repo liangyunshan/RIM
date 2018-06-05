@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     自定义聊天窗口中字体设置窗口
  *  @details   允许设置字体、字号、加粗、斜体、颜色
  *  @file      setfontwidget.h

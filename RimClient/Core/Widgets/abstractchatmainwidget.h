@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     聊天信息记录抽象窗口
  *  @details   抽象了个人、群聊窗口中聊天信息内容显示窗口特点
  *  @file      abstractchatmainwidget.h

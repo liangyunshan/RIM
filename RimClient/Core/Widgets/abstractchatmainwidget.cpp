@@ -1,4 +1,4 @@
-#include "abstractchatmainwidget.h"
+﻿#include "abstractchatmainwidget.h"
 
 #include <QWebEngineView>
 #include <QWebEnginePage>

@@ -437,14 +437,9 @@ bool ToolPage::eventFilter(QObject *watched, QEvent *event)
         }
         else if(event->type() == QEvent::ContextMenu)
         {
-            if(this->isDefault())
-            {
-                ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP)->setEnabled(false);
-            }
-            else
-            {
-                ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP)->setEnabled(true);
-            }
+            if(ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP))
+                ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_DELGROUP)->setEnabled(!(this->isDefault()));
+
             if(d->contextMenu)
             {
                 d->contextMenu->exec(QCursor::pos());

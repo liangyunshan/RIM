@@ -19,6 +19,9 @@ QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 #是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
+#读取本地联系人列表，为了解决并兼容16需求变动带来的冲突问题
+#DEFINES += __LOCAL_CONTACT__
+
 TARGET = RimClient
 TEMPLATE = app
 
@@ -158,7 +161,9 @@ SOURCES += \
     thread/chatmsgprocess.cpp \
     Widgets/abstractchatmainwidget.cpp \
     Widgets/setfontwidget.cpp \
-    thread/historyrecordtask.cpp
+    thread/historyrecordtask.cpp \
+    file/xmlparse.cpp \
+    Widgets/splashlogindialog.cpp
 
 
 HEADERS  += \
@@ -257,7 +262,9 @@ HEADERS  += \
     thread/chatmsgprocess.h \
     Widgets/abstractchatmainwidget.h \
     Widgets/setfontwidget.h \
-    thread/historyrecordtask.h
+    thread/historyrecordtask.h \
+    file/xmlparse.h \
+    Widgets/splashlogindialog.h
 
 DISTFILES += \
     Widgets/Widgets.pri

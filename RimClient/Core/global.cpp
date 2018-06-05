@@ -8,6 +8,8 @@ unsigned short G_TextServerPort;                //文本服务器监听端口
 QString G_FileServerIp;                         //文件服务器IP
 unsigned short G_FileServerPort;                //文件服务器监听端口
 
+ParameterSettings::ParaSettings* G_ParaSettings;    //本地参数配置
+
 //TODO
 QString G_ScreenShotKeySequence;
 

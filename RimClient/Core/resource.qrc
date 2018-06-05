@@ -4,6 +4,7 @@
         <file>resource/background/slide_hide.png</file>
         <file>resource/background/slide_show.png</file>
         <file>resource/background/item_hover.png</file>
+        <file>resource/background/splash.png</file>
     </qresource>
     <qresource prefix="/style">
         <file>resource/RimClient.qss</file>

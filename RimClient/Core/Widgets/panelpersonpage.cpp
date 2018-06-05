@@ -29,6 +29,7 @@
 #include "widget/rmessagebox.h"
 #include "media/mediaplayer.h"
 #include "thread/filerecvtask.h"
+#include "Util/rutil.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -108,6 +109,10 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
+
+#ifdef __LOCAL_CONTACT__
+    updateFriendListAdapter();
+#endif
 }
 
 PanelPersonPage::~PanelPersonPage()
@@ -276,6 +281,42 @@ void PanelPersonPage::onMessage(MessageType type)
         break;
     }
 }
+
+#ifdef __LOCAL_CONTACT__
+/*!
+ * @brief 更新用户列表适配器，用于将本地用户列表按照规则转换成通用的用户列表
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
+void PanelPersonPage::updateFriendListAdapter()
+{
+    FriendListResponse * response = new FriendListResponse;
+    response->type = REQUEST_FIRST;
+    response->accountId = G_User->BaseInfo().accountId;
+
+    RGroupData * groupData = new RGroupData;
+    groupData->groupId = RUtil::UUID();
+    groupData->groupName = QStringLiteral("我的好友");
+    groupData->isDefault = true;
+    groupData->index = 0;
+
+    std::for_each(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&groupData](const ParameterSettings::OuterNetConfig & user){
+        SimpleUserInfo * userInfo = new SimpleUserInfo();
+        userInfo->accountId = user.nodeId;
+        userInfo->nickName = user.nodeId;
+        userInfo->signName = "";
+        userInfo->remarks = user.nodeId;
+        userInfo->isSystemIcon = true;
+        userInfo->iconId = "";
+        userInfo->status = STATUS_ONLINE;
+        groupData->users.append(userInfo);
+    });
+
+    response->groups.append(groupData);
+
+    updateFriendList(STATUS_SUCCESS,response);
+}
+#endif
 
 /*!
  * @brief 创建好友列表
@@ -1117,23 +1158,25 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
     d->pageOfTriggeredItem = page;
     QList <PersonGroupInfo> infoList = d->toolBox->toolPagesinfos();
     QMenu * movePersonTo  = ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
-    if(!movePersonTo->isEmpty())
-    {
-        movePersonTo->clear();
-    }
-
-    for(int index=0;index<infoList.count();index++)
-    {
-        if(page->pageInfo().uuid != infoList.at(index).uuid)
+    if(movePersonTo){
+        if(!movePersonTo->isEmpty())
         {
-            QAction *tmpAction = new QAction(infoList.at(index).name);
-            tmpAction->setData(infoList.at(index).uuid);
-            connect(tmpAction,SIGNAL(triggered(bool)),this,SLOT(movePersonTo()));
-            movePersonTo->addAction(tmpAction);
+            movePersonTo->clear();
         }
-        else
+
+        for(int index=0;index<infoList.count();index++)
         {
-            continue;
+            if(page->pageInfo().uuid != infoList.at(index).uuid)
+            {
+                QAction *tmpAction = new QAction(infoList.at(index).name);
+                tmpAction->setData(infoList.at(index).uuid);
+                connect(tmpAction,SIGNAL(triggered(bool)),this,SLOT(movePersonTo()));
+                movePersonTo->addAction(tmpAction);
+            }
+            else
+            {
+                continue;
+            }
         }
     }
 }
@@ -1214,7 +1257,7 @@ void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateR
 void PanelPersonPage::createAction()
 {
     MQ_D(PanelPersonPage);
-
+#ifndef __LOCAL_CONTACT__
     //创建面板的右键菜单
     QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLBOX);
 
@@ -1244,13 +1287,13 @@ void PanelPersonPage::createAction()
     groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_ADDGROUP));
     groupMenu->addAction(renameAction);
     groupMenu->addAction(deleteGroupAction);
-
+#endif
     //创建联系人的右键菜单
     QMenu * personMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM);
 
     QAction * sendMessAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_SENDMESSAGE,this,SLOT(sendInstantMessage()));
     sendMessAction->setText(tr("Send Instant Message"));
-
+#ifndef __LOCAL_CONTACT__
     QAction * viewDetailAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_VIEWDETAIL,this,SLOT(showUserDetail()));
     viewDetailAction->setText(tr("View Detail"));
 
@@ -1265,12 +1308,14 @@ void PanelPersonPage::createAction()
 
     QMenu * groupsMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
     movePersonTOAction->setMenu(groupsMenu);
-
+#endif
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_SENDMESSAGE));
+#ifndef __LOCAL_CONTACT__
     personMenu->addSeparator();
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_VIEWDETAIL));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MODIFYCOMMENTS));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_DELPERSON));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MOVEPERSON));
     personMenu->addSeparator();
+#endif
 }

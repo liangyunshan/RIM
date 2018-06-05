@@ -1,4 +1,4 @@
-#include "setfontwidget.h"
+﻿#include "setfontwidget.h"
 
 SetFontWidget::SetFontWidget(QWidget *parent) : QWidget(parent)
 {

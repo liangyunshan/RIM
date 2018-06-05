@@ -113,6 +113,10 @@ private:
     void resortOnlineToolItem();
     void reconnectItem(ToolItem * item,ToolPage * oldPage,ToolPage * newPage);
 
+#ifdef __LOCAL_CONTACT__
+    void updateFriendListAdapter();
+#endif
+
 private:
     PanelPersonPagePrivate * d_ptr;
 };

@@ -123,6 +123,10 @@ void EditPersonInfoWindowPrivate::initWidget()
     iconButton->setText(QObject::tr("Local Image"));
     QObject::connect(iconButton,SIGNAL(pressed()),q_ptr,SLOT(openLocalImage()));
 
+#ifdef __LOCAL_CONTACT__
+    iconButton->setEnabled(false);
+#endif
+
     QVBoxLayout * iconVLayout = new QVBoxLayout;
     iconVLayout->setContentsMargins(0,0,0,0);
     iconVLayout->setSpacing(0);
@@ -378,6 +382,7 @@ void EditPersonInfoWindow::openLocalImage()
  */
 void EditPersonInfoWindow::updateUserBaseInfo()
 {
+#ifndef __LOCAL_CONTACT__
     R_CHECK_ONLINE;
     R_CHECK_LOGIN;
     MQ_D(EditPersonInfoWindow);
@@ -412,6 +417,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
     request->requestType = UPDATE_USER_DETAIL;
 
     RSingleton<MsgWrap>::instance()->handleMsg(request);
+#endif
 }
 
 void EditPersonInfoWindow::recvUpdateBaseInfoResponse(ResponseUpdateUser status,UpdateBaseInfoResponse response)

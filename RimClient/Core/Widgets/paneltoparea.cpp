@@ -100,7 +100,9 @@ void PanelTopAreaPrivate::initWidget()
     onlineState = new OnLineState(contentWidget);
     onlineState->setState(G_OnlineStatus);
     onlineState->setStyleSheet("background-color:rgba(0,0,0,0)");
+#ifndef __LOCAL_CONTACT__
     QObject::connect(onlineState,SIGNAL(stateChanged(OnlineStatus)),q_ptr,SLOT(stateChanged(OnlineStatus)));
+#endif
 
     nameStatusLayout->addWidget(userNikcNameLabel);
     nameStatusLayout->addWidget(onlineState);
@@ -111,7 +113,9 @@ void PanelTopAreaPrivate::initWidget()
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
     originUserSignName = G_User->BaseInfo().signName;
+#ifndef __LOCAL_CONTACT__
     QObject::connect(userSignNameEdit,SIGNAL(contentChanged(QString)),q_ptr,SLOT(respSignChanged(QString)));
+#endif
 
     extendToolWiget = new QWidget(contentWidget);
     extendToolWiget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
@@ -159,12 +163,13 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
     RSingleton<Subject>::instance()->attach(this);
 
     loadCustomUserImage();
-
+#ifndef __LOCAL_CONTACT__
     connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
             this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
 
     connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+#endif
 }
 
 PanelTopArea::~PanelTopArea()
@@ -227,6 +232,7 @@ void PanelTopArea::setState(OnlineStatus state)
     d->onlineState->setState(state);
 }
 
+#ifndef __LOCAL_CONTACT__
 void PanelTopArea::respSignChanged(QString content)
 {
     R_CHECK_ONLINE;
@@ -258,25 +264,10 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
     }
 }
 
-void PanelTopArea::updateUserInfo()
+void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
 {
-    MQ_D(PanelTopArea);
-    d->originUserSignName = G_User->BaseInfo().signName;
-    d->userSignNameEdit->setText(RUtil::replaceLongTextWidthElide(d->userSignNameEdit->font(),d->originUserSignName,d->userSignNameEdit->width()));
-    d->userNikcNameLabel->setText(G_User->BaseInfo().nickName);
-
-    QString t_iconPath;
-    if(G_User->BaseInfo().isSystemIcon){
-        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_User->BaseInfo().iconId);
-    }
-
-    if(!t_iconPath.isEmpty()){
-        QFileInfo t_iconFile(t_iconPath);
-        if(!t_iconFile.exists())
-            return;
-    }
-
-    d->userIconLabel->setPixmap(t_iconPath);
+    Q_UNUSED(result);
+    Q_UNUSED(response);
 }
 
 /*!
@@ -310,6 +301,29 @@ void PanelTopArea::stateChanged(OnlineStatus state)
     }
 }
 
+#endif
+
+void PanelTopArea::updateUserInfo()
+{
+    MQ_D(PanelTopArea);
+    d->originUserSignName = G_User->BaseInfo().signName;
+    d->userSignNameEdit->setText(RUtil::replaceLongTextWidthElide(d->userSignNameEdit->font(),d->originUserSignName,d->userSignNameEdit->width()));
+    d->userNikcNameLabel->setText(G_User->BaseInfo().nickName);
+
+    QString t_iconPath;
+    if(G_User->BaseInfo().isSystemIcon){
+        t_iconPath = RSingleton<ImageManager>::instance()->getSystemUserIcon(G_User->BaseInfo().iconId);
+    }
+
+    if(!t_iconPath.isEmpty()){
+        QFileInfo t_iconFile(t_iconPath);
+        if(!t_iconFile.exists())
+            return;
+    }
+
+    d->userIconLabel->setPixmap(t_iconPath);
+}
+
 bool PanelTopArea::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(PanelTopArea);
@@ -320,10 +334,4 @@ bool PanelTopArea::eventFilter(QObject *watched, QEvent *event)
         }
     }
     return QWidget::eventFilter(watched,event);
-}
-
-void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
-{
-    Q_UNUSED(result);
-    Q_UNUSED(response);
 }
