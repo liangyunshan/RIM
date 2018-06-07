@@ -10,6 +10,8 @@
 #ifndef SPLASHLOGINDIALOG_H
 #define SPLASHLOGINDIALOG_H
 
+#ifdef __LOCAL_CONTACT__
+
 #include <QSplashScreen>
 
 #include "observer.h"
@@ -41,5 +43,7 @@ private:
 private:
     SplashLoginDialogPrivate * d_ptr;
 };
+
+#endif
 
 #endif // SPLASHLOGINDIALOG_H

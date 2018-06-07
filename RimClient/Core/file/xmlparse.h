@@ -10,6 +10,7 @@
 #ifndef XMLPARSE_H
 #define XMLPARSE_H
 
+#ifdef __LOCAL_CONTACT__
 #include <QObject>
 
 namespace ParameterSettings
@@ -27,5 +28,7 @@ public:
     bool parse(const QString & fileName, ParameterSettings::ParaSettings *paraSettings);
 
 };
+
+#endif
 
 #endif // XMLPARSE_H

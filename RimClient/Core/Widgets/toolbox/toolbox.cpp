@@ -54,6 +54,8 @@ private:
     QPoint m_startPos;
     QList<int> m_laterExpandPages;        /*!< 移动过程中展开的page集合索引 */
 
+    Qt::MouseButton curMouseButtonState;  /*!< 当前鼠标状态，用于解决在mouseMove时无法获取鼠标的状态 */
+
     std::map<QString,ToolBox::SortRecord> sortRecords;   /*!< 排序记录集合,排序后保存临时记录索引，若失败从此中恢复 */
 };
 
@@ -501,8 +503,11 @@ void ToolBox::mousePressEvent(QMouseEvent *event)
     {
         d->m_leftPressed = true;
         d->m_startPos = event->pos();
+        d->curMouseButtonState = Qt::LeftButton;
+        event->accept();
+    }else{
+        QWidget::mousePressEvent(event);
     }
-    QWidget::mousePressEvent(event);
 }
 
 void ToolBox::mouseReleaseEvent(QMouseEvent *event)
@@ -511,15 +516,18 @@ void ToolBox::mouseReleaseEvent(QMouseEvent *event)
     if(event->button()&Qt::LeftButton)
     {
         d->m_leftPressed = false;
+        d->curMouseButtonState = Qt::NoButton;
+        event->accept();
+    }else{
+        QWidget::mouseReleaseEvent(event);
     }
-    QWidget::mouseReleaseEvent(event);
 }
 
+//Note that the returned value is always Qt::NoButton for mouse move events.
 void ToolBox::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(ToolBox);
-
-    if(event->button()&Qt::LeftButton)
+    if(d->curMouseButtonState == Qt::LeftButton)
     {
         if((event->pos() -  d->m_startPos).manhattanLength() < QApplication::startDragDistance())
             return;
@@ -553,8 +561,9 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
         Qt::DropAction dropAction = t_drag->exec(Qt::MoveAction);
         Q_UNUSED(dropAction);
         return;
+    }else{
+        QWidget::mouseMoveEvent(event);
     }
-    QWidget::mouseMoveEvent(event);
 }
 
 void ToolBox::dragEnterEvent(QDragEnterEvent *event)

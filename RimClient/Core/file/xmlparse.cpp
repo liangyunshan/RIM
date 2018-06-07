@@ -1,5 +1,7 @@
 ﻿#include "xmlparse.h"
 
+#ifdef __LOCAL_CONTACT__
+
 #include <QFile>
 #include <QFileInfo>
 #include <QDomDocument>
@@ -61,8 +63,8 @@ bool XMLParse::parse(const QString &fileName,ParameterSettings::ParaSettings * p
                     ParameterSettings::OuterNetConfig conf;
                     conf.nodeId = outerEle.attribute(QStringLiteral("节点号"));
                     conf.channel = outerEle.attribute(QStringLiteral("通道"));
-                    conf.communicationMethod = outerEle.attribute(QStringLiteral("通信方式"));
-                    conf.messageFormat = outerEle.attribute(QStringLiteral("报文格式"));
+                    conf.communicationMethod = static_cast<ParameterSettings::CommucationMethod>(outerEle.attribute(QStringLiteral("通信方式")).toInt());
+                    conf.messageFormat = static_cast<ParameterSettings::MessageFormat>(outerEle.attribute(QStringLiteral("报文格式")).toInt());
                     conf.distributeMessageType = outerEle.attribute(QStringLiteral("下发报文类别"));
                     paraSettings->outerNetConfig.push_back(conf);
                 }
@@ -76,3 +78,5 @@ XMLParse::~XMLParse()
 {
 
 }
+
+#endif

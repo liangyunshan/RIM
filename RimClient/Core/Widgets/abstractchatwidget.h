@@ -44,6 +44,9 @@ public:
     QString widgetId();
     void showRecentlyChatMsg(uint count=1);
     void setUserInfo(SimpleUserInfo info);
+#ifdef __LOCAL_CONTACT__
+    void setOuterNetConfig(const ParameterSettings::OuterNetConfig &config);
+#endif
     void initChatRecord();
     void onMessage(MessageType type);
     void shakeWindow();

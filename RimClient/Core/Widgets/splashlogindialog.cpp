@@ -1,5 +1,7 @@
 ﻿#include "splashlogindialog.h"
 
+#ifdef __LOCAL_CONTACT__
+
 #include <QMouseEvent>
 #include <QPainter>
 #include <QTimer>
@@ -125,7 +127,7 @@ void SplashLoginDialog::initResource()
     do{
         now = QDateTime::currentDateTime();
     }
-    while(n.secsTo(now) <= 2);
+    while(n.secsTo(now) <= 1);
 
     hide();
     d->mainDialog->show();
@@ -197,3 +199,5 @@ void SplashLoginDialog::openChatDialog(QString accountId)
 
    client->chatWidget->show();
 }
+
+#endif

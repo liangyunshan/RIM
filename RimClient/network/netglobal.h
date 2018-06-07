@@ -12,7 +12,7 @@ NETWORKSHARED_EXPORT extern QQueue<QByteArray> G_TextRecvBuffs;
 NETWORKSHARED_EXPORT extern QMutex G_TextRecvMutex;
 NETWORKSHARED_EXPORT extern QWaitCondition  G_TextRecvCondition;
 
-NETWORKSHARED_EXPORT extern QQueue<QByteArray> G_TextSendBuffs;
+NETWORKSHARED_EXPORT extern QQueue<SendUnit> G_TextSendBuffs;
 NETWORKSHARED_EXPORT extern QMutex G_TextSendMutex;
 NETWORKSHARED_EXPORT extern QWaitCondition  G_TextSendWaitCondition;
 
@@ -20,7 +20,7 @@ NETWORKSHARED_EXPORT extern QQueue<QByteArray> G_FileRecvBuffs;
 NETWORKSHARED_EXPORT extern QMutex G_FileRecvMutex;
 NETWORKSHARED_EXPORT extern QWaitCondition  G_FileRecvCondition;
 
-NETWORKSHARED_EXPORT extern QQueue<QByteArray> G_FileSendBuffs;
+NETWORKSHARED_EXPORT extern QQueue<SendUnit> G_FileSendBuffs;
 NETWORKSHARED_EXPORT extern QMutex G_FileSendMutex;
 NETWORKSHARED_EXPORT extern QWaitCondition  G_FileSendWaitCondition;
 

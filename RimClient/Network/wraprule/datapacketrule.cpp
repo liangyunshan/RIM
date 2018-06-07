@@ -1,104 +1,106 @@
-﻿#include "msgreceive.h"
+﻿#include "datapacketrule.h"
 
-#include <QUdpSocket>
+#include <qmath.h>
 #include <QDebug>
-
-#ifdef Q_OS_WIN
-#include <winsock2.h>
-#endif
-
-#include "Util/rlog.h"
-#include "Util/rutil.h"
-#include "netglobal.h"
-
-#include "aes/raes.h"
-
-#define MSG_RECV_BUFF 1024
 
 namespace ClientNetwork{
 
-RecveiveTask::RecveiveTask(QObject *parent) :
-    tcpSocket(NULL),RTask(parent)
+DataPacketRule::DataPacketRule():
+    WrapRule()
 {
-    m_RAES = new RAES();
+    SendPackId = qrand()%1024 + 1000;
 }
 
-void RecveiveTask::setSock(RSocket *sock)
+QByteArray DataPacketRule::wrap(const QByteArray &data)
 {
-    tcpSocket = sock;
+    return QByteArray();
 }
 
-void RecveiveTask::startMe()
+/*!
+ * @brief 封装发送数据，并传递发送到方式
+ * @param[in] data 待发送的数据
+ * @param[in] func 发送数据函数
+ * @return 返回是否发送成功
+ */
+bool DataPacketRule::wrap(const QByteArray &data, std::function<int (const char *, const int)> sendDataFunc)
 {
-    RTask::startMe();
-    if(!isRunning())
+    DataPacket packet;
+    memset((char *)&packet,0,sizeof(DataPacket));
+    packet.magicNum = SEND_MAGIC_NUM;
+    packet.packId = ++SendPackId;
+    packet.totalIndex = qCeil(((float)data.length() / MAX_PACKET));
+    packet.totalLen = data.length();
+
+    int sendLen = 0;
+
+    for(unsigned int i = 0; i < packet.totalIndex; i++)
     {
-        start();
-    }
-}
+        memset(sendBuff,0,MAX_SEND_BUFF);
+        packet.currentIndex = i;
+        int leftLen = data.length() - sendLen;
+        packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
 
-void RecveiveTask::stopMe()
-{
-    if(runningFlag)
-    {
-        RTask::stopMe();
-        runningFlag = false;
-    }
-}
+        memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
+        memcpy(sendBuff + sizeof(DataPacket),data.data() + sendLen,packet.currentLen);
 
-void RecveiveTask::run()
-{
-    RLOG_INFO("Start Receive++++++++++++++++++++++");
+        int dataLen = sizeof(DataPacket)+packet.currentLen;
+        int realSendLen = sendDataFunc(sendBuff,dataLen);
 
-    runningFlag = true;
-    lastRecvBuff.clear();
-
-    char recvBuff[MSG_RECV_BUFF] = {0};
-    while(runningFlag)
-    {
-        memset(recvBuff,0,MSG_RECV_BUFF);
-        int recvLen = tcpSocket->recv(recvBuff,MSG_RECV_BUFF);
-        if(recvLen > 0)
-        {
-            if(lastRecvBuff.size() > 0)
-            {
-                int tmpBuffLen = lastRecvBuff.size() + recvLen + 1;
-                char * dataBuff = new char[tmpBuffLen];
-                memset(dataBuff,0,tmpBuffLen * sizeof(char));
-
-                memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
-                memcpy(dataBuff + lastRecvBuff.size(),recvBuff,recvLen);
-
-                lastRecvBuff.clear();
-                recvData(dataBuff,tmpBuffLen - 1);
-
-                delete[] dataBuff;
-            }
-            else
-            {
-                recvData(recvBuff,recvLen);
-            }
-        }
-        //Socket 关闭/出错
-        else if(recvLen < 0)
-        {
-            int error = tcpSocket->getLastError();
-            if(errno == EAGAIN || errno == EWOULDBLOCK || error == (int)WSAETIMEDOUT){
-                continue;
-            }
-
-            RLOG_ERROR("remoate socket cloesed %d",tcpSocket->getLastError());
-            tcpSocket->closeSocket();
-            emit socketError(tcpSocket->getLastError());
+        if(realSendLen == dataLen){
+            sendLen += packet.currentLen;
+        }else{
             break;
         }
     }
 
-    runningFlag = false;
-    RLOG_INFO("Stop Receive++++++++++++++++++++++");
+    if(sendLen == packet.totalLen){
+        return true;
+    }
+    return false;
 }
 
-void RecveiveTask::recvData(char * recvData,int recvLen)
+QByteArray DataPacketRule::unwrap(const QByteArray &data)
+{
+    return QByteArray();
+}
+
+/*!
+ * @brief 将接收的数据根据协议进行解析，返回解析后的结果数据
+ * @param[in] data 待处理的接收数据
+ * @param[in] length 数据长度
+ * @return 解析后的数据
+ */
+bool DataPacketRule::unwrap(const char *data, const int length, std::function<void(QByteArray &)> recvDataFunc)
+{
+    QByteArray result;
+    if(lastRecvBuff.size() > 0)
+    {
+        int tmpBuffLen = lastRecvBuff.size() + length + 1;
+        char * dataBuff = new char[tmpBuffLen];
+        memset(dataBuff,0,tmpBuffLen * sizeof(char));
+
+        memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
+        memcpy(dataBuff + lastRecvBuff.size(),data,length);
+
+        lastRecvBuff.clear();
+        recvData(dataBuff,tmpBuffLen - 1,result);
+
+        delete[] dataBuff;
+    }
+    else
+    {
+        recvData(data,length,result);
+    }
+
+    if(result.size() > 0){
+        recvDataFunc(result);
+        return true;
+    }
+
+    return false;
+}
+
+void DataPacketRule::recvData(const char * recvData,int recvLen,QByteArray & result)
 {
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
@@ -113,20 +115,14 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
             //[1]数据头部分正常
             if(packet.magicNum == RECV_MAGIC_NUM)
             {
-                QByteArray dataBuff;
                 //[1.1]至少存在多余一个完整数据包
                 if(packet.currentLen <= recvLen - processLen)
                 {
                     //[1.1.1]一包数据
                     if(packet.totalIndex == 1)
                     {
-                        dataBuff.resize(packet.currentLen);
-                        memcpy(dataBuff.data(),recvData + processLen,packet.currentLen);
-
-                        //解密数据
-//                        QByteArray unAeDataBuff = m_RAES->unAesData(dataBuff);
-
-                        processData(dataBuff);
+                        result.resize(packet.currentLen);
+                        memcpy(result.data(),recvData + processLen,packet.currentLen);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
@@ -157,12 +153,10 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
                                 {
                                     buff->isCompleted = true;
 
-                                    dataBuff.append(buff->getFullData());
+                                    result.append(buff->getFullData());
 
                                     packetBuffs.remove(packet.packId);
                                     delete buff;
-
-                                    processData(dataBuff);
                                 }
                             }
                        }
@@ -218,51 +212,5 @@ void RecveiveTask::recvData(char * recvData,int recvLen)
     }
 }
 
-RecveiveTask::~RecveiveTask()
-{
 
-}
-
-TextReceive::TextReceive(QObject *parent):
-    RecveiveTask(parent)
-{
-
-}
-
-TextReceive::~TextReceive()
-{
-    stopMe();
-    wait();
-}
-
-void TextReceive::processData(QByteArray &data)
-{
-    G_TextRecvMutex.lock();
-    G_TextRecvBuffs.enqueue(data);
-    G_TextRecvMutex.unlock();
-
-    G_TextRecvCondition.wakeOne();
-}
-
-FileReceive::FileReceive(QObject *parent):
-    RecveiveTask(parent)
-{
-
-}
-
-FileReceive::~FileReceive()
-{
-    stopMe();
-    wait();
-}
-
-void FileReceive::processData(QByteArray &data)
-{
-    G_FileRecvMutex.lock();
-    G_FileRecvBuffs.enqueue(data);
-    G_FileRecvMutex.unlock();
-
-    G_FileRecvCondition.wakeOne();
-}
-
-} //namespace ClientNetwork;
+} // namespace ClientNetwork

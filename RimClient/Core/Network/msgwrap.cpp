@@ -303,7 +303,7 @@ void MsgWrap::wrappedPack(MsgPacket *packet,QJsonObject & data)
         delete packet;
 
     G_TextSendMutex.lock();
-    G_TextSendBuffs.enqueue(array);
+    G_TextSendBuffs.enqueue({C_TCP,array});
     G_TextSendMutex.unlock();
 
     G_TextSendWaitCondition.wakeOne();
@@ -330,7 +330,7 @@ void MsgWrap::handleFileRequest(FileItemRequest *fileRequest)
         delete fileRequest;
 
     G_FileSendMutex.lock();
-    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendBuffs.enqueue({C_TCP,rbuffer.byteArray()});
     G_FileSendMutex.unlock();
 
     G_FileSendWaitCondition.wakeOne();
@@ -352,7 +352,7 @@ void MsgWrap::handelFileControl(SimpleFileItemRequest *request)
         delete request;
 
     G_FileSendMutex.lock();
-    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendBuffs.enqueue({C_TCP,rbuffer.byteArray()});
     G_FileSendMutex.unlock();
 
     G_FileSendWaitCondition.wakeOne();
@@ -369,7 +369,7 @@ void MsgWrap::handleFileData(QString fileId,size_t currIndex,QByteArray array)
     rbuffer.append(array.data(),array.size());
 
     G_FileSendMutex.lock();
-    G_FileSendBuffs.enqueue(rbuffer.byteArray());
+    G_FileSendBuffs.enqueue({C_TCP,rbuffer.byteArray()});
     G_FileSendMutex.unlock();
 
     G_FileSendWaitCondition.wakeOne();

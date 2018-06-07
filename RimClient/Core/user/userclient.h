@@ -41,6 +41,9 @@ public:
     UserBaseInfo baseInfo;
     ToolItem * toolItem;
     AbstractChatWidget * chatWidget;
+#ifdef __LOCAL_CONTACT__
+    ParameterSettings::OuterNetConfig netConfig;
+#endif
 };
 
 class UserManager

@@ -40,6 +40,7 @@
 #include "Widgets/textedit/simpletextedit.h"
 #include "Widgets/maindialog.h"
 #include "Network/msgwrap.h"
+#include "Network/localmsgwrap.h"
 #include "others/msgqueuemanager.h"
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
@@ -130,6 +131,9 @@ protected:
     QTimer *p_shotTimer;
     bool b_isScreeHide;
     QDateTime m_preMsgTime;
+#ifdef __LOCAL_CONTACT__
+    ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */
+#endif
 };
 
 #define CHAT_TOOL_HEIGHT 30
@@ -458,6 +462,19 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
     setWindowTitle(info.nickName);
 }
 
+#ifdef __LOCAL_CONTACT__
+/*!
+ * @brief 设置节点外发信息配置
+ * @param[in] config 节点外发配置信息
+ * @note 该配置信息描述了与当前节点通信的网络描述信息，包括使用的通信方式，报文格式等。
+ */
+void AbstractChatWidget::setOuterNetConfig(const ParameterSettings::OuterNetConfig &config)
+{
+    MQ_D(AbstractChatWidget);
+    d->netconfig = config;
+}
+#endif
+
 void AbstractChatWidget::initChatRecord()
 {
     ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
@@ -759,11 +776,20 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     request->isCompress = G_User->systemSettings()->compressCheck;
 
     request->textType = TEXT_NORAML;
+#ifdef __LOCAL_CONTACT__
+    request->otherSideId = d->netconfig.nodeId;
+#else
     request->otherSideId = d->userInfo.accountId;
+#endif
     request->accountId = G_User->BaseInfo().accountId;
     request->sendData = t_sendHtml;
     request->timeStamp = RUtil::timeStamp();
+
+#ifdef __LOCAL_CONTACT__
+    RSingleton<LocalMsgWrap>::instance()->wrapMessage(d->netconfig.communicationMethod,d->netconfig.messageFormat,request);
+#else
     RSingleton<MsgWrap>::instance()->hanleText(request);
+#endif
     RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片

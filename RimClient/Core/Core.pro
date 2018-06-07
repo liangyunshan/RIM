@@ -19,7 +19,7 @@ QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 #是否开启Server:DEFINES += __NO_SERVER__
 DEFINES += __NO_SQL_PRINT__
 
-#读取本地联系人列表，为了解决并兼容16需求变动带来的冲突问题
+#读取本地联系人列表，为了解决并需求变动带来的冲突问题
 #DEFINES += __LOCAL_CONTACT__
 
 TARGET = RimClient
@@ -163,7 +163,15 @@ SOURCES += \
     Widgets/setfontwidget.cpp \
     thread/historyrecordtask.cpp \
     file/xmlparse.cpp \
-    Widgets/splashlogindialog.cpp
+    Widgets/splashlogindialog.cpp \
+    Network/localmsgwrap.cpp \
+    localprotocoldata.cpp \
+    Network/qdb61a_wraprule.cpp \
+    Network/qdb21_wraprule.cpp \
+    Network/qdb495_wraprule.cpp \
+    Network/udp_wraprule.cpp \
+    Network/tcp_wraprule.cpp \
+    Network/tk205_wraprule.cpp
 
 
 HEADERS  += \
@@ -264,7 +272,15 @@ HEADERS  += \
     Widgets/setfontwidget.h \
     thread/historyrecordtask.h \
     file/xmlparse.h \
-    Widgets/splashlogindialog.h
+    Widgets/splashlogindialog.h \
+    Network/localmsgwrap.h \
+    localprotocoldata.h \
+    Network/qdb61a_wraprule.h \
+    Network/qdb21_wraprule.h \
+    Network/qdb495_wraprule.h \
+    Network/udp_wraprule.h \
+    Network/tcp_wraprule.h \
+    Network/tk205_wraprule.h
 
 DISTFILES += \
     Widgets/Widgets.pri

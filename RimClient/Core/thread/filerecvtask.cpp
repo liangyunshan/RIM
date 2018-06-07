@@ -38,7 +38,7 @@ FileRecvTask *FileRecvTask::instance()
 }
 
 /*!
- * @brief 添加图片操作请求
+ * @brief 添加文件操作请求
  * @param[in] item 请求描述信息
  * @return 是否添加成功
  */

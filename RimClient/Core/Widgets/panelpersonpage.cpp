@@ -499,6 +499,9 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
     }else{
         AbstractChatWidget * widget = new AbstractChatWidget();
         widget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+        widget->setOuterNetConfig(client->netConfig);
+#endif
         widget->initChatRecord();
         client->chatWidget = widget;
         widget->show();
@@ -1107,6 +1110,17 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
     client->simpleUserInfo = *userInfo;
     client->toolItem = item;
+
+#ifdef __LOCAL_CONTACT__
+    if(G_ParaSettings){
+        QVector<ParameterSettings::OuterNetConfig>::iterator iter = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&userInfo](const ParameterSettings::OuterNetConfig & outerConfig){
+            return outerConfig.nodeId == userInfo->accountId;
+        });
+        if(iter != G_ParaSettings->outerNetConfig.end()){
+            client->netConfig = *iter;
+        }
+    }
+#endif
     return item;
 }
 

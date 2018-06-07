@@ -25,8 +25,8 @@ using namespace ProtocolType;
 #include "thread/taskmanager.h"
 
 #include "Network/rsocket.h"
-#include "Network/win32net/msgsender.h"
-#include "Network/win32net/msgreceive.h"
+#include "Network/win32net/tcpmsgsender.h"
+#include "Network/win32net/tcpmsgreceive.h"
 
 #include "Widgets/splashlogindialog.h"
 
