@@ -1,6 +1,5 @@
 ﻿#include "userclient.h"
 
-#include "../Widgets/abstractchatwidget.h"
 #include "user/user.h"
 #include "global.h"
 #include "rsingleton.h"
@@ -20,7 +19,7 @@
 
 #include <QDebug>
 
-UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
+UserClient::UserClient():toolItem(nullptr),chatPersonWidget(nullptr)
 {
 }
 
@@ -166,19 +165,12 @@ void UserClient::procDownOverFile(FileDesc *fileDesc)
 {
     //【聊天文件发送:5/5】下载完指定fileId的文件，分发至对应的窗口
     FileItemKind itemKind = static_cast<FileItemKind>(fileDesc->itemKind);
-//    if(chatWidget && chatWidget->isVisible()){
-//        if(itemKind == FILE_FILE){
-
-//        }else if(itemKind == FILE_AUDIO){
-//            chatWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
-//        }else if(itemKind == FILE_IMAGE){
-
-//        }
     if(chatPersonWidget && chatPersonWidget->isVisible()){
         if(itemKind == FILE_FILE){
 
         }else if(itemKind == FILE_AUDIO){
-//            chatPersonWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
+            //TODO LYS-20180608 显示接收到的语音消息
+//            chatPersonWidget->appendVoiceMsg(RECV,fileDesc->fileName);
         }else if(itemKind == FILE_IMAGE){
 
         }

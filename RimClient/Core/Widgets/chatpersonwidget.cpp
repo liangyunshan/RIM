@@ -2,16 +2,18 @@
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QWebChannel>
 #include <QPropertyAnimation>
 #include <QNetworkProxyFactory>
 
 #include "head.h"
 #include "global.h"
 #include "toolbar.h"
+#include "document.h"
+#include "user/user.h"
 #include "constants.h"
 #include "rsingleton.h"
 #include "Util/rutil.h"
-#include "user/user.h"
 #include "widget/rlabel.h"
 #include "widget/rbutton.h"
 #include "Util/imagemanager.h"
@@ -51,8 +53,9 @@ protected:
     RIconLabel * iconLabel;                 //聊天对象头像
     QLabel * nameLabel;                     //聊天对象名称
     ToolBar * windowToolBar;                //窗口控制工具栏
-    ToolBar * toolBar;                     //工具栏
+    ToolBar * toolBar;                      //工具栏
     AbstractChatMainWidget *mainWidget;     //聊天内置窗口
+    Document *m_bridge;                     //内置html与聊天窗口通信跳板
 
     QString windowId;
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
@@ -110,6 +113,12 @@ void ChatPersonWidgetPrivate::initWidget()
     contentLayout->addWidget(mainWidget);
     contentWidget->setLayout(contentLayout);
     q_ptr->setContentWidget(contentWidget);
+
+    m_bridge = new Document;
+    m_bridge->setUi(mainWidget);
+    QWebChannel *channel = new QWebChannel(mainWidget);
+    channel->registerObject(QStringLiteral("bridge"),m_bridge);
+    mainWidget->setChatChannel(channel);
 
     /**********窗口控制区***************/
     windowToolBar = new ToolBar(contentWidget);
@@ -200,8 +209,6 @@ void ChatPersonWidget::setOuterNetConfig(const ParameterSettings::OuterNetConfig
  */
 void ChatPersonWidget::recvChatMsg(const TextRequest &msg)
 {
-    MQ_D(ChatPersonWidget);
-
     emit sendRecvedMsg(msg);
 }
 

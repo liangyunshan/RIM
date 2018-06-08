@@ -68,7 +68,6 @@ unix{
 }
 
 SOURCES += \
-    Widgets/abstractchatwidget.cpp \
     Widgets/addfriend.cpp \
     Widgets/editpersoninfowindow.cpp \
     Widgets/itemhoverinfo.cpp \
@@ -181,7 +180,6 @@ SOURCES += \
 
 
 HEADERS  += \
-    Widgets/abstractchatwidget.h \
     Widgets/addfriend.h \
     Widgets/editpersoninfowindow.h \
     Widgets/itemhoverinfo.h \
