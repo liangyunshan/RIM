@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWebChannel>
+#include <QWebChannel>
 #include <QApplication>
 #include <QWebEngineView>
 #include <QWebEnginePage>
@@ -325,16 +326,6 @@ void AbstractChatMainWidget::inserHtml(QUrl &htmlUrl)
 }
 
 /*!
- * @brief AbstractChatMainWidget::playVoiceMessage 播放语音消息
- * @param audioName 语音文件名称
- */
-void AbstractChatMainWidget::playVoiceMessage(QString audioName)
-{
-    RSingleton<AudioOutput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
-    RSingleton<AudioOutput>::instance()->start(audioName);
-}
-
-/*!
  * \brief AbstractChatMainWidget::setChatType 设置窗口模式（单聊/群聊）
  * \param type 窗口模式（单聊/群聊）
  */
@@ -353,6 +344,23 @@ void AbstractChatMainWidget::setChatType(ChatType type)
     default:
         break;
     }
+}
+
+/*!
+ * @brief AbstractChatMainWidget::playVoiceMessage 播放语音消息
+ * @param audioName 语音文件名称
+ */
+void AbstractChatMainWidget::playVoiceMessage(QString audioName)
+{
+    RSingleton<AudioOutput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
+    RSingleton<AudioOutput>::instance()->start(audioName);
+}
+
+void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->page->setWebChannel(channel);
 }
 
 /*!

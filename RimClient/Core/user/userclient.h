@@ -17,7 +17,6 @@
 #include <mutex>
 
 class ToolItem;
-class AbstractChatWidget;
 class FileDesc;
 class ChatPersonWidget;
 
@@ -41,7 +40,6 @@ public:
     SimpleUserInfo simpleUserInfo;
     UserBaseInfo baseInfo;
     ToolItem * toolItem;
-    AbstractChatWidget * chatWidget;
     ChatPersonWidget *chatPersonWidget;
 };
 

@@ -1,10 +1,10 @@
-#ifndef DOCUMENT_H
+﻿#ifndef DOCUMENT_H
 #define DOCUMENT_H
 
 #include <QObject>
 #include <QString>
 
-#include "abstractchatwidget.h"
+class AbstractChatMainWidget;
 
 class Document:public QObject
 {
@@ -15,7 +15,7 @@ public:
     explicit Document(QObject *parent = nullptr):QObject(parent){}
 
     void setSendTextText(const QString &text);
-    void setUi(AbstractChatWidget *ui);
+    void setUi(AbstractChatMainWidget *ui);
 
 public slots:
     void receiveText(const QString &r_path);
@@ -26,8 +26,7 @@ signals:
 private:
     void displayMessage(const QString &r_path);
     QString s_text;
-    QString recieve_text;
-    AbstractChatWidget *chatWidget;
+    AbstractChatMainWidget *chatWidget;
 };
 
 #endif//DOCUMENT_H

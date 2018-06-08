@@ -25,7 +25,6 @@
 #include "contactdetailwindow.h"
 #include "user/user.h"
 #include "user/userfriendcontainer.h"
-#include "abstractchatwidget.h"
 #include "widget/rmessagebox.h"
 #include "media/mediaplayer.h"
 #include "thread/filerecvtask.h"
@@ -455,16 +454,6 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
     if(client == nullptr)
         return;
 
-//    if(client->chatWidget)
-//    {
-//        client->chatWidget->show();
-//    }else{
-//        AbstractChatWidget * widget = new AbstractChatWidget();
-//        widget->setUserInfo(client->simpleUserInfo);
-//        widget->initChatRecord();
-//        client->chatWidget = widget;
-//        widget->show();
-//    }
     if(client->chatPersonWidget)
     {
         client->chatPersonWidget->show();

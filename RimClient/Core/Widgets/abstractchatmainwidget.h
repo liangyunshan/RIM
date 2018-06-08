@@ -20,6 +20,7 @@
 
 struct ChatInfoUnit;
 class RToolButton;
+class QWebChannel;
 using namespace ProtocolType;
 
 class AbstractChatMainWidgetPrivate;
@@ -56,8 +57,9 @@ public:
     void onMessage(MessageType type);
     void setUserInfo(const SimpleUserInfo &info);
     void inserHtml(QUrl &htmlUrl);
-    void playVoiceMessage(QString audioName);
     void setChatType(ChatType type);
+    void playVoiceMessage(QString audioName);
+    void setChatChannel(QWebChannel *channel);
 
 signals:
     void shakeWindow();
