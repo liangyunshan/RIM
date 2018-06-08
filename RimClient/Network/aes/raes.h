@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     AES信息加密解密算法类
  *  @details   封装处理了数据的加密和解密使用接口，Qt实现
  *  @file      raes.h

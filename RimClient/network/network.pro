@@ -54,7 +54,6 @@ SOURCES += \
     rtask.cpp \
     win32net/msgreceive.cpp \
     aes/AES.cpp \
-    aes/StdAfx.cpp \
     aes/raes.cpp
 
 HEADERS +=\
@@ -65,6 +64,5 @@ HEADERS +=\
     rtask.h \
     win32net/msgreceive.h \
     aes/AES.h \
-    aes/StdAfx.h \
     aes/raes.h
 

@@ -1,4 +1,4 @@
-#include "msgwrap.h"
+﻿#include "msgwrap.h"
 
 #include <QJsonDocument>
 #include <QMutexLocker>

@@ -1,4 +1,4 @@
-#include "document.h"
+﻿#include "document.h"
 
 void Document::setSendTextText(const QString &text) //向html页面发送数据
 {
