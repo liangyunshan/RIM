@@ -16,8 +16,9 @@
 #include "Widgets/toolbox/toolitem.h"
 #include "datastruct.h"
 #include "thread/chatmsgprocess.h"
+#include "../Widgets/chatpersonwidget.h"
 
-#include <QDebug>
+#include <QDebug
 
 UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
 {
@@ -25,11 +26,11 @@ UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
 
 UserClient::~UserClient()
 {
-    if(chatWidget && chatWidget->isVisible())
+    if(chatPersonWidget && chatPersonWidget->isVisible())
     {
-        chatWidget->close();
-        delete chatWidget;
-        chatWidget = NULL;
+        chatPersonWidget->close();
+        delete chatPersonWidget;
+        chatPersonWidget = NULL;
     }
 }
 
@@ -67,22 +68,33 @@ void UserClient::procRecvContent(TextRequest & response)
         record.type = CHAT_C2C;
         MessDiapatch::instance()->onAddHistoryItem(record);
 
-        if(chatWidget && chatWidget->isVisible()){
-            if(response.msgCommand == MSG_TEXT_TEXT){
-                chatWidget->appendRecvMsg(response);
-            }else if(response.msgCommand == MSG_TEXT_SHAKE){
-                if(G_User->systemSettings()->windowShaking)
-                    chatWidget->shakeWindow();
+        if(chatPersonWidget && chatPersonWidget->isVisible())
+        {
+            if(response.msgCommand == MSG_TEXT_TEXT)
+            {
+                chatPersonWidget->recvChatMsg(response);
             }
-        }else{
-            if(response.msgCommand == MSG_TEXT_SHAKE){
-                if(!chatWidget){
-                    chatWidget = new AbstractChatWidget();
-                    chatWidget->setUserInfo(simpleUserInfo);
-                    chatWidget->initChatRecord();
+            else if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
+                if(G_User->systemSettings()->windowShaking)
+                    chatPersonWidget->shakeWindow();
+            }
+        }
+        else
+        {
+            if(response.msgCommand == MSG_TEXT_SHAKE)
+            {
+                if(!chatPersonWidget)
+                {
+                    chatPersonWidget = new ChatPersonWidget();
+                    chatPersonWidget->setUserInfo(simpleUserInfo);
+                    chatPersonWidget->initChatRecord();
                 }
-                chatWidget->show();
-            }else if(response.msgCommand == MSG_TEXT_TEXT){
+                chatPersonWidget->show();
+
+            }
+            else if(response.msgCommand == MSG_TEXT_TEXT)
+            {
                 //TODO 未将文本消息设置到提示框中，待对加密、压缩等信息处理
                 NotifyInfo  info;
                 info.identityId = RUtil::UUID();
@@ -99,22 +111,28 @@ void UserClient::procRecvContent(TextRequest & response)
             }
         }
 
-        if(G_User->systemSettings()->soundAvailable){
+        if(G_User->systemSettings()->soundAvailable)
+        {
             if(response.msgCommand == MSG_TEXT_TEXT)
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
             else if(response.msgCommand == MSG_TEXT_SHAKE)
                 RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaShake);
         }
-    }else if(response.msgCommand == MSG_TEXT_FILE || response.msgCommand == MSG_TEXT_AUDIO || response.msgCommand == MSG_TEXT_IMAGE){
+    }
+    else if(response.msgCommand == MSG_TEXT_FILE || response.msgCommand == MSG_TEXT_AUDIO || response.msgCommand == MSG_TEXT_IMAGE){
         //【聊天文件发送:4/5】拿着fileId向文件服务器下载对应文件
         SimpleFileItemRequest * request = new SimpleFileItemRequest;
         request->control = T_REQUEST;
         request->itemType = FILE_ITEM_CHAT_DOWN;
-        if(response.msgCommand == MSG_TEXT_FILE){
+        if(response.msgCommand == MSG_TEXT_FILE)
+        {
             request->itemKind = FILE_FILE;
-        }else if(response.msgCommand == MSG_TEXT_AUDIO){
+        }
+        else if(response.msgCommand == MSG_TEXT_AUDIO)
+        {
             request->itemKind = FILE_AUDIO;
-        }else if(response.msgCommand == MSG_TEXT_IMAGE){
+        }else if(response.msgCommand == MSG_TEXT_IMAGE)
+        {
             request->itemKind = FILE_IMAGE;
         }
         request->fileId = response.sendData;
@@ -148,11 +166,19 @@ void UserClient::procDownOverFile(FileDesc *fileDesc)
 {
     //【聊天文件发送:5/5】下载完指定fileId的文件，分发至对应的窗口
     FileItemKind itemKind = static_cast<FileItemKind>(fileDesc->itemKind);
-    if(chatWidget && chatWidget->isVisible()){
+//    if(chatWidget && chatWidget->isVisible()){
+//        if(itemKind == FILE_FILE){
+
+//        }else if(itemKind == FILE_AUDIO){
+//            chatWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
+//        }else if(itemKind == FILE_IMAGE){
+
+//        }
+    if(chatPersonWidget && chatPersonWidget->isVisible()){
         if(itemKind == FILE_FILE){
 
         }else if(itemKind == FILE_AUDIO){
-            chatWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
+//            chatPersonWidget->appendVoiceMsg(AbstractChatWidget::RECV,fileDesc->fileName);
         }else if(itemKind == FILE_IMAGE){
 
         }
@@ -257,9 +283,15 @@ void UserManager::closeAllClientWindow()
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
-       if(iter.value()->chatWidget)
+//       if(iter.value()->chatWidget)
+//       {
+////           delete iter.value()->chatWidget;
+//       }
+
+       if(iter.value()->chatPersonWidget)
        {
-//           delete iter.value()->chatWidget;
+//           delete iter.value()->chatPersonWidget;
+           iter.value()->chatPersonWidget->close();
        }
        iter++;
     }

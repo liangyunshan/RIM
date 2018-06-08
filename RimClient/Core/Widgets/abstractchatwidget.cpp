@@ -461,11 +461,11 @@ void AbstractChatWidget::setUserInfo(SimpleUserInfo info)
 void AbstractChatWidget::initChatRecord()
 {
     ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
-//    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList &)),
-//            this,SLOT());
+    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList &)),
+            this,SLOT(slot_DatabaseThread_ResultReady(ChatInfoUnitList &)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
-    //showRecentlyChatMsg(3);
+    showRecentlyChatMsg(3);
 }
 
 void AbstractChatWidget::onMessage(MessageType type)
@@ -793,17 +793,13 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 }
 
 //响应数据库线程查询结果
-void AbstractChatWidget::slot_DatabaseThread_ResultReady(int id, ChatInfoUnitList list)
+void AbstractChatWidget::slot_DatabaseThread_ResultReady(ChatInfoUnitList &historyMsgs)
 {
-    if(id == 0)
+    foreach(ChatInfoUnit unit,historyMsgs)
     {
-        foreach(ChatInfoUnit unit,list)
-        {
-            //获取收到的Html消息,进行处理后显示在聊天记录中
-            appendChatRecord(RECV,unit);
-        }
+        //获取收到的Html消息,进行处理后显示在聊天记录中
+        appendChatRecord(RECV,unit);
     }
-
 }
 
 //QWebEngineView加载HTML文件完成

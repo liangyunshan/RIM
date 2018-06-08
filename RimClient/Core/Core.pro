@@ -158,7 +158,8 @@ SOURCES += \
     thread/chatmsgprocess.cpp \
     Widgets/abstractchatmainwidget.cpp \
     Widgets/setfontwidget.cpp \
-    thread/historyrecordtask.cpp
+    thread/historyrecordtask.cpp \
+    Widgets/chatpersonwidget.cpp
 
 
 HEADERS  += \
@@ -257,7 +258,8 @@ HEADERS  += \
     thread/chatmsgprocess.h \
     Widgets/abstractchatmainwidget.h \
     Widgets/setfontwidget.h \
-    thread/historyrecordtask.h
+    thread/historyrecordtask.h \
+    Widgets/chatpersonwidget.h
 
 DISTFILES += \
     Widgets/Widgets.pri

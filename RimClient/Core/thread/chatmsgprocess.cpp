@@ -1,4 +1,4 @@
-#include "chatmsgprocess.h"
+﻿#include "chatmsgprocess.h"
 
 #include "../sql/database.h"
 #include "../sql/rpersistence.h"
