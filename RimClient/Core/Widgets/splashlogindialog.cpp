@@ -25,7 +25,7 @@
 #include "user/userclient.h"
 #include "user/userfriendcontainer.h"
 #include "systemnotifyview.h"
-#include "abstractchatwidget.h"
+#include "chatpersonwidget.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -172,15 +172,15 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
         UserClient * client = RSingleton<UserManager>::instance()->client(info.accountId);
         if(client)
         {
-            if(client->chatWidget == NULL)
+            if(client->chatPersonWidget == NULL)
             {
-                client->chatWidget = new AbstractChatWidget();
-                client->chatWidget->setUserInfo(client->simpleUserInfo);
-                client->chatWidget->initChatRecord();
+                client->chatPersonWidget = new ChatPersonWidget();
+                client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+                client->chatPersonWidget->initChatRecord();
             }
 
-//            client->chatWidget->showRecentlyChatMsg(notifyCount);
-            client->chatWidget->show();
+//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            client->chatPersonWidget->show();
         }
     }
 
@@ -190,14 +190,14 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 void SplashLoginDialog::openChatDialog(QString accountId)
 {
    UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
-   if(client->chatWidget == NULL)
+   if(client->chatPersonWidget == NULL)
    {
-       client->chatWidget = new AbstractChatWidget();
-       client->chatWidget->setUserInfo(client->simpleUserInfo);
-       client->chatWidget->initChatRecord();
+       client->chatPersonWidget = new ChatPersonWidget();
+       client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+       client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatWidget->show();
+   client->chatPersonWidget->show();
 }
 
 #endif

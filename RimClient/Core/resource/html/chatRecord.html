@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -287,11 +287,11 @@
 </div>
 </body>
     <script type="text/javascript">
-    var content;
+    var bridge;
     window.onload=function(){
         new QWebChannel(qt.webChannelTransport,function(channel)
         {
-             content = channel.objects.content;
+             bridge = channel.objects.bridge;
         });
     }
 
@@ -574,7 +574,7 @@
         {
             //播放发出的语音
             var t_sendPath = target.getAttribute('voicePath');
-            content.receiveText(t_sendPath);
+            bridge.receiveText(t_sendPath);
         }
 
         var recvVoice = hasClass(target,'icon-sound_left');
@@ -582,7 +582,7 @@
         {
             //播放收到的语音
             var t_recvPath = target.getAttribute('voicePath');
-            content.receiveText(t_recvPath);
+            bridge.receiveText(t_recvPath);
         }
     })
     // 显示消息读取状态

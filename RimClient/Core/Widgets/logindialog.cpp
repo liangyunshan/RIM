@@ -49,7 +49,6 @@
 #include "user/userclient.h"
 #include "user/userfriendcontainer.h"
 #include "user/userchatcontainer.h"
-#include "abstractchatwidget.h"
 #include "sql/databasemanager.h"
 #include "widget/rcombobox.h"
 #include "file/filemanager.h"

@@ -17,7 +17,6 @@
 #include <mutex>
 
 class ToolItem;
-class AbstractChatWidget;
 class FileDesc;
 class ChatPersonWidget;
 
@@ -41,7 +40,7 @@ public:
     SimpleUserInfo simpleUserInfo;
     UserBaseInfo baseInfo;
     ToolItem * toolItem;
-    AbstractChatWidget * chatWidget;
+
 #ifdef __LOCAL_CONTACT__
     ParameterSettings::OuterNetConfig netConfig;
 #endif
