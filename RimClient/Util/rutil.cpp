@@ -195,12 +195,12 @@ qint64 RUtil::currentMSecsSinceEpoch()
 }
 
 /*!
- * @brief 获取当前时间自格林尼治时间1970-1-1 0:0:0以来的秒数
+ * @brief 获取当前时间自格林尼治时间1970-1-1 8:0:0以来的秒数
  * @details QDateTime会先将两个时间都转换为gmt时间，再做比较。
  */
 qint64 RUtil::currentSecsSinceEpoch()
 {
-    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime epochTime(QDate(1970,1,1),QTime(8,0,0));
     return epochTime.secsTo(QDateTime::currentDateTime());
 }
 
@@ -211,7 +211,7 @@ qint64 RUtil::currentSecsSinceEpoch()
  */
 QDateTime RUtil::addMSecsToEpoch(qint64 mSeonds)
 {
-    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime epochTime(QDate(1970,1,1),QTime(8,0,0));
     return epochTime.addMSecs(mSeonds);
 }
 
@@ -222,7 +222,7 @@ QDateTime RUtil::addMSecsToEpoch(qint64 mSeonds)
  */
 QDateTime RUtil::addSecsToEpoch(qint64 seonds)
 {
-    QDateTime epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime epochTime(QDate(1970,1,1),QTime(8,0,0));
     return epochTime.addSecs(seonds);
 }
 

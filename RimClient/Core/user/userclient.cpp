@@ -16,7 +16,6 @@
 #include "Widgets/toolbox/toolitem.h"
 #include "datastruct.h"
 #include "thread/chatmsgprocess.h"
-
 #include "../Widgets/chatpersonwidget.h"
 
 #include <QDebug>
@@ -51,6 +50,11 @@ void UserClient::procRecvContent(TextRequest & response)
     if(response.msgCommand == MSG_TEXT_TEXT || response.msgCommand == MSG_TEXT_SHAKE){
         //【1】存储消息至数据库
         ChatInfoUnit t_unit;
+        t_unit.contentType = MSG_TEXT_TEXT;
+        t_unit.accountId = simpleUserInfo.accountId;
+        t_unit.nickName = simpleUserInfo.nickName;
+        t_unit.dtime = RUtil::currentMSecsSinceEpoch();
+        t_unit.contents = response.sendData;
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
 
         //TODO 20180423【2】将信息添加至历史会话列表

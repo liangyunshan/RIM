@@ -19,6 +19,8 @@
 #include "../rtask.h"
 #include "../rsocket.h"
 
+class RAES;
+
 namespace ClientNetwork{
 
 class NETWORKSHARED_EXPORT RecveiveTask : public RTask
@@ -47,6 +49,7 @@ protected:
     RSocket * tcpSocket;
     QByteArray lastRecvBuff;                        //断包接收缓冲区
     QHash<int,PacketBuff*> packetBuffs;             //多包缓冲区
+    RAES *m_RAES;
 };
 
 class NETWORKSHARED_EXPORT TextReceive : public RecveiveTask
