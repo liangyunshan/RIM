@@ -20,7 +20,7 @@
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
 #include "widget/rlabel.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
 #include "widget/rcombobox.h"
@@ -416,7 +416,7 @@ void EditPersonInfoWindow::updateUserBaseInfo()
 
     request->requestType = UPDATE_USER_DETAIL;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
 }
 

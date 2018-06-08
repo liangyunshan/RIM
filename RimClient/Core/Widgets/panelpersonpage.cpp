@@ -17,7 +17,7 @@
 #include "global.h"
 #include "actionmanager/actionmanager.h"
 #include "rsingleton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"
 #include "maindialog.h"
@@ -355,7 +355,7 @@ void PanelPersonPage::refreshList()
     FriendListRequest * request = new FriendListRequest;
     request->type = REQUEST_REFRESH;
     request->accountId = G_User->BaseInfo().accountId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -429,7 +429,7 @@ void PanelPersonPage::respGroupDeleted()
     request->gtype = OperatePerson;
     request->groupId = t_page->getID();
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -452,7 +452,7 @@ void PanelPersonPage::respGroupMoved(int newIndex, int oldIndex, QString pageId)
     request->groupId = pageId;
     request->groupIndex = newIndex;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void PanelPersonPage::createChatWindow(ToolItem *item)
@@ -633,7 +633,7 @@ void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
     t_request->groupId = groupId;
     t_request->oldGroupId = groupId;
     t_request->user = client->simpleUserInfo;
-    RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(t_request);
 }
 
 /*!
@@ -817,7 +817,7 @@ void PanelPersonPage::requestModifyRemark(QString remark)
         {
             t_request->user = client->simpleUserInfo;
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(t_request);
     }
 }
 
@@ -1068,7 +1068,7 @@ void PanelPersonPage::loadHistoryMsg()
 
     HistoryMessRequest * request = new HistoryMessRequest();
     request->accountId = G_User->BaseInfo().accountId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -1154,7 +1154,7 @@ void PanelPersonPage::renameEditFinished()
         tmpData->isDefault = false;
         RSingleton<UserFriendContainer>::instance()->addTmpGroup(request->groupId,tmpData);
 
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         d->groupIsCreate = true;
     }
     d->tmpNameEdit->clear();
@@ -1229,7 +1229,7 @@ void PanelPersonPage::movePersonTo()
         {
             request->user = client->simpleUserInfo;
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     }
 }
 

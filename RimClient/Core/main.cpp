@@ -173,9 +173,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<UpdateBaseInfoResponse>("UpdateBaseInfoResponse");
     qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<SearchFriendResponse>("SearchFriendResponse");
-    qRegisterMetaType<ResponseAddFriend>("ResponseAddFriend");
     qRegisterMetaType<FileItemRequest>("FileItemRequest");
-    qRegisterMetaType<SimpleFileItemRequest>("SimpleFileItemRequest");
     qRegisterMetaType<RegistGroupResponse>("RegistGroupResponse");
     qRegisterMetaType<SearchGroupResponse>("SearchGroupResponse");
     qRegisterMetaType<GroupingChatResponse>("GroupingChatResponse");

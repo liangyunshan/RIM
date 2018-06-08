@@ -39,8 +39,7 @@
 #include "Widgets/textedit/complextextedit.h"
 #include "Widgets/textedit/simpletextedit.h"
 #include "Widgets/maindialog.h"
-#include "Network/msgwrap.h"
-#include "Network/localmsgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "others/msgqueuemanager.h"
 #include "thread/filerecvtask.h"
 #include "Network/netconnector.h"
@@ -664,7 +663,7 @@ void AbstractChatWidget::slot_ShakeWidget(bool flag)
     request->otherSideId = d->userInfo.accountId;
     request->accountId = G_User->BaseInfo().accountId;
     request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 
     shakeWindow();
 }
@@ -786,9 +785,9 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
 
 #ifdef __LOCAL_CONTACT__
-    RSingleton<LocalMsgWrap>::instance()->wrapMessage(d->netconfig.communicationMethod,d->netconfig.messageFormat,request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else
-    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
     RSingleton<MsgQueueManager>::instance()->enqueue(request);
 

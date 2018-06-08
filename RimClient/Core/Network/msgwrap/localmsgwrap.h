@@ -12,26 +12,17 @@
 
 #ifdef __LOCAL_CONTACT__
 
-#include <QJsonObject>
-
 #include "datastruct.h"
 using namespace ParameterSettings;
 
-#include "protocoldata.h"
-using namespace ProtocolType;
+#include "msgwrap.h"
 
-class LocalMsgWrap
+class LocalMsgWrap : public MsgWrap
 {
 public:
     LocalMsgWrap();
 
-    void wrapMessage(const CommucationMethod & method, const MessageFormat & format, MsgPacket * packet);
-
-private:
-    void handleTextRequest(TextRequest *packet, QByteArray &result);
-
-    void wrappedPack(MsgPacket *packet,QJsonObject & data,QByteArray& result);
-
+    void handleMsg(MsgPacket * packet,CommucationMethod method = C_None, MessageFormat format = M_NONE);
 };
 
 #endif

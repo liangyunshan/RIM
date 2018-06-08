@@ -20,7 +20,7 @@ QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 DEFINES += __NO_SQL_PRINT__
 
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
-#DEFINES += __LOCAL_CONTACT__
+DEFINES += __LOCAL_CONTACT__
 
 TARGET = RimClient
 TEMPLATE = app
@@ -115,7 +115,6 @@ SOURCES += \
     rsingleton.cpp \
     user/userinfofile.cpp \
     protocoldata.cpp \
-    Network/msgwrap.cpp \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
@@ -164,14 +163,20 @@ SOURCES += \
     thread/historyrecordtask.cpp \
     file/xmlparse.cpp \
     Widgets/splashlogindialog.cpp \
-    Network/localmsgwrap.cpp \
+    Network/msgwrap/localmsgwrap.cpp \
     localprotocoldata.cpp \
-    Network/qdb61a_wraprule.cpp \
-    Network/qdb21_wraprule.cpp \
-    Network/qdb495_wraprule.cpp \
-    Network/udp_wraprule.cpp \
-    Network/tcp_wraprule.cpp \
-    Network/tk205_wraprule.cpp
+    Network/wraprule/qdb61a_wraprule.cpp \
+    Network/wraprule/qdb21_wraprule.cpp \
+    Network/wraprule/qdb495_wraprule.cpp \
+    Network/wraprule/udp_wraprule.cpp \
+    Network/wraprule/tcp_wraprule.cpp \
+    Network/wraprule/tk205_wraprule.cpp \
+    Network/msgwrap/msgwrap.cpp \
+    Network/msgwrap/wrapfactory.cpp \
+    Network/msgwrap/basemsgwrap.cpp \
+    Network/msgwrap/wrapformat.cpp \
+    Network/msgwrap/binary_wrapformat.cpp \
+    Network/msgwrap/json_wrapformat.cpp
 
 
 HEADERS  += \
@@ -223,7 +228,6 @@ HEADERS  += \
     rsingleton.h \
     user/userinfofile.h \
     protocoldata.h \
-    Network/msgwrap.h \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
@@ -273,14 +277,20 @@ HEADERS  += \
     thread/historyrecordtask.h \
     file/xmlparse.h \
     Widgets/splashlogindialog.h \
-    Network/localmsgwrap.h \
+    Network/msgwrap/localmsgwrap.h \
     localprotocoldata.h \
-    Network/qdb61a_wraprule.h \
-    Network/qdb21_wraprule.h \
-    Network/qdb495_wraprule.h \
-    Network/udp_wraprule.h \
-    Network/tcp_wraprule.h \
-    Network/tk205_wraprule.h
+    Network/wraprule/qdb61a_wraprule.h \
+    Network/wraprule/qdb21_wraprule.h \
+    Network/wraprule/qdb495_wraprule.h \
+    Network/wraprule/udp_wraprule.h \
+    Network/wraprule/tcp_wraprule.h \
+    Network/wraprule/tk205_wraprule.h \
+    Network/msgwrap/msgwrap.h \
+    Network/msgwrap/wrapfactory.h \
+    Network/msgwrap/basemsgwrap.h \
+    Network/msgwrap/wrapformat.h \
+    Network/msgwrap/json_wrapformat.h \
+    Network/msgwrap/binary_wrapformat.h
 
 DISTFILES += \
     Widgets/Widgets.pri

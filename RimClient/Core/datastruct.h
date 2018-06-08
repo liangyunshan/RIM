@@ -187,6 +187,7 @@ namespace ParameterSettings {
  *  @brief  通信方式
  */
 enum CommucationMethod{
+    C_None = 0x00,
     C_NetWork  = 0x01,      /*!< 网络 */
     C_905_DataChain,        /*!< 905数据链 */
     C_Jids,                 /*!< JIDS */
@@ -197,6 +198,7 @@ enum CommucationMethod{
  *  @brief  报文格式
  */
 enum MessageFormat{
+    M_NONE = 0x00,
     M_6670 = 0x01,
     M_205,
     M_QDB12,

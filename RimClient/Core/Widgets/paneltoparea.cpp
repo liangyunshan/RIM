@@ -15,7 +15,7 @@
 #include "maindialog.h"
 #include "widget/rlineedit.h"
 #include "protocoldata.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "user/user.h"
 #include "Network/netconnector.h"
@@ -252,7 +252,7 @@ void PanelTopArea::respSignChanged(QString content)
     request->baseInfo.iconId = G_User->BaseInfo().iconId;
     request->requestType = UPDATE_USER_DETAIL;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInfoResponse response)
@@ -285,14 +285,14 @@ void PanelTopArea::stateChanged(OnlineStatus state)
             request->status = state;
             G_OnlineStatus = state;
             request->loginType = RECONNECT_LOGIN;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         }
         else
         {
             UserStateRequest * request = new UserStateRequest();
             request->accountId = G_User->BaseInfo().accountId;
             request->onStatus = state;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         }
     }else{
         RSingleton<TaskManager>::instance()->initTask();

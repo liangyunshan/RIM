@@ -22,7 +22,7 @@
 #include "widget/rmessagebox.h"
 #include "Util/imagemanager.h"
 #include "rsingleton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"
 #include "user/user.h"
@@ -278,7 +278,7 @@ void AddFriend::startSearch()
     request->accountOrNickName = d->inputEdit->text();
     request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     d->statusLabel->setText(tr("searching..."));
 
     enableInput(false);
@@ -337,7 +337,7 @@ void AddFriend::addFriend()
     request->stype = d->person_Radio->isChecked()?OperatePerson:OperateGroup;
     request->accountId = G_User->BaseInfo().accountId;
     request->operateId = operateId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void AddFriend::validateInputState(QString content)

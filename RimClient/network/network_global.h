@@ -65,6 +65,7 @@ struct PacketBuff
  *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
  */
 enum CommMethod{
+    C_NONE,     /*!< 错误方式*/
     C_UDP,      /*!< UDP方式 */
     C_TCP,      /*!< TCP方式 */
     C_BUS       /*!< 总线方式 */
