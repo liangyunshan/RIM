@@ -17,7 +17,7 @@
 #include "global.h"
 #include "actionmanager/actionmanager.h"
 #include "rsingleton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"
 #include "maindialog.h"
@@ -28,6 +28,7 @@
 #include "widget/rmessagebox.h"
 #include "media/mediaplayer.h"
 #include "thread/filerecvtask.h"
+#include "Util/rutil.h"
 
 #include "chatpersonwidget.h"
 
@@ -110,6 +111,10 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
 
     RSingleton<Subject>::instance()->attach(this);
+
+#ifdef __LOCAL_CONTACT__
+    updateFriendListAdapter();
+#endif
 }
 
 PanelPersonPage::~PanelPersonPage()
@@ -279,6 +284,42 @@ void PanelPersonPage::onMessage(MessageType type)
     }
 }
 
+#ifdef __LOCAL_CONTACT__
+/*!
+ * @brief 更新用户列表适配器，用于将本地用户列表按照规则转换成通用的用户列表
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
+void PanelPersonPage::updateFriendListAdapter()
+{
+    FriendListResponse * response = new FriendListResponse;
+    response->type = REQUEST_FIRST;
+    response->accountId = G_User->BaseInfo().accountId;
+
+    RGroupData * groupData = new RGroupData;
+    groupData->groupId = RUtil::UUID();
+    groupData->groupName = QStringLiteral("我的好友");
+    groupData->isDefault = true;
+    groupData->index = 0;
+
+    std::for_each(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&groupData](const ParameterSettings::OuterNetConfig & user){
+        SimpleUserInfo * userInfo = new SimpleUserInfo();
+        userInfo->accountId = user.nodeId;
+        userInfo->nickName = user.nodeId;
+        userInfo->signName = "";
+        userInfo->remarks = user.nodeId;
+        userInfo->isSystemIcon = true;
+        userInfo->iconId = "";
+        userInfo->status = STATUS_ONLINE;
+        groupData->users.append(userInfo);
+    });
+
+    response->groups.append(groupData);
+
+    updateFriendList(STATUS_SUCCESS,response);
+}
+#endif
+
 /*!
  * @brief 创建好友列表
  * @details 根据获取好友的列表，创建对应的分组信息，并设置基本的状态信息。
@@ -316,7 +357,7 @@ void PanelPersonPage::refreshList()
     FriendListRequest * request = new FriendListRequest;
     request->type = REQUEST_REFRESH;
     request->accountId = G_User->BaseInfo().accountId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -390,7 +431,7 @@ void PanelPersonPage::respGroupDeleted()
     request->gtype = OperatePerson;
     request->groupId = t_page->getID();
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -413,7 +454,7 @@ void PanelPersonPage::respGroupMoved(int newIndex, int oldIndex, QString pageId)
     request->groupId = pageId;
     request->groupIndex = newIndex;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void PanelPersonPage::createChatWindow(ToolItem *item)
@@ -460,6 +501,9 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
     }else{
         ChatPersonWidget * widget = new ChatPersonWidget();
         widget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+        widget->setOuterNetConfig(client->netConfig);
+#endif
         widget->initChatRecord();
         client->chatPersonWidget = widget;
         widget->show();
@@ -591,7 +635,7 @@ void PanelPersonPage::sendDeleteUserRequest(UserClient *client, QString groupId)
     t_request->groupId = groupId;
     t_request->oldGroupId = groupId;
     t_request->user = client->simpleUserInfo;
-    RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(t_request);
 }
 
 /*!
@@ -775,7 +819,7 @@ void PanelPersonPage::requestModifyRemark(QString remark)
         {
             t_request->user = client->simpleUserInfo;
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(t_request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(t_request);
     }
 }
 
@@ -1026,7 +1070,7 @@ void PanelPersonPage::loadHistoryMsg()
 
     HistoryMessRequest * request = new HistoryMessRequest();
     request->accountId = G_User->BaseInfo().accountId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -1068,6 +1112,17 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     UserClient * client = RSingleton<UserManager>::instance()->addClient(userInfo->accountId);
     client->simpleUserInfo = *userInfo;
     client->toolItem = item;
+
+#ifdef __LOCAL_CONTACT__
+    if(G_ParaSettings){
+        QVector<ParameterSettings::OuterNetConfig>::iterator iter = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&userInfo](const ParameterSettings::OuterNetConfig & outerConfig){
+            return outerConfig.nodeId == userInfo->accountId;
+        });
+        if(iter != G_ParaSettings->outerNetConfig.end()){
+            client->netConfig = *iter;
+        }
+    }
+#endif
     return item;
 }
 
@@ -1101,7 +1156,7 @@ void PanelPersonPage::renameEditFinished()
         tmpData->isDefault = false;
         RSingleton<UserFriendContainer>::instance()->addTmpGroup(request->groupId,tmpData);
 
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         d->groupIsCreate = true;
     }
     d->tmpNameEdit->clear();
@@ -1119,23 +1174,25 @@ void PanelPersonPage::updateGroupActions(ToolPage * page)
     d->pageOfTriggeredItem = page;
     QList <PersonGroupInfo> infoList = d->toolBox->toolPagesinfos();
     QMenu * movePersonTo  = ActionManager::instance()->menu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
-    if(!movePersonTo->isEmpty())
-    {
-        movePersonTo->clear();
-    }
-
-    for(int index=0;index<infoList.count();index++)
-    {
-        if(page->pageInfo().uuid != infoList.at(index).uuid)
+    if(movePersonTo){
+        if(!movePersonTo->isEmpty())
         {
-            QAction *tmpAction = new QAction(infoList.at(index).name);
-            tmpAction->setData(infoList.at(index).uuid);
-            connect(tmpAction,SIGNAL(triggered(bool)),this,SLOT(movePersonTo()));
-            movePersonTo->addAction(tmpAction);
+            movePersonTo->clear();
         }
-        else
+
+        for(int index=0;index<infoList.count();index++)
         {
-            continue;
+            if(page->pageInfo().uuid != infoList.at(index).uuid)
+            {
+                QAction *tmpAction = new QAction(infoList.at(index).name);
+                tmpAction->setData(infoList.at(index).uuid);
+                connect(tmpAction,SIGNAL(triggered(bool)),this,SLOT(movePersonTo()));
+                movePersonTo->addAction(tmpAction);
+            }
+            else
+            {
+                continue;
+            }
         }
     }
 }
@@ -1174,7 +1231,7 @@ void PanelPersonPage::movePersonTo()
         {
             request->user = client->simpleUserInfo;
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     }
 }
 
@@ -1216,7 +1273,7 @@ void PanelPersonPage::recvUserStateChanged(MsgOperateResponse result, UserStateR
 void PanelPersonPage::createAction()
 {
     MQ_D(PanelPersonPage);
-
+#ifndef __LOCAL_CONTACT__
     //创建面板的右键菜单
     QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLBOX);
 
@@ -1246,13 +1303,13 @@ void PanelPersonPage::createAction()
     groupMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_PERSON_ADDGROUP));
     groupMenu->addAction(renameAction);
     groupMenu->addAction(deleteGroupAction);
-
+#endif
     //创建联系人的右键菜单
     QMenu * personMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM);
 
     QAction * sendMessAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_SENDMESSAGE,this,SLOT(sendInstantMessage()));
     sendMessAction->setText(tr("Send Instant Message"));
-
+#ifndef __LOCAL_CONTACT__
     QAction * viewDetailAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_VIEWDETAIL,this,SLOT(showUserDetail()));
     viewDetailAction->setText(tr("View Detail"));
 
@@ -1267,12 +1324,14 @@ void PanelPersonPage::createAction()
 
     QMenu * groupsMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_PERSON_TOOLITEM_GROUPS);
     movePersonTOAction->setMenu(groupsMenu);
-
+#endif
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_SENDMESSAGE));
+#ifndef __LOCAL_CONTACT__
     personMenu->addSeparator();
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_VIEWDETAIL));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MODIFYCOMMENTS));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_DELPERSON));
     personMenu->addAction(ActionManager::instance()->action(Constant::ACTION_PANEL_MOVEPERSON));
     personMenu->addSeparator();
+#endif
 }

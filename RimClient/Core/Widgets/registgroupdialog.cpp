@@ -19,7 +19,7 @@
 #include "widget/rbutton.h"
 #include "widget/rmessagebox.h"
 #include "user/user.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 
 #include "protocoldata.h"
 using namespace ProtocolType;
@@ -282,7 +282,7 @@ void RegistGroupDialog::prepareRegist()
     request->userId = G_User->BaseInfo().uuid;
     request->accountId = G_User->BaseInfo().accountId;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void RegistGroupDialog::validateInput(QString)

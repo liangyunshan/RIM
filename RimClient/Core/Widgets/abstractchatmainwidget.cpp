@@ -34,7 +34,7 @@
 #include "chataudioarea.h"
 #include "widget/rlabel.h"
 #include "widget/rbutton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "media/audioinput.h"
 #include "media/audiooutput.h"
 #include "widget/rtoolbutton.h"
@@ -86,7 +86,9 @@ protected:
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
     QString windowId;                       //窗口身份ID，只在创建时指定，可用于身份判断
     QDateTime m_preMsgTime;                 //上一条信息收发日期时间
-
+#ifdef __LOCAL_CONTACT__
+    ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */
+#endif
 };
 
 void AbstractChatMainWidgetPrivate::initWidget()
@@ -314,6 +316,19 @@ void AbstractChatMainWidget::setUserInfo(const SimpleUserInfo &info)
     d->m_userInfo = info;
 }
 
+#ifdef __LOCAL_CONTACT__
+/*!
+ * @brief 设置节点外发信息配置
+ * @param[in] config 节点外发配置信息
+ * @note 该配置信息描述了与当前节点通信的网络描述信息，包括使用的通信方式，报文格式等。
+ */
+void AbstractChatMainWidget::setOuterNetConfig(const OuterNetConfig &config)
+{
+    MQ_D(AbstractChatMainWidget);
+    d->netconfig = config;
+}
+#endif
+
 /*!
  * @brief AbstractChatMainWidget::inserHtml 嵌入html文件
  * @param htmlUrl 待嵌入的html地址
@@ -386,7 +401,7 @@ void AbstractChatMainWidget::sendShakeWindow(bool flag)
     request->otherSideId = d->m_userInfo.accountId;
     request->accountId = G_User->BaseInfo().accountId;
     request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 
     emit shakeWindow();
 }
@@ -479,11 +494,20 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->isCompress = G_User->systemSettings()->compressCheck;
 
     request->textType = TEXT_NORAML;
+#ifdef __LOCAL_CONTACT__
+    request->otherSideId = d->netconfig.nodeId;
+#else
     request->otherSideId = d->m_userInfo.accountId;
+#endif
     request->accountId = G_User->BaseInfo().accountId;
     request->sendData = t_sendHtml;
     request->timeStamp = RUtil::timeStamp();
-    RSingleton<MsgWrap>::instance()->hanleText(request);
+#ifdef __LOCAL_CONTACT__
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
+#else
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+#endif
+
     RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片

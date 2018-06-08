@@ -21,7 +21,6 @@
 #include "global.h"
 #include "Network/netconnector.h"
 
-#include "Network/msgwrap.h"
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"

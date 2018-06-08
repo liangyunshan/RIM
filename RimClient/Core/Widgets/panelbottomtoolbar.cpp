@@ -71,11 +71,11 @@ void PanelBottomToolBarPrivate::initWidget()
     RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,q_ptr,SLOT(showSystemSetting()));
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     toolButton->setToolTip(QObject::tr("Main menu"));
-
+#ifndef __LOCAL_CONTACT__
     RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,q_ptr,SLOT(showAddFriendPanel()));
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     searchPerson->setToolTip(QObject::tr("Add Person"));
-
+#endif
     RToolButton * notifyButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NOTIFY,q_ptr,SLOT(showNotifyWindow()));
     notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     notifyButton->setToolTip(QObject::tr("Notify windows"));
@@ -85,7 +85,9 @@ void PanelBottomToolBarPrivate::initWidget()
     fileServerButton->setToolTip(QObject::tr("File server"));
 
     contentLayout->addWidget(toolButton);
+#ifndef __LOCAL_CONTACT__
     contentLayout->addWidget(searchPerson);
+#endif
     contentLayout->addWidget(notifyButton);
     contentLayout->addWidget(fileServerButton);
     contentLayout->addStretch(1);

@@ -189,6 +189,20 @@ void ChatPersonWidget::setUserInfo(const SimpleUserInfo &info)
     setWindowTitle(info.nickName);
 }
 
+
+#ifdef __LOCAL_CONTACT__
+/*!
+ * @brief 设置节点外发信息配置
+ * @param[in] config 节点外发配置信息
+ * @note 该配置信息描述了与当前节点通信的网络描述信息，包括使用的通信方式，报文格式等。
+ */
+void ChatPersonWidget::setOuterNetConfig(const ParameterSettings::OuterNetConfig &config)
+{
+    MQ_D(ChatPersonWidget);
+    d->mainWidget->setOuterNetConfig(config);
+}
+#endif
+
 /*!
  * @brief ChatPersonWidget::recvChatMsg 转发收到的聊天信息
  * @param msg 收到的聊天信息

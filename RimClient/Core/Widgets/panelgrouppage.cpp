@@ -8,7 +8,7 @@
 #include "datastruct.h"
 #include "constants.h"
 #include "rsingleton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "actionmanager/actionmanager.h"
 #include "messdiapatch.h"
 #include "widget/rmessagebox.h"
@@ -221,7 +221,7 @@ void PanelGroupPage::respGroupDeleted()
     request->gtype = OperateGroup;
     request->groupId = t_page->getID();
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!
@@ -243,7 +243,7 @@ void PanelGroupPage::respGroupMoved(int oldIndex, int newIndex, QString pageId)
     request->groupId = pageId;
     request->groupIndex = oldIndex;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void PanelGroupPage::sendMessage()
@@ -284,7 +284,7 @@ void PanelGroupPage::exitGroup()
             request->groupId = RSingleton<UserChatContainer>::instance()->getChatGroupId(client->simpleChatInfo.chatRoomId);
             request->operateId = G_User->BaseInfo().accountId;
 
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         }
     }
 }
@@ -562,7 +562,7 @@ void PanelGroupPage::renameEditFinished()
         tmpData->isDefault = false;
         RSingleton<UserChatContainer>::instance()->addTmpGroup(request->groupId,tmpData);
 
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         d->groupIsCreate = true;
     }
     d->tmpNameEdit->setText("");

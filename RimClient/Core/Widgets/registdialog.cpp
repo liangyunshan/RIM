@@ -17,7 +17,7 @@
 #include "Network/netconnector.h"
 
 #include "protocoldata.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"
@@ -241,7 +241,7 @@ void RegistDialog::respConnect(bool flag)
         request->nickName = d->nickNameEdit->text();
         request->password = RUtil::MD5(d->passwordEdit->text());
 
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     }
     else
     {

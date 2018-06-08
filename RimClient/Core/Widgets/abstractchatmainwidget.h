@@ -56,6 +56,9 @@ public:
     ~AbstractChatMainWidget();
     void onMessage(MessageType type);
     void setUserInfo(const SimpleUserInfo &info);
+#ifdef __LOCAL_CONTACT__
+    void setOuterNetConfig(const ParameterSettings::OuterNetConfig &config);
+#endif
     void inserHtml(QUrl &htmlUrl);
     void setChatType(ChatType type);
     void playVoiceMessage(QString audioName);

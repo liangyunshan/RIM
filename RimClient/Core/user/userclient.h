@@ -40,6 +40,10 @@ public:
     SimpleUserInfo simpleUserInfo;
     UserBaseInfo baseInfo;
     ToolItem * toolItem;
+
+#ifdef __LOCAL_CONTACT__
+    ParameterSettings::OuterNetConfig netConfig;
+#endif
     ChatPersonWidget *chatPersonWidget;
 };
 

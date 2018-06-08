@@ -17,10 +17,10 @@
 #include "../rtask.h"
 #include "../rsocket.h"
 
-class RAES;
+#include <memory>
+#include "../wraprule/datapacketrule.h"
 
-#define MAX_PACKET 1024                  //发送数据时一次最大数据长度(不包括前后的控制信息)
-#define MAX_SEND_BUFF (MAX_PACKET + 24)
+class RAES;
 
 namespace ClientNetwork{
 
@@ -39,7 +39,7 @@ protected:
     void run();
 
     virtual void processData()=0;
-    virtual bool handleDataSend(QByteArray & data)=0;
+    virtual bool handleDataSend(SendUnit &unit)=0;
 
 protected:
     RSocket* tcpSocket;
@@ -61,7 +61,10 @@ public:
 
 protected:
     void processData();
-    bool handleDataSend(QByteArray & data);
+    bool handleDataSend(SendUnit &unit);
+
+private:
+    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 class NETWORKSHARED_EXPORT FileSender : public SendTask
@@ -76,7 +79,10 @@ public:
 
 protected:
     void processData();
-    bool handleDataSend(QByteArray & data);
+    bool handleDataSend(SendUnit &unit);
+
+private:
+    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 }

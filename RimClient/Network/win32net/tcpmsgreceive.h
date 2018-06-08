@@ -1,7 +1,7 @@
 ﻿/*!
  *  @brief     文本信息接收
  *  @details   接收文本信息，接收后直接保存由其它程序处理
- *  @file      msgreceive.h
+ *  @file      tcpmsgreceive.h
  *  @author    wey
  *  @version   1.0
  *  @date      2018.01.06
@@ -10,16 +10,16 @@
  *  @note   20180123:wey:调整客户端支持分包接收、组包
  *          20180305:wey:调整接收结构，RecveiveTask完全封装数据组包接收，子类负责对数据进行处理
  */
-#ifndef MSGRECEIVE_H
-#define MSGRECEIVE_H
+#ifndef TCPMSGRECEIVE_H
+#define TCPMSGRECEIVE_H
 
 #include <QHash>
 
 #include "../network_global.h"
 #include "../rtask.h"
 #include "../rsocket.h"
-
-class RAES;
+#include "../wraprule/datapacketrule.h"
+#include <memory>
 
 namespace ClientNetwork{
 
@@ -40,16 +40,13 @@ signals:
 
 protected:
     void run();
-    void recvData(char * recvData,int recvLen);
     virtual void processData(QByteArray & data)=0;
 
 protected:
     QString errorString;
 
     RSocket * tcpSocket;
-    QByteArray lastRecvBuff;                        //断包接收缓冲区
-    QHash<int,PacketBuff*> packetBuffs;             //多包缓冲区
-    RAES *m_RAES;
+    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 class NETWORKSHARED_EXPORT TextReceive : public RecveiveTask
@@ -76,4 +73,4 @@ private:
 
 } //ClientNetwork
 
-#endif // MSGRECEIVE_H
+#endif // TCPMSGRECEIVE_H
