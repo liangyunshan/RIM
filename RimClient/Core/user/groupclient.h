@@ -16,6 +16,7 @@
 
 class ToolItem;
 class AbstractChatWidget;
+class ChatPersonWidget;
 
 #include "protocoldata.h"
 #include "datastruct.h"
@@ -32,6 +33,7 @@ public:
     ChatBaseInfo baseInfo;
     ToolItem * toolItem;
     AbstractChatWidget * chatWidget;
+    ChatPersonWidget *chatPersonWidget;
 };
 
 class GroupManager

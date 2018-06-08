@@ -25,6 +25,7 @@ ScreenShot::ScreenShot(QObject *parent) : QObject(parent)
     p_ScreenShot = this;
 
     initKey();
+    instanceHideWindowAction();
 }
 
 ScreenShot *ScreenShot::instance()
@@ -67,6 +68,21 @@ QAction *ScreenShot::instanceScreenShotAction()
     return G_pScreenShotAction;
 }
 
+QAction *ScreenShot::instanceHideWindowAction()
+{
+    if(G_pHideWindowAction==NULL)
+    {
+        G_pHideWindowAction = new QAction(tr("Hide current window while screenshot"));
+        G_pHideWindowAction->setCheckable(true);
+        if(G_pHideWindowAction->objectName().isEmpty())
+        {
+            G_pHideWindowAction->setObjectName(this->objectName() + "HideWindow");
+        }
+        connect(G_pHideWindowAction,SIGNAL(triggered(bool)),this,SLOT(slot_ScreenShotHide(bool)));
+    }
+    return G_pHideWindowAction;
+}
+
 void ScreenShot::initKey()
 {
     QKeySequence key_Button_Chat_Shot
@@ -94,6 +110,8 @@ void ScreenShot::slot_ScreenShot(bool flag)
             p_shotTimer = new QTimer();
             QObject::connect(p_shotTimer,SIGNAL(timeout()),this,SLOT(slot_ScreenTimeout()));
         }
+        //TODO LYS-20180604截图前隐藏当前全部显示的聊天窗口
+
         p_shotTimer->start(0.1*1000);
     }
     else
@@ -120,10 +138,12 @@ void ScreenShot::slot_ScreenShot_Ready(int , QProcess::ExitStatus)
     {
         emit sig_ShotReady(true);
     }
+    //TODO LYS-20180604截图完成后显示之前被隐藏的聊天窗口
 }
 
 //截屏时聊天界面是否隐藏
 void ScreenShot::slot_ScreenShotHide(bool flag)
 {
     b_isScreeHide = flag;
+    G_pHideWindowAction->setChecked(flag);
 }

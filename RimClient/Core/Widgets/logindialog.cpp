@@ -57,6 +57,7 @@
 #include "user/user.h"
 #include "widget/rcomboboxitem.h"
 #include "thread/chatmsgprocess.h"
+#include "chatpersonwidget.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -911,7 +912,7 @@ void LoginDialog::procRecvServerTextReply(TextReply reply)
     if(msgDesc != NULL)
     {
          UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
-         if(client && client->chatWidget != NULL)
+         if(client && client->chatPersonWidget != NULL)
          {
              client->procRecvServerTextReply(reply);
          }
@@ -1146,15 +1147,15 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
         UserClient * client = RSingleton<UserManager>::instance()->client(info.accountId);
         if(client)
         {
-            if(client->chatWidget == NULL)
+            if(client->chatPersonWidget == NULL)
             {
-                client->chatWidget = new AbstractChatWidget();
-                client->chatWidget->setUserInfo(client->simpleUserInfo);
-                client->chatWidget->initChatRecord();
+                client->chatPersonWidget = new ChatPersonWidget();
+                client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+                client->chatPersonWidget->initChatRecord();
             }
 
-//            client->chatWidget->showRecentlyChatMsg(notifyCount);
-            client->chatWidget->show();
+//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            client->chatPersonWidget->show();
         }
     }
 
@@ -1164,14 +1165,14 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 void LoginDialog::openChatDialog(QString accountId)
 {
    UserClient * client = RSingleton<UserManager>::instance()->client(accountId);
-   if(client->chatWidget == NULL)
+   if(client->chatPersonWidget == NULL)
    {
-       client->chatWidget = new AbstractChatWidget();
-       client->chatWidget->setUserInfo(client->simpleUserInfo);
-       client->chatWidget->initChatRecord();
+       client->chatPersonWidget = new ChatPersonWidget();
+       client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+       client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatWidget->show();
+   client->chatPersonWidget->show();
 }
 
 LoginDialog::~LoginDialog()
@@ -1186,11 +1187,12 @@ LoginDialog::~LoginDialog()
         d->toolBar = NULL;
     }
 
-    if(d->mainDialog)
-    {
-        delete d->mainDialog;
-        d->mainDialog = NULL;
-    }
+    //FIXME LYS-20180607
+//    if(d->mainDialog)
+//    {
+//        delete d->mainDialog;
+//        d->mainDialog = NULL;
+//    }
 
     if(d->trayIcon)
     {

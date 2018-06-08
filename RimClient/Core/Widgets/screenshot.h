@@ -24,6 +24,7 @@ public:
     int setScreenShotKey(QString);
     int setScreenShotKey(QKeySequence);
     QAction *instanceScreenShotAction();
+    QAction *instanceHideWindowAction();
 
 signals:
     void sig_ShotReady(bool);

@@ -33,6 +33,7 @@ extern OnlineStatus G_OnlineStatus;                     //在线状态
 extern QDateTime G_loginTime;                           //登录时间
 
 extern QAction *G_pScreenShotAction;                    //全局截屏快捷动作
+extern QAction *G_pHideWindowAction;                    //设置截图时是否隐藏聊天窗口
 extern ScreenShot *G_pScreenShot;                       //快捷键设置界面
 extern int G_mIsEnter;
 
