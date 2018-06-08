@@ -228,7 +228,7 @@ void AbstractChatWidgetPrivate::initWidget()
 
     QWidget * chatInputContainter = new QWidget(leftWidget);
     chatInputContainter->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
-    chatInputContainter->setMinimumHeight(110);
+    chatInputContainter->setMinimumHeight(180);//minimum chat area height
     QVBoxLayout *chatLayout = new QVBoxLayout;
     chatLayout->setContentsMargins(0,0,0,0);
     chatLayout->setSpacing(0);
@@ -741,7 +741,7 @@ void AbstractChatWidget::slot_ButtClick_SendMsg(bool flag)
 
     //存储发送信息到数据库
     t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
-    RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
+    RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);//加载第二条的时候就有问题了
 
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;

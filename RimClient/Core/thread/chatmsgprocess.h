@@ -12,12 +12,13 @@
 #define CHATMSGPROCESS_H
 
 #include <QQueue>
-#include <QThread>
-#include "sql/database.h"
-#include "datastruct.h"
 #include <QWaitCondition>
 
-class ChatMsgProcess : public QThread
+#include "sql/database.h"
+#include "datastruct.h"
+#include "Network/rtask.h"
+
+class ChatMsgProcess : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
@@ -41,10 +42,11 @@ public:
         uint start;         //起始查询位置（操作类型为查询消息时有效）
         uint count;         //查询条数（操作类型为查询消息时有效）
     };
-    explicit ChatMsgProcess(QObject *obj=NULL);
+    explicit ChatMsgProcess(QObject *obj = Q_NULLPTR);
     ~ChatMsgProcess();
 
-    static ChatMsgProcess *instance();
+    void startMe();
+    void stopMe();
 
     void appendC2CStoreTask(ChatInfoUnit &msgUnit);
     void appendC2CQueryTask(QString otherID, uint begin, uint count);
@@ -53,12 +55,8 @@ public:
     void appendGoupQueryTask(QString groupID, uint begin, uint count);
 
 protected:
-    virtual void run() Q_DECL_OVERRIDE ;
-
-private:
-    QQueue<TaskQueue> m_TaskQueue;
-    QWaitCondition runWaitCondition;
-    QMutex m_Pause;
+    void run();
+    bool runningFlag;
 
 signals:
     void C2CResultReady(ChatInfoUnitList &);
@@ -72,8 +70,10 @@ private:
     bool queryGroupTaskMsg(QString groupID,uint start, uint count);
 
 private:
+    QQueue<TaskQueue> m_TaskQueue;
+    QWaitCondition runWaitCondition;
+    QMutex m_Pause;
     ChatInfoUnitList chatMsgs;
-    QObject *p_Obj;
 };
 
 #endif // CHATMSGPROCESS_H
