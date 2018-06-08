@@ -3,8 +3,6 @@
 //  xelz CopyRight (c) 2010  //
 ///////////////////////////////
 
-#include "stdafx.h"
-//#include "StdAfx.h"
 #include "string.h"
 #include "AES.h"
 #include <QDebug>

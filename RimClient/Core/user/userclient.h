@@ -19,6 +19,7 @@
 class ToolItem;
 class AbstractChatWidget;
 class FileDesc;
+class ChatPersonWidget;
 
 #include "protocoldata.h"
 #include "datastruct.h"
@@ -44,6 +45,7 @@ public:
 #ifdef __LOCAL_CONTACT__
     ParameterSettings::OuterNetConfig netConfig;
 #endif
+    ChatPersonWidget *chatPersonWidget;
 };
 
 class UserManager

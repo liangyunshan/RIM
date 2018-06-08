@@ -77,6 +77,15 @@
         <file>resource/icon/Tool_Panel_FILE_SERVER_ERROR.png</file>
         <file>resource/icon/Tool_Panel_FILE_SERVER_OK.png</file>
         <file>resource/icon/Tool_Chat_Audio.png</file>
+        <file>resource/icon/arrow-down.png</file>
+        <file>resource/icon/arrow-up.png</file>
+        <file>resource/icon/Font-bold.png</file>
+        <file>resource/icon/Font-color.png</file>
+        <file>resource/icon/Font-italic.png</file>
+        <file>resource/icon/Font-personal.png</file>
+        <file>resource/icon/Font-system-gray.png</file>
+        <file>resource/icon/Font-system-white.png</file>
+        <file>resource/icon/Font-underline.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

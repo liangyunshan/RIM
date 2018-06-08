@@ -19,6 +19,7 @@ QDateTime G_loginTime;                         //登录时间
 
 QString G_Temp_Picture_Path;
 QAction *G_pScreenShotAction = NULL;
+QAction *G_pHideWindowAction = NULL;
 ScreenShot *G_pScreenShot = NULL;
 int G_mIsEnter;
 

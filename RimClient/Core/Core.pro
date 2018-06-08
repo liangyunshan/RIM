@@ -176,7 +176,8 @@ SOURCES += \
     Network/msgwrap/basemsgwrap.cpp \
     Network/msgwrap/wrapformat.cpp \
     Network/msgwrap/binary_wrapformat.cpp \
-    Network/msgwrap/json_wrapformat.cpp
+    Network/msgwrap/json_wrapformat.cpp \
+    Widgets/chatpersonwidget.cpp
 
 
 HEADERS  += \
@@ -290,7 +291,8 @@ HEADERS  += \
     Network/msgwrap/basemsgwrap.h \
     Network/msgwrap/wrapformat.h \
     Network/msgwrap/json_wrapformat.h \
-    Network/msgwrap/binary_wrapformat.h
+    Network/msgwrap/binary_wrapformat.h \
+    Widgets/chatpersonwidget.h
 
 DISTFILES += \
     Widgets/Widgets.pri

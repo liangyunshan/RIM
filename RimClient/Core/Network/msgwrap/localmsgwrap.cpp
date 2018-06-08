@@ -42,8 +42,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             break;
     }
 
-//    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(packet,result);
-
     if(result.length() > 0){
         QByteArray sendResult;
         CommMethod commMethod = C_NONE;

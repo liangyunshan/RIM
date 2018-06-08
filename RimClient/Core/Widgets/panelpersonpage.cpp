@@ -31,6 +31,8 @@
 #include "thread/filerecvtask.h"
 #include "Util/rutil.h"
 
+#include "chatpersonwidget.h"
+
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
 
@@ -97,6 +99,7 @@ PanelPersonPage::PanelPersonPage(QWidget *parent):
     d_ptr(new PanelPersonPagePrivate(this)),
     QWidget(parent)
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     createAction();
 
     connect(this,SIGNAL(showChatDialog(ToolItem*)),this,SLOT(showChatWindow(ToolItem*)));
@@ -493,17 +496,27 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
     if(client == nullptr)
         return;
 
-    if(client->chatWidget)
+//    if(client->chatWidget)
+//    {
+//        client->chatWidget->show();
+//    }else{
+//        AbstractChatWidget * widget = new AbstractChatWidget();
+//        widget->setUserInfo(client->simpleUserInfo);
+//        widget->initChatRecord();
+//        client->chatWidget = widget;
+//        widget->show();
+//    }
+    if(client->chatPersonWidget)
     {
-        client->chatWidget->show();
+        client->chatPersonWidget->show();
     }else{
-        AbstractChatWidget * widget = new AbstractChatWidget();
+        ChatPersonWidget * widget = new ChatPersonWidget();
         widget->setUserInfo(client->simpleUserInfo);
 #ifdef __LOCAL_CONTACT__
         widget->setOuterNetConfig(client->netConfig);
 #endif
         widget->initChatRecord();
-        client->chatWidget = widget;
+        client->chatPersonWidget = widget;
         widget->show();
     }
 }

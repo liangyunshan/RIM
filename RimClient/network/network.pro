@@ -52,7 +52,6 @@ SOURCES += \
     rsocket.cpp \
     rtask.cpp \
     aes/AES.cpp \
-    aes/StdAfx.cpp \
     aes/raes.cpp \
     wraprule/wraprule.cpp \
     wraprule/datapacketrule.cpp \
@@ -65,7 +64,6 @@ HEADERS +=\
     rsocket.h \
     rtask.h \
     aes/AES.h \
-    aes/StdAfx.h \
     aes/raes.h \
     wraprule/wraprule.h \
     wraprule/datapacketrule.h \

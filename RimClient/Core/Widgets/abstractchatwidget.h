@@ -70,7 +70,7 @@ private slots:
     void slot_ScreenTimeout();
     void slot_ButtClick_SendMsg(bool flag);
     void slot_CheckSendEnter();
-    void slot_DatabaseThread_ResultReady(int,ChatInfoUnitList);
+    void slot_DatabaseThread_ResultReady(ChatInfoUnitList &);
     void finishLoadHTML(bool);
 
     void noticeWebViewShift(bool);
