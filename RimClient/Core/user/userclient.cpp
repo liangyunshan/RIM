@@ -18,9 +18,9 @@
 #include "thread/chatmsgprocess.h"
 #include "../Widgets/chatpersonwidget.h"
 
-#include <QDebug>
+#include <QDebug
 
-UserClient::UserClient():toolItem(nullptr),chatPersonWidget(nullptr)
+UserClient::UserClient():toolItem(nullptr),chatWidget(nullptr)
 {
 }
 
