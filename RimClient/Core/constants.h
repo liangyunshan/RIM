@@ -188,6 +188,7 @@ const char Tool_Chat_Shake[] = "Tool_Chat_Shake";                               
 const char Tool_Chat_Image[] = "Tool_Chat_Image";                                               //图像
 const char Tool_Chat_ScreenShot[] = "Tool_Chat_ScreenShot";                                     //截图
 const char Tool_Chat_Audio[] = "Tool_Chat_Audio";                                               //语音
+const char Tool_Chat_MsgNotice[] = "Tool_Chat_MsgNotice";                                       //消息提醒设置
 const char Tool_Chat_Record[] = "Tool_Chat_Record";                                             //聊天记录
 
 const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复
