@@ -15,7 +15,7 @@
 #include "maindialog.h"
 #include "widget/rlineedit.h"
 #include "protocoldata.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "user/user.h"
 #include "Network/netconnector.h"
@@ -100,7 +100,9 @@ void PanelTopAreaPrivate::initWidget()
     onlineState = new OnLineState(contentWidget);
     onlineState->setState(G_OnlineStatus);
     onlineState->setStyleSheet("background-color:rgba(0,0,0,0)");
+#ifndef __LOCAL_CONTACT__
     QObject::connect(onlineState,SIGNAL(stateChanged(OnlineStatus)),q_ptr,SLOT(stateChanged(OnlineStatus)));
+#endif
 
     nameStatusLayout->addWidget(userNikcNameLabel);
     nameStatusLayout->addWidget(onlineState);
@@ -111,7 +113,9 @@ void PanelTopAreaPrivate::initWidget()
     userSignNameEdit->setObjectName("Panel_Top_UserSignNameEdit");
     userSignNameEdit->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
     originUserSignName = G_User->BaseInfo().signName;
+#ifndef __LOCAL_CONTACT__
     QObject::connect(userSignNameEdit,SIGNAL(contentChanged(QString)),q_ptr,SLOT(respSignChanged(QString)));
+#endif
 
     extendToolWiget = new QWidget(contentWidget);
     extendToolWiget->setFixedHeight(PANEL_TOP_USER_ICON_SIZE / 3);
@@ -159,12 +163,13 @@ PanelTopArea::PanelTopArea(QWidget *parent) :
     RSingleton<Subject>::instance()->attach(this);
 
     loadCustomUserImage();
-
+#ifndef __LOCAL_CONTACT__
     connect(MessDiapatch::instance(),SIGNAL(recvUpdateBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)),
             this,SLOT(recvBaseInfoResponse(ResponseUpdateUser,UpdateBaseInfoResponse)));
 
     connect(MessDiapatch::instance(),SIGNAL(recvUserStateChangedResponse(MsgOperateResponse,UserStateResponse)),
             this,SLOT(recvUserStateChanged(MsgOperateResponse,UserStateResponse)));
+#endif
 }
 
 PanelTopArea::~PanelTopArea()
@@ -227,6 +232,7 @@ void PanelTopArea::setState(OnlineStatus state)
     d->onlineState->setState(state);
 }
 
+#ifndef __LOCAL_CONTACT__
 void PanelTopArea::respSignChanged(QString content)
 {
     R_CHECK_ONLINE;
@@ -246,7 +252,7 @@ void PanelTopArea::respSignChanged(QString content)
     request->baseInfo.iconId = G_User->BaseInfo().iconId;
     request->requestType = UPDATE_USER_DETAIL;
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInfoResponse response)
@@ -257,6 +263,45 @@ void PanelTopArea::recvBaseInfoResponse(ResponseUpdateUser result, UpdateBaseInf
         RSingleton<Subject>::instance()->notify(MESS_BASEINFO_UPDATE);
     }
 }
+
+void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
+{
+    Q_UNUSED(result);
+    Q_UNUSED(response);
+}
+
+/*!
+ * @brief 改变用户状态
+ * @details 用户状态改变只允许在登陆状态下改变；
+ * @param[in] state 当前用户状态
+ */
+void PanelTopArea::stateChanged(OnlineStatus state)
+{
+    if(G_User->isTextOnLine()){
+        if(!G_User->isLogin()){
+            LoginRequest * request = new LoginRequest();
+            request->accountId = G_User->getUserInfoDesc().accountId;
+            request->password = G_User->getUserInfoDesc().password;
+            request->status = state;
+            G_OnlineStatus = state;
+            request->loginType = RECONNECT_LOGIN;
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+        }
+        else
+        {
+            UserStateRequest * request = new UserStateRequest();
+            request->accountId = G_User->BaseInfo().accountId;
+            request->onStatus = state;
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+        }
+    }else{
+        RSingleton<TaskManager>::instance()->initTask();
+        if(TextNetConnector::instance())
+            TextNetConnector::instance()->reconnect();
+    }
+}
+
+#endif
 
 void PanelTopArea::updateUserInfo()
 {
@@ -279,37 +324,6 @@ void PanelTopArea::updateUserInfo()
     d->userIconLabel->setPixmap(t_iconPath);
 }
 
-/*!
- * @brief 改变用户状态
- * @details 用户状态改变只允许在登陆状态下改变；
- * @param[in] state 当前用户状态
- */
-void PanelTopArea::stateChanged(OnlineStatus state)
-{
-    if(G_User->isTextOnLine()){
-        if(!G_User->isLogin()){
-            LoginRequest * request = new LoginRequest();
-            request->accountId = G_User->getUserInfoDesc().accountId;
-            request->password = G_User->getUserInfoDesc().password;
-            request->status = state;
-            G_OnlineStatus = state;
-            request->loginType = RECONNECT_LOGIN;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
-        }
-        else
-        {
-            UserStateRequest * request = new UserStateRequest();
-            request->accountId = G_User->BaseInfo().accountId;
-            request->onStatus = state;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
-        }
-    }else{
-        RSingleton<TaskManager>::instance()->initTask();
-        if(TextNetConnector::instance())
-            TextNetConnector::instance()->reconnect();
-    }
-}
-
 bool PanelTopArea::eventFilter(QObject *watched, QEvent *event)
 {
     MQ_D(PanelTopArea);
@@ -320,10 +334,4 @@ bool PanelTopArea::eventFilter(QObject *watched, QEvent *event)
         }
     }
     return QWidget::eventFilter(watched,event);
-}
-
-void PanelTopArea::recvUserStateChanged(MsgOperateResponse result,UserStateResponse response)
-{
-    Q_UNUSED(result);
-    Q_UNUSED(response);
 }

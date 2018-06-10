@@ -37,12 +37,15 @@ public:
     void setState(OnlineStatus state);
 
 private slots:
+#ifndef __LOCAL_CONTACT__
     void respSignChanged(QString content);
     void recvBaseInfoResponse(ResponseUpdateUser result,UpdateBaseInfoResponse response);
     void recvUserStateChanged(MsgOperateResponse result,UserStateResponse response);
 
 public slots:
     void stateChanged(OnlineStatus state);
+
+#endif
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

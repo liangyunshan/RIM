@@ -15,8 +15,8 @@ typedef  int socklen_t;
 #define closesocket close
 #endif
 
-#include "Network/win32net/msgsender.h"
-#include "Network/win32net/msgreceive.h"
+#include "Network/win32net/tcpmsgsender.h"
+#include "Network/win32net/tcpmsgreceive.h"
 #include "Util/rlog.h"
 #include "global.h"
 #include "rsingleton.h"
@@ -36,17 +36,21 @@ SuperConnector::~SuperConnector()
     }
 }
 
-void SuperConnector::connect(int delayTime)
+/*!
+ * @brief 网络连接
+ * @param[in] delayTime 默认延迟时间为3s
+ */
+void SuperConnector::connect(int delaySecTime)
 {
     command = Net_Connect;
-    delayTime = delayTime;
+    delaySecTime = delaySecTime;
     condition.wakeOne();
 }
 
-void SuperConnector::reconnect(int delayTime)
+void SuperConnector::reconnect(int delaySecTime)
 {
     command = Net_Reconnect;
-    delayTime = delayTime;
+    delayTime = delaySecTime;
     condition.wakeOne();
 }
 
@@ -157,7 +161,7 @@ void TextNetConnector::doConnect()
     if(!netConnected){
         if(!rsocket->isValid() && rsocket->createSocket())
         {
-            int timeout = 3000;     // 3s
+            int timeout = 3000;
             rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
             msgSender->setSock(rsocket);
             msgReceive->setSock(rsocket);

@@ -34,7 +34,7 @@
 #include "Widgets/actionmanager/actionmanager.h"
 #include "thread/taskmanager.h"
 #include "thread/filerecvtask.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "Network/netconnector.h"
 #include "widget/rmessagebox.h"
 #include "others/msgqueuemanager.h"
@@ -49,7 +49,6 @@
 #include "user/userclient.h"
 #include "user/userfriendcontainer.h"
 #include "user/userchatcontainer.h"
-#include "abstractchatwidget.h"
 #include "sql/databasemanager.h"
 #include "widget/rcombobox.h"
 #include "file/filemanager.h"
@@ -344,7 +343,7 @@ void LoginDialog::respTextConnect(bool flag)
         }else{
             request->loginType = RECONNECT_LOGIN;
         }
-        RSingleton<MsgWrap>::instance()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     }
 
     enableInput(true);
@@ -809,18 +808,18 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
             FriendListRequest * request = new FriendListRequest;
             request->type = REQUEST_FIRST;
             request->accountId = baseInfo.accountId;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 
             ChatGroupListRequest * groupRequest = new ChatGroupListRequest;
             groupRequest->type = REQUEST_FIRST;
             groupRequest->uuid = baseInfo.uuid;
-            RSingleton<MsgWrap>::instance()->handleMsg(groupRequest);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(groupRequest);
         }else if(response.loginType == RECONNECT_LOGIN){
 
             FriendListRequest * request = new FriendListRequest;
             request->type = REQUEST_REFRESH;
             request->accountId = G_User->BaseInfo().accountId;
-            RSingleton<MsgWrap>::instance()->handleMsg(request);
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 
             RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
         }
@@ -973,7 +972,7 @@ void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
                                     request->baseInfo.iconId = newFileName;
                                     request->requestType = UPDATE_USER_DETAIL;
 
-                                    RSingleton<MsgWrap>::instance()->handleMsg(request);
+                                    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 
                                     QList<UserInfoDesc *>::iterator iter = d->localUserInfo.begin();
                                     while(iter != d->localUserInfo.end())
@@ -1014,7 +1013,7 @@ void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
                                     trequest->accountId = fileDesc->accountId;
                                     trequest->sendData = fileDesc->fileId;
                                     trequest->timeStamp = RUtil::timeStamp();
-                                    RSingleton<MsgWrap>::instance()->hanleText(trequest);
+                                    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(trequest);
                                     RSingleton<MsgQueueManager>::instance()->enqueue(trequest);
                             }
                         break;

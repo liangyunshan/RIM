@@ -1,4 +1,6 @@
-#include "document.h"
+﻿#include "document.h"
+
+#include "abstractchatmainwidget.h"
 
 void Document::setSendTextText(const QString &text) //向html页面发送数据
 {
@@ -16,7 +18,7 @@ void Document::receiveText(const QString &r_path)
 {
     displayMessage(r_path);
 }
-void Document::setUi(AbstractChatWidget *ui)
+void Document::setUi(AbstractChatMainWidget *ui)
 {
     chatWidget = ui;
 }

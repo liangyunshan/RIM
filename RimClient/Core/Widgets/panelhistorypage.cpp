@@ -404,13 +404,13 @@ void PanelHistoryPage::createAction()
 
     QAction * sendMessAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_HISTORY_SENDMESSAGE,this,SLOT(sendInstantMessage()));
     sendMessAction->setText(tr("Send Instant Message"));
-
+#ifndef __LOCAL_CONTACT__
     QAction * viewDetailAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_HISTORY_VIEWDETAIL,this,SLOT(viewDetail()));
     viewDetailAction->setText(tr("View Detail"));
 
     QAction * deleteAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_HISTORY_DELPERSON,this,SLOT(deleteContact()));
     deleteAction->setText(tr("Delete Friend"));
-
+#endif
     QAction * stickSessionAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_HISTORY_STICKSESSION,this,SLOT(setTopSession()));
     stickSessionAction->setText(tr("Top session"));
 
@@ -418,9 +418,11 @@ void PanelHistoryPage::createAction()
     removeSessionAction->setText(tr("Remove session"));
 
     historyMenu->addAction(sendMessAction);
+#ifndef __LOCAL_CONTACT__
     historyMenu->addSeparator();
     historyMenu->addAction(viewDetailAction);
     historyMenu->addAction(deleteAction);
+#endif
     historyMenu->addSeparator();
     historyMenu->addSeparator();
     historyMenu->addAction(stickSessionAction);

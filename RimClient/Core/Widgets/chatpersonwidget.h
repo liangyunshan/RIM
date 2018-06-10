@@ -29,6 +29,9 @@ public:
     void setUserInfo(const SimpleUserInfo &info);
     void recvChatMsg(const TextRequest &msg);
     void showRecentlyChatMsg(uint count=1);
+#ifdef __LOCAL_CONTACT__
+    void setOuterNetConfig(const ParameterSettings::OuterNetConfig &config);
+#endif
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

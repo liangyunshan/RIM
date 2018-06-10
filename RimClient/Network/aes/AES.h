@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     AES信息加密解密算法文件
  *  @details   封装处理了数据的加密和解密算法功能,C++实现
  *  @file      AES.h
@@ -16,8 +16,6 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
-
-#include "stdafx.h"
 
 class AES  
 {

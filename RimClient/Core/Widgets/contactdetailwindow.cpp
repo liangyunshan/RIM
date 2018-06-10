@@ -14,7 +14,7 @@
 #include "Util/rutil.h"
 #include "widget/rlabel.h"
 #include "widget/rcombobox.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "user/user.h"
 
@@ -310,7 +310,7 @@ void ContactDetailWindow::setContactDetail(const SimpleUserInfo &info)
     UpdateBaseInfoRequest * request = new UpdateBaseInfoRequest;
     request->baseInfo.accountId = info.accountId;
     request->requestType = REQUEST_CONTACT_DETAIL;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 /*!

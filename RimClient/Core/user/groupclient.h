@@ -15,7 +15,6 @@
 #include <QMutex>
 
 class ToolItem;
-class AbstractChatWidget;
 class ChatPersonWidget;
 
 #include "protocoldata.h"
@@ -32,7 +31,6 @@ public:
     SimpleChatInfo simpleChatInfo;
     ChatBaseInfo baseInfo;
     ToolItem * toolItem;
-    AbstractChatWidget * chatWidget;
     ChatPersonWidget *chatPersonWidget;
 };
 

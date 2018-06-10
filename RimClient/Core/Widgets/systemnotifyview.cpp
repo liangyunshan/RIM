@@ -14,7 +14,7 @@
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "widget/rlabel.h"
 #include "user/user.h"
 #include "user/userfriendcontainer.h"
@@ -298,7 +298,7 @@ void SystemNotifyView::respReRequest()
         request->operateId = d->notifyInfo.accountId;
     else if(d->notifyInfo.stype == OperateGroup)
         request->operateId = d->notifyInfo.chatId;
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 
 void SystemNotifyView::sendResponse(ResponseFriendApply result)
@@ -317,6 +317,6 @@ void SystemNotifyView::sendResponse(ResponseFriendApply result)
         request->chatName = d->notifyInfo.chatName;
     }
 
-    RSingleton<MsgWrap>::instance()->handleMsg(request);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 }
 

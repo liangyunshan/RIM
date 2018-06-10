@@ -45,8 +45,8 @@ public:
         Net_Heart
     };
 
-    void connect(int delayTime = 3);            //延迟秒
-    void reconnect(int delayTime = 3);
+    void connect(int delaySecTime = 3);            //延迟秒
+    void reconnect(int delaySecTime = 3);
     void disConnect();
 
     bool setBlock(bool flag);
@@ -76,11 +76,13 @@ protected:
     NetCommand command;
     bool netConnected;
 
+    QString remoteIp;
+    unsigned short remotePort;
+
     int delayTime;
 
     QMutex mutex;
     QWaitCondition condition;
-
 };
 
 class TextNetConnector : public SuperConnector

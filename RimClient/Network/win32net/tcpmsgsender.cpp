@@ -1,4 +1,4 @@
-﻿#include "msgsender.h"
+﻿#include "tcpmsgsender.h"
 
 #include <QDebug>
 #include <QDateTime>
@@ -7,7 +7,6 @@
 
 #include "netglobal.h"
 #include "Util/rlog.h"
-
 #include "aes/raes.h"
 
 namespace ClientNetwork{
@@ -15,7 +14,6 @@ namespace ClientNetwork{
 SendTask::SendTask(QThread *parent):tcpSocket(NULL),
     RTask(parent)
 {
-    SendPackId = qrand()%1024 + 1000;
     m_RAES = new RAES();
 }
 
@@ -38,12 +36,14 @@ void SendTask::run()
 TextSender::TextSender(QThread *parent):
    SendTask(parent)
 {
-
+    dataPacketRule = std::make_shared<DataPacketRule>();
 }
 
 TextSender::~TextSender()
 {
     stopMe();
+    dataPacketRule.reset();
+
     wait();
 }
 
@@ -83,10 +83,10 @@ void TextSender::processData()
         if(runningFlag)
         {
             G_TextSendMutex.lock();
-            QByteArray data =  G_TextSendBuffs.dequeue();
+            SendUnit unit =  G_TextSendBuffs.dequeue();
             G_TextSendMutex.unlock();
 
-            if(!handleDataSend(data))
+            if(!handleDataSend(unit))
             {
                 emit socketError(tcpSocket->getLastError());
                 break;
@@ -101,67 +101,39 @@ void TextSender::processData()
  * @param[in] data 待发送数据内容
  * @return 是否完全发送成功
  */
-bool TextSender::handleDataSend(QByteArray &data)
+bool TextSender::handleDataSend(SendUnit &unit)
 {
-    if(tcpSocket->isValid())
-    {
-        DataPacket packet;
-        memset((char *)&packet,0,sizeof(DataPacket));
-        packet.magicNum = SEND_MAGIC_NUM;
-        SendPackMutex.lock();
-        packet.packId = ++SendPackId;
-        SendPackMutex.unlock();
+    if(unit.method == C_TCP){
+        if(tcpSocket->isValid()){
+            auto func = [&](const char * buff,const int length)->int{
+                return tcpSocket->send(buff,length);
+            };
 
-        //加密数据,shangchao
-//        data = m_RAES->aesData(data);
-
-        packet.totalIndex = qCeil(((float)data.length() / MAX_PACKET));
-        packet.totalLen = data.size();
-
-        int sendLen = 0;
-
-        for(unsigned int i = 0; i < packet.totalIndex; i++)
-        {
-            memset(sendBuff,0,MAX_SEND_BUFF);
-            packet.currentIndex = i;
-            int leftLen = data.size() - sendLen;
-            packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
-
-            memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
-            memcpy(sendBuff + sizeof(DataPacket),data.data() + sendLen,packet.currentLen);
-
-            int dataLen = sizeof(DataPacket)+packet.currentLen;
-            int realSendLen = tcpSocket->send(sendBuff,dataLen);
-
-qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen;
-
-            if(realSendLen == dataLen){
-                sendLen += packet.currentLen;
-            }else{
-                break;
-            }
+            if(dataPacketRule->wrap(unit.data,func))
+                return true;
         }
 
-        if(sendLen == packet.totalLen){
-            return true;
-        }
+        RLOG_ERROR("Send a data error!");
+        tcpSocket->closeSocket();
+
+    }else if(unit.method == C_UDP){
+
+    }else if(unit.method == C_BUS){
+
     }
-
-    RLOG_ERROR("Send a data error!");
-    tcpSocket->closeSocket();
-
     return false;
 }
 
 FileSender::FileSender(QThread *parent):
     SendTask(parent)
 {
-
+    dataPacketRule = std::make_shared<DataPacketRule>();
 }
 
 FileSender::~FileSender()
 {
     stopMe();
+    dataPacketRule.reset();
     wait();
 }
 
@@ -206,10 +178,10 @@ void FileSender::processData()
         if(runningFlag)
         {
             G_FileSendMutex.lock();
-            QByteArray data =  G_FileSendBuffs.dequeue();
+            SendUnit sendUnit =  G_FileSendBuffs.dequeue();
             G_FileSendMutex.unlock();
 
-            if(!handleDataSend(data))
+            if(!handleDataSend(sendUnit))
             {
                 emit socketError(tcpSocket->getLastError());
                 break;
@@ -226,57 +198,26 @@ void FileSender::processData()
  * @param[in] data 待发送的数据包信息
  * @return 是否插入成功
  */
-bool FileSender::handleDataSend(QByteArray &data)
+bool FileSender::handleDataSend(SendUnit &unit)
 {
-    if(tcpSocket->isValid())
-    {
-        DataPacket packet;
-        memset((char *)&packet,0,sizeof(DataPacket));
-        packet.magicNum = SEND_MAGIC_NUM;
-        SendPackMutex.lock();
-        packet.packId = ++SendPackId;
-        SendPackMutex.unlock();
-
-        packet.totalIndex = qCeil(((float)data.length() / MAX_PACKET));
-        packet.totalLen = data.size();
-
-        int sendLen = 0;
-
-        for(unsigned int i = 0; i < packet.totalIndex; i++)
+    if(unit.method == C_TCP){
+        if(tcpSocket->isValid())
         {
-            memset(sendBuff,0,MAX_SEND_BUFF);
-            packet.currentIndex = i;
-            int leftLen = data.size() - sendLen;
-            packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+            auto func = [&](const char * buff,const int length)->int{
+                return tcpSocket->send(buff,length);
+            };
 
-            memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
-            memcpy(sendBuff + sizeof(DataPacket),data.data() + sendLen,packet.currentLen);
-
-            int dataLen = sizeof(DataPacket)+packet.currentLen;
-            int realSendLen = tcpSocket->send(sendBuff,dataLen);
-
-//            qDebug()<<"Send FileSender:"<<packet.currentIndex<<packet.currentLen<<packet.totalLen<<realSendLen<<sendLen<<sendBuff;
-
-            if(realSendLen == dataLen)
-            {
-                sendLen += packet.currentLen;
-            }
-            else
-            {
-                break;
-            }
+            if(dataPacketRule->wrap(unit.data,func))
+                return true;
         }
 
-        msleep(10);
+        RLOG_ERROR("Send a data error!");
+        tcpSocket->closeSocket();
+    }else if(unit.method == C_UDP){
 
-        if(sendLen == packet.totalLen)
-        {
-            return true;
-        }
+    }else if(unit.method == C_BUS){
+
     }
-
-    RLOG_ERROR("Send a data error!");
-    tcpSocket->closeSocket();
 
     return false;
 }

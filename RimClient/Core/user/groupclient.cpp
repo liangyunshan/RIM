@@ -1,19 +1,19 @@
 ﻿#include "groupclient.h"
 
-#include "Widgets/abstractchatwidget.h"
+#include "Widgets/chatpersonwidget.h"
 
-GroupClient::GroupClient():toolItem(nullptr),chatWidget(nullptr)
+GroupClient::GroupClient():toolItem(nullptr),chatPersonWidget(nullptr)
 {
 
 }
 
 GroupClient::~GroupClient()
 {
-    if(chatWidget && chatWidget->isVisible())
+    if(chatPersonWidget && chatPersonWidget->isVisible())
     {
-        chatWidget->close();
-        delete chatWidget;
-        chatWidget = NULL;
+        chatPersonWidget->close();
+        delete chatPersonWidget;
+        chatPersonWidget = NULL;
     }
 }
 

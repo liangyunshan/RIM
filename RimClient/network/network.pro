@@ -49,22 +49,24 @@ unix {
 
 SOURCES += \
     netglobal.cpp \
-    win32net/msgsender.cpp \
     rsocket.cpp \
     rtask.cpp \
-    win32net/msgreceive.cpp \
     aes/AES.cpp \
-    aes/StdAfx.cpp \
-    aes/raes.cpp
+    aes/raes.cpp \
+    wraprule/wraprule.cpp \
+    wraprule/datapacketrule.cpp \
+    win32net/tcpmsgreceive.cpp \
+    win32net/tcpmsgsender.cpp
 
 HEADERS +=\
         network_global.h \
     netglobal.h \
-    win32net/msgsender.h \
     rsocket.h \
     rtask.h \
-    win32net/msgreceive.h \
     aes/AES.h \
-    aes/StdAfx.h \
-    aes/raes.h
+    aes/raes.h \
+    wraprule/wraprule.h \
+    wraprule/datapacketrule.h \
+    win32net/tcpmsgreceive.h \
+    win32net/tcpmsgsender.h
 

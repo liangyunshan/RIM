@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QString>
 #include <QDataStream>
+#include <QVector>
 
 #include "protocoldata.h"
 using namespace ProtocolType;
@@ -174,6 +175,70 @@ struct SystemSettingKey
     bool encryptionCheck;
     bool compressCheck;
 };
+
+#ifdef __LOCAL_CONTACT__
+/*************************参数配置文件*********************************/
+/*!
+ *  @brief 参数配置.txt
+ */
+namespace ParameterSettings {
+
+/*!
+ *  @brief  通信方式
+ */
+enum CommucationMethod{
+    C_None = 0x00,
+    C_NetWork  = 0x01,      /*!< 网络 */
+    C_905_DataChain,        /*!< 905数据链 */
+    C_Jids,                 /*!< JIDS */
+    C_TongKong              /*!< 通控器 */
+};
+
+/*!
+ *  @brief  报文格式
+ */
+enum MessageFormat{
+    M_NONE = 0x00,
+    M_6670 = 0x01,
+    M_205,
+    M_QDB12,
+    M_495,
+    M_905,
+    M_JIDS
+};
+
+/*!
+ *  @brief  基本信息
+ */
+struct BaseInfo{
+    QString nodeId;             /*!< 本节点号 */
+    QString localIp;            /*!< 本机IP地址 */
+    QString lon;                /*!< 节点经度 */
+    QString lat;                /*!< 节点纬度 */
+};
+
+/*!
+ *  @brief  外发信息配置条目
+ */
+struct OuterNetConfig{
+    QString nodeId;                           /*!< 节点号 */
+    QString channel;                          /*!< 通道 */
+    CommucationMethod communicationMethod;    /*!< 通信方式 */
+    MessageFormat messageFormat;              /*!< 报文格式 */
+    QString distributeMessageType;            /*!< 下发报文类别 */
+};
+
+/*!
+ *  @brief  信息收发参数配置
+ */
+struct ParaSettings{
+    BaseInfo baseInfo;                          /*!< 基本信息 */
+    QVector<OuterNetConfig> outerNetConfig;     /*!< 外发信息配置 */
+};
+
+}
+
+#endif
 
 //++++++++++++++++++++++++++++TextUnit++++++++++++++++++++++++++
 enum ShowType{

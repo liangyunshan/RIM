@@ -11,7 +11,7 @@
 #include "Util/rutil.h"
 #include "Util/rbuffer.h"
 #include "rsingleton.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "file/filedesc.h"
 #include "file/filemanager.h"
 #include "user/user.h"
@@ -38,7 +38,7 @@ FileRecvTask *FileRecvTask::instance()
 }
 
 /*!
- * @brief 添加图片操作请求
+ * @brief 添加文件操作请求
  * @param[in] item 请求描述信息
  * @return 是否添加成功
  */
@@ -63,13 +63,13 @@ bool FileRecvTask::addSendItem(FileItemDesc *item)
 bool FileRecvTask::addRecvItem(SimpleFileItemRequest *item)
 {
     recvItems.append(item);
-    RSingleton<MsgWrap>::instance()->handelFileControl(item);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(item);
     return true;
 }
 
 void FileRecvTask::sendControlItem(SimpleFileItemRequest *item)
 {
-    RSingleton<MsgWrap>::instance()->handelFileControl(item);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(item);
 }
 
 void FileRecvTask::startMe()
@@ -209,7 +209,7 @@ void FileRecvTask::handleItem()
 
     currTransFileId = fileRequest->fileId;
 
-    RSingleton<MsgWrap>::instance()->handleFileRequest(fileRequest);
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(fileRequest);
 }
 
 void FileRecvTask::transferFile()
@@ -228,10 +228,13 @@ void FileRecvTask::transferFile()
         int currIndex = 0;
         while(!file.atEnd())
         {
-            QByteArray data = file.read(900);
-            sendLen += data.size();
 //            qDebug()<<"SendLen:"<<sendLen<<"_"<<currTransFile->fileSize;
-            RSingleton<MsgWrap>::instance()->handleFileData(currTransFileId,currIndex++,data);
+            FileDataRequest * request = new FileDataRequest;
+            request->fileId = currTransFileId;
+            request->index = currIndex++;
+            request->array = file.read(900);
+            sendLen += request->array.size();
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
         }
         isFileTransfer = false;
     }

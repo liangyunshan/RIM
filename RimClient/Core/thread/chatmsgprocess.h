@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     聊天信息存取操作
  *  @details   封装了对于群聊、单聊信息的存储与查询操作
  *  @file      chatmsgprocess.h
