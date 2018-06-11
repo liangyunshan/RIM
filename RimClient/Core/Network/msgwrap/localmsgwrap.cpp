@@ -8,6 +8,7 @@
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
+#include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
 {

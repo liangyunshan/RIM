@@ -20,6 +20,7 @@
 #include "../rsocket.h"
 #include "../wraprule/datapacketrule.h"
 #include <memory>
+class RUDPSocket;
 
 namespace ClientNetwork{
 
@@ -46,6 +47,7 @@ protected:
     QString errorString;
 
     RSocket * tcpSocket;
+    RUDPSocket *m_pRUDPRecvSocket;
     std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 

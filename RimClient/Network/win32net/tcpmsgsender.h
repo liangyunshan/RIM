@@ -21,6 +21,7 @@
 #include "../wraprule/datapacketrule.h"
 
 class RAES;
+class RUDPSocket;
 
 namespace ClientNetwork{
 
@@ -47,6 +48,7 @@ protected:
     int SendPackId;
     QMutex SendPackMutex;
     RAES *m_RAES;
+    RUDPSocket *m_pRUDPSendSocket;
 };
 
 class NETWORKSHARED_EXPORT TextSender : public SendTask

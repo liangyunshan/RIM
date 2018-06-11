@@ -56,7 +56,8 @@ SOURCES += \
     wraprule/wraprule.cpp \
     wraprule/datapacketrule.cpp \
     win32net/tcpmsgreceive.cpp \
-    win32net/tcpmsgsender.cpp
+    win32net/tcpmsgsender.cpp \
+    win32net/rudpsocket.cpp
 
 HEADERS +=\
         network_global.h \
@@ -68,5 +69,6 @@ HEADERS +=\
     wraprule/wraprule.h \
     wraprule/datapacketrule.h \
     win32net/tcpmsgreceive.h \
-    win32net/tcpmsgsender.h
+    win32net/tcpmsgsender.h \
+    win32net/rudpsocket.h
 
