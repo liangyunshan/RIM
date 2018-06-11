@@ -23,6 +23,8 @@
 
 namespace ClientNetwork{
 
+class BaseTransmit;
+
 class NETWORKSHARED_EXPORT RecveiveTask : public RTask
 {
     Q_OBJECT
@@ -30,13 +32,13 @@ public:
     explicit RecveiveTask(QObject *parent = 0);
     virtual ~RecveiveTask();
 
-    void setSock(RSocket * sock);
+    void bindTransmit(BaseTransmit * trans);
 
     void startMe();
     void stopMe();
 
 signals:
-    void socketError(int errorCode);
+    void socketError(CommMethod method);
 
 protected:
     void run();
@@ -45,8 +47,7 @@ protected:
 protected:
     QString errorString;
 
-    RSocket * tcpSocket;
-    std::shared_ptr<DataPacketRule> dataPacketRule;
+    BaseTransmit * transmit;
 };
 
 class NETWORKSHARED_EXPORT TextReceive : public RecveiveTask

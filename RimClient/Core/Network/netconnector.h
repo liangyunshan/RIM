@@ -17,6 +17,7 @@
 
 #include "Network/rtask.h"
 #include "Network/rsocket.h"
+#include <mutex>
 
 namespace ClientNetwork
 {
@@ -28,6 +29,7 @@ class FileReceive;
 
 namespace ClientNetwork {
 class RTask;
+class TcpTransmit;
 }
 
 class SuperConnector : public ClientNetwork::RTask
@@ -68,7 +70,7 @@ protected:
     void run();
 
 protected slots:
-    virtual void respSocketError(int errorCode)=0;
+    virtual void respSocketError(CommMethod method)=0;
 
 protected:
     ClientNetwork::RSocket * rsocket;
@@ -83,6 +85,8 @@ protected:
 
     QMutex mutex;
     QWaitCondition condition;
+
+    ClientNetwork::TcpTransmit * tcpTransmit;
 };
 
 class TextNetConnector : public SuperConnector
@@ -100,7 +104,7 @@ private:
     void doDisconnect();
 
 protected slots:
-    void respSocketError(int errorCode);
+    void respSocketError(CommMethod method);
 
 private:
     static TextNetConnector * netConnector;
@@ -119,7 +123,7 @@ public:
     static FileNetConnector * instance();
 
 private slots:
-    void respSocketError(int errorCode);
+    void respSocketError(CommMethod method);
 
 private:
     void doConnect();
