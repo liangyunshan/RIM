@@ -510,7 +510,6 @@ void LoginDialog::readLocalUser()
 
             QListWidgetItem* widgetItem = new QListWidgetItem;
             //需要向Item设置当前基本信息，否则会出现空字符串
-            widgetItem->setText(user->accountId);
             d->userListWidget->addItem(widgetItem);
             d->userListWidget->setItemWidget(widgetItem,item);
         }
