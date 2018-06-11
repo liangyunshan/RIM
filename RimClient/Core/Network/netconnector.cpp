@@ -15,15 +15,16 @@ typedef  int socklen_t;
 #define closesocket close
 #endif
 
-#include "Network/win32net/tcpmsgsender.h"
-#include "Network/win32net/tcpmsgreceive.h"
+#include "Network/win32net/msgsender.h"
+#include "Network/win32net/msgreceive.h"
+#include "Network/multitransmits/tcptransmit.h"
 #include "Util/rlog.h"
 #include "global.h"
 #include "rsingleton.h"
 #include "messdiapatch.h"
 
 SuperConnector::SuperConnector(QObject *parent):ClientNetwork::RTask(parent),
-    netConnected(false),delayTime(3),command(Net_None)
+    netConnected(false),delayTime(3),command(Net_None),tcpTransmit(nullptr)
 {
 
 }
@@ -122,13 +123,16 @@ TextNetConnector::TextNetConnector():
 {
     netConnector = this;
 
-    rsocket = new ClientNetwork::RSocket();
+    tcpTransmit = new ClientNetwork::TcpTransmit();
 
     msgSender = new ClientNetwork::TextSender();
-    QObject::connect(msgSender,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+    QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
     msgReceive = new ClientNetwork::TextReceive();
-    QObject::connect(msgReceive,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+    QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+
+    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
+    msgReceive->bindTransmit(tcpTransmit);
 }
 
 TextNetConnector::~TextNetConnector()
@@ -145,45 +149,37 @@ TextNetConnector *TextNetConnector::instance()
     return netConnector;
 }
 
-void TextNetConnector::respSocketError(int errorCode)
+void TextNetConnector::respSocketError(CommMethod method)
 {
-    RLOG_ERROR("Socket close! ErrorCode[%d]",errorCode);
+    switch(method){
+        case C_TCP:
 
-    netConnected = false;
-    msgSender->stopMe();
-    msgReceive->stopMe();
+            break;
+        default:
+            break;
+    }
 
     MessDiapatch::instance()->onTextSocketError();
+
+    netConnected = false;
+//    msgSender->stopMe();
+//    msgReceive->stopMe();
 }
 
 void TextNetConnector::doConnect()
 {
-    if(!netConnected){
-        if(!rsocket->isValid() && rsocket->createSocket())
-        {
-            int timeout = 3000;
-            rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
-            msgSender->setSock(rsocket);
-            msgReceive->setSock(rsocket);
-
-            char ip[20] = {0};
-            memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
-
-            if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_TextServerPort,delayTime))
-            {
-                netConnected = true;
-
-                msgSender->startMe();
-                msgReceive->startMe();
-            }else{
-                rsocket->closeSocket();
-            }
-        }else{
-            rsocket->closeSocket();
-        }
+    if(tcpTransmit && !tcpTransmit->connected()){
+        char ip[50] = {0};
+        memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_TextServerPort,delayTime);
+        MessDiapatch::instance()->onTextConnected(result);
     }
 
-    MessDiapatch::instance()->onTextConnected(netConnected);
+    if(!msgSender->isRunning())
+        msgSender->startMe();
+
+    if(!msgReceive->isRunning())
+        msgReceive->startMe();
 }
 
 void TextNetConnector::doReconnect()
@@ -193,15 +189,11 @@ void TextNetConnector::doReconnect()
 
 void TextNetConnector::doDisconnect()
 {
-    if(netConnected && rsocket->isValid())
-    {
-        if(rsocket->closeSocket())
-        {
-            netConnected = false;
-            msgSender->stopMe();
-            msgReceive->stopMe();
-        }
-    }
+    if(tcpTransmit)
+        tcpTransmit->close();
+
+    msgSender->stopMe();
+    msgReceive->stopMe();
 }
 
 FileNetConnector * FileNetConnector::netConnector = nullptr;
@@ -211,13 +203,16 @@ FileNetConnector::FileNetConnector():
 {
     netConnector = this;
 
-    rsocket = new ClientNetwork::RSocket();
+    tcpTransmit = new ClientNetwork::TcpTransmit();
 
     msgSender = new ClientNetwork::FileSender();
-    QObject::connect(msgSender,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+    QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
     msgReceive = new ClientNetwork::FileReceive();
-    QObject::connect(msgReceive,SIGNAL(socketError(int)),this,SLOT(respSocketError(int)));
+    QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+
+    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
+    msgReceive->bindTransmit(tcpTransmit);
 }
 
 FileNetConnector::~FileNetConnector()
@@ -235,43 +230,37 @@ FileNetConnector *FileNetConnector::instance()
     return netConnector;
 }
 
-void FileNetConnector::respSocketError(int errorCode)
+void FileNetConnector::respSocketError(CommMethod method)
 {
-    RLOG_ERROR("Socket close! ErrorCode[%d]",errorCode);
+    switch(method){
+        case C_TCP:
+
+            break;
+        default:
+            break;
+    }
+
+    MessDiapatch::instance()->onFileSocketError();
 
     netConnected = false;
-    msgSender->stopMe();
-    msgReceive->stopMe();
-    MessDiapatch::instance()->onTextSocketError();
+//    msgSender->stopMe();
+//    msgReceive->stopMe();
 }
 
 void FileNetConnector::doConnect()
 {
-    if(!netConnected){
-        if(!rsocket->isValid() && rsocket->createSocket())
-        {
-            int timeout = 3000; // 3s
-            rsocket->setSockopt(SO_RCVTIMEO,(char *)&timeout,sizeof(timeout));
-
-            msgSender->setSock(rsocket);
-            msgReceive->setSock(rsocket);
-            char ip[20] = {0};
-            memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
-
-            if(!netConnected && rsocket->isValid() && rsocket->connect(ip,G_FileServerPort,delayTime))
-            {
-                netConnected = true;
-                msgSender->startMe();
-                msgReceive->startMe();
-            }else{
-                rsocket->closeSocket();
-            }
-        }else{
-            rsocket->closeSocket();
-        }
+    if(tcpTransmit && !tcpTransmit->connected()){
+        char ip[50] = {0};
+        memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_FileServerPort,delayTime);
+        MessDiapatch::instance()->onFileConnected(result);
     }
 
-    MessDiapatch::instance()->onFileConnected(netConnected);
+    if(!msgSender->isRunning())
+        msgSender->startMe();
+
+    if(!msgReceive->isRunning())
+        msgReceive->startMe();
 }
 
 void FileNetConnector::doReconnect()
@@ -281,16 +270,11 @@ void FileNetConnector::doReconnect()
 
 void FileNetConnector::doDisconnect()
 {
-    if(netConnected && rsocket->isValid())
-    {
-        if(rsocket->closeSocket())
-        {
-            netConnected = false;
+    if(tcpTransmit)
+        tcpTransmit->close();
 
-            msgSender->stopMe();
-            msgReceive->stopMe();
+//    MessDiapatch::instance()->onFileSocketError();
 
-            MessDiapatch::instance()->onFileSocketError();
-        }
-    }
+    msgSender->stopMe();
+    msgReceive->stopMe();
 }

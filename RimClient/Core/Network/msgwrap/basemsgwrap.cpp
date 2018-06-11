@@ -1,4 +1,4 @@
-#include "basemsgwrap.h"
+﻿#include "basemsgwrap.h"
 
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"

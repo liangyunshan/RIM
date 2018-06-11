@@ -1,4 +1,4 @@
-﻿#include "tcpmsgreceive.h"
+﻿#include "msgreceive.h"
 
 #include <QUdpSocket>
 #include <QDebug>
@@ -10,20 +10,21 @@
 #include "Util/rlog.h"
 #include "Util/rutil.h"
 #include "netglobal.h"
+#include "../multitransmits/basetransmit.h"
 
 #define MSG_RECV_BUFF 1024
 
 namespace ClientNetwork{
 
 RecveiveTask::RecveiveTask(QObject *parent) :
-    tcpSocket(NULL),RTask(parent)
+    transmit(NULL),RTask(parent)
 {
-    dataPacketRule = std::make_shared<DataPacketRule>();
+
 }
 
-void RecveiveTask::setSock(RSocket *sock)
+void RecveiveTask::bindTransmit(BaseTransmit *trans)
 {
-    tcpSocket = sock;
+    transmit = trans;
 }
 
 void RecveiveTask::startMe()
@@ -53,30 +54,9 @@ void RecveiveTask::run()
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);
-        int recvLen = tcpSocket->recv(recvBuff,MSG_RECV_BUFF);
-        if(recvLen > 0)
-        {
-            if(!dataPacketRule->unwrap(recvBuff,recvLen,func)){
-                RLOG_ERROR("parse socket error! %d",tcpSocket->getLastError());
-                tcpSocket->closeSocket();
-                emit socketError(tcpSocket->getLastError());
-                break;
-            }
-        }
-        else if(recvLen == 0)
-        {
-            tcpSocket->closeSocket();
-            emit socketError(tcpSocket->getLastError());
-            break;
-        }else{
-            int error = tcpSocket->getLastError();
-            if(errno == EAGAIN || errno == EWOULDBLOCK || error == (int)WSAETIMEDOUT){
-                continue;
-            }
-
-            RLOG_ERROR("socket occour error! %d",tcpSocket->getLastError());
-            tcpSocket->closeSocket();
-            emit socketError(tcpSocket->getLastError());
+        bool success = transmit->startRecv(recvBuff,MSG_RECV_BUFF,func);
+        if(!success){
+            emit socketError(transmit->type());
             break;
         }
     }
@@ -86,7 +66,7 @@ void RecveiveTask::run()
 
 RecveiveTask::~RecveiveTask()
 {
-    dataPacketRule.reset();
+
 }
 
 TextReceive::TextReceive(QObject *parent):
