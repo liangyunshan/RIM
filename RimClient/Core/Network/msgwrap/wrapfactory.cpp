@@ -1,4 +1,4 @@
-#include "wrapfactory.h"
+﻿#include "wrapfactory.h"
 
 #include "basemsgwrap.h"
 #include "localmsgwrap.h"

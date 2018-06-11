@@ -13,17 +13,21 @@
 
 #include <QMutex>
 #include <QWaitCondition>
+#include <QMap>
 
 #include "../rtask.h"
 #include "../rsocket.h"
 
 #include <memory>
+#include <mutex>
 #include "../wraprule/datapacketrule.h"
 
-class RAES;
+//合并测试
 class RUDPSocket;
 
 namespace ClientNetwork{
+
+class BaseTransmit;
 
 class NETWORKSHARED_EXPORT SendTask : public RTask
 {
@@ -31,10 +35,10 @@ class NETWORKSHARED_EXPORT SendTask : public RTask
 public:
     explicit SendTask(QThread * parent = 0);
 
-    void setSock(RSocket *sock);
+    bool addTransmit(CommMethod method,BaseTransmit * trans);
 
 signals:
-    void socketError(int errorCode);
+    void socketError(CommMethod method);
 
 protected:
     void run();
@@ -43,12 +47,15 @@ protected:
     virtual bool handleDataSend(SendUnit &unit)=0;
 
 protected:
-    RSocket* tcpSocket;
     char sendBuff[MAX_SEND_BUFF];
     int SendPackId;
     QMutex SendPackMutex;
-    RAES *m_RAES;
+//<<<<<<< HEAD:RimClient/Network/win32net/tcpmsgsender.h
     RUDPSocket *m_pRUDPSendSocket;
+//=======
+
+    std::mutex tranMutex;
+    QMap<CommMethod,BaseTransmit *> transmits;
 };
 
 class NETWORKSHARED_EXPORT TextSender : public SendTask
@@ -64,9 +71,6 @@ public:
 protected:
     void processData();
     bool handleDataSend(SendUnit &unit);
-
-private:
-    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 class NETWORKSHARED_EXPORT FileSender : public SendTask

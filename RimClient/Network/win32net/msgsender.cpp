@@ -1,4 +1,4 @@
-﻿#include "tcpmsgsender.h"
+﻿#include "msgsender.h"
 
 #include <QDebug>
 #include <QDateTime>
@@ -7,7 +7,7 @@
 
 #include "netglobal.h"
 #include "Util/rlog.h"
-#include "aes/raes.h"
+#include "../multitransmits/basetransmit.h"
 
 //716-TK兼容
 #include "rudpsocket.h"
@@ -15,19 +15,22 @@
 
 namespace ClientNetwork{
 
-SendTask::SendTask(QThread *parent):tcpSocket(NULL),
+SendTask::SendTask(QThread *parent):
     RTask(parent)
 {
-    m_RAES = new RAES();
-
     //716-TK
     m_pRUDPSendSocket = new RUDPSocket(QHostAddress::AnyIPv4,7755);
     //
 }
 
-void SendTask::setSock(RSocket * sock)
+bool SendTask::addTransmit(CommMethod method, BaseTransmit *trans)
 {
-    tcpSocket = sock;
+    if(trans == nullptr)
+        return false;
+
+    std::lock_guard<std::mutex> lg(tranMutex);
+    transmits.insert(method,trans);
+    return true;
 }
 
 void SendTask::run()
@@ -44,14 +47,12 @@ void SendTask::run()
 TextSender::TextSender(QThread *parent):
    SendTask(parent)
 {
-    dataPacketRule = std::make_shared<DataPacketRule>();
+
 }
 
 TextSender::~TextSender()
 {
     stopMe();
-    dataPacketRule.reset();
-
     wait();
 }
 
@@ -96,7 +97,7 @@ void TextSender::processData()
 
             if(!handleDataSend(unit))
             {
-                emit socketError(tcpSocket->getLastError());
+                emit socketError(unit.method);
                 break;
             }
         }
@@ -111,29 +112,23 @@ void TextSender::processData()
  */
 bool TextSender::handleDataSend(SendUnit &unit)
 {
-    if(unit.method == C_TCP){
-        if(tcpSocket->isValid()){
-            auto func = [&](const char * buff,const int length)->int{
-                return tcpSocket->send(buff,length);
-            };
+    std::lock_guard<std::mutex> lg(tranMutex);
 
-            if(dataPacketRule->wrap(unit.data,func))
-                return true;
-        }
+//<<<<<<< HEAD:RimClient/Network/win32net/tcpmsgsender.cpp
+//    }else if(unit.method == C_UDP){
+//        QHostAddress destAddr("127.0.0.1");
+//        quint16 destPort = 7755;
+//        if(m_pRUDPSendSocket)
+//        {
+//            m_pRUDPSendSocket->SendData(false,unit.data,unit.data.size(),destAddr,destPort);
+//        }
+//    }else if(unit.method == C_BUS){
 
-        RLOG_ERROR("Send a data error!");
-        tcpSocket->closeSocket();
-
-    }else if(unit.method == C_UDP){
-        QHostAddress destAddr("127.0.0.1");
-        quint16 destPort = 7755;
-        if(m_pRUDPSendSocket)
-        {
-            m_pRUDPSendSocket->SendData(false,unit.data,unit.data.size(),destAddr,destPort);
-        }
-    }else if(unit.method == C_BUS){
-
-    }
+//    }
+//=======
+    BaseTransmit * trans = transmits.value(unit.method);
+    if(trans != nullptr)
+        return trans->startTransmit(unit);
     return false;
 }
 
@@ -180,9 +175,8 @@ void FileSender::processData()
         while(G_FileSendBuffs.size() <= 0)
         {
             if(!runningFlag)
-            {
                 break;
-            }
+
             G_FileSendMutex.lock();
             G_FileSendWaitCondition.wait(&G_FileSendMutex);
             G_FileSendMutex.unlock();
@@ -196,7 +190,7 @@ void FileSender::processData()
 
             if(!handleDataSend(sendUnit))
             {
-                emit socketError(tcpSocket->getLastError());
+                emit socketError(sendUnit.method);
                 break;
             }
         }
@@ -213,24 +207,11 @@ void FileSender::processData()
  */
 bool FileSender::handleDataSend(SendUnit &unit)
 {
-    if(unit.method == C_TCP){
-        if(tcpSocket->isValid())
-        {
-            auto func = [&](const char * buff,const int length)->int{
-                return tcpSocket->send(buff,length);
-            };
+    std::lock_guard<std::mutex> lg(tranMutex);
 
-            if(dataPacketRule->wrap(unit.data,func))
-                return true;
-        }
-
-        RLOG_ERROR("Send a data error!");
-        tcpSocket->closeSocket();
-    }else if(unit.method == C_UDP){
-
-    }else if(unit.method == C_BUS){
-
-    }
+    BaseTransmit * trans = transmits.value(unit.method);
+    if(trans != nullptr)
+        return trans->startTransmit(unit);
 
     return false;
 }

@@ -19,6 +19,9 @@ RUDPSocket::RUDPSocket(QHostAddress host, int localRecvPort, QObject *parent)
 
     m_udpRecvScocket = new QUdpSocket();
     ret2 = m_udpRecvScocket->bind(QHostAddress::AnyIPv4, m_RecvPort);
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<ret1<<m_udpSendScocket->localPort()<<ret2<<m_udpRecvScocket->localPort()
+          <<"\n";
 
     connect(m_udpRecvScocket, SIGNAL(readyRead()),
             this, SLOT(readPendingDatagrams()));
