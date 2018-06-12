@@ -22,6 +22,12 @@ TcpTransmit::~TcpTransmit()
     dataPacketRule.reset();
 }
 
+/*!
+ * @brief 开始传输指定的数据单元
+ * @param[in] SendUnit 待发送的数据单元
+ * @return 是否传输成功
+ * @note 若传输失败，则直接关闭socket，并将错误信息交由上层处理。
+ */
 bool TcpTransmit::startTransmit(const SendUnit &unit)
 {
     if(tcpSocket && tcpSocket->isValid()){
@@ -33,10 +39,8 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
             return true;
     }
 
+    close();
     RLOG_ERROR("Tcp send a data error!");
-    if(tcpSocket)
-        tcpSocket->closeSocket();
-
     return false;
 }
 
@@ -62,7 +66,7 @@ bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, std::function<void(
         RLOG_ERROR("Tcp socket occour error! %d",tcpSocket->getLastError());
     }
 
-    tcpSocket->closeSocket();
+    close();
 
     return false;
 }
@@ -81,12 +85,20 @@ bool TcpTransmit::close()
     return false;
 }
 
+/*!
+ * @brief 连接远程网络地址
+ * @param[in] remoteIp 远程IP地址
+ * @param[in] remotePort 远程端口号
+ * @param[in] timeouts 连接超时时间
+ * @return 是否连接成功
+ */
 bool TcpTransmit::connect(const char *remoteIp, const unsigned short remotePort, int timeouts)
 {
     if(!tcpSocket || !remoteIp || remotePort <= 0)
         return false;
 
     if(!netConnected){
+
         if(!tcpSocket->isValid() && tcpSocket->createSocket())
         {
             int timeout = 3000;

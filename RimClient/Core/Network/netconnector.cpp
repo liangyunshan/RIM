@@ -24,17 +24,14 @@ typedef  int socklen_t;
 #include "messdiapatch.h"
 
 SuperConnector::SuperConnector(QObject *parent):ClientNetwork::RTask(parent),
-    netConnected(false),delayTime(3),command(Net_None),tcpTransmit(nullptr)
+    delayTime(3),command(Net_None)
 {
 
 }
 
 SuperConnector::~SuperConnector()
 {
-    if(netConnected && rsocket->isValid()){
-        if(rsocket->closeSocket())
-            netConnected = false;
-    }
+
 }
 
 /*!
@@ -45,29 +42,20 @@ void SuperConnector::connect(int delaySecTime)
 {
     command = Net_Connect;
     delaySecTime = delaySecTime;
-    condition.wakeOne();
+    condition.notify_one();
 }
 
 void SuperConnector::reconnect(int delaySecTime)
 {
     command = Net_Reconnect;
     delayTime = delaySecTime;
-    condition.wakeOne();
+    condition.notify_one();
 }
 
 void SuperConnector::disConnect()
 {
     command = Net_Disconnect;
-    condition.wakeOne();
-}
-
-bool SuperConnector::setBlock(bool flag)
-{
-    if(rsocket->isValid())
-    {
-        return rsocket->setBlock(flag);
-    }
-    return false;
+    condition.notify_one();
 }
 
 void SuperConnector::startMe()
@@ -84,7 +72,7 @@ void SuperConnector::stopMe()
 {
     runningFlag = false;
     command = Net_None;
-    condition.wakeOne();
+    condition.notify_one();
 }
 
 void SuperConnector::run()
@@ -92,9 +80,8 @@ void SuperConnector::run()
     runningFlag = true;
     while(runningFlag)
     {
-        mutex.lock();
-        condition.wait(&mutex);
-        mutex.unlock();
+        std::unique_lock<std::mutex> ul(mutex);
+        condition.wait(ul);
 
         switch(command)
         {
@@ -123,7 +110,7 @@ TextNetConnector::TextNetConnector():
 {
     netConnector = this;
 
-    tcpTransmit = new ClientNetwork::TcpTransmit();
+    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
 
     msgSender = new ClientNetwork::TextSender();
     QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
@@ -131,15 +118,19 @@ TextNetConnector::TextNetConnector():
     msgReceive = new ClientNetwork::TextReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
-    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
+    msgSender->addTransmit(tcpTransmit);
     msgReceive->bindTransmit(tcpTransmit);
 }
 
 TextNetConnector::~TextNetConnector()
 {
     netConnector = nullptr;
-    delete msgReceive;
+
     delete msgSender;
+    msgSender = nullptr;
+
+    delete msgReceive;
+    msgReceive = nullptr;
     stopMe();
     wait();
 }
@@ -149,36 +140,36 @@ TextNetConnector *TextNetConnector::instance()
     return netConnector;
 }
 
+/*!
+ * @brief 处理某种传输方式中产生异常
+ * @param[in] method 传输方式
+ * @note  1.当某种传输方式产生了异常，应进行界面提示; \n
+ *        2.此时的发送/接收队列任务应不关闭。
+ */
 void TextNetConnector::respSocketError(CommMethod method)
 {
     switch(method){
         case C_TCP:
-
+            MessDiapatch::instance()->onTextSocketError();
             break;
         default:
             break;
     }
-
-    MessDiapatch::instance()->onTextSocketError();
-
-    netConnected = false;
-//    msgSender->stopMe();
-//    msgReceive->stopMe();
 }
 
 void TextNetConnector::doConnect()
 {
-    if(tcpTransmit && !tcpTransmit->connected()){
+    if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
         memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
         bool result = tcpTransmit->connect(ip,G_TextServerPort,delayTime);
         MessDiapatch::instance()->onTextConnected(result);
     }
 
-    if(!msgSender->isRunning())
+    if(msgSender != nullptr && !msgSender->running())
         msgSender->startMe();
 
-    if(!msgReceive->isRunning())
+    if(msgReceive != nullptr && !msgReceive->running())
         msgReceive->startMe();
 }
 
@@ -189,7 +180,7 @@ void TextNetConnector::doReconnect()
 
 void TextNetConnector::doDisconnect()
 {
-    if(tcpTransmit)
+    if(tcpTransmit.get() != nullptr)
         tcpTransmit->close();
 
     msgSender->stopMe();
@@ -203,7 +194,7 @@ FileNetConnector::FileNetConnector():
 {
     netConnector = this;
 
-    tcpTransmit = new ClientNetwork::TcpTransmit();
+    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
 
     msgSender = new ClientNetwork::FileSender();
     QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
@@ -211,15 +202,19 @@ FileNetConnector::FileNetConnector():
     msgReceive = new ClientNetwork::FileReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
-    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
+    msgSender->addTransmit(tcpTransmit);
     msgReceive->bindTransmit(tcpTransmit);
 }
 
 FileNetConnector::~FileNetConnector()
 {
     netConnector = nullptr;
+
     delete msgSender;
+    msgSender = nullptr;
+
     delete msgReceive;
+    msgReceive = nullptr;
 
     stopMe();
     wait();
@@ -234,32 +229,29 @@ void FileNetConnector::respSocketError(CommMethod method)
 {
     switch(method){
         case C_TCP:
-
+            MessDiapatch::instance()->onFileSocketError();
             break;
         default:
             break;
     }
 
-    MessDiapatch::instance()->onFileSocketError();
-
-    netConnected = false;
 //    msgSender->stopMe();
 //    msgReceive->stopMe();
 }
 
 void FileNetConnector::doConnect()
 {
-    if(tcpTransmit && !tcpTransmit->connected()){
+    if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
         memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
         bool result = tcpTransmit->connect(ip,G_FileServerPort,delayTime);
         MessDiapatch::instance()->onFileConnected(result);
     }
 
-    if(!msgSender->isRunning())
+    if(msgSender != nullptr &&!msgSender->running())
         msgSender->startMe();
 
-    if(!msgReceive->isRunning())
+    if(msgReceive != nullptr && !msgReceive->running())
         msgReceive->startMe();
 }
 
@@ -270,7 +262,7 @@ void FileNetConnector::doReconnect()
 
 void FileNetConnector::doDisconnect()
 {
-    if(tcpTransmit)
+    if(tcpTransmit.get() != nullptr)
         tcpTransmit->close();
 
 //    MessDiapatch::instance()->onFileSocketError();

@@ -13,8 +13,6 @@
 #ifndef TCPMSGRECEIVE_H
 #define TCPMSGRECEIVE_H
 
-#include <QHash>
-
 #include "../network_global.h"
 #include "../rtask.h"
 #include "../rsocket.h"
@@ -32,7 +30,7 @@ public:
     explicit RecveiveTask(QObject *parent = 0);
     virtual ~RecveiveTask();
 
-    void bindTransmit(BaseTransmit * trans);
+    void bindTransmit(std::shared_ptr<BaseTransmit> trans);
 
     void startMe();
     void stopMe();
@@ -47,7 +45,7 @@ protected:
 protected:
     QString errorString;
 
-    BaseTransmit * transmit;
+    std::shared_ptr<BaseTransmit> transmit;
 };
 
 class NETWORKSHARED_EXPORT TextReceive : public RecveiveTask
