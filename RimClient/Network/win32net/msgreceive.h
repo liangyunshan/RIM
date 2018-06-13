@@ -20,7 +20,6 @@
 #include "../rsocket.h"
 #include "../wraprule/datapacketrule.h"
 #include <memory>
-class RUDPSocket;
 
 namespace ClientNetwork{
 
@@ -47,10 +46,6 @@ protected:
 
 protected:
     QString errorString;
-
-//<<<<<<< HEAD:RimClient/Network/win32net/tcpmsgreceive.h
-    RUDPSocket *m_pRUDPRecvSocket;
-//=======
     BaseTransmit * transmit;
 };
 

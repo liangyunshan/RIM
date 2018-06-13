@@ -9,18 +9,11 @@
 #include "Util/rlog.h"
 #include "../multitransmits/basetransmit.h"
 
-//716-TK兼容
-#include "rudpsocket.h"
-//
-
 namespace ClientNetwork{
 
 SendTask::SendTask(QThread *parent):
     RTask(parent)
 {
-    //716-TK
-    m_pRUDPSendSocket = new RUDPSocket(QHostAddress::AnyIPv4,7755);
-    //
 }
 
 bool SendTask::addTransmit(CommMethod method, BaseTransmit *trans)
@@ -113,19 +106,6 @@ void TextSender::processData()
 bool TextSender::handleDataSend(SendUnit &unit)
 {
     std::lock_guard<std::mutex> lg(tranMutex);
-
-//<<<<<<< HEAD:RimClient/Network/win32net/tcpmsgsender.cpp
-//    }else if(unit.method == C_UDP){
-//        QHostAddress destAddr("127.0.0.1");
-//        quint16 destPort = 7755;
-//        if(m_pRUDPSendSocket)
-//        {
-//            m_pRUDPSendSocket->SendData(false,unit.data,unit.data.size(),destAddr,destPort);
-//        }
-//    }else if(unit.method == C_BUS){
-
-//    }
-//=======
     BaseTransmit * trans = transmits.value(unit.method);
     if(trans != nullptr)
         return trans->startTransmit(unit);

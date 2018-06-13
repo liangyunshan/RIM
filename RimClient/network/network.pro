@@ -32,9 +32,11 @@ CONFIG(debug, debug|release) {
 }
 
 INCLUDEPATH += $$PWD/../
+INCLUDEPATH += $$PWD/multitransmits/
 
 win32-msvc2013{
     LIBS+= ../Lib/Util.lib
+    LIBS+= ../Lib/DDS.lib
 }
 
 win32-g++{
@@ -59,7 +61,8 @@ SOURCES += \
     multitransmits/basetransmit.cpp \
     multitransmits/tcptransmit.cpp \
     win32net/msgsender.cpp \
-    win32net/msgreceive.cpp
+    win32net/msgreceive.cpp \
+    multitransmits/ddstransmit.cpp
 
 HEADERS +=\
         network_global.h \
@@ -74,4 +77,5 @@ HEADERS +=\
     multitransmits/basetransmit.h \
     multitransmits/tcptransmit.h \
     win32net/msgreceive.h \
-    win32net/msgsender.h
+    win32net/msgsender.h \
+    multitransmits/ddstransmit.h

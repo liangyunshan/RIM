@@ -26,6 +26,7 @@
 #include "user/userfriendcontainer.h"
 #include "systemnotifyview.h"
 #include "chatpersonwidget.h"
+#include "Network/netconnector.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -121,6 +122,10 @@ void SplashLoginDialog::initResource()
     connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
 
     d->mainDialog->setLogInState(STATUS_ONLINE);
+
+    //716_TK兼容调试
+    TextNetConnector::instance()->connect();
+    //
 
     QDateTime n = QDateTime::currentDateTime();
     QDateTime now;

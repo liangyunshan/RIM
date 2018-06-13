@@ -18,6 +18,7 @@ typedef  int socklen_t;
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
 #include "Network/multitransmits/tcptransmit.h"
+#include "Network/multitransmits/ddstransmit.h"
 #include "Util/rlog.h"
 #include "global.h"
 #include "rsingleton.h"
@@ -131,8 +132,13 @@ TextNetConnector::TextNetConnector():
     msgReceive = new ClientNetwork::TextReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
-    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
-    msgReceive->bindTransmit(tcpTransmit);
+//    msgSender->addTransmit(tcpTransmit->type(),tcpTransmit);
+//    msgReceive->bindTransmit(tcpTransmit);
+
+    //716
+    ddsTransmit =new ClientNetwork::DDSTransmit();
+    msgSender->addTransmit(ddsTransmit->type(),ddsTransmit);
+    msgReceive->bindTransmit(ddsTransmit);
 }
 
 TextNetConnector::~TextNetConnector()

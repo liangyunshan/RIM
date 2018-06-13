@@ -30,6 +30,7 @@ class FileReceive;
 namespace ClientNetwork {
 class RTask;
 class TcpTransmit;
+class DDSTransmit;
 }
 
 class SuperConnector : public ClientNetwork::RTask
@@ -87,6 +88,7 @@ protected:
     QWaitCondition condition;
 
     ClientNetwork::TcpTransmit * tcpTransmit;
+    ClientNetwork::DDSTransmit * ddsTransmit;
 };
 
 class TextNetConnector : public SuperConnector

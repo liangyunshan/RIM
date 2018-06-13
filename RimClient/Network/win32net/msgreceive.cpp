@@ -12,10 +12,6 @@
 #include "netglobal.h"
 #include "../multitransmits/basetransmit.h"
 
-//716-TK兼容
-#include "rudpsocket.h"
-//
-
 #define MSG_RECV_BUFF 1024
 
 namespace ClientNetwork{
@@ -23,11 +19,6 @@ namespace ClientNetwork{
 RecveiveTask::RecveiveTask(QObject *parent) :
     transmit(NULL),RTask(parent)
 {
-    //716-TK
-    m_pRUDPRecvSocket = new RUDPSocket(QHostAddress::AnyIPv4,7755);
-    connect(m_pRUDPRecvSocket,SIGNAL(readyRead(QByteArray)),
-            this, SLOT(slot_RecvRUDpData(QByteArray)));
-    //
 }
 
 void RecveiveTask::bindTransmit(BaseTransmit *trans)

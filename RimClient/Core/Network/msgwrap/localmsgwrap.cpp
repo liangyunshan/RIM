@@ -50,10 +50,13 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             commMethod = C_UDP;
             sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(result);
         }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
+//            commMethod = C_TCP;
+//            sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
+
+            //716_兼容调试,暂时使用DDS+TCP报文格式发送数据，此处复用TCP发送格式
+            commMethod = C_BUS;
             sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
         }
-
         if(commMethod != C_NONE){
             G_TextSendMutex.lock();
             G_TextSendBuffs.enqueue({commMethod,sendResult});

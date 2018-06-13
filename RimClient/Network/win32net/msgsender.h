@@ -22,9 +22,6 @@
 #include <mutex>
 #include "../wraprule/datapacketrule.h"
 
-//合并测试
-class RUDPSocket;
-
 namespace ClientNetwork{
 
 class BaseTransmit;
@@ -50,9 +47,6 @@ protected:
     char sendBuff[MAX_SEND_BUFF];
     int SendPackId;
     QMutex SendPackMutex;
-//<<<<<<< HEAD:RimClient/Network/win32net/tcpmsgsender.h
-    RUDPSocket *m_pRUDPSendSocket;
-//=======
 
     std::mutex tranMutex;
     QMap<CommMethod,BaseTransmit *> transmits;

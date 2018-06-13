@@ -91,7 +91,6 @@ protected:
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
     QString windowId;                       //窗口身份ID，只在创建时指定，可用于身份判断
     QDateTime m_preMsgTime;                 //上一条信息收发日期时间
-    RUDPSocket *m_RUDPSocket;
 #ifdef __LOCAL_CONTACT__
     ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */ 
 #endif
@@ -298,9 +297,6 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
     d_ptr->view->load(QUrl("qrc:/html/resource/html/chatRecord.html"));
     d_ptr->view->show();
     d_ptr->fontWidget->setDefault();
-
-    d_ptr->m_RUDPSocket = new RUDPSocket(QHostAddress::AnyIPv4,7755);
-
 }
 
 AbstractChatMainWidget::~AbstractChatMainWidget()
@@ -479,15 +475,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     t_unit.contents = t_localHtml;
     t_unit.contents = d->chatInputArea->toPlainText();;
     appendMsgRecord(t_unit,SEND);
-
-    QHostAddress destaddr("127.0.0.1");
-    quint16 destPort = 7758;
-    QByteArray tempsenddata = t_unit.contents.toLocal8Bit();
-    d->m_RUDPSocket->SendData(false,
-                              tempsenddata.data(),
-                              tempsenddata.size(),
-                              destaddr,
-                              destPort);
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
@@ -829,14 +816,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     else
     {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<G_User->BaseInfo().isSystemIcon<<G_User->BaseInfo().iconId
-              <<"\n";
     }
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"t_headPath:"<<t_headPath
-          <<"\n";
 
     d->view->page()->runJavaScript(t_showMsgScript);
 }
