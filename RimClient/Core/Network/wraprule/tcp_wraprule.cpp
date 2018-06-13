@@ -18,7 +18,7 @@ QByteArray TCP_WrapRule::wrap(const QByteArray &data)
 
 QByteArray TCP_WrapRule::unwrap(const QByteArray &data)
 {
-    return QByteArray();
+    return QByteArray(data);
 }
 
 #endif

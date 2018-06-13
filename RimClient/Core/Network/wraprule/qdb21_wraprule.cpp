@@ -10,12 +10,12 @@ QDB21_WrapRule::QDB21_WrapRule():WrapRule()
 QByteArray QDB21_WrapRule::wrap(const QByteArray &data)
 {
 
-    return QByteArray();
+    return QByteArray(data);
 }
 
 QByteArray QDB21_WrapRule::unwrap(const QByteArray &data)
 {
-    return QByteArray();
+    return QByteArray(data);
 }
 
 #endif
