@@ -11,15 +11,12 @@
 #ifndef MSGSENDER_H
 #define MSGSENDER_H
 
-#include <QMutex>
-#include <QWaitCondition>
-#include <QMap>
-
 #include "../rtask.h"
 #include "../rsocket.h"
 
 #include <memory>
 #include <mutex>
+#include <map>
 #include "../wraprule/datapacketrule.h"
 
 namespace ClientNetwork{
@@ -32,7 +29,8 @@ class NETWORKSHARED_EXPORT SendTask : public RTask
 public:
     explicit SendTask(QThread * parent = 0);
 
-    bool addTransmit(CommMethod method,BaseTransmit * trans);
+    bool addTransmit(std::shared_ptr<BaseTransmit> trans);
+    bool removaAllTransmit();
 
 signals:
     void socketError(CommMethod method);
@@ -49,7 +47,7 @@ protected:
     QMutex SendPackMutex;
 
     std::mutex tranMutex;
-    QMap<CommMethod,BaseTransmit *> transmits;
+    std::map<CommMethod,std::shared_ptr<BaseTransmit> > transmits;
 };
 
 class NETWORKSHARED_EXPORT TextSender : public SendTask
@@ -81,8 +79,6 @@ protected:
     void processData();
     bool handleDataSend(SendUnit &unit);
 
-private:
-    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 }

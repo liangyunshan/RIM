@@ -20,7 +20,7 @@ QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 DEFINES += __NO_SQL_PRINT__
 
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
-#DEFINES += __LOCAL_CONTACT__
+DEFINES += __LOCAL_CONTACT__
 
 TARGET = RimClient
 TEMPLATE = app

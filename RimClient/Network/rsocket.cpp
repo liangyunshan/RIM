@@ -3,11 +3,11 @@
 #include <QtGlobal>
 #include <QDebug>
 
-#ifdef Q_OS_WIN
-#include <winsock2.h>
+#ifdef WIN32
+#include <WinSock2.h>
 #include <windows.h>
 typedef  int socklen_t;
-#elif defined(Q_OS_UNIX)
+#elif defined(LINUX)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -32,9 +32,14 @@ RSocket::RSocket()
     memset(socketIp,0,sizeof(socketIp));
 }
 
-bool RSocket::createSocket()
+RSocket::~RSocket()
 {
-#ifdef Q_OS_WIN
+    qDebug()<<"delete socket";
+}
+
+bool RSocket::createSocket(int type)
+{
+#ifdef WIN32
     static bool isInit = false;
     if(!isInit)
     {
@@ -48,7 +53,7 @@ bool RSocket::createSocket()
     }
 #endif
 
-    tcpSocket = socket(AF_INET,SOCK_STREAM,0);
+    tcpSocket = socket(AF_INET,type,0);
     if(tcpSocket == INVALID_SOCKET)
     {
         errorCode = WSAGetLastError();

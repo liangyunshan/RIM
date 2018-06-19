@@ -28,10 +28,10 @@ void BaseMsgWrap::handleMsg(MsgPacket * packet
             {
                 RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
                 G_TextSendMutex.lock();
-                G_TextSendBuffs.enqueue({C_TCP,result});
+                G_TextSendBuffs.push({C_TCP,result});
                 G_TextSendMutex.unlock();
 
-                G_TextSendWaitCondition.wakeOne();
+                G_TextSendWaitCondition.notify_one();
             }
             break;
         case MSG_FILE:
@@ -39,10 +39,10 @@ void BaseMsgWrap::handleMsg(MsgPacket * packet
                 RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
 
                 G_FileSendMutex.lock();
-                G_FileSendBuffs.enqueue({C_TCP,result});
+                G_FileSendBuffs.push({C_TCP,result});
                 G_FileSendMutex.unlock();
 
-                G_FileSendWaitCondition.wakeOne();
+                G_FileSendWaitCondition.notify_one();
             }
             break;
         default:
