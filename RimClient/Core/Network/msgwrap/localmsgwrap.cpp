@@ -70,10 +70,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         }
         if(commMethod != C_NONE){
             G_TextSendMutex.lock();
-            G_TextSendBuffs.enqueue({commMethod,sendResult});
+            G_TextSendBuffs.push({commMethod,sendResult});
             G_TextSendMutex.unlock();
 
-            G_TextSendWaitCondition.wakeOne();
+            G_TextSendWaitCondition.notify_one();
         }
     }
 }

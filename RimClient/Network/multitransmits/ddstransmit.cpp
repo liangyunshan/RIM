@@ -1,5 +1,5 @@
 ﻿#include "ddstransmit.h"
-#include "DDS.h"
+#include "../Lib/DDS.h"
 #include "Util/rlog.h"
 #include <QDebug>
 

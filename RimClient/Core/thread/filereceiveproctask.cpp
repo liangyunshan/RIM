@@ -33,7 +33,7 @@ void FileReceiveProcTask::startMe()
     }
     else
     {
-        G_FileRecvCondition.wakeOne();
+        G_FileRecvCondition.notify_one();
     }
 }
 
@@ -41,24 +41,24 @@ void FileReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_FileRecvCondition.wakeOne();
+    G_FileRecvCondition.notify_one();
 }
 
 void FileReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(runningFlag && G_FileRecvBuffs.isEmpty())
+        while(runningFlag && G_FileRecvBuffs.empty())
         {
-            G_FileRecvMutex.lock();
-            G_FileRecvCondition.wait(&G_FileRecvMutex);
-            G_FileRecvMutex.unlock();
+            std::unique_lock<std::mutex> ul(G_FileRecvMutex);
+            G_FileRecvCondition.wait(ul);
         }
 
         if(runningFlag && G_FileRecvBuffs.size() > 0)
         {
             G_FileRecvMutex.lock();
-            QByteArray array = G_FileRecvBuffs.dequeue();
+            QByteArray array = G_FileRecvBuffs.front();
+            G_FileRecvBuffs.pop();
             G_FileRecvMutex.unlock();
 
             if(array.size() > 0)

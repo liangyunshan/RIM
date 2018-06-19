@@ -1,8 +1,5 @@
 ﻿#include "msgreceive.h"
 
-#include <QUdpSocket>
-#include <QDebug>
-
 #ifdef Q_OS_WIN
 #include <winsock2.h>
 #endif
@@ -21,7 +18,7 @@ RecveiveTask::RecveiveTask(QObject *parent) :
 {
 }
 
-void RecveiveTask::bindTransmit(BaseTransmit *trans)
+void RecveiveTask::bindTransmit(std::shared_ptr<BaseTransmit> trans)
 {
     transmit = trans;
 }
@@ -88,10 +85,10 @@ TextReceive::~TextReceive()
 void TextReceive::processData(QByteArray &data)
 {
     G_TextRecvMutex.lock();
-    G_TextRecvBuffs.enqueue(data);
+    G_TextRecvBuffs.push(data);
     G_TextRecvMutex.unlock();
 
-    G_TextRecvCondition.wakeOne();
+    G_TextRecvCondition.notify_one();
 }
 
 FileReceive::FileReceive(QObject *parent):
@@ -109,10 +106,10 @@ FileReceive::~FileReceive()
 void FileReceive::processData(QByteArray &data)
 {
     G_FileRecvMutex.lock();
-    G_FileRecvBuffs.enqueue(data);
+    G_FileRecvBuffs.push(data);
     G_FileRecvMutex.unlock();
 
-    G_FileRecvCondition.wakeOne();
+    G_FileRecvCondition.notify_one();
 }
 
 } //namespace ClientNetwork;

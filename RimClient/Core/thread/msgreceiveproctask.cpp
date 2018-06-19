@@ -33,7 +33,7 @@ void MsgReceiveProcTask::startMe()
     }
     else
     {
-        G_TextRecvCondition.wakeOne();
+        G_TextRecvCondition.notify_one();
     }
 }
 
@@ -41,17 +41,17 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(runningFlag && G_TextRecvBuffs.isEmpty())
+        while(runningFlag && G_TextRecvBuffs.empty())
         {
-            G_TextRecvMutex.lock();
-            G_TextRecvCondition.wait(&G_TextRecvMutex);
-            G_TextRecvMutex.unlock();
+            std::unique_lock<std::mutex> ul(G_TextRecvMutex);
+            G_TextRecvCondition.wait(ul);
         }
 
         if(runningFlag && G_TextRecvBuffs.size() > 0)
         {
             G_TextRecvMutex.lock();
-            QByteArray array = G_TextRecvBuffs.dequeue();
+            QByteArray array = G_TextRecvBuffs.front();
+            G_TextRecvBuffs.pop();
             G_TextRecvMutex.unlock();
 
             if(array.size() > 0)
@@ -177,5 +177,5 @@ void MsgReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_TextRecvCondition.wakeOne();
+    G_TextRecvCondition.notify_one();
 }

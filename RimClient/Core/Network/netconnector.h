@@ -12,12 +12,11 @@
 #ifndef NETCONNECTOR_H
 #define NETCONNECTOR_H
 
-#include <QMutex>
-#include <QWaitCondition>
-
 #include "Network/rtask.h"
 #include "Network/rsocket.h"
 #include <mutex>
+#include <condition_variable>
+#include <memory>
 
 namespace ClientNetwork
 {
@@ -52,9 +51,6 @@ public:
     void reconnect(int delaySecTime = 3);
     void disConnect();
 
-    bool setBlock(bool flag);
-    bool isBock(){return rsocket->isBock();}
-
     bool isSockValid(){return rsocket->isValid();}
     bool isConnected()const {return netConnected;}
 
@@ -84,11 +80,12 @@ protected:
 
     int delayTime;
 
-    QMutex mutex;
-    QWaitCondition condition;
+    std::mutex mutex;
+    std::condition_variable condition;
 
-    ClientNetwork::TcpTransmit * tcpTransmit;
-    ClientNetwork::DDSTransmit * ddsTransmit;
+//    ClientNetwork::DDSTransmit * ddsTransmit;
+    std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit;
+    std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit;
 };
 
 class TextNetConnector : public SuperConnector

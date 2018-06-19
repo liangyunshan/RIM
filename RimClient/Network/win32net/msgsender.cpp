@@ -1,10 +1,5 @@
 ﻿#include "msgsender.h"
 
-#include <QDebug>
-#include <QDateTime>
-#include <QMutex>
-#include <qmath.h>
-
 #include "netglobal.h"
 #include "Util/rlog.h"
 #include "../multitransmits/basetransmit.h"
@@ -16,13 +11,37 @@ SendTask::SendTask(QThread *parent):
 {
 }
 
-bool SendTask::addTransmit(CommMethod method, BaseTransmit *trans)
+/*!
+ * @brief 添加新的传输方式
+ * @param[in] BaseTransmit * 待添加传输方式对象
+ * @return 是否添加成功
+ * @attention 若容器中已经存在此种传输方式，默认不替换
+ */
+bool SendTask::addTransmit(std::shared_ptr<BaseTransmit> trans)
 {
-    if(trans == nullptr)
-        return false;
-
     std::lock_guard<std::mutex> lg(tranMutex);
-    transmits.insert(method,trans);
+    if(transmits.find(trans->type()) != transmits.end())
+        return true;
+
+    transmits.insert(std::pair<CommMethod,std::shared_ptr<BaseTransmit>>(trans->type(),trans));
+    return true;
+}
+
+/*!
+ * @brief 清空所有的传输方式
+ * @return 是否全部清空
+ */
+bool SendTask::removaAllTransmit()
+{
+    std::lock_guard<std::mutex> lg(tranMutex);
+
+    auto tbegin = transmits.begin();
+    while(tbegin != transmits.end()){
+        (*tbegin).second->close();
+        (*tbegin).second.reset();
+        tbegin = transmits.erase(tbegin);
+    }
+
     return true;
 }
 
@@ -47,6 +66,7 @@ TextSender::~TextSender()
 {
     stopMe();
     wait();
+//    removaAllTransmit();
 }
 
 void TextSender::startMe()
@@ -58,7 +78,7 @@ void TextSender::startMe()
     }
     else
     {
-        G_TextSendWaitCondition.wakeOne();
+        G_TextSendWaitCondition.notify_one();
     }
 }
 
@@ -68,7 +88,7 @@ void TextSender::stopMe()
     {
         RTask::stopMe();
         runningFlag = false;
-        G_TextSendWaitCondition.wakeOne();
+        G_TextSendWaitCondition.notify_one();
     }
 }
 
@@ -78,14 +98,14 @@ void TextSender::processData()
     {
         while(runningFlag && G_TextSendBuffs.size() <= 0)
         {
-            G_TextSendMutex.lock();
-            G_TextSendWaitCondition.wait(&G_TextSendMutex);
-            G_TextSendMutex.unlock();
+            std::unique_lock<std::mutex> ul(G_TextSendMutex);
+            G_TextSendWaitCondition.wait(ul);
         }
         if(runningFlag)
         {
             G_TextSendMutex.lock();
-            SendUnit unit =  G_TextSendBuffs.dequeue();
+            SendUnit unit =  G_TextSendBuffs.front();
+            G_TextSendBuffs.pop();
             G_TextSendMutex.unlock();
 
             if(!handleDataSend(unit))
@@ -106,8 +126,9 @@ void TextSender::processData()
 bool TextSender::handleDataSend(SendUnit &unit)
 {
     std::lock_guard<std::mutex> lg(tranMutex);
-    BaseTransmit * trans = transmits.value(unit.method);
-    if(trans != nullptr)
+
+    std::shared_ptr<BaseTransmit> trans = transmits.at(unit.method);
+    if(trans.get() != nullptr)
         return trans->startTransmit(unit);
     return false;
 }
@@ -115,13 +136,13 @@ bool TextSender::handleDataSend(SendUnit &unit)
 FileSender::FileSender(QThread *parent):
     SendTask(parent)
 {
-    dataPacketRule = std::make_shared<DataPacketRule>();
+
 }
 
 FileSender::~FileSender()
 {
+//    removaAllTransmit();
     stopMe();
-    dataPacketRule.reset();
     wait();
 }
 
@@ -134,7 +155,7 @@ void FileSender::startMe()
     }
     else
     {
-        G_FileSendWaitCondition.wakeOne();
+        G_FileSendWaitCondition.notify_one();
     }
 }
 
@@ -144,7 +165,7 @@ void FileSender::stopMe()
     {
         RTask::stopMe();
         runningFlag = false;
-        G_FileSendWaitCondition.wakeOne();
+        G_FileSendWaitCondition.notify_one();
     }
 }
 
@@ -157,15 +178,15 @@ void FileSender::processData()
             if(!runningFlag)
                 break;
 
-            G_FileSendMutex.lock();
-            G_FileSendWaitCondition.wait(&G_FileSendMutex);
-            G_FileSendMutex.unlock();
+            std::unique_lock<std::mutex> ul(G_FileSendMutex);
+            G_FileSendWaitCondition.wait(ul);
         }
 
         if(runningFlag)
         {
             G_FileSendMutex.lock();
-            SendUnit sendUnit =  G_FileSendBuffs.dequeue();
+            SendUnit sendUnit =  G_FileSendBuffs.front();
+            G_FileSendBuffs.pop();
             G_FileSendMutex.unlock();
 
             if(!handleDataSend(sendUnit))
@@ -189,8 +210,8 @@ bool FileSender::handleDataSend(SendUnit &unit)
 {
     std::lock_guard<std::mutex> lg(tranMutex);
 
-    BaseTransmit * trans = transmits.value(unit.method);
-    if(trans != nullptr)
+    std::shared_ptr<BaseTransmit> trans = transmits.at(unit.method);
+    if(trans.get() != nullptr)
         return trans->startTransmit(unit);
 
     return false;
