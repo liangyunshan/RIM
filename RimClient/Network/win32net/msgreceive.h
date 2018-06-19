@@ -45,6 +45,8 @@ protected:
 protected:
     QString errorString;
 
+//    BaseTransmit * transmit;
+
     std::shared_ptr<BaseTransmit> transmit;
 };
 

@@ -57,6 +57,9 @@ private slots:
     void errorGroupingOperate(OperateGrouping type);
     void screenChanged();
 
+    //716
+    void procRecvText(TextRequest response);
+
 private:
     void initWidget();
     void readSettings();

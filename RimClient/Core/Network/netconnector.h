@@ -29,6 +29,7 @@ class FileReceive;
 namespace ClientNetwork {
 class RTask;
 class TcpTransmit;
+class DDSTransmit;
 }
 
 class SuperConnector : public ClientNetwork::RTask
@@ -82,6 +83,8 @@ protected:
     std::mutex mutex;
     std::condition_variable condition;
 
+//    ClientNetwork::DDSTransmit * ddsTransmit;
+    std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit;
     std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit;
 };
 

@@ -15,6 +15,7 @@
 #include <QApplication>
 #include <QWebEngineView>
 #include <QWebEnginePage>
+#include <QHostAddress>
 
 #include <QDebug>
 
@@ -50,6 +51,10 @@
 #define CHAT_TOOL_HEIGHT 30
 #define CHAT_USER_ICON_SIZE 30
 #define TIMESTAMP_GAP 60            //显示新时间戳的消息时间间隔
+
+//716-TK兼容
+#include "../network/win32net/rudpsocket.h"
+//
 
 class AbstractChatMainWidgetPrivate : public GlobalData<AbstractChatMainWidget>
 {
@@ -87,7 +92,7 @@ protected:
     QString windowId;                       //窗口身份ID，只在创建时指定，可用于身份判断
     QDateTime m_preMsgTime;                 //上一条信息收发日期时间
 #ifdef __LOCAL_CONTACT__
-    ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */
+    ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */ 
 #endif
 };
 
@@ -145,6 +150,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     QVBoxLayout *inputLayout = new QVBoxLayout;
     inputLayout->setContentsMargins(0,0,0,0);
     inputLayout->setSpacing(0);
+    inputWidget->setMinimumHeight(180);
 
     /**********聊天工具栏***************/
     chatToolBar = new ToolBar(inputWidget);
@@ -467,6 +473,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     t_unit.nickName = d->m_userInfo.nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.contents = t_localHtml;
+    t_unit.contents = d->chatInputArea->toPlainText();;
     appendMsgRecord(t_unit,SEND);
 
     //转义原始Html
@@ -500,7 +507,8 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->otherSideId = d->m_userInfo.accountId;
 #endif
     request->accountId = G_User->BaseInfo().accountId;
-    request->sendData = t_sendHtml;
+    request->sendData = t_sendHtml;     //FIXME LYS-20180608
+    request->sendData = d->chatInputArea->toPlainText();
     request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
@@ -687,6 +695,17 @@ void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
     appendMsgRecord(msg);
 }
 
+//716-TK收到UDP
+void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
+{
+//    appendMsgRecord(msgUnit,RECV);
+    MQ_D(AbstractChatMainWidget);
+    QString recvdata(data);
+
+    QString t_showMsgScript = QString("appendMesRecord(%1,'%2')").arg(RECV).arg(recvdata);
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
 /*!
  * @brief AbstractChatMainWidget::setFontIconFilePath 设置html中使用的字体图标文件所在路径
  */
@@ -739,7 +758,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
         d->m_preMsgTime = t_curMsgTime;
     }
 
-    RUtil::removeEccapeDoubleQuote(t_localHtml);
+//    RUtil::removeEccapeDoubleQuote(t_localHtml);//FIXME LYS-20180608
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
@@ -786,7 +805,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         d->m_preMsgTime = t_curMsgTime;
     }
 
-    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);//FIXME LYS-20180608
     RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)
@@ -798,7 +817,6 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
 }
