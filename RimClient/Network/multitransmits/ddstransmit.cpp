@@ -13,9 +13,6 @@ DDSTransmit::DDSTransmit() :
     iRet=DDSCreateTopic("CLIENTRECV",4);
 
     iRet=DDSPublish(3,0,0);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"DDSPublish CLIENTSEND："<<iRet
-          <<"\n";
     iRet=DDSSubscribe(4,0,0);//主题
     if(iRet<=DTS_ERROR)
     {
@@ -37,9 +34,6 @@ DDSTransmit::~DDSTransmit()
 bool DDSTransmit::startTransmit(const SendUnit &unit)
 {
     QByteArray ddsdata = unit.data;
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<""<<ddsdata
-          <<"\n";
     int iRet=DDSSend(ddsdata.data(),ddsdata.size(),3);
     if (iRet<1)
     {
@@ -51,7 +45,7 @@ bool DDSTransmit::startTransmit(const SendUnit &unit)
     else
     {
         qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"发送主题CLIENTSEND报文成功SUCC"<<iRet
+               <<"Send CLIENTSEND Package SUCC"<<iRet
               <<"\n";
     }
     return iRet;

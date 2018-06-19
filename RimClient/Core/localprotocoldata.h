@@ -13,7 +13,7 @@
 #pragma pack(1)
 
 namespace QDB21{
-struct QDB21{
+struct QDB21_Head{
     unsigned short usDestAddr;
     unsigned short usSourceAddr;
     unsigned long ulPackageLen;
@@ -24,8 +24,10 @@ struct QDB21{
     unsigned short usOrderNo;
                                     //后面是可变长数据
 };//20字节长度
+}
 
-struct QDB21_2051{
+namespace QDB2051{
+struct QDB2051_Head{
     unsigned long ulPackageLen;
     unsigned short usDestSiteNo;
     unsigned long ulDestDeviceNo;
@@ -35,7 +37,6 @@ struct QDB21_2051{
     char cFileData;
                                     //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
 };//信息类别号为2051的文本信息
-
 }
 
 namespace QDB205{
@@ -58,19 +59,19 @@ struct TK205_SendPackage{
 namespace QDB495{
 
 //报文类型
-#define WM_DATA_AFFIRM      0
-#define WM_DATA_NOAFFIRM    1
+#define WM_DATA_AFFIRM      0   //需要信息回执
+#define WM_DATA_NOAFFIRM    1   //不需要信息回执
 #define WM_TRANS_AFFIRM     2
-#define WM_DATA_REG         3
+#define WM_DATA_REG         3   //注册、注销
 #define WM_TEST             4
 #define WM_TEST_RESULT      5
 #define WM_STREAM_CTRL      6
 #define WM_SENDREC_CTRL     7
-#define WM_CONNECT_TEST     8
-#define WM_UNROUTE          12
-#define WM_ROUTE_BLOCK      13
-#define WM_UNREGISTER       14
-#define WM_SERVER_BUSY      21
+#define WM_CONNECT_TEST     8   //终端空闲时，发送给服务器请求测试自身是否在线
+#define WM_UNROUTE          12  //路由不存在
+#define WM_ROUTE_BLOCK      13  //路由不通
+#define WM_UNREGISTER       14  //对端未注册
+#define WM_SERVER_BUSY      21  //服务器忙
 
 struct QDB495_SendPackage{
     unsigned char bVersion;

@@ -43,6 +43,17 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             break;
     }
 
+    //716
+    if(packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
+    {
+        TextRequest *test = ((TextRequest *)packet);
+        result = test->sendData.toLocal8Bit();
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<test->accountId<<test->otherSideId<<test->timeStamp
+              <<"\n";
+
+    }
+
     if(result.length() > 0){
         QByteArray sendResult;
         CommMethod commMethod = C_NONE;
