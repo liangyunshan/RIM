@@ -8,6 +8,7 @@
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
+#include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
 {
@@ -42,6 +43,17 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             break;
     }
 
+    //716
+    if(packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
+    {
+        TextRequest *test = ((TextRequest *)packet);
+        result = test->sendData.toLocal8Bit();
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<test->accountId<<test->otherSideId<<test->timeStamp
+              <<"\n";
+
+    }
+
     if(result.length() > 0){
         QByteArray sendResult;
         CommMethod commMethod = C_NONE;
@@ -49,10 +61,13 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             commMethod = C_UDP;
             sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(result);
         }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
+//            commMethod = C_TCP;
+//            sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
+
+            //716_兼容调试,暂时使用DDS+TCP报文格式发送数据，此处复用TCP发送格式
+            commMethod = C_BUS;
             sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
         }
-
         if(commMethod != C_NONE){
             G_TextSendMutex.lock();
             G_TextSendBuffs.push({commMethod,sendResult});

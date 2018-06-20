@@ -313,7 +313,7 @@ void SetFontWidget::setDefault()
     d->systemFont->setVisible(true);
     d->personalFont->setVisible(false);
     QFont defaultFont;
-    defaultFont.setPixelSize(9);
+    defaultFont.setPixelSize(14);
     emit fontChanged(defaultFont);
 
 }

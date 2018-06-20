@@ -9,7 +9,6 @@ namespace ClientNetwork{
 SendTask::SendTask(QThread *parent):
     RTask(parent)
 {
-
 }
 
 /*!
@@ -131,7 +130,6 @@ bool TextSender::handleDataSend(SendUnit &unit)
     std::shared_ptr<BaseTransmit> trans = transmits.at(unit.method);
     if(trans.get() != nullptr)
         return trans->startTransmit(unit);
-
     return false;
 }
 

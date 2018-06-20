@@ -16,7 +16,6 @@ namespace ClientNetwork{
 RecveiveTask::RecveiveTask(QObject *parent) :
     transmit(NULL),RTask(parent)
 {
-
 }
 
 void RecveiveTask::bindTransmit(std::shared_ptr<BaseTransmit> trans)

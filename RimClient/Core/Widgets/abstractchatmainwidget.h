@@ -90,6 +90,7 @@ private slots:
 
     void showQueryRecord(const ChatInfoUnit &);
     void recvTextChatMsg(const TextRequest &msg);
+    void slot_RecvRUDpData(QByteArray data);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;
