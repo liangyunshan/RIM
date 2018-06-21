@@ -22,6 +22,8 @@ public:
 
     QByteArray wrap(const QByteArray &data);
     QByteArray unwrap(const QByteArray &data);
+
+
 };
 
 #endif //__LOCAL_CONTACT__

@@ -29,6 +29,9 @@ public:
 
     void initLocalSettings();
 
+signals:
+    void ipInfoUpdated();
+
 private slots:
     void updateSettings();
 

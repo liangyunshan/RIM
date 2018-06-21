@@ -23,7 +23,7 @@ public:
     virtual ~BaseTransmit();
 
     virtual bool startTransmit(const SendUnit & unit) = 0;
-    virtual bool startRecv(char * recvBuff,int recvBuffLen,std::function<void(QByteArray &)> recvDataFunc) = 0;
+    virtual bool startRecv(char * recvBuff,int recvBuffLen,ByteArrayHandler recvDataFunc) = 0;
 
     CommMethod type();
     bool connected();

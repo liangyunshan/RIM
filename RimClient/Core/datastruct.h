@@ -176,6 +176,25 @@ struct SystemSettingKey
     bool compressCheck;
 };
 
+/*!
+ *  @brief 网络配置信息
+ */
+struct NetworkSettings{
+
+    QString textServerIp;                         //文本服务器IP
+    unsigned short textServerPort;                //文本服务器监听端口
+#ifndef __LOCAL_CONTACT__
+    QString fileServerIp;                         //文件服务器IP
+    unsigned short fileServerPort;                //文件服务器监听端口
+#else
+    QString tandemServerIp1;                      //串联服务器IP1
+    unsigned short tandemServerPort1;             //串联服务器监听端口1
+
+    QString tandemServerIp2;                      //串联服务器IP2
+    unsigned short tandemServerPort2;             //串联服务器监听端口2
+#endif
+};
+
 #ifdef __LOCAL_CONTACT__
 /*************************参数配置文件*********************************/
 /*!

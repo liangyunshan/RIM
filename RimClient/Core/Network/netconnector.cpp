@@ -119,10 +119,9 @@ TextNetConnector::TextNetConnector():
     msgReceive = new ClientNetwork::TextReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
-    //716
-    ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
-    msgSender->addTransmit(ddsTransmit);
-    msgReceive->bindTransmit(ddsTransmit);
+//    ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
+    msgSender->addTransmit(tcpTransmit);
+    msgReceive->bindTransmit(tcpTransmit);
 }
 
 TextNetConnector::~TextNetConnector()
@@ -164,8 +163,8 @@ void TextNetConnector::doConnect()
 {
     if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_TextServerPort,delayTime);
+        memcpy(ip,G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_NetSettings.textServerPort,delayTime);
         MessDiapatch::instance()->onTextConnected(result);
     }
 
@@ -246,9 +245,11 @@ void FileNetConnector::doConnect()
 {
     if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_FileServerPort,delayTime);
+#ifndef __LOCAL_CONTACT__
+        memcpy(ip,G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_NetSettings.fileServerPort,delayTime);
         MessDiapatch::instance()->onFileConnected(result);
+#endif
     }
 
     if(msgSender != nullptr &&!msgSender->running())

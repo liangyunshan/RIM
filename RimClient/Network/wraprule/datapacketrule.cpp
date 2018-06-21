@@ -70,7 +70,7 @@ QByteArray DataPacketRule::unwrap(const QByteArray &data)
  * @param[in] length 数据长度
  * @return 解析后的数据
  */
-bool DataPacketRule::unwrap(const char *data, const int length, std::function<void(QByteArray &)> recvDataFunc)
+bool DataPacketRule::unwrap(const char *data, const int length, ByteArrayHandler recvDataFunc)
 {
     QByteArray result;
     if(lastRecvBuff.size() > 0)

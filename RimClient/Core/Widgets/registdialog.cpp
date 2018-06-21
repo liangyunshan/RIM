@@ -245,7 +245,7 @@ void RegistDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
     }
 }

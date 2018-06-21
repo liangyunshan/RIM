@@ -26,7 +26,7 @@ public:
     ~TcpTransmit();
 
     bool startTransmit(const SendUnit &unit);
-    bool startRecv(char *recvBuff, int recvBuffLen,std::function<void(QByteArray &)> recvDataFunc);
+    bool startRecv(char *recvBuff, int recvBuffLen,ByteArrayHandler recvDataFunc);
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);
     bool close();

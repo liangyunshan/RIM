@@ -128,7 +128,7 @@ bool TextSender::handleDataSend(SendUnit &unit)
     std::lock_guard<std::mutex> lg(tranMutex);
 
     std::shared_ptr<BaseTransmit> trans = transmits.at(unit.method);
-    if(trans.get() != nullptr)
+    if(trans.get() != nullptr && trans->connected())
         return trans->startTransmit(unit);
     return false;
 }

@@ -85,7 +85,7 @@ struct QDB495_SendPackage{
     unsigned long dwPackAllLen;
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
-    char cPackDataBuf[];
+    char cPackDataBuf[1];
 };
 
 }
