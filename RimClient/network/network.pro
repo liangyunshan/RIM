@@ -78,4 +78,5 @@ HEADERS +=\
     multitransmits/tcptransmit.h \
     win32net/msgreceive.h \
     win32net/msgsender.h \
-    multitransmits/ddstransmit.h
+    multitransmits/ddstransmit.h \
+    3rdhead/DDS.h

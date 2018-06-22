@@ -82,11 +82,13 @@ protected:
 
     std::mutex mutex;
     std::condition_variable condition;
+
 #ifndef __LOCAL_CONTACT__
 #else
     std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit;
 #endif
     std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit;
+
 };
 
 class TextNetConnector : public SuperConnector
@@ -111,6 +113,7 @@ private:
 
     ClientNetwork::TextSender * msgSender;
     ClientNetwork::TextReceive * msgReceive;
+    ClientNetwork::TextReceive * msgReceive_DDS;
 };
 
 class FileNetConnector : public SuperConnector
@@ -134,6 +137,7 @@ private:
 
     ClientNetwork::FileSender * msgSender;
     ClientNetwork::FileReceive * msgReceive;
+    ClientNetwork::FileReceive * msgReceive_DDS;
 };
 
 #endif // NETCONNECTOR_H

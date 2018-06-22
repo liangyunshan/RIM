@@ -76,8 +76,15 @@ const char SETTING_TRAYICON[] = "TrayIcon";
 const char SYSTEM_NETWORK[] = "network";
 const char SYSTEM_NETWORK_TEXT_IP[] = "textip";
 const char SYSTEM_NETWORK_TEXT_PORT[] = "textport";
+#ifdef __LOCAL_CONTACT__
+const char SYSTEM_NETWORK_TANDEM_IP1[] = "tandemip1";
+const char SYSTEM_NETWORK_TANDEM_PORT1[] = "tandemport1";
+const char SYSTEM_NETWORK_TANDEM_IP2[] = "tandemip2";
+const char SYSTEM_NETWORK_TANDEM_PORT2[] = "tandemport2";
+#else
 const char SYSTEM_NETWORK_FILE_IP[] = "fileip";
 const char SYSTEM_NETWORK_FILE_PORT[] = "fileport";
+#endif
 
 const char SYSTEM_DB[] = "database";
 const char SYSTEM_DB_TYPE[] = "type";

@@ -116,16 +116,18 @@ TextNetConnector::TextNetConnector():
 
     msgReceive = new ClientNetwork::TextReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-#ifndef __LOCAL_CONTACT__
     tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
     msgSender->addTransmit(tcpTransmit);
     msgReceive->bindTransmit(tcpTransmit);
+
+#ifndef __LOCAL_CONTACT__
 #else
     //716_TK
+    msgReceive_DDS = new ClientNetwork::TextReceive();
+    QObject::connect(msgReceive_DDS,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
     ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
     msgSender->addTransmit(ddsTransmit);
-    msgReceive->bindTransmit(ddsTransmit);
+    msgReceive_DDS->bindTransmit(ddsTransmit);
 #endif
 }
 
@@ -141,13 +143,13 @@ TextNetConnector::~TextNetConnector()
 
 #ifndef __LOCAL_CONTACT__
 #else
+    msgReceive_DDS->stopMe();
     if(ddsTransmit)
     {
         ddsTransmit->close();
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<" ddsTransmit->close(); "
-              <<"\n";
     }
+    delete msgReceive_DDS;
+    msgReceive_DDS = nullptr;
 #endif
 
     delete msgReceive;
@@ -182,8 +184,8 @@ void TextNetConnector::doConnect()
 {
     if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_TextServerIp.toLocal8Bit().data(),G_TextServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_TextServerPort,delayTime);
+        memcpy(ip,G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_NetSettings.textServerPort,delayTime);
         MessDiapatch::instance()->onTextConnected(result);
     }
 
@@ -192,6 +194,12 @@ void TextNetConnector::doConnect()
 
     if(msgReceive != nullptr && !msgReceive->running())
         msgReceive->startMe();
+
+#ifndef __LOCAL_CONTACT__
+#else
+    if(msgReceive_DDS != nullptr && !msgReceive_DDS->running())
+        msgReceive_DDS->startMe();
+#endif
 }
 
 void TextNetConnector::doReconnect()
@@ -206,6 +214,10 @@ void TextNetConnector::doDisconnect()
 
     msgSender->stopMe();
     msgReceive->stopMe();
+#ifndef __LOCAL_CONTACT__
+#else
+    msgReceive_DDS->stopMe();
+#endif
 }
 
 FileNetConnector * FileNetConnector::netConnector = nullptr;
@@ -215,22 +227,23 @@ FileNetConnector::FileNetConnector():
 {
     netConnector = this;
 
-    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
-
     msgSender = new ClientNetwork::FileSender();
     QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
     msgReceive = new ClientNetwork::FileReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-#ifndef __LOCAL_CONTACT__
+    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
     msgSender->addTransmit(tcpTransmit);
     msgReceive->bindTransmit(tcpTransmit);
+
+#ifndef __LOCAL_CONTACT__
 #else
     //716_TK
+    msgReceive_DDS = new ClientNetwork::FileReceive();
+    QObject::connect(msgReceive_DDS,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
     ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
     msgSender->addTransmit(ddsTransmit);
-    msgReceive->bindTransmit(ddsTransmit);
+    msgReceive_DDS->bindTransmit(ddsTransmit);
 #endif
 }
 
@@ -243,6 +256,20 @@ FileNetConnector::~FileNetConnector()
 
     delete msgReceive;
     msgReceive = nullptr;
+
+#ifndef __LOCAL_CONTACT__
+#else
+    msgReceive_DDS->stopMe();
+    if(ddsTransmit)
+    {
+        ddsTransmit->close();
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<" ddsTransmit->close(); "
+              <<"\n";
+    }
+    delete msgReceive_DDS;
+    msgReceive_DDS = nullptr;
+#endif
 
     stopMe();
     wait();
@@ -271,9 +298,11 @@ void FileNetConnector::doConnect()
 {
     if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_FileServerIp.toLocal8Bit().data(),G_FileServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_FileServerPort,delayTime);
+#ifndef __LOCAL_CONTACT__
+        memcpy(ip,G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServerIp.toLocal8Bit().size());
+        bool result = tcpTransmit->connect(ip,G_NetSettings.fileServerPort,delayTime);
         MessDiapatch::instance()->onFileConnected(result);
+#endif
     }
 
     if(msgSender != nullptr &&!msgSender->running())
@@ -281,6 +310,12 @@ void FileNetConnector::doConnect()
 
     if(msgReceive != nullptr && !msgReceive->running())
         msgReceive->startMe();
+
+#ifndef __LOCAL_CONTACT__
+#else
+    if(msgReceive_DDS != nullptr && !msgReceive_DDS->running())
+        msgReceive_DDS->startMe();
+#endif
 }
 
 void FileNetConnector::doReconnect()
@@ -297,4 +332,9 @@ void FileNetConnector::doDisconnect()
 
     msgSender->stopMe();
     msgReceive->stopMe();
+#ifndef __LOCAL_CONTACT__
+#else
+    if(msgReceive_DDS != nullptr )
+        msgReceive_DDS->stopMe();
+#endif
 }

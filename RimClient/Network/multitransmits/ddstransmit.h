@@ -1,4 +1,13 @@
-﻿#ifndef DDSTRANSMIT_H
+﻿/*!
+ *  @brief     DDS传输模式
+ *  @details   使用DDS方式封装了数据传输格式协议
+ *  @author    SC
+ *  @version   1.0
+ *  @date      2018.06.12
+ *  @warning
+ *  @copyright NanJing RenGu.
+ */
+#ifndef DDSTRANSMIT_H
 #define DDSTRANSMIT_H
 
 #include <memory>
@@ -15,7 +24,7 @@ public:
     ~DDSTransmit();
 
     bool startTransmit(const SendUnit &unit);
-    bool startRecv(char *recvBuff, int recvBuffLen,std::function<void(QByteArray &)> recvDataFunc);
+    bool startRecv(char *recvBuff, int recvBuffLen,ByteArrayHandler recvDataFunc);
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);
     bool close();
