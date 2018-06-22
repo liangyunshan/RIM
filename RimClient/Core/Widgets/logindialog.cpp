@@ -286,11 +286,11 @@ LoginDialog::LoginDialog(QWidget *parent) :
     d_ptr(new LoginDialogPrivate(this))
 {
     RSingleton<Subject>::instance()->attach(this);
-    //在多屏状态下，默认选择第一个屏幕
-    QSize size = qApp->desktop()->screen()->size();
 
     G_User = nullptr;
 
+    //在多屏状态下，默认选择第一个屏幕
+    QSize size = qApp->desktop()->screen()->size();
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -329,7 +329,7 @@ void LoginDialog::respTextConnect(bool flag)
 
     if(!flag)
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
         LoginRequest * request = new LoginRequest();
@@ -355,7 +355,7 @@ void LoginDialog::respTextSocketError()
         G_User->setTextOnline(false);
     }
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
@@ -366,14 +366,13 @@ void LoginDialog::respFileConnect(bool flag)
     }
     if(flag)
     {
-#ifndef __NO_SERVER__
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
-#endif
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
     }else{
-        RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+#ifndef __LOCAL_CONTACT__
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServerPort);
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
+#endif
     }
 }
 
@@ -381,8 +380,10 @@ void LoginDialog::respFileSocketError()
 {
     G_User->setFileOnline(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+#ifndef __LOCAL_CONTACT__
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServePort);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
+#endif
 }
 
 void LoginDialog::login()
@@ -440,12 +441,12 @@ void LoginDialog::createTrayMenu()
 void LoginDialog::loadLocalSettings()
 {
     RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_TextServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_TextServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
-
-    G_FileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_FileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
-
+    G_NetSettings.textServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_NetSettings.textServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+#ifndef __LOCAL_CONTACT__
+    G_NetSettings.fileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_NetSettings.fileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+#endif
     RUtil::globalSettings()->endGroup();
 }
 

@@ -44,7 +44,7 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
     return false;
 }
 
-bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, std::function<void(QByteArray &)> recvDataFunc)
+bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)
 {
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
     if(recvLen > 0)
@@ -114,7 +114,7 @@ bool TcpTransmit::connect(const char *remoteIp, const unsigned short remotePort,
             return false;
         }
     }
-    return true;
+    return netConnected;
 }
 
 }

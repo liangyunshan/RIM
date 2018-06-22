@@ -2,14 +2,18 @@
 
 #ifdef __LOCAL_CONTACT__
 
-#include <QMouseEvent>
-#include <QPainter>
 #include <QTimer>
 #include <QPixmap>
 #include <QDir>
 #include <QApplication>
 #include <QDateTime>
 #include <QDebug>
+#include <QVBoxLayout>
+#include <QDesktopWidget>
+#include <QPushButton>
+#include <QLabel>
+#include <QLineEdit>
+#include <QGridLayout>
 
 #include "global.h"
 #include "widget/rmessagebox.h"
@@ -27,6 +31,11 @@
 #include "systemnotifyview.h"
 #include "chatpersonwidget.h"
 #include "Network/netconnector.h"
+#include "Widgets/actionmanager/actionmanager.h"
+#include "thread/taskmanager.h"
+#include "netsettings.h"
+#include "messdiapatch.h"
+#include "Util/rlog.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -34,29 +43,146 @@ class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDia
 private:
     explicit SplashLoginDialogPrivate(SplashLoginDialog * q):q_ptr(q),
     trayIcon(nullptr),mainDialog(nullptr){
-
+        initWidget();
     }
 
+    void initWidget();
+
     SplashLoginDialog * q_ptr;
+
+    QWidget * contentWidget;
+    QWidget * iconWidget;
+    ToolBar * toolBar;
+
+    QPushButton *loginButt;
+
+    QWidget * imageWidget;               /*!< logo */
+    QLabel * nodeLabel;                  /*!< 节点号 */
+    QLabel * tcpServerIp;                /*!< 服务器IP地址 */
+
+    QLabel * tcpFlowServerIp1;           /*!< 串联服务器IP地址1 */
+    QLabel * tcpFlowServerIp2;           /*!< 串联服务器IP地址2 */
 
     SystemTrayIcon * trayIcon;
     MainDialog * mainDialog;
 };
 
+void SplashLoginDialogPrivate::initWidget()
+{
+    contentWidget = new QWidget(q_ptr);
+    contentWidget->setObjectName("AbstractWidget_ContentWidget");
+
+    QVBoxLayout * contentLayout = new QVBoxLayout();
+    contentLayout->setContentsMargins(0,0,0,0);
+    contentLayout->setSpacing(0);
+
+    imageWidget = new QWidget(contentWidget);
+    imageWidget->setObjectName("Logo_Widget");
+    imageWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    nodeLabel = new QLabel(imageWidget);
+    nodeLabel->setObjectName("Node_Label");
+    nodeLabel->setAlignment(Qt::AlignCenter);
+
+    /***************信息设置区****************/
+    QWidget * bottomWidget = new QWidget(contentWidget);
+
+    QLabel * serverIp = new QLabel(bottomWidget);
+    serverIp->setText(QObject::tr("Server Ip"));
+
+    tcpServerIp = new QLabel(bottomWidget);
+
+    QLabel * tandemtServerIp = new QLabel(bottomWidget);
+    tandemtServerIp->setText(QObject::tr("Tandem Server Ip"));
+
+    tcpFlowServerIp1 = new QLabel(bottomWidget);
+    tcpFlowServerIp2 = new QLabel(bottomWidget);
+
+    loginButt = new QPushButton(bottomWidget);
+    loginButt->setMinimumSize(QSize(0, 28));
+    loginButt->setText(QObject::tr("Sin in"));
+    loginButt->setObjectName("login");
+
+    QGridLayout * bottomGridLayout = new QGridLayout;
+    bottomGridLayout->setHorizontalSpacing(10);
+    bottomGridLayout->setVerticalSpacing(10);
+    bottomGridLayout->setContentsMargins(0,0,0,0);
+
+    bottomGridLayout->setColumnStretch(0,3);
+    bottomGridLayout->setColumnStretch(3,1);
+    bottomGridLayout->setColumnStretch(6,3);
+
+    bottomGridLayout->setRowStretch(0,1);
+    bottomGridLayout->setRowStretch(5,1);
+
+    bottomGridLayout->addWidget(serverIp,1,1,1,1);
+    bottomGridLayout->addWidget(tcpServerIp,2,1,1,2);
+
+    bottomGridLayout->addWidget(tandemtServerIp,1,4,1,1);
+    bottomGridLayout->addWidget(tcpFlowServerIp1,2,4,1,2);
+    bottomGridLayout->addWidget(tcpFlowServerIp2,3,4,1,2);
+
+    bottomGridLayout->addWidget(loginButt,4,2,1,3);
+
+    bottomWidget->setLayout(bottomGridLayout);
+
+    contentLayout->addWidget(imageWidget);
+    contentLayout->addWidget(bottomWidget);
+
+    contentLayout->setStretchFactor(imageWidget,9);
+    contentLayout->setStretchFactor(bottomWidget,7);
+
+    contentWidget->setLayout(contentLayout);
+
+    RToolButton * systemSetting = ActionManager::instance()->createToolButton(Id(Constant::TOOL_SETTING),q_ptr,SLOT(showNetSettings()));
+    systemSetting->setToolTip(QObject::tr("System Setting"));
+
+    RToolButton * minSize = ActionManager::instance()->createToolButton(Id(Constant::TOOL_MIN),q_ptr,SLOT(minsize()));
+    minSize->setToolTip(QObject::tr("Min"));
+
+    RToolButton * closeButt = ActionManager::instance()->createToolButton(Id(Constant::TOOL_CLOSE),q_ptr,SLOT(closeWindow()));
+    closeButt->setToolTip(QObject::tr("Close"));
+
+    toolBar = new ToolBar(contentWidget);
+    toolBar->addStretch(1);
+    toolBar->appendToolButton(systemSetting);
+    toolBar->appendToolButton(minSize);
+    toolBar->appendToolButton(closeButt);
+
+    QObject::connect(loginButt,SIGNAL(pressed()),q_ptr,SLOT(prepareNetConnect()));
+
+    q_ptr->setContentWidget(contentWidget);
+    imageWidget->installEventFilter(q_ptr);
+}
+
 SplashLoginDialog::SplashLoginDialog(QWidget *parent):
-    QSplashScreen(parent),d_ptr(new SplashLoginDialogPrivate(this))
+    Widget(parent),d_ptr(new SplashLoginDialogPrivate(this))
 {
     RSingleton<Subject>::instance()->attach(this);
-    setPixmap(QPixmap(":/background/resource/background/splash.png"));
 
     G_User = nullptr;
+
+    QSize size = qApp->desktop()->screen()->size();
+    setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
+    setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+
+    loadLocalSettings();
+
+    connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
 
     QTimer::singleShot(0,this,SLOT(initResource()));
 }
 
 SplashLoginDialog::~SplashLoginDialog()
 {
-
+    MQ_D(SplashLoginDialog);
+    if(d->toolBar)
+    {
+        delete d->toolBar;
+        d->toolBar = NULL;
+    }
 }
 
 void SplashLoginDialog::onMessage(MessageType type)
@@ -79,17 +205,41 @@ void SplashLoginDialog::onMessage(MessageType type)
     }
 }
 
-void SplashLoginDialog::mousePressEvent(QMouseEvent *event)
+void SplashLoginDialog::resizeEvent(QResizeEvent *)
 {
-    event->accept();
+    MQ_D(SplashLoginDialog);
+
+    d->toolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - WINDOW_MARGIN_SIZE * 3,d->toolBar->size().height());
 }
 
+void SplashLoginDialog::closeEvent(QCloseEvent *)
+{
+    qApp->exit();
+}
+
+bool SplashLoginDialog::eventFilter(QObject *watched, QEvent *event)
+{
+    MQ_D(SplashLoginDialog);
+    if(watched == d->imageWidget){
+        if(event->type() == QEvent::Resize){
+            d->nodeLabel->setGeometry(d->imageWidget->width() - 70,d->imageWidget->height() - 40,70,40);
+            return true;
+        }
+    }
+
+    return Widget::eventFilter(watched,event);
+}
+
+/*!
+ * @brief 解析本地配置信息
+ * @note 配置信息来源于两部分: \n
+ *       1.来源于716的配置文件，主要提供了节点号、通信列表等信息; \n
+ *       2.自身配置文件，主要提供了服务器端ip地址、串联服务器ip地址等信息，可通过NetSettings类来保存、设置 \n
+ */
 void SplashLoginDialog::initResource()
 {
     MQ_D(SplashLoginDialog);
-    qApp->processEvents();
 
-    addMessage(tr("start parse configure resource"));
     G_ParaSettings = new ParameterSettings::ParaSettings;
     QString localConfigName = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath) + QDir::separator() + QStringLiteral("参数配置.txt");
     if(!RSingleton<XMLParse>::instance()->parse(localConfigName,G_ParaSettings)){
@@ -98,49 +248,7 @@ void SplashLoginDialog::initResource()
         exit(-1);
     }
 
-    UserBaseInfo baseInfo;
-    baseInfo.accountId = G_ParaSettings->baseInfo.nodeId;
-    baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
-    G_User = new User(baseInfo);
-    G_User->setTextOnline(true);
-    G_User->setLogin(true);
-
-    addMessage(tr("create system tray menu"));
-    d->trayIcon = new SystemTrayIcon();
-    d->trayIcon->setModel(SystemTrayIcon::System_Login);
-    d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
-    d->trayIcon->setModel(SystemTrayIcon::System_Main);
-
-    addMessage(tr("create main window"));
-    if(!d->mainDialog){
-        d->mainDialog = new MainDialog();
-    }
-
-    RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
-    connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
-    connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
-    connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
-
-    d->mainDialog->setLogInState(STATUS_ONLINE);
-
-    //716_TK兼容调试
-    TextNetConnector::instance()->connect();
-    //
-
-    QDateTime n = QDateTime::currentDateTime();
-    QDateTime now;
-    do{
-        now = QDateTime::currentDateTime();
-    }
-    while(n.secsTo(now) <= 1);
-
-    hide();
-    d->mainDialog->show();
-}
-
-void SplashLoginDialog::addMessage(const QString &text)
-{
-    showMessage(text,Qt::AlignBottom|Qt::AlignCenter,Qt::white);
+    d->nodeLabel->setText(G_ParaSettings->baseInfo.nodeId);
 }
 
 /*!
@@ -203,6 +311,134 @@ void SplashLoginDialog::openChatDialog(QString accountId)
    }
 
    client->chatPersonWidget->show();
+}
+
+void SplashLoginDialog::showNetSettings()
+{
+    NetSettings * settings = new NetSettings(this);
+    connect(settings,SIGNAL(ipInfoUpdated()),this,SLOT(loadLocalSettings()));
+    settings->initLocalSettings();
+    settings->show();
+}
+
+void SplashLoginDialog::minsize()
+{
+    MQ_D(SplashLoginDialog);
+    if(d->trayIcon)
+    {
+        if(!d->trayIcon->isVisible())
+        {
+            d->trayIcon->setVisible(true);
+        }
+    }
+
+    this->setVisible(false);
+}
+
+void SplashLoginDialog::closeWindow()
+{
+    RSingleton<TaskManager>::instance()->removeAll();
+    this->close();
+}
+
+void SplashLoginDialog::prepareNetConnect()
+{
+    MQ_D(SplashLoginDialog);
+    TextNetConnector::instance()->connect();
+    enableInput(false);
+}
+
+void SplashLoginDialog::respTextConnect(bool flag)
+{
+    MQ_D(SplashLoginDialog);
+
+    if(G_User){
+        G_User->setTextOnline(flag);
+    }
+
+    if(!flag){
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+    }else{
+
+        UserBaseInfo baseInfo;
+        baseInfo.accountId = G_ParaSettings->baseInfo.nodeId;
+        baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
+
+        G_User = new User(baseInfo);
+        G_User->setTextOnline(true);
+        G_User->setLogin(true);
+
+        d->trayIcon = new SystemTrayIcon();
+        d->trayIcon->setModel(SystemTrayIcon::System_Login);
+        d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+        d->trayIcon->setModel(SystemTrayIcon::System_Main);
+
+        if(!d->mainDialog){
+            d->mainDialog = new MainDialog();
+        }
+
+        RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
+        connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
+        connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
+        connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+
+        d->mainDialog->setLogInState(STATUS_ONLINE);
+
+        TextNetConnector::instance()->connect();
+
+        hide();
+        d->mainDialog->show();
+    }
+
+    enableInput(true);
+}
+
+void SplashLoginDialog::respTextSocketError()
+{
+    if(G_User){
+        G_User->setTextOnline(false);
+    }
+    RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
+    RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+}
+
+void SplashLoginDialog::enableInput(bool flag)
+{
+    MQ_D(SplashLoginDialog);
+    d->loginButt->setEnabled(flag);
+    repolish(d->loginButt);
+}
+
+void SplashLoginDialog::loadLocalSettings()
+{
+    MQ_D(SplashLoginDialog);
+    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
+    G_NetSettings.textServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_NetSettings.textServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+
+    G_NetSettings.tandemServerIp1 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
+    G_NetSettings.tandemServerPort1 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
+
+    G_NetSettings.tandemServerIp2 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP2,"").toString();
+    G_NetSettings.tandemServerPort2 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT2,"").toUInt();
+    RUtil::globalSettings()->endGroup();
+
+    QString ipTemplate("%1:%2");
+    d->tcpServerIp->setText(ipTemplate.arg(G_NetSettings.textServerIp).arg(G_NetSettings.textServerPort));
+
+    if(G_NetSettings.tandemServerIp1.size() > 0){
+        d->tcpFlowServerIp1->setText(ipTemplate.arg(G_NetSettings.tandemServerIp1).arg(G_NetSettings.tandemServerPort1));
+    }else{
+        d->tcpFlowServerIp1->clear();
+    }
+
+    if(G_NetSettings.tandemServerIp2.size() > 0){
+        d->tcpFlowServerIp2->setText(ipTemplate.arg(G_NetSettings.tandemServerIp2).arg(G_NetSettings.tandemServerPort2));
+    }else{
+        d->tcpFlowServerIp2->clear();
+    }
 }
 
 #endif

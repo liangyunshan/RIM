@@ -83,7 +83,6 @@ protected:
     std::mutex mutex;
     std::condition_variable condition;
 
-//    ClientNetwork::DDSTransmit * ddsTransmit;
     std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit;
     std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit;
 };
