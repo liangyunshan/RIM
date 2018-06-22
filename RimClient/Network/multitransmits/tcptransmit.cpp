@@ -3,6 +3,8 @@
 #include "Util/rlog.h"
 #include "../rsocket.h"
 
+#include <QDebug>
+
 #ifdef Q_OS_WIN
 #include <WinSock2.h>
 #endif
@@ -30,6 +32,9 @@ TcpTransmit::~TcpTransmit()
  */
 bool TcpTransmit::startTransmit(const SendUnit &unit)
 {
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<unit.data
+          <<"\n";
     if(tcpSocket && tcpSocket->isValid()){
         auto func = [&](const char * buff,const int length)->int{
             return tcpSocket->send(buff,length);

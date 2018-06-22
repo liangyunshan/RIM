@@ -1,15 +1,15 @@
-﻿#ifndef UDP_WRAPRULE_H
-#define UDP_WRAPRULE_H
+﻿#ifndef DDS_WRAPRULE_H
+#define DDS_WRAPRULE_H
 
 #ifdef __LOCAL_CONTACT__
 
 #include "network/wraprule/wraprule.h"
 using namespace ClientNetwork;
 
-class UDP_WrapRule : public WrapRule
+class DDS_WrapRule : public WrapRule
 {
 public:
-    UDP_WrapRule();
+    DDS_WrapRule();
 
     QByteArray wrap(const ProtocolPackage &package);
     QByteArray unwrap(const QByteArray &data);
@@ -17,4 +17,4 @@ public:
 
 #endif
 
-#endif // UDP_WRAPRULE_H
+#endif // DDS_WRAPRULE_H

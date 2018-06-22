@@ -3,6 +3,7 @@
 #include <QJsonDocument>
 
 #include "network/netglobal.h"
+#include "../Network/wraprule/dds_wraprule.h"
 #include "dataprocess.h"
 #include "rsingleton.h"
 #include "head.h"
@@ -56,15 +57,21 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
+#ifndef __LOCAL_CONTACT__
+                validateRecvData(array);
+#else
                 //716_TK兼容调试
-//                validateRecvData(array);
+                //对数据解包
+                QByteArray realdata = RSingleton<DDS_WrapRule>::instance()->unwrap(array);
+                validateRecvData(realdata);
 
-                TextRequest response;
-                response.msgCommand = MSG_TEXT_TEXT;
-                response.accountId =QString::number(2632);
-                response.otherSideId =QString::number(9779);
-                response.sendData = QString::fromLocal8Bit(array);
-                MessDiapatch::instance()->onRecvText(response);
+//                TextRequest response;
+//                response.msgCommand = MSG_TEXT_TEXT;
+//                response.accountId =QString::number(2632);
+//                response.otherSideId =QString::number(9779);
+//                response.sendData = QString::fromLocal8Bit(array);
+//                MessDiapatch::instance()->onRecvText(response);
+#endif
             }
         }
     }

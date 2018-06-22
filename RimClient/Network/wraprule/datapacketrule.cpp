@@ -11,7 +11,7 @@ DataPacketRule::DataPacketRule():
     SendPackId = qrand()%1024 + 1000;
 }
 
-QByteArray DataPacketRule::wrap(const QByteArray &data)
+QByteArray DataPacketRule::wrap(const ProtocolPackage &data)
 {
     return QByteArray();
 }

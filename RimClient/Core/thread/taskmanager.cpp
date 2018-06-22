@@ -23,8 +23,9 @@ void TaskManager::initTask()
 
 #ifndef __LOCAL_CONTACT__
     addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
-//    addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
-//    addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
+    addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
+    addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
+#else
 #endif
     addTask(HISTORY_RECORD,shared_ptr<ClientNetwork::RTask>(new HistoryRecordTask()));
 }

@@ -111,26 +111,44 @@ TextNetConnector::TextNetConnector():
 {
     netConnector = this;
 
-    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
-
     msgSender = new ClientNetwork::TextSender();
     QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
     msgReceive = new ClientNetwork::TextReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
-    //716
+#ifndef __LOCAL_CONTACT__
+    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
+    msgSender->addTransmit(tcpTransmit);
+    msgReceive->bindTransmit(tcpTransmit);
+#else
+    //716_TK
     ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
     msgSender->addTransmit(ddsTransmit);
     msgReceive->bindTransmit(ddsTransmit);
+#endif
 }
 
 TextNetConnector::~TextNetConnector()
 {
     netConnector = nullptr;
 
+    msgSender->stopMe();
+    msgReceive->stopMe();
+
     delete msgSender;
     msgSender = nullptr;
+
+#ifndef __LOCAL_CONTACT__
+#else
+    if(ddsTransmit)
+    {
+        ddsTransmit->close();
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<" ddsTransmit->close(); "
+              <<"\n";
+    }
+#endif
 
     delete msgReceive;
     msgReceive = nullptr;
@@ -205,8 +223,15 @@ FileNetConnector::FileNetConnector():
     msgReceive = new ClientNetwork::FileReceive();
     QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
 
+#ifndef __LOCAL_CONTACT__
     msgSender->addTransmit(tcpTransmit);
     msgReceive->bindTransmit(tcpTransmit);
+#else
+    //716_TK
+    ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
+    msgSender->addTransmit(ddsTransmit);
+    msgReceive->bindTransmit(ddsTransmit);
+#endif
 }
 
 FileNetConnector::~FileNetConnector()

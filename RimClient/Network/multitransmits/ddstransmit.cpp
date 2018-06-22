@@ -28,7 +28,7 @@ DDSTransmit::DDSTransmit() :
 
 DDSTransmit::~DDSTransmit()
 {
-
+    close();
 }
 
 bool DDSTransmit::startTransmit(const SendUnit &unit)
@@ -38,7 +38,7 @@ bool DDSTransmit::startTransmit(const SendUnit &unit)
     if (iRet<1)
     {
         qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"发送主题CLIENTSEND报文失败 fail"<<iRet
+               <<"send CLIENTSEND fail"<<iRet
               <<"\n";
         RLOG_ERROR("DDS发送主题CLIENTSEND报文失败!");
     }
@@ -80,6 +80,7 @@ bool DDSTransmit::connect(const char *remoteIp, const unsigned short remotePort,
 
 bool DDSTransmit::close()
 {
+    DDSQuit();
     return true;
 }
 

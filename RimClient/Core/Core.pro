@@ -177,7 +177,8 @@ SOURCES += \
     Network/msgwrap/binary_wrapformat.cpp \
     Network/msgwrap/json_wrapformat.cpp \
     Widgets/chatpersonwidget.cpp \
-    Network/wraprule/qdb2051_wraprule.cpp
+    Network/wraprule/qdb2051_wraprule.cpp \
+    Network/wraprule/dds_wraprule.cpp
 
 
 HEADERS  += \
@@ -292,7 +293,8 @@ HEADERS  += \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/binary_wrapformat.h \
     Widgets/chatpersonwidget.h \
-    Network/wraprule/qdb2051_wraprule.h
+    Network/wraprule/qdb2051_wraprule.h \
+    Network/wraprule/dds_wraprule.h
 
 DISTFILES += \
     Widgets/Widgets.pri

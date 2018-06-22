@@ -22,7 +22,7 @@ class NETWORKSHARED_EXPORT WrapRule
 public:
     WrapRule();
 
-    virtual QByteArray wrap(const QByteArray & data) = 0;
+    virtual QByteArray wrap(const ProtocolPackage & data) = 0;
     virtual QByteArray unwrap(const QByteArray & data) = 0;
 };
 
