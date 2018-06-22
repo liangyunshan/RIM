@@ -110,29 +110,20 @@ TextNetConnector::TextNetConnector():
     SuperConnector()
 {
     netConnector = this;
-
-    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
-
-    msgSender = new ClientNetwork::TextSender();
-    QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-    msgReceive = new ClientNetwork::TextReceive();
-    QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-//    ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
-    msgSender->addTransmit(tcpTransmit);
-    msgReceive->bindTransmit(tcpTransmit);
 }
 
 TextNetConnector::~TextNetConnector()
 {
     netConnector = nullptr;
 
-    delete msgSender;
-    msgSender = nullptr;
+    msgSender.reset();
 
-    delete msgReceive;
-    msgReceive = nullptr;
+    std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> item){
+        item.second.reset();
+    });
+
+    msgReceives.clear();
+
     stopMe();
     wait();
 }
@@ -140,6 +131,38 @@ TextNetConnector::~TextNetConnector()
 TextNetConnector *TextNetConnector::instance()
 {
     return netConnector;
+}
+
+/*!
+ * @brief 初始化所有可用的数据传输链路
+ * @note 1.初始化所有的数据传输链路; \n
+ *       2.将每种数据链路添加至数据发送线程; \n
+ *       3.为每个数据传输链路创建一个接收线程;
+ * @return 是否初始化成功
+ */
+bool TextNetConnector::initialize()
+{
+    std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
+    transmits.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>>(tcpTransmit->type(),tcpTransmit));
+
+//    std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
+//    transmits.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>>(ddsTransmit->type(),ddsTransmit));
+
+    msgSender = std::make_shared<ClientNetwork::TextSender>();
+    QObject::connect(msgSender.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+
+    std::for_each(transmits.begin(),transmits.end(),[&](const std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
+        if(msgSender->addTransmit(item.second)){
+            std::shared_ptr<ClientNetwork::TextReceive> msgRecv = std::make_shared<ClientNetwork::TextReceive>();
+            QObject::connect(msgRecv.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+            msgRecv->bindTransmit(item.second);
+            msgReceives.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>>(item.second->type(),msgRecv));
+        }else{
+            MessDiapatch::instance()->onTransmitsInitialError(QObject::tr("Initial transmit %1 error!").arg(item.second->name()));
+        }
+    });
+
+    return true;
 }
 
 /*!
@@ -159,20 +182,28 @@ void TextNetConnector::respSocketError(CommMethod method)
     }
 }
 
+/*!
+ * @brief 执行数据链路连接
+ * @note 只有需要建立连接的链路，才在此处进行连接初始化工作。
+ */
 void TextNetConnector::doConnect()
 {
-    if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
+    std::shared_ptr<ClientNetwork::BaseTransmit> tcpTrans = transmits.at(C_TCP);
+    if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_NetSettings.textServerPort,delayTime);
-        MessDiapatch::instance()->onTextConnected(result);
+        memcpy(ip,G_NetSettings.connectedIpPort.ip.toLocal8Bit().data(),G_NetSettings.connectedIpPort.ip.toLocal8Bit().size());
+        bool connected = tcpTrans->connect(ip,G_NetSettings.connectedIpPort.port,delayTime);
+        G_NetSettings.connectedIpPort.setConnected(connected);
+        MessDiapatch::instance()->onTextConnected(connected);
+
+        if(connected){
+            if(msgReceives.at(C_TCP).get() != nullptr && !msgReceives.at(C_TCP)->running())
+                msgReceives.at(C_TCP)->startMe();
+        }
     }
 
-    if(msgSender != nullptr && !msgSender->running())
+    if(msgSender.get() != nullptr && !msgSender->running())
         msgSender->startMe();
-
-    if(msgReceive != nullptr && !msgReceive->running())
-        msgReceive->startMe();
 }
 
 void TextNetConnector::doReconnect()
@@ -182,11 +213,15 @@ void TextNetConnector::doReconnect()
 
 void TextNetConnector::doDisconnect()
 {
-    if(tcpTransmit.get() != nullptr)
-        tcpTransmit->close();
+    std::for_each(transmits.begin(),transmits.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
+        item.second->close();
+    });
 
     msgSender->stopMe();
-    msgReceive->stopMe();
+
+    std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> item){
+        item.second->stopMe();
+    });
 }
 
 FileNetConnector * FileNetConnector::netConnector = nullptr;
@@ -195,28 +230,19 @@ FileNetConnector::FileNetConnector():
     SuperConnector()
 {
     netConnector = this;
-
-    tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
-
-    msgSender = new ClientNetwork::FileSender();
-    QObject::connect(msgSender,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-    msgReceive = new ClientNetwork::FileReceive();
-    QObject::connect(msgReceive,SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
-
-    msgSender->addTransmit(tcpTransmit);
-    msgReceive->bindTransmit(tcpTransmit);
 }
 
 FileNetConnector::~FileNetConnector()
 {
     netConnector = nullptr;
 
-    delete msgSender;
-    msgSender = nullptr;
+    msgSender.reset();
 
-    delete msgReceive;
-    msgReceive = nullptr;
+    std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> item){
+        item.second.reset();
+    });
+
+    msgReceives.clear();
 
     stopMe();
     wait();
@@ -225,6 +251,28 @@ FileNetConnector::~FileNetConnector()
 FileNetConnector *FileNetConnector::instance()
 {
     return netConnector;
+}
+
+bool FileNetConnector::initialize()
+{
+    std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
+    transmits.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>>(tcpTransmit->type(),tcpTransmit));
+
+    msgSender = std::make_shared<ClientNetwork::FileSender>();
+    QObject::connect(msgSender.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+
+    std::for_each(transmits.begin(),transmits.end(),[&](const std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
+        if(msgSender->addTransmit(item.second)){
+            std::shared_ptr<ClientNetwork::FileReceive> msgRecv = std::make_shared<ClientNetwork::FileReceive>();
+            QObject::connect(msgRecv.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+            msgRecv->bindTransmit(item.second);
+            msgReceives.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>>(item.second->type(),msgRecv));
+        }else{
+            MessDiapatch::instance()->onTransmitsInitialError(QObject::tr("Initial transmit %1 error!").arg(item.second->name()));
+        }
+    });
+
+    return true;
 }
 
 void FileNetConnector::respSocketError(CommMethod method)
@@ -243,20 +291,22 @@ void FileNetConnector::respSocketError(CommMethod method)
 
 void FileNetConnector::doConnect()
 {
-    if(tcpTransmit.get() != nullptr && !tcpTransmit->connected()){
+    std::shared_ptr<ClientNetwork::BaseTransmit> tcpTrans = transmits.at(C_TCP);
+    if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
 #ifndef __LOCAL_CONTACT__
         memcpy(ip,G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServerIp.toLocal8Bit().size());
-        bool result = tcpTransmit->connect(ip,G_NetSettings.fileServerPort,delayTime);
-        MessDiapatch::instance()->onFileConnected(result);
+        bool connected = tcpTrans->connect(ip,G_NetSettings.fileServerPort,delayTime);
+        MessDiapatch::instance()->onTextConnected(connected);
+        if(connected){
+            if(msgSender.get()= nullptr && !msgSender->running())
+                msgSender->startMe();
+
+            if(msgReceives.at(C_TCP).get() != nullptr && !msgReceives.at(C_TCP)->running())
+                msgReceives.at(C_TCP)->startMe();
+        }
 #endif
     }
-
-    if(msgSender != nullptr &&!msgSender->running())
-        msgSender->startMe();
-
-    if(msgReceive != nullptr && !msgReceive->running())
-        msgReceive->startMe();
 }
 
 void FileNetConnector::doReconnect()
@@ -266,11 +316,15 @@ void FileNetConnector::doReconnect()
 
 void FileNetConnector::doDisconnect()
 {
-    if(tcpTransmit.get() != nullptr)
-        tcpTransmit->close();
+    std::for_each(transmits.begin(),transmits.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
+        item.second->close();
+    });
 
 //    MessDiapatch::instance()->onFileSocketError();
 
     msgSender->stopMe();
-    msgReceive->stopMe();
+
+    std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> item){
+        item.second->stopMe();
+    });
 }

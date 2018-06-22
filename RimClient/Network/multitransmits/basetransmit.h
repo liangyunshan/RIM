@@ -19,13 +19,15 @@ namespace ClientNetwork{
 class NETWORKSHARED_EXPORT BaseTransmit
 {
 public:
-    explicit BaseTransmit(CommMethod method);
+    explicit BaseTransmit();
     virtual ~BaseTransmit();
 
     virtual bool startTransmit(const SendUnit & unit) = 0;
     virtual bool startRecv(char * recvBuff,int recvBuffLen,ByteArrayHandler recvDataFunc) = 0;
 
-    CommMethod type();
+    virtual CommMethod type() = 0;
+    virtual QString name() = 0;
+
     bool connected();
 
     virtual bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts = 3) = 0;
@@ -33,8 +35,6 @@ public:
 
 protected:
     bool netConnected;
-
-    CommMethod transMethod;
 };
 
 }

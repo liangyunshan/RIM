@@ -61,7 +61,6 @@ private:
     QLabel * tcpServerIp;                /*!< 服务器IP地址 */
 
     QLabel * tcpFlowServerIp1;           /*!< 串联服务器IP地址1 */
-    QLabel * tcpFlowServerIp2;           /*!< 串联服务器IP地址2 */
 
     SystemTrayIcon * trayIcon;
     MainDialog * mainDialog;
@@ -96,7 +95,6 @@ void SplashLoginDialogPrivate::initWidget()
     tandemtServerIp->setText(QObject::tr("Tandem Server Ip"));
 
     tcpFlowServerIp1 = new QLabel(bottomWidget);
-    tcpFlowServerIp2 = new QLabel(bottomWidget);
 
     loginButt = new QPushButton(bottomWidget);
     loginButt->setMinimumSize(QSize(0, 28));
@@ -120,8 +118,8 @@ void SplashLoginDialogPrivate::initWidget()
 
     bottomGridLayout->addWidget(tandemtServerIp,1,4,1,1);
     bottomGridLayout->addWidget(tcpFlowServerIp1,2,4,1,2);
-    bottomGridLayout->addWidget(tcpFlowServerIp2,3,4,1,2);
 
+    bottomGridLayout->setRowStretch(3,1);
     bottomGridLayout->addWidget(loginButt,4,2,1,3);
 
     bottomWidget->setLayout(bottomGridLayout);
@@ -171,6 +169,7 @@ SplashLoginDialog::SplashLoginDialog(QWidget *parent):
 
     connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
+    connect(MessDiapatch::instance(),SIGNAL(transmitsInitialError(QString)),this,SLOT(respTransmitError(QString)));
 
     QTimer::singleShot(0,this,SLOT(initResource()));
 }
@@ -247,6 +246,9 @@ void SplashLoginDialog::initResource()
                              RMessageBox::Yes,RMessageBox::Yes);
         exit(-1);
     }
+
+    //初始化传输链路!!!
+    TextNetConnector::instance()->initialize();
 
     d->nodeLabel->setText(G_ParaSettings->baseInfo.nodeId);
 }
@@ -344,6 +346,7 @@ void SplashLoginDialog::closeWindow()
 void SplashLoginDialog::prepareNetConnect()
 {
     MQ_D(SplashLoginDialog);
+    G_NetSettings.connectedIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
 }
@@ -352,22 +355,17 @@ void SplashLoginDialog::respTextConnect(bool flag)
 {
     MQ_D(SplashLoginDialog);
 
-    if(G_User){
-        G_User->setTextOnline(flag);
+    if(!flag){
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }
 
-    if(!flag){
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
-        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
-    }else{
-
+    if(G_User == nullptr){
         UserBaseInfo baseInfo;
         baseInfo.accountId = G_ParaSettings->baseInfo.nodeId;
         baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
 
         G_User = new User(baseInfo);
-        G_User->setTextOnline(true);
-        G_User->setLogin(true);
 
         d->trayIcon = new SystemTrayIcon();
         d->trayIcon->setModel(SystemTrayIcon::System_Login);
@@ -383,12 +381,15 @@ void SplashLoginDialog::respTextConnect(bool flag)
         connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
         connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
 
-        d->mainDialog->setLogInState(STATUS_ONLINE);
-
-        TextNetConnector::instance()->connect();
+//        d->mainDialog->setLogInState(STATUS_ONLINE);
 
         hide();
         d->mainDialog->show();
+    }
+
+    if(G_User){
+        G_User->setTextOnline(flag);
+        G_User->setLogin(flag);
     }
 
     enableInput(true);
@@ -399,9 +400,15 @@ void SplashLoginDialog::respTextSocketError()
     if(G_User){
         G_User->setTextOnline(false);
     }
+    G_NetSettings.connectedIpPort.setConnected(false);
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+}
+
+void SplashLoginDialog::respTransmitError(QString errorMsg)
+{
+    RMessageBox::warning(this,QObject::tr("Warning"),errorMsg,RMessageBox::Yes);
 }
 
 void SplashLoginDialog::enableInput(bool flag)
@@ -415,29 +422,21 @@ void SplashLoginDialog::loadLocalSettings()
 {
     MQ_D(SplashLoginDialog);
     RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_NetSettings.textServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_NetSettings.textServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+    G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
 
-    G_NetSettings.tandemServerIp1 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
-    G_NetSettings.tandemServerPort1 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
+    G_NetSettings.tandemServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
+    G_NetSettings.tandemServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
 
-    G_NetSettings.tandemServerIp2 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP2,"").toString();
-    G_NetSettings.tandemServerPort2 = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT2,"").toUInt();
     RUtil::globalSettings()->endGroup();
 
     QString ipTemplate("%1:%2");
-    d->tcpServerIp->setText(ipTemplate.arg(G_NetSettings.textServerIp).arg(G_NetSettings.textServerPort));
+    d->tcpServerIp->setText(ipTemplate.arg(G_NetSettings.textServer.ip).arg(G_NetSettings.textServer.port));
 
-    if(G_NetSettings.tandemServerIp1.size() > 0){
-        d->tcpFlowServerIp1->setText(ipTemplate.arg(G_NetSettings.tandemServerIp1).arg(G_NetSettings.tandemServerPort1));
+    if(G_NetSettings.tandemServer.ip.size() > 0){
+        d->tcpFlowServerIp1->setText(ipTemplate.arg(G_NetSettings.tandemServer.ip).arg(G_NetSettings.tandemServer.port));
     }else{
         d->tcpFlowServerIp1->clear();
-    }
-
-    if(G_NetSettings.tandemServerIp2.size() > 0){
-        d->tcpFlowServerIp2->setText(ipTemplate.arg(G_NetSettings.tandemServerIp2).arg(G_NetSettings.tandemServerPort2));
-    }else{
-        d->tcpFlowServerIp2->clear();
     }
 }
 

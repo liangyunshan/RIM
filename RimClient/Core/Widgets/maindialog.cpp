@@ -163,10 +163,10 @@ void MainDialog::onMessage(MessageType type)
 }
 
 /*!
-     * @brief 设置面板中用户的登录状态显示
-     * @param[in] state:OnlineStatus，用户登录状态
-     * @return 无
-     */
+ * @brief 设置面板中用户的登录状态显示
+ * @param[in] state:OnlineStatus，用户登录状态
+ * @return 无
+ */
 void MainDialog::setLogInState(OnlineStatus state)
 {
     MQ_D(MainDialog);

@@ -106,7 +106,6 @@ private:
     IpSettingContainer * fileServerIp;
 #else
     IpSettingContainer * tandemServerIp1;
-    IpSettingContainer * tandemServerIp2;
 #endif
     RButton * saveButton;
     RButton * closeButton;
@@ -135,10 +134,9 @@ void NetSettingsPrivate::initWidget()
     /*******************文件服务器地址*************************/
     QLabel * fileLabel = new QLabel(mainWidget);
 #ifdef __LOCAL_CONTACT__
-    fileLabel->setText(QObject::tr("File Server"));
+    fileLabel->setText(QObject::tr("Tandem Server"));
 
     tandemServerIp1 = new IpSettingContainer;
-    tandemServerIp2 = new IpSettingContainer;
 #else
     fileLabel->setText(QObject::tr("File Server"));
     fileServerIp = new IpSettingContainer;
@@ -171,15 +169,11 @@ void NetSettingsPrivate::initWidget()
     gridLayout->addWidget(fileLabel,2,1,1,1);
 #ifdef __LOCAL_CONTACT__
     gridLayout->addWidget(tandemServerIp1,3,1,1,5);
-    gridLayout->addWidget(tandemServerIp2,4,1,1,5);
-
-    gridLayout->setRowStretch(5,5);
-    gridLayout->addWidget(bottomWidget,6,0,1,7);
 #else
     gridLayout->addWidget(fileServerIp,3,1,1,5);
+#endif
     gridLayout->setRowStretch(4,5);
     gridLayout->addWidget(bottomWidget,5,0,1,7);
-#endif
     gridLayout->setColumnStretch(6,1);
 
     mainWidget->setLayout(gridLayout);
@@ -195,7 +189,7 @@ NetSettings::NetSettings(QWidget * parent):Widget(parent),
     setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("Network settings"));
     setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
-    setWindowsMoveable(false);
+    enableMoveable(false);
 
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
 
@@ -226,9 +220,6 @@ void NetSettings::initLocalSettings()
 #ifdef __LOCAL_CONTACT__
     d->tandemServerIp1->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString(),
                                      settings->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toString());
-
-    d->tandemServerIp2->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_TANDEM_IP2,"").toString(),
-                                     settings->value(Constant::SYSTEM_NETWORK_TANDEM_PORT2,"").toString());
 #else
     d->fileServerIp->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString(),
                                      settings->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
@@ -236,6 +227,17 @@ void NetSettings::initLocalSettings()
     RUtil::globalSettings()->endGroup();
 }
 
+void NetSettings::enableMoveable(bool flag)
+{
+    setWindowsMoveable(flag);
+}
+
+/*!
+ * @brief 更新数据连接地址
+ * @note 当前版本存在两个数据连接地址，默认采用第一个信息服务器ip作为主要连接，第二个串联服务器作为备用连接 \n
+ *       信息服务器的ip地址必须要填写，串联服务器的ip地址可以不填。 \n
+ *       若当前网路已经连接，当用户修改连接的ip地址时，会先提示是否要断开连接。
+ */
 void NetSettings::updateSettings()
 {
     MQ_D(NetSettings);
@@ -249,13 +251,7 @@ void NetSettings::updateSettings()
 #ifdef __LOCAL_CONTACT__
     if((d->tandemServerIp1->getIp().size() > 0 || d->tandemServerIp1->getPort().size() > 0) && (!d->tandemServerIp1->isValidIp()
             || !d->tandemServerIp1->isValidPort()) ){
-        RMessageBox::warning(this,tr("Warning"),tr("trandem ip1 address is error!"),RMessageBox::Yes);
-        return;
-    }
-
-    if((d->tandemServerIp2->getIp().size() > 0 || d->tandemServerIp2->getPort().size() > 0) && (!d->tandemServerIp2->isValidIp()
-            || !d->tandemServerIp2->isValidPort())){
-        RMessageBox::warning(this,tr("Warning"),tr("trandem ip2 address is error!"),RMessageBox::Yes);
+        RMessageBox::warning(this,tr("Warning"),tr("trandem ip address is error!"),RMessageBox::Yes);
         return;
     }
 #else
@@ -265,6 +261,42 @@ void NetSettings::updateSettings()
         return;
     }
 #endif
+
+    if(G_NetSettings.textServer.ip != d->textServerIp->getIp() ||
+            G_NetSettings.textServer.port != d->textServerIp->getPort().toUShort())
+    {
+        if(G_NetSettings.connectedIpPort.isConnected() && G_NetSettings.connectedIpPort == G_NetSettings.textServer){
+            int result = RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
+            if(result == RMessageBox::Yes){
+                TextNetConnector::instance()->disConnect();
+            }else{
+                return;
+            }
+        }
+
+        G_NetSettings.textServer.ip = d->textServerIp->getIp();
+        G_NetSettings.textServer.port = d->textServerIp->getPort().toUShort();
+    }
+
+    if(G_NetSettings.tandemServer.ip != d->tandemServerIp1->getIp() ||
+            G_NetSettings.tandemServer.port != d->tandemServerIp1->getPort().toUShort())
+    {
+#ifdef __LOCAL_CONTACT__
+        if(G_NetSettings.connectedIpPort.isConnected() && G_NetSettings.connectedIpPort == G_NetSettings.tandemServer){
+            int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
+            if(result == RMessageBox::Yes){
+                TextNetConnector::instance()->disConnect();
+            }else{
+                return;
+            }
+        }
+        G_NetSettings.tandemServer.ip = d->tandemServerIp1->getIp();
+        G_NetSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
+#else
+        G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
+        G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
+#endif
+    }
 
     QSettings * settings =  RUtil::globalSettings();
     settings->beginGroup(Constant::SYSTEM_NETWORK);
@@ -277,28 +309,8 @@ void NetSettings::updateSettings()
 #else
     settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_IP1,d->tandemServerIp1->getIp());
     settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_PORT1,d->tandemServerIp1->getPort());
-
-    settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_IP2,d->tandemServerIp2->getIp());
-    settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_PORT2,d->tandemServerIp2->getPort());
 #endif
     settings->endGroup();
-
-    if(G_NetSettings.textServerIp != d->textServerIp->getIp() || G_NetSettings.textServerPort != d->textServerIp->getPort().toUShort())
-    {
-        G_NetSettings.textServerIp = d->textServerIp->getIp();
-        G_NetSettings.textServerPort = d->textServerIp->getPort().toUShort();
-#ifdef __LOCAL_CONTACT__
-        G_NetSettings.tandemServerIp1 = d->tandemServerIp1->getIp();
-        G_NetSettings.tandemServerPort1 = d->tandemServerIp1->getPort().toUShort();
-
-        G_NetSettings.tandemServerIp2 = d->tandemServerIp2->getIp();
-        G_NetSettings.tandemServerPort2 = d->tandemServerIp2->getPort().toUShort();
-#else
-        G_NetSettings.fileServerIp = d->fileServerIp->getIp();
-        G_NetSettings.fileServerPort = d->fileServerIp->getPort().toUShort();
-#endif
-        TextNetConnector::instance()->disConnect();
-    }
 
     emit ipInfoUpdated();
     RMessageBox::information(this,tr("Information"),tr("Save changes successfully!"),RMessageBox::Yes);

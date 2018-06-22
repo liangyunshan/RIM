@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QToolButton>
+#include <QMenu>
 
 #include "head.h"
 #include "constants.h"
@@ -14,6 +15,7 @@
 #include "user/user.h"
 #include "global.h"
 #include "widget/rmessagebox.h"
+#include "netsettings.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -23,24 +25,23 @@ class PanelBottomToolBarPrivate : public GlobalData<PanelBottomToolBar>
     Q_DECLARE_PUBLIC(PanelBottomToolBar)
 
 private:
-    PanelBottomToolBarPrivate(PanelBottomToolBar * q):q_ptr(q)
+    PanelBottomToolBarPrivate(PanelBottomToolBar * q):q_ptr(q),
+        addFriendInstance(nullptr),settingsInstance(nullptr),
+        netSettings(nullptr)
     {
-        addFriendInstance = NULL;
-        settingsInstance = NULL;
         initWidget();
     }
 
     ~PanelBottomToolBarPrivate()
     {
         if(addFriendInstance)
-        {
             addFriendInstance->close();
-        }
 
         if(settingsInstance)
-        {
             settingsInstance->close();
-        }
+
+        if(netSettings)
+            netSettings->close();
     }
 
     void initWidget();
@@ -49,6 +50,7 @@ private:
 
     AddFriend * addFriendInstance;
     SystemSettings * settingsInstance;
+    NetSettings * netSettings;
 
     QWidget * mainWidget;
 };
@@ -68,28 +70,56 @@ void PanelBottomToolBarPrivate::initWidget()
     contentLayout->setContentsMargins(6,1,1,1);
     contentLayout->setSpacing(2);
 
-    RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,q_ptr,SLOT(showSystemSetting()));
+    QMenu * menu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_BOTTOM_SETTING);
+
+    QAction * generalAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_BOTTOM_GENERAL,q_ptr,SLOT(showSystemSetting()));
+    generalAction->setText(QObject::tr("General setting"));
+
+    QAction * netSettingAction = ActionManager::instance()->createAction(Constant::ACTION_PANEL_BOTTOM_NETSETTING,q_ptr,SLOT(showNetsettings()));
+    netSettingAction->setText(QObject::tr("Network setting"));
+
+    menu->addAction(generalAction);
+    menu->addAction(netSettingAction);
+
+    RToolButton * toolButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_TOOL,q_ptr,nullptr);
+    toolButton->setPopupMode(QToolButton::InstantPopup);
     toolButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
+    toolButton->setMenu(menu);
     toolButton->setToolTip(QObject::tr("Main menu"));
+
 #ifndef __LOCAL_CONTACT__
     RToolButton * searchPerson = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_ADDPERSON,q_ptr,SLOT(showAddFriendPanel()));
     searchPerson->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     searchPerson->setToolTip(QObject::tr("Add Person"));
 #endif
-    RToolButton * notifyButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NOTIFY,q_ptr,SLOT(showNotifyWindow()));
-    notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
-    notifyButton->setToolTip(QObject::tr("Notify windows"));
+
+    RToolButton * netConnectButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NETWORK,q_ptr,nullptr);
+    netConnectButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
+    netConnectButton->setToolTip(QObject::tr("Network connector"));
+
+    QMenu * netConnectMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_BOTTOM_NETCONNECTOR);
+    netConnectButton->setMenu(netConnectMenu);
+    netConnectButton->setPopupMode(QToolButton::InstantPopup);
 
     RToolButton * fileServerButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FILESERVER,q_ptr,SLOT(viewFileServerState()));
     fileServerButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     fileServerButton->setToolTip(QObject::tr("File server"));
+
+    RToolButton * notifyButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NOTIFY,q_ptr,SLOT(showNotifyWindow()));
+    notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
+    notifyButton->setToolTip(QObject::tr("Notify windows"));
 
     contentLayout->addWidget(toolButton);
 #ifndef __LOCAL_CONTACT__
     contentLayout->addWidget(searchPerson);
 #endif
     contentLayout->addWidget(notifyButton);
+
+#ifdef __LOCAL_CONTACT__
+    contentLayout->addWidget(netConnectButton);
+#else
     contentLayout->addWidget(fileServerButton);
+#endif
     contentLayout->addStretch(1);
 
     mainWidget->setLayout(contentLayout);
@@ -102,9 +132,10 @@ PanelBottomToolBar::PanelBottomToolBar(QWidget *parent):
     if(!d_ptr->settingsInstance)
     {
         d_ptr->settingsInstance = new SystemSettings();
-        connect(d_ptr->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstnce(QObject*)));
+        connect(d_ptr->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstance(QObject*)));
     }
 
+    updateNetConnectorInfo();
     RSingleton<Subject>::instance()->attach(this);
 }
 
@@ -118,7 +149,10 @@ void PanelBottomToolBar::onMessage(MessageType mtype)
 {
     switch(mtype){
         case MESS_ADD_FRIEND_WINDOWS:
-                showAddFriendPanel();
+            showAddFriendPanel();
+            break;
+        case MESS_TEXT_NET_ERROR:
+            updateNetConnectorInfo();
             break;
         case MESS_FILE_NET_ERROR:
             networkIsConnected(false);
@@ -149,33 +183,82 @@ void PanelBottomToolBar::showSystemSetting()
     if(!d->settingsInstance)
     {
         d->settingsInstance = new SystemSettings();
-        connect(d->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstnce(QObject*)));
+        connect(d->settingsInstance,SIGNAL(destroyed(QObject*)),this,SLOT(updateSettingInstance(QObject*)));
     }
 
     d->settingsInstance->showNormal();
+}
+
+void PanelBottomToolBar::showNetsettings()
+{
+    MQ_D(PanelBottomToolBar);
+    if(!d->netSettings){
+        d->netSettings = new NetSettings();
+        connect(d->netSettings,SIGNAL(destroyed(QObject*)),this,SLOT(updateNetSettingInstance(QObject*)));
+        connect(d->netSettings,SIGNAL(ipInfoUpdated()),this,SLOT(updateNetConnectorInfo()));
+        d->netSettings->enableMoveable(true);
+    }
+    d->netSettings->initLocalSettings();
+    d->netSettings->showNormal();
+}
+
+void PanelBottomToolBar::updateNetConnectorInfo()
+{
+    QMenu * netConnectMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_NETCONNECTOR);
+    if(netConnectMenu){
+        netConnectMenu->clear();
+        QVector<IpPort> ips = G_NetSettings.validIps();
+        std::for_each(ips.begin(),ips.end(),[&](const IpPort & ip){
+            QAction * action = new QAction();
+            if(G_NetSettings.connectedIpPort == ip){
+                if(G_NetSettings.connectedIpPort.isConnected())
+                    action->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
+                else
+                    action->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
+            }
+            action->setText(QString("%1:%2").arg(ip.ip).arg(ip.port));
+            netConnectMenu->addAction(action);
+        });
+    }
+
+    if(G_NetSettings.connectedIpPort.isConnected()){
+        ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
+        ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
+    }else{
+        ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
+        ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
+    }
 }
 
 void PanelBottomToolBar::updateFrinedInstance(QObject *)
 {
     MQ_D(PanelBottomToolBar);
     if(d->addFriendInstance)
-    {
-        d->addFriendInstance = NULL;
-    }
+        d->addFriendInstance = nullptr;
 }
 
-void PanelBottomToolBar::updateSettingInstnce(QObject *)
+void PanelBottomToolBar::updateSettingInstance(QObject *)
 {
     MQ_D(PanelBottomToolBar);
     if(d->settingsInstance)
-    {
-        d->settingsInstance = NULL;
-    }
+        d->settingsInstance = nullptr;
+}
+
+void PanelBottomToolBar::updateNetSettingInstance(QObject *)
+{
+    MQ_D(PanelBottomToolBar);
+    if(d->netSettings)
+        d->netSettings = nullptr;
 }
 
 void PanelBottomToolBar::showNotifyWindow()
 {
     RSingleton<Subject>::instance()->notify(MESS_NOTIFY_WINDOWS);
+}
+
+void PanelBottomToolBar::updateNetConnector()
+{
+
 }
 
 void PanelBottomToolBar::viewFileServerState()

@@ -10,7 +10,7 @@
 namespace ClientNetwork{
 
 TcpTransmit::TcpTransmit():
-    BaseTransmit(C_TCP),tcpSocket(nullptr)
+    BaseTransmit(),tcpSocket(nullptr)
 {
     dataPacketRule = std::make_shared<DataPacketRule>();
 
@@ -20,6 +20,16 @@ TcpTransmit::TcpTransmit():
 TcpTransmit::~TcpTransmit()
 {
     dataPacketRule.reset();
+}
+
+CommMethod TcpTransmit::type()
+{
+    return C_TCP;
+}
+
+QString TcpTransmit::name()
+{
+    return "TCP";
 }
 
 /*!

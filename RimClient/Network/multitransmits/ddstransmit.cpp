@@ -5,7 +5,7 @@
 namespace ClientNetwork{
 
 DDSTransmit::DDSTransmit() :
-    BaseTransmit(C_BUS)
+    BaseTransmit()
 {
     int iRet = DDSInit("RIMDDSSOCKET",2);			//模块号
     iRet = DDSCreateTopic("CLIENTSEND",3);
@@ -29,6 +29,16 @@ DDSTransmit::DDSTransmit() :
 DDSTransmit::~DDSTransmit()
 {
 
+}
+
+CommMethod DDSTransmit::type()
+{
+    return C_BUS;
+}
+
+QString DDSTransmit::name()
+{
+    return "DDS";
 }
 
 bool DDSTransmit::startTransmit(const SendUnit &unit)

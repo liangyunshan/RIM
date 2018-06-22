@@ -36,13 +36,18 @@ signals:
 private slots:
     void showAddFriendPanel();
     void showSystemSetting();
+    void showNetsettings();
     void updateFrinedInstance(QObject *);
-    void updateSettingInstnce(QObject *);
+    void updateSettingInstance(QObject *);
+    void updateNetSettingInstance(QObject *);
     void showNotifyWindow();
+    void updateNetConnector();
     void viewFileServerState();
+    void updateNetConnectorInfo();
 
 private:
     void networkIsConnected(bool connected);
+    void updateNetworkState();
 
 private:
     PanelBottomToolBarPrivate * d_ptr;

@@ -28,6 +28,7 @@ public:
     ~NetSettings();
 
     void initLocalSettings();
+    void enableMoveable(bool flag);
 
 signals:
     void ipInfoUpdated();
