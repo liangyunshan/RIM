@@ -329,7 +329,7 @@ void LoginDialog::respTextConnect(bool flag)
 
     if(!flag)
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
         LoginRequest * request = new LoginRequest();
@@ -355,7 +355,7 @@ void LoginDialog::respTextSocketError()
         G_User->setTextOnline(false);
     }
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServerIp.toLocal8Bit().data(),G_NetSettings.textServerPort);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
@@ -441,11 +441,11 @@ void LoginDialog::createTrayMenu()
 void LoginDialog::loadLocalSettings()
 {
     RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_NetSettings.textServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_NetSettings.textServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+    G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
 #ifndef __LOCAL_CONTACT__
-    G_NetSettings.fileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_NetSettings.fileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
 #endif
     RUtil::globalSettings()->endGroup();
 }

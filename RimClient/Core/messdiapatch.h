@@ -54,6 +54,7 @@ public:
 
     void onAddHistoryItem(HistoryChatRecord &record);
 
+    void onTransmitsInitialError(QString errorMsg);
     void onTextConnected(bool flag);
     void onTextSocketError();
     void onFileConnected(bool flag);
@@ -90,6 +91,8 @@ signals:
     void screenChange();
 
     void createHisotryItem(HistoryChatRecord);
+
+    void transmitsInitialError(QString error);
 
     void textConnected(bool);
     void textSocketError();

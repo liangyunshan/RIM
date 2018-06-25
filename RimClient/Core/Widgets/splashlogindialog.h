@@ -49,6 +49,7 @@ private slots:
     /**********网络连接**********/
     void respTextConnect(bool flag);
     void respTextSocketError();
+    void respTransmitError(QString errorMsg);
 
 private:
     void enableInput(bool flag);
