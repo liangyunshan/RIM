@@ -56,13 +56,14 @@ SOURCES += \
     aes/AES.cpp \
     aes/raes.cpp \
     wraprule/wraprule.cpp \
-    wraprule/datapacketrule.cpp \
+#    wraprule/datapacketrule.cpp \
     win32net/rudpsocket.cpp \
     multitransmits/basetransmit.cpp \
     multitransmits/tcptransmit.cpp \
     win32net/msgsender.cpp \
     win32net/msgreceive.cpp \
-    multitransmits/ddstransmit.cpp
+    multitransmits/ddstransmit.cpp \
+    wraprule/tcpdatapacketrule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -72,11 +73,12 @@ HEADERS +=\
     aes/AES.h \
     aes/raes.h \
     wraprule/wraprule.h \
-    wraprule/datapacketrule.h \
+#    wraprule/datapacketrule.h \
     win32net/rudpsocket.h \
     multitransmits/basetransmit.h \
     multitransmits/tcptransmit.h \
     win32net/msgreceive.h \
     win32net/msgsender.h \
     multitransmits/ddstransmit.h \
-    3rdhead/DDS.h
+    3rdhead/DDS.h \
+    wraprule/tcpdatapacketrule.h

@@ -11,7 +11,7 @@ class QDB2051_WrapRule : public WrapRule
 public:
     QDB2051_WrapRule();
 
-    QByteArray wrap(const QByteArray &data);
+    QByteArray wrap(const ProtocolPackage &package);
     QByteArray unwrap(const QByteArray &data);
 };
 

@@ -4,6 +4,8 @@
 
 #include "../wraprule/udp_wraprule.h"
 #include "../wraprule/tcp_wraprule.h"
+#include "../wraprule/qdb21_wraprule.h"
+#include "../wraprule/qdb2051_wraprule.h"
 #include "rsingleton.h"
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
@@ -43,15 +45,16 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             break;
     }
 
-    //716
+    //716_TK
+    TextRequest *textRequest = ((TextRequest *)packet);
+    ProtocolPackage package;
     if(packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
     {
-        TextRequest *test = ((TextRequest *)packet);
-        result = test->sendData.toLocal8Bit();
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<test->accountId<<test->otherSideId<<test->timeStamp
-              <<"\n";
+        result = textRequest->sendData.toLocal8Bit();
 
+        package.wSourceAddr = textRequest->accountId.toInt();
+        package.wDestAddr = textRequest->otherSideId.toInt();
+        package.cFileData = result;
     }
 
     if(result.length() > 0){
@@ -59,18 +62,20 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         CommMethod commMethod = C_NONE;
         if(method == C_NetWork && format == M_205){
             commMethod = C_UDP;
-            sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(result);
+            sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(package);
         }else if(method == C_TongKong && format == M_495){
-//            commMethod = C_TCP;
-//            sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
-
-            //716_兼容调试,暂时使用DDS+TCP报文格式发送数据，此处复用TCP发送格式
-            commMethod = C_BUS;
-            sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
+            commMethod = C_TCP;
+            sendResult = RSingleton<QDB2051_WrapRule>::instance()->wrap(package);
+            package.cFileData = sendResult;
+            sendResult = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
         }
+
         if(commMethod != C_NONE){
             G_TextSendMutex.lock();
-            G_TextSendBuffs.push({commMethod,sendResult});
+            SendUnit unit;
+            unit.method = commMethod;
+            unit.data = sendResult;
+            G_TextSendBuffs.push(unit);
             G_TextSendMutex.unlock();
 
             G_TextSendWaitCondition.notify_one();

@@ -10,7 +10,7 @@ TK205_WrapRule::TK205_WrapRule():
 
 }
 
-QByteArray TK205_WrapRule::wrap(const QByteArray &data)
+QByteArray TK205_WrapRule::wrap(const ProtocolPackage &data)
 {
 
     return QByteArray();

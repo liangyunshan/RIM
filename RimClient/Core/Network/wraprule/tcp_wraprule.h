@@ -11,7 +11,7 @@ class TCP_WrapRule : public WrapRule
 public:
     TCP_WrapRule();
 
-    QByteArray wrap(const QByteArray &data);
+    QByteArray wrap(const ProtocolPackage &package);
     QByteArray unwrap(const QByteArray &data);
 };
 

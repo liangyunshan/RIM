@@ -13,7 +13,6 @@
 #include <memory>
 
 #include "basetransmit.h"
-#include "../wraprule/datapacketrule.h"
 
 namespace ClientNetwork{
 
@@ -31,10 +30,6 @@ public:
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);
     bool close();
-
-
-private:
-    std::shared_ptr<DataPacketRule> dataPacketRule;
 };
 
 }
