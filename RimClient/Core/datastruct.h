@@ -176,23 +176,54 @@ struct SystemSettingKey
     bool compressCheck;
 };
 
+struct IpPort{
+
+    IpPort(){
+        port = 0;
+        connected = false;
+    }
+
+    bool isValid(){return (ip.size() > 0 && port > 0);}
+    void setConnected(bool flag){connected = flag;}
+    bool isConnected(){return connected;}
+
+    bool operator== (const IpPort & otherSide){
+        if(ip != otherSide.ip || port != otherSide.port){
+            return false;
+        }
+        return true;
+    }
+
+    QString ip;
+    unsigned short port;
+
+    bool connected;
+};
+
 /*!
  *  @brief 网络配置信息
  */
 struct NetworkSettings{
 
-    QString textServerIp;                         //文本服务器IP
-    unsigned short textServerPort;                //文本服务器监听端口
-#ifndef __LOCAL_CONTACT__
-    QString fileServerIp;                         //文件服务器IP
-    unsigned short fileServerPort;                //文件服务器监听端口
-#else
-    QString tandemServerIp1;                      //串联服务器IP1
-    unsigned short tandemServerPort1;             //串联服务器监听端口1
+    QVector<IpPort> validIps(){
+        QVector<IpPort> ipCollects;
 
-    QString tandemServerIp2;                      //串联服务器IP2
-    unsigned short tandemServerPort2;             //串联服务器监听端口2
+        if(textServer.isValid())
+            ipCollects.append(textServer);
+
+        if(tandemServer.isValid())
+            ipCollects.append(tandemServer);
+
+        return ipCollects;
+    }
+
+    IpPort textServer;              //主服务器
+#ifndef __LOCAL_CONTACT__
+    IpPort fileSever;               //文件服务器
 #endif
+    IpPort tandemServer;            //串联服务器
+
+    IpPort connectedIpPort;         //保存正在连接的网络地址信息(要么为textServer，要么为tandemServer)
 };
 
 #ifdef __LOCAL_CONTACT__
@@ -237,6 +268,58 @@ struct BaseInfo{
 };
 
 /*!
+ *  @brief  网络参数
+ */
+struct NetParamSetting{
+    unsigned short port;        /*!< 收发端口 */
+    unsigned short backPort;    /*!< 收发辅助端口 */
+    unsigned long maxSegment;   /*!< 发送报文最大长度 */
+    unsigned short delayTime;   /*!< 网络发送延时 */
+};
+
+/*!
+ *  @brief 信源
+ */
+struct MessSource{
+    QString nodeName;           /*!< 节点名 */
+    QString nodeId;             /*!< 节点号 */
+    QString ip;                 /*!< ip地址 */
+    unsigned short encryption;  /*!< 加密标识 */
+    unsigned short priority;    /*!< 发送优先级 */
+    unsigned short connectTimeOut;  /*!< 建链初始时延 */
+    QString protocol;           /*!< 传输协议 */
+    unsigned short port;        /*!< 端口号 */
+};
+
+/*!
+ *  @brief  网络收发配置
+ */
+struct NetSiteSettings{
+    NetParamSetting netParamSetting;    /*!< 网络参数 */
+    QVector<MessSource> sites;          /*!< 网络信源 */
+};
+
+/*!
+ *  @brief  传输配置-条目
+ */
+struct TrasmitSetting{
+    QString nodeId;                           /*!< 节点号 */
+    QString protocol;                         /*!< 传输协议 暂不用*/
+    MessageFormat messageFormat;              /*!< 报文格式 */
+};
+
+/*!
+ *  @brief  通信控制器
+ */
+struct CommucationControl{
+    QString ip;                         /*!< 通控器IP */
+    unsigned short port;                /*!< 通控器端口 */
+    QString emualteIp;                  /*!< 模拟器IP */
+    unsigned short emulatePort;         /*!< 模拟器端口 */
+    QVector<TrasmitSetting> transmitSettings;       /*!< 传输配置 */
+};
+
+/*!
  *  @brief  外发信息配置条目
  */
 struct OuterNetConfig{
@@ -247,11 +330,14 @@ struct OuterNetConfig{
     QString distributeMessageType;            /*!< 下发报文类别 */
 };
 
+
 /*!
  *  @brief  信息收发参数配置
  */
 struct ParaSettings{
     BaseInfo baseInfo;                          /*!< 基本信息 */
+    NetSiteSettings netSites;                   /*!< 网络收发配置 */
+    CommucationControl commControl;             /*!< 通信控制器 */
     QVector<OuterNetConfig> outerNetConfig;     /*!< 外发信息配置 */
 };
 

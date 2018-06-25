@@ -2,8 +2,7 @@
 
 namespace ClientNetwork{
 
-BaseTransmit::BaseTransmit(CommMethod method):netConnected(false),
-    transMethod(method)
+BaseTransmit::BaseTransmit():netConnected(false)
 {
 
 }
@@ -11,11 +10,6 @@ BaseTransmit::BaseTransmit(CommMethod method):netConnected(false),
 BaseTransmit::~BaseTransmit()
 {
 
-}
-
-CommMethod BaseTransmit::type()
-{
-    return transMethod;
 }
 
 bool BaseTransmit::connected()

@@ -56,13 +56,11 @@ RToolButton *ActionManager::createToolButton(Id id,QObject * reciver, const char
     if(reciver)
     {
         toolButt->setCheckable(isToggled);
-        if(isToggled)
-        {
-            connect(toolButt,SIGNAL(toggled(bool)),reciver,slot);
-        }
-        else
-        {
-            connect(toolButt,SIGNAL(pressed()),reciver,slot);
+        if(slot){
+            if(isToggled)
+                connect(toolButt,SIGNAL(toggled(bool)),reciver,slot);
+             else
+                connect(toolButt,SIGNAL(pressed()),reciver,slot);
         }
     }
 

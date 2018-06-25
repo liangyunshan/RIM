@@ -22,6 +22,9 @@ public:
     DDSTransmit();
     ~DDSTransmit();
 
+    CommMethod type();
+    QString name();
+
     bool startTransmit(const SendUnit &unit);
     bool startRecv(char *recvBuff, int recvBuffLen,ByteArrayHandler recvDataFunc);
 

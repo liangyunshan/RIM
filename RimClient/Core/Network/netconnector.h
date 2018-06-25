@@ -17,6 +17,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+#include <map>
+#include <vector>
 
 namespace ClientNetwork
 {
@@ -30,6 +32,7 @@ namespace ClientNetwork {
 class RTask;
 class TcpTransmit;
 class DDSTransmit;
+class BaseTransmit;
 }
 
 class SuperConnector : public ClientNetwork::RTask
@@ -47,6 +50,7 @@ public:
         Net_Heart
     };
 
+    virtual bool initialize() = 0;
     void connect(int delaySecTime = 3);            //延迟秒
     void reconnect(int delaySecTime = 3);
     void disConnect();
@@ -82,13 +86,7 @@ protected:
 
     std::mutex mutex;
     std::condition_variable condition;
-
-#ifndef __LOCAL_CONTACT__
-#else
-    std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit;
-#endif
-    std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit;
-
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> transmits;
 };
 
 class TextNetConnector : public SuperConnector
@@ -99,6 +97,8 @@ public:
     ~TextNetConnector();
 
     static TextNetConnector * instance();
+
+    bool initialize();
 
 private:
     void doConnect();
@@ -111,9 +111,8 @@ protected slots:
 private:
     static TextNetConnector * netConnector;
 
-    ClientNetwork::TextSender * msgSender;
-    ClientNetwork::TextReceive * msgReceive;
-    ClientNetwork::TextReceive * msgReceive_DDS;
+    std::shared_ptr<ClientNetwork::TextSender> msgSender;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> msgReceives;
 };
 
 class FileNetConnector : public SuperConnector
@@ -125,6 +124,8 @@ public:
 
     static FileNetConnector * instance();
 
+    bool initialize();
+
 private slots:
     void respSocketError(CommMethod method);
 
@@ -135,9 +136,8 @@ private:
 private:
     static FileNetConnector * netConnector;
 
-    ClientNetwork::FileSender * msgSender;
-    ClientNetwork::FileReceive * msgReceive;
-    ClientNetwork::FileReceive * msgReceive_DDS;
+    std::shared_ptr<ClientNetwork::FileSender> msgSender;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> msgReceives;
 };
 
 #endif // NETCONNECTOR_H
