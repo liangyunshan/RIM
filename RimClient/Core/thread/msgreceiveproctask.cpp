@@ -9,6 +9,9 @@
 #include "jsonkey.h"
 #include "messdiapatch.h"
 
+#include "../Network/wraprule/qdb21_wraprule.h"
+#include "../Network/wraprule/qdb2051_wraprule.h"
+
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
 {
@@ -56,15 +59,7 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-                //716_TK兼容调试
-//                validateRecvData(array);
-
-                TextRequest response;
-                response.msgCommand = MSG_TEXT_TEXT;
-                response.accountId =QString::number(2632);
-                response.otherSideId =QString::number(9779);
-                response.sendData = QString::fromLocal8Bit(array);
-                MessDiapatch::instance()->onRecvText(response);
+                validateRecvData(array);
             }
         }
     }
@@ -72,6 +67,11 @@ void MsgReceiveProcTask::run()
 
 void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 {
+#ifdef __LOCAL_CONTACT__
+    //716_TK兼容调试,解析头
+    RSingleton<DataProcess>::instance()->proTCPText(RBuffer(data));
+    //[~716]
+#else
     QJsonDocument document = QJsonDocument::fromJson(data,&jsonParseError);
     if(jsonParseError.error == QJsonParseError::NoError)
     {
@@ -91,6 +91,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
                 break;
         }
     }
+#endif
 }
 
 /*!
