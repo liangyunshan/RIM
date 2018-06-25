@@ -3,12 +3,14 @@
 #include <QJsonDocument>
 
 #include "network/netglobal.h"
-#include "../Network/wraprule/dds_wraprule.h"
 #include "dataprocess.h"
 #include "rsingleton.h"
 #include "head.h"
 #include "jsonkey.h"
 #include "messdiapatch.h"
+
+#include "../Network/wraprule/qdb21_wraprule.h"
+#include "../Network/wraprule/qdb2051_wraprule.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
@@ -57,18 +59,14 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-#ifndef __LOCAL_CONTACT__
-                validateRecvData(array);
-#else
-                //716_TK兼容调试
-                //对数据解包
-                QByteArray realdata = RSingleton<DDS_WrapRule>::instance()->unwrap(array);
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"realdata:"<<realdata
-                      <<"\n";
-                validateRecvData(realdata);
+                //716_TK兼容调试,解析头
+                ProtocolPackage package;
+                QByteArray recvBuff = RSingleton<QDB21_WrapRule>::instance()->unwrap(array);
+                recvBuff = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvBuff);
+                package.cFileData = recvBuff;
+                //[~716]
 
-#endif
+                validateRecvData(recvBuff);
             }
         }
     }

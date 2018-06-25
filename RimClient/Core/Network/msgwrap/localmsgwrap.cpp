@@ -4,7 +4,6 @@
 
 #include "../wraprule/udp_wraprule.h"
 #include "../wraprule/tcp_wraprule.h"
-#include "../wraprule/dds_wraprule.h"
 #include "../wraprule/qdb21_wraprule.h"
 #include "../wraprule/qdb2051_wraprule.h"
 #include "rsingleton.h"

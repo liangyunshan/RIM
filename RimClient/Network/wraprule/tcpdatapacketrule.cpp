@@ -12,7 +12,7 @@ TCPDataPacketRule::TCPDataPacketRule():
 
 QByteArray TCPDataPacketRule::wrap(const ProtocolPackage &data)
 {
-    return QByteArray();
+    return QByteArray(data.cFileData);
 }
 
 /*!
@@ -31,9 +31,6 @@ bool TCPDataPacketRule::wrap(const QByteArray &data, std::function<int (const ch
     packet.totalLen = data.length();
 
     int sendLen = 0;
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"packet.totalIndex:"<<packet.totalIndex
-          <<"\n";
 
     for(unsigned int i = 0; i < packet.totalIndex; i++)
     {
@@ -47,10 +44,6 @@ bool TCPDataPacketRule::wrap(const QByteArray &data, std::function<int (const ch
 
         int dataLen = sizeof(DataPacket)+packet.currentLen;
         int realSendLen = sendDataFunc(sendBuff,dataLen);
-
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<sendBuff<<"sendBuff.size():"<<dataLen
-              <<"\n";
 
         if(realSendLen == dataLen){
             sendLen += packet.currentLen;
@@ -67,7 +60,7 @@ bool TCPDataPacketRule::wrap(const QByteArray &data, std::function<int (const ch
 
 QByteArray TCPDataPacketRule::unwrap(const QByteArray &data)
 {
-    return QByteArray();
+    return QByteArray(data);
 }
 
 /*!

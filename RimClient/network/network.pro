@@ -56,7 +56,7 @@ SOURCES += \
     aes/AES.cpp \
     aes/raes.cpp \
     wraprule/wraprule.cpp \
-    wraprule/datapacketrule.cpp \
+#    wraprule/datapacketrule.cpp \
     win32net/rudpsocket.cpp \
     multitransmits/basetransmit.cpp \
     multitransmits/tcptransmit.cpp \
@@ -73,7 +73,7 @@ HEADERS +=\
     aes/AES.h \
     aes/raes.h \
     wraprule/wraprule.h \
-    wraprule/datapacketrule.h \
+#    wraprule/datapacketrule.h \
     win32net/rudpsocket.h \
     multitransmits/basetransmit.h \
     multitransmits/tcptransmit.h \

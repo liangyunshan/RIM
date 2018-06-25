@@ -13,6 +13,7 @@ QDataStream& operator<<(QDataStream & stream,const UserInfoDesc & desc)
     return stream;
 }
 
+
 QDataStream& operator>>(QDataStream & stream,UserInfoDesc & desc)
 {
     stream>>desc.userName>>desc.accountId>>desc.loginState>>desc.originPassWord>>desc.password>>desc.isRemberPassword>>desc.isAutoLogin

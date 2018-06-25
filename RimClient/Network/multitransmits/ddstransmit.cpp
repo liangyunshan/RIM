@@ -28,7 +28,7 @@ DDSTransmit::DDSTransmit() :
 
 DDSTransmit::~DDSTransmit()
 {
-    close();
+
 }
 
 CommMethod DDSTransmit::type()
@@ -82,7 +82,6 @@ bool DDSTransmit::connect(const char *remoteIp, const unsigned short remotePort,
 
 bool DDSTransmit::close()
 {
-    DDSQuit();
     return true;
 }
 

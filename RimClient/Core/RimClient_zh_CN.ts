@@ -299,56 +299,23 @@
 <context>
     <name>NetSettings</name>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="196"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="190"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Network settings</source>
         <translation>网络设置</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="245"/>
-        <location filename="Widgets/netsettings.cpp" line="252"/>
-        <location filename="Widgets/netsettings.cpp" line="258"/>
-        <location filename="Widgets/netsettings.cpp" line="264"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="241"/>
         <location filename="Widgets/netsettings.cpp" line="248"/>
         <location filename="Widgets/netsettings.cpp" line="254"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="245"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="241"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>ip address is error!</source>
         <translation>IP地址设置错误!</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="252"/>
-        <source>trandem ip1 address is error!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="Widgets/netsettings.cpp" line="258"/>
-        <source>trandem ip2 address is error!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="Widgets/netsettings.cpp" line="264"/>
-        <source>file address is error!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="Widgets/netsettings.cpp" line="304"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="248"/>
         <source>trandem ip address is error!</source>
         <translation>串联服务器ip地址设置错误!</translation>
@@ -360,16 +327,11 @@
     </message>
     <message>
         <location filename="Widgets/netsettings.cpp" line="288"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Information</source>
         <translation>提示</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="304"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="288"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Save changes successfully!</source>
         <translation>修改成功!</translation>
     </message>
@@ -730,16 +692,10 @@
         <location filename="Widgets/logindialog.cpp" line="374"/>
         <location filename="Widgets/logindialog.cpp" line="385"/>
         <location filename="Widgets/registdialog.cpp" line="249"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="246"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="361"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="404"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="245"/>
         <location filename="Widgets/splashlogindialog.cpp" line="359"/>
         <location filename="Widgets/splashlogindialog.cpp" line="404"/>
         <location filename="Widgets/splashlogindialog.cpp" line="409"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <location filename="main.cpp" line="122"/>
         <source>Warning</source>
         <translation>警告</translation>
@@ -827,11 +783,7 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="247"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="141"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="139"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Min</source>
         <translation>最小化</translation>
     </message>
@@ -839,11 +791,7 @@
         <location filename="Widgets/editpersoninfowindow.cpp" line="252"/>
         <location filename="Widgets/logindialog.cpp" line="250"/>
         <location filename="Widgets/registgroupdialog.cpp" line="212"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="144"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="142"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -1047,11 +995,7 @@
     </message>
     <message>
         <location filename="Widgets/editpersoninfowindow.cpp" line="247"/>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="150"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="148"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -1240,11 +1184,7 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="185"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="103"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="101"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Sin in</source>
         <translation>登 陆</translation>
     </message>
@@ -1271,22 +1211,14 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="244"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="138"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="136"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>System Setting</source>
         <translation>系统设置</translation>
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="333"/>
         <location filename="Widgets/logindialog.cpp" line="359"/>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="361"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="359"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <location filename="Widgets/splashlogindialog.cpp" line="404"/>
         <source>Connect to text server error!</source>
         <translation>连接信息服务器失败!</translation>
@@ -1387,11 +1319,7 @@
         <translation type="vanished">登陆服务器</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="131"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="130"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Text Server</source>
         <translation>消息服务器</translation>
     </message>
@@ -1406,17 +1334,12 @@
         <translation>端口</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="138"/>
-        <location filename="Widgets/netsettings.cpp" line="143"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="137"/>
         <source>Tandem Server</source>
         <translation>串联服务器</translation>
     </message>
     <message>
         <location filename="Widgets/netsettings.cpp" line="141"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>File Server</source>
         <translation>文件服务器</translation>
     </message>
@@ -1438,11 +1361,7 @@
     <message>
         <location filename="Widgets/chataudioarea.cpp" line="58"/>
         <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
-<<<<<<< HEAD
-        <location filename="Widgets/netsettings.cpp" line="155"/>
-=======
         <location filename="Widgets/netsettings.cpp" line="153"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1646,21 +1565,13 @@
         <translation>服务器IP</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="96"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="95"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Tandem Server Ip</source>
         <oldsource>Tandem Server</oldsource>
         <translation>串联服务器Ip</translation>
     </message>
     <message>
-<<<<<<< HEAD
-        <location filename="Widgets/splashlogindialog.cpp" line="246"/>
-=======
         <location filename="Widgets/splashlogindialog.cpp" line="245"/>
->>>>>>> 048fd44e434b92c95b58567b001226eb24dfab66
         <source>Paramter settings read failed,system exit!</source>
         <translation>参数配置文件读取失败,系统退出!</translation>
     </message>

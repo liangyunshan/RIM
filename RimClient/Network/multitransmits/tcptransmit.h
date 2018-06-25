@@ -13,7 +13,6 @@
 #include <memory>
 
 #include "basetransmit.h"
-#include "../wraprule/datapacketrule.h"
 #include "../wraprule/tcpdatapacketrule.h"
 
 namespace ClientNetwork{
@@ -36,7 +35,7 @@ public:
     bool close();
 
 private:
-    std::shared_ptr<TCPDataPacketRule> m_TcpDataPacketRule;
+    std::shared_ptr<TCPDataPacketRule> dataPacketRule;
     RSocket* tcpSocket;
 };
 

@@ -22,17 +22,6 @@ QWidget#Widget_ContentWidget
 }
 
 /****************************登录页面********************************/
-QWidget#Logo_Widget
-{
-	border-image:url(':/background/resource/background/login.png');
-}
-
-QLabel#Node_Label
-{
-	font-size:18px;
-	color:white;
-}
-
 QToolButton
 {
 	font-family:"微软雅黑";
@@ -268,7 +257,7 @@ QWidget#ToolBox_ContentWidget
 QLabel#Tool_Item_NameLabel,QLabel#Tool_SimpleTextLabel,QLabel#Tool_DescTextLabel
 {
 	font-family:"微软雅黑";
-	font-size:13px;
+	font-size:14px;
 }
 
 QLabel#Tool_Item_NickLabel
@@ -288,7 +277,7 @@ QLabel#Tool_Item_DescLabel
 QLabel#Tool_Item_InfoLabel[ItemInfoLabelType="ItemSystemInfo"]
 {
 	background-color:red;
-	border-radius:4px;
+	border-radius:12px;
 	font-weight:600;
 	font-size:15px;
 	color:white;

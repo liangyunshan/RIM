@@ -23,7 +23,7 @@ class DataPacketRule : public WrapRule
 public:
     DataPacketRule();
 
-    QByteArray wrap(const ProtocolPackage &data);
+    QByteArray wrap(const QByteArray &data);
     bool wrap(const QByteArray & data, std::function<int(const char *,const int)> sendDataFunc);
 
     QByteArray unwrap(const QByteArray &data);

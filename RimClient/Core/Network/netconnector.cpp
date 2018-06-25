@@ -115,11 +115,15 @@ TextNetConnector::TextNetConnector():
 TextNetConnector::~TextNetConnector()
 {
     netConnector = nullptr;
+
     msgSender.reset();
+
     std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> item){
         item.second.reset();
     });
+
     msgReceives.clear();
+
     stopMe();
     wait();
 }
