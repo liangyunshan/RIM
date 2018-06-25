@@ -63,14 +63,11 @@ void MsgReceiveProcTask::run()
                 //716_TK兼容调试
                 //对数据解包
                 QByteArray realdata = RSingleton<DDS_WrapRule>::instance()->unwrap(array);
+                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                       <<"realdata:"<<realdata
+                      <<"\n";
                 validateRecvData(realdata);
 
-//                TextRequest response;
-//                response.msgCommand = MSG_TEXT_TEXT;
-//                response.accountId =QString::number(2632);
-//                response.otherSideId =QString::number(9779);
-//                response.sendData = QString::fromLocal8Bit(array);
-//                MessDiapatch::instance()->onRecvText(response);
 #endif
             }
         }

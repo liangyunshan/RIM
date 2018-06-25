@@ -14,14 +14,14 @@ namespace ClientNetwork{
 TcpTransmit::TcpTransmit():
     BaseTransmit(C_TCP),tcpSocket(nullptr)
 {
-    dataPacketRule = std::make_shared<DataPacketRule>();
+    m_TcpDataPacketRule = std::make_shared<TCPDataPacketRule>();
 
     tcpSocket = new RSocket();
 }
 
 TcpTransmit::~TcpTransmit()
 {
-    dataPacketRule.reset();
+    m_TcpDataPacketRule.reset();
 }
 
 /*!
@@ -32,15 +32,12 @@ TcpTransmit::~TcpTransmit()
  */
 bool TcpTransmit::startTransmit(const SendUnit &unit)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<""<<unit.data
-          <<"\n";
     if(tcpSocket && tcpSocket->isValid()){
         auto func = [&](const char * buff,const int length)->int{
             return tcpSocket->send(buff,length);
         };
 
-        if(dataPacketRule->wrap(unit.data,func))
+        if(m_TcpDataPacketRule->wrap(unit.data,func))
             return true;
     }
 
@@ -52,9 +49,13 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
 bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)
 {
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"recvLen:"<<recvLen<<recvBuff
+          <<"\n";
+
     if(recvLen > 0)
     {
-        if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
+        if(!m_TcpDataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
             RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
         }else{
             return true;

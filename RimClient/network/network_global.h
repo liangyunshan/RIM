@@ -75,15 +75,6 @@ enum CommMethod{
 };
 
 /*!
- *  @brief 待发送数据单元描述，包含了发送时使用的方式，以及待发送的数据
- */
-struct SendUnit
-{
-    CommMethod method;              /*!< 发送方式 */
-    QByteArray data;                /*!< 待发送的数据 */
-};
-
-/*!
  *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
  *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
  *  @author shangchao
@@ -116,6 +107,15 @@ struct ProtocolPackage
         pack.wSourceAddr = package.wSourceAddr;
         return pack;
     }
+};
+
+/*!
+ *  @brief 待发送数据单元描述，包含了发送时使用的方式，以及待发送的数据
+ */
+struct SendUnit
+{
+    CommMethod method;              /*!< 发送方式 */
+    QByteArray data;                /*!< 待发送的数据 */
 };
 
 #endif // NETWORK_GLOBAL_H

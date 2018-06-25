@@ -62,7 +62,8 @@ SOURCES += \
     multitransmits/tcptransmit.cpp \
     win32net/msgsender.cpp \
     win32net/msgreceive.cpp \
-    multitransmits/ddstransmit.cpp
+    multitransmits/ddstransmit.cpp \
+    wraprule/tcpdatapacketrule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -79,4 +80,5 @@ HEADERS +=\
     win32net/msgreceive.h \
     win32net/msgsender.h \
     multitransmits/ddstransmit.h \
-    3rdhead/DDS.h
+    3rdhead/DDS.h \
+    wraprule/tcpdatapacketrule.h
