@@ -15,7 +15,7 @@
 #include "Util/rutil.h"
 #include "constants.h"
 #include "rpersistence.h"
-#include "datastruct.h"
+#include "protocol/datastruct.h"
 #include "Util/rlog.h"
 #include "global.h"
 #include "autotransaction.h"

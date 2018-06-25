@@ -151,6 +151,9 @@ void PanelBottomToolBar::onMessage(MessageType mtype)
         case MESS_ADD_FRIEND_WINDOWS:
             showAddFriendPanel();
             break;
+        case MESS_TEXT_NET_OK:
+            updateNetConnectorInfo();
+            break;
         case MESS_TEXT_NET_ERROR:
             updateNetConnectorInfo();
             break;
@@ -217,16 +220,43 @@ void PanelBottomToolBar::updateNetConnectorInfo()
                     action->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
             }
             action->setText(QString("%1:%2").arg(ip.ip).arg(ip.port));
+            connect(action,SIGNAL(triggered(bool)),this,SLOT(respChangeConnector(bool)));
             netConnectMenu->addAction(action);
         });
     }
 
     if(G_NetSettings.connectedIpPort.isConnected()){
+        ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->setToolTip(tr("Network connected"));
         ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
     }else{
+        ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->setToolTip(tr("Network disconnected"));
         ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
+    }
+}
+
+/*!
+ * @brief 切换网络连接属性
+ * @note 网络已经连接之后，
+ * @param[in] bool
+ */
+void PanelBottomToolBar::respChangeConnector(bool)
+{
+    QAction * toolButt = dynamic_cast<QAction *>(QObject::sender());
+    if(toolButt){
+       QStringList connectorInfo = toolButt->text().split(":");
+       if(connectorInfo.size() == 2){
+            if(G_NetSettings.connectedIpPort.isConnected()){
+                RMessageBox::warning(this,QObject::tr("warning"),tr("Network established!"),RMessageBox::Yes);
+            }else{
+                RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
+                                         .arg(connectorInfo.at(1)),RMessageBox::Yes);
+
+                G_NetSettings.connectedIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
+                TextNetConnector::instance()->connect();
+            }
+       }
     }
 }
 

@@ -5,7 +5,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDomDocument>
-#include <QDebug>
 
 #include "Util/rlog.h"
 #include "datastruct.h"

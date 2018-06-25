@@ -278,10 +278,10 @@ void NetSettings::updateSettings()
         G_NetSettings.textServer.port = d->textServerIp->getPort().toUShort();
     }
 
+#ifdef __LOCAL_CONTACT__
     if(G_NetSettings.tandemServer.ip != d->tandemServerIp1->getIp() ||
             G_NetSettings.tandemServer.port != d->tandemServerIp1->getPort().toUShort())
     {
-#ifdef __LOCAL_CONTACT__
         if(G_NetSettings.connectedIpPort.isConnected() && G_NetSettings.connectedIpPort == G_NetSettings.tandemServer){
             int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
@@ -292,11 +292,11 @@ void NetSettings::updateSettings()
         }
         G_NetSettings.tandemServer.ip = d->tandemServerIp1->getIp();
         G_NetSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
+    }
 #else
         G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
         G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
 #endif
-    }
 
     QSettings * settings =  RUtil::globalSettings();
     settings->beginGroup(Constant::SYSTEM_NETWORK);

@@ -1,35 +1,26 @@
 ﻿/*!
- *  @brief     数据解析
- *  @details   响应线程调用，验证数据合法性，解析数据类型
- *  @file      dataprocess.h
+ *  @brief     JSON格式解析
+ *  @details   默认采用JSON作为数据解析的格式
  *  @author    wey
  *  @version   1.0
- *  @date      2018.01.16
- *  @attention 服务器根据启动的服务类型，自动选择对应的解析方式， @n
- *             1.文本传输服务：采用字符型解析方式，通过使用JSON来加快解析的速度 @n
- *             2.文件传输服务：采用字节型解析方式，通过RBuffer获取原始的字节流，然后按位解析 @n
+ *  @date      2018.06.25
+ *  @warning
  *  @copyright NanJing RenGu.
  */
+#ifndef JSON_MSGPARSE_H
+#define JSON_MSGPARSE_H
 
-#ifndef DATAPARSE_H
-#define DATAPARSE_H
-
-#include "Network/head.h"
-
-#include <QObject>
 #include <QJsonObject>
+
+#include "dataparse.h"
 #include "Util/rbuffer.h"
 
-class Database;
-
-
-class DataParse : public QObject
+class Json_MsgParse : public DataParse
 {
-    Q_OBJECT
 public:
-    explicit DataParse(QObject *parent = 0);
+    Json_MsgParse();
 
-    void processData(Database *db, const SocketInData & data);
+    void processData(Database *db, const SocketInData &data);
 
 private:
     void parseControlData(Database *db, int socketId, QJsonObject & obj);
@@ -57,7 +48,6 @@ private:
     void onProcessFileRequest(Database * db, int socketId, RBuffer &obj);
     void onProcessFileControl(Database * db,int socketId,RBuffer &obj);
     void onProcessFileData(Database * db, int socketId, RBuffer &obj);
-
 };
 
-#endif // DATAPROCESS_H
+#endif // JSON_MSGPARSE_H

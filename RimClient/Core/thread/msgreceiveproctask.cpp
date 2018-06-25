@@ -56,15 +56,7 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-                //716_TK兼容调试
-//                validateRecvData(array);
-
-                TextRequest response;
-                response.msgCommand = MSG_TEXT_TEXT;
-                response.accountId =QString::number(2632);
-                response.otherSideId =QString::number(9779);
-                response.sendData = QString::fromLocal8Bit(array);
-                MessDiapatch::instance()->onRecvText(response);
+                validateRecvData(array);
             }
         }
     }

@@ -7,11 +7,12 @@
 #include "Util/rutil.h"
 #include "rsingleton.h"
 #include "sql/sqlprocess.h"
-#include "Network/msgwrap.h"
+#include "Network/msgwrap/textwrapfactory.h"
+#include "Network/msgwrap/binarywrapfactory.h"
 #include "Network/head.h"
 #include "Network/netglobal.h"
 #include "global.h"
-#include "datastruct.h"
+#include "protocol/datastruct.h"
 
 #include "Network/tcpclient.h"
 using namespace ServerNetwork;
@@ -48,11 +49,11 @@ void DataProcess::processUserRegist(Database *db, int socketId, std::shared_ptr<
     {
         QScopedPointer<RegistResponse> response(new RegistResponse);
         response->accountId = registId;
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
     }
     else
     {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,regResult);
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,regResult);
     }
 
     SendData(data);
@@ -92,7 +93,7 @@ void DataProcess::processUserLogin(Database * db,int socketId, QSharedPointer<Lo
         QScopedPointer<LoginResponse> response(new LoginResponse);
         response->loginType = request->loginType;
         RSingleton<SQLProcess>::instance()->getUserInfo(db,request->accountId,response->baseInfo);
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
 
         TcpClient * client = TcpClientManager::instance()->getClient(socketId);
         if(client)
@@ -104,7 +105,7 @@ void DataProcess::processUserLogin(Database * db,int socketId, QSharedPointer<Lo
     }
     else
     {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,loginResult);
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,loginResult);
     }
 
     SendData(data);
@@ -127,11 +128,11 @@ void DataProcess::processUpdateUserInfo(Database * db,int socketId, QSharedPoint
         QScopedPointer<UpdateBaseInfoResponse> response (new UpdateBaseInfoResponse);
 
         RSingleton<SQLProcess>::instance()->getUserInfo(db,request->baseInfo.accountId,response->baseInfo);
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
     }
     else
     {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,updateResult);
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,updateResult);
     }
 
     SendData(data);
@@ -151,11 +152,11 @@ void DataProcess::processUserStateChanged(Database *db, int socketId, QSharedPoi
         response->accountId = request->accountId;
         response->onStatus = request->onStatus;
 
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
     }
     else
     {
-        data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,STATUS_FAILE);
+        data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,STATUS_FAILE);
     }
 
     SendData(data);
@@ -188,7 +189,7 @@ void DataProcess::processHistoryMsg(Database *db, int socketId, QSharedPointer<H
             ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
             ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+            reqeuestData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(ofresponse.data());
 
             SendData(reqeuestData);
 
@@ -206,7 +207,7 @@ void DataProcess::processHistoryMsg(Database *db, int socketId, QSharedPointer<H
             SocketOutData responseData;
             responseData.sockId = socketId;
 
-            responseData.data = RSingleton<MsgWrap>::instance()->handleText(&(*iter));
+            responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(&(*iter));
 
             SendData(responseData);
 
@@ -242,7 +243,7 @@ void DataProcess::pushFriendMyStatus(Database *db, int socketId, QString account
             response->accountId = accountId;
             response->onStatus = onStatus;
 
-            tmpData.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+            tmpData.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
             SendData(tmpData);
         }
         iter++;
@@ -259,17 +260,17 @@ void DataProcess::processSearchFriend(Database * db,int socketId, QSharedPointer
         ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchFriend(db,request.data(),response.data());
 
         if(updateResult == FIND_FRIEND_FOUND)
-            data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+            data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
         else
-            data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,updateResult);
+            data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,updateResult);
     }else if(request->stype == OperateGroup){
         QScopedPointer<SearchGroupResponse> response (new SearchGroupResponse);
         ResponseAddFriend updateResult = RSingleton<SQLProcess>::instance()->processSearchGroup(db,request.data(),response.data());
 
         if(updateResult == FIND_FRIEND_FOUND)
-            data.data =  RSingleton<MsgWrap>::instance()->handleMsg(response.data(),FIND_FRIEND_FOUND);
+            data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data(),FIND_FRIEND_FOUND);
         else
-            data.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,MSG_GROUP_SEARCH,updateResult);
+            data.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,MSG_GROUP_SEARCH,updateResult);
     }
 
     SendData(data);
@@ -332,7 +333,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, QSharedPointer<Ad
             ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
             ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+            reqeuestData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(ofresponse.data());
 
             SendData(reqeuestData);
         }else{
@@ -340,7 +341,7 @@ void DataProcess::processAddFriend(Database * db,int socketId, QSharedPointer<Ad
         }
     }
 
-    responseData.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,result);
+    responseData.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,result);
 
     SendData(responseData);
 }
@@ -395,7 +396,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
                 responseA->user.status = STATUS_OFFLINE;
             }
 
-            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
+            responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(responseA.data());
             SendData(responseData);
         }
 
@@ -422,7 +423,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
             ofresponse->requestInfo.isSystemIcon = baseInfo.isSystemIcon;
             ofresponse->requestInfo.iconId = baseInfo.iconId;
 
-            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+            reqeuestData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(ofresponse.data());
 
             SendData(reqeuestData);
 
@@ -451,7 +452,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
                 else
                     responseB->user.status = STATUS_OFFLINE;
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+                responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(responseB.data());
                 SendData(responseData);
             }
         }else{
@@ -484,7 +485,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
             else
                 responseA->user.status = STATUS_OFFLINE;
 
-            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseA.data());
+            responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(responseA.data());
             SendData(responseData);
         }
 
@@ -505,7 +506,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
             ofresponse->chatId = request->chatId;
             ofresponse->chatName = request->chatName;
 
-            reqeuestData.data = RSingleton<MsgWrap>::instance()->handleMsg(ofresponse.data());
+            reqeuestData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(ofresponse.data());
 
             SendData(reqeuestData);
 
@@ -524,7 +525,7 @@ void DataProcess::processRelationOperate(Database *db, int socketId, QSharedPoin
 
                 }
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+                responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(responseB.data());
                 SendData(responseData);
             }
 
@@ -572,11 +573,11 @@ void DataProcess::processFriendList(Database *db, int socketId, QSharedPointer<F
                 iter++;
             }
         }
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
     }
     else
     {
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,(int)STATUS_FAILE);
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,(int)STATUS_FAILE);
     }
 
     SendData(responseData);
@@ -621,7 +622,7 @@ void DataProcess::processGroupingOperate(Database *db, int socketId, QSharedPoin
     response->type = request->type;
     response->groupId = request->groupId;
     response->groupIndex = request->groupIndex;
-    responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),flag?STATUS_SUCCESS:STATUS_FAILE);
+    responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data(),flag?STATUS_SUCCESS:STATUS_FAILE);
 
     SendData(responseData);
 }
@@ -672,9 +673,9 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, QSharedPoint
     response->user = request->user;
 
     if(flag)
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),STATUS_SUCCESS);
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data(),STATUS_SUCCESS);
     else
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data(),STATUS_FAILE);
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data(),STATUS_FAILE);
     SendData(responseData);
 
     //删除时，若对方在线，向对方推送消息
@@ -695,7 +696,7 @@ void DataProcess::processGroupingFriend(Database *db, int socketId, QSharedPoint
             //客户端只需要对方ID来查找对应的ToolItem
             pushResponse->user.accountId = accountId;
 
-            pushData.data = RSingleton<MsgWrap>::instance()->handleMsg(pushResponse.data(),STATUS_SUCCESS);
+            pushData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(pushResponse.data(),STATUS_SUCCESS);
             SendData(pushData);
         }
     }
@@ -717,9 +718,9 @@ void DataProcess::processGroupList(Database *db, int socketId, QSharedPointer<Ch
     response->uuid = request->uuid;
     bool flag = RSingleton<SQLProcess>::instance()->getGroupList(db,request->uuid,response.data());
     if(flag){
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
     }else{
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,(int)STATUS_FAILE);
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,(int)STATUS_FAILE);
     }
 
     SendData(responseData);
@@ -740,7 +741,7 @@ void DataProcess::processRegistGroup(Database *db, int socketId, QSharedPointer<
     if(regResult == REGISTER_SUCCESS){
         //[1]返回注册成功消息
         if(RSingleton<SQLProcess>::instance()->getSingleChatGroupInfo(db,response.data()))
-            responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+            responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
 
         //[2]返回创建的群信息
         SocketOutData createChatResponse;
@@ -755,10 +756,10 @@ void DataProcess::processRegistGroup(Database *db, int socketId, QSharedPointer<
 
         }
 
-        createChatResponse.data = RSingleton<MsgWrap>::instance()->handleMsg(responseB.data());
+        createChatResponse.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(responseB.data());
         SendData(createChatResponse);
     }else{
-        responseData.data =  RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,regResult);
+        responseData.data =  RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,regResult);
     }
 
     SendData(responseData);
@@ -806,10 +807,10 @@ void DataProcess::processGroupCommand(Database *db, int socketId, QSharedPointer
         response->chatRoomId = request->chatRoomId;
         response->operateId = request->operateId;
 
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsg(response.data());
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
         //TODO [2]向其它客户端通知对应消息
     }else{
-        responseData.data = RSingleton<MsgWrap>::instance()->handleMsgReply(request->msgType,request->msgCommand,STATUS_FAILE,(int)request->type);
+        responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsgReply(request->msgType,request->msgCommand,STATUS_FAILE,(int)request->type);
     }
 
     SendData(responseData);
@@ -831,7 +832,7 @@ void DataProcess::processText(Database *db, int socketId, QSharedPointer<TextReq
         if(client && ((OnlineStatus)client->getOnLineState() != STATUS_OFFLINE) )
         {
             responseData.sockId = client->socket();
-            responseData.data = RSingleton<MsgWrap>::instance()->handleText(request.data());
+            responseData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(request.data());
 
             SendData(responseData);
         }else{
@@ -854,7 +855,7 @@ void DataProcess::processText(Database *db, int socketId, QSharedPointer<TextReq
     reply->textId = request->textId;
 
     replyData.sockId = socketId;
-    replyData.data = RSingleton<MsgWrap>::instance()->handleTextReply(reply.data());
+    replyData.data = RSingleton<TextWrapFactory>::instance()->getTextWrap()->handleMsg(reply.data());
 
     SendData(replyData);
 }
@@ -900,7 +901,7 @@ void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<
                 response->fileId = request->fileId;
                 response->md5 = request->md5;
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
+                responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
             }
             else
             {
@@ -919,7 +920,7 @@ void DataProcess::processFileRequest(Database *db, int socketId, QSharedPointer<
                 response->fileId = request->fileId;
                 response->md5 = request->md5;
 
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
+                responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
             }
         }
     }
@@ -969,7 +970,7 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
                 response->itemKind = request->itemKind;
                 response->itemType = request->itemType;
                 response->md5 = request->md5;
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response);
+                responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg(response);
                 SendData(responseData);
 
                 desc->unlock();
@@ -988,7 +989,7 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
             {
                 SocketOutData responseData;
                 responseData.sockId = socketId;
-                responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
+                responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
                 SendData(responseData);
             }
         }
@@ -1012,9 +1013,12 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
                     SocketOutData responseData;
                     responseData.sockId = socketId;
 
-                    QByteArray data = file.read(900);
-                    sendLen += data.size();
-                    responseData.data = RSingleton<MsgWrap>::instance()->handleFileData(request->fileId,currIndex++,data);
+                    FileDataTrunkRequest response;
+                    response.md5 = request->fileId;
+                    response.currIndex = currIndex++;
+                    response.data = file.read(900);
+                    sendLen += response.data.size();
+                    responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg((MsgPacket *)&response);
                     SendData(responseData);
                 }
             }
@@ -1072,7 +1076,7 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
                        response->itemKind = static_cast<FileItemKind>(desc->itemKind);
                        response->md5 = desc->md5;
                        response->fileId = desc->fileId;
-                       responseData.data = RSingleton<MsgWrap>::instance()->handleFile(response.data());
+                       responseData.data = RSingleton<BinaryWrapFactory>::instance()->getTextWrap()->handleMsg(response.data());
 
                        SendData(responseData);
                 }

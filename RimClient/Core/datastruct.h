@@ -183,6 +183,25 @@ struct IpPort{
         connected = false;
     }
 
+    IpPort(QString ip,unsigned short port){
+        this->ip = ip;
+        this->port = port;
+    }
+
+    IpPort(const IpPort & otherSide){
+        this->ip = otherSide.ip;
+        this->port = otherSide.port;
+    }
+
+    IpPort operator=(const IpPort & otherSide){
+        if(this != &otherSide){
+            this->ip = otherSide.ip;
+            this->port = otherSide.port;
+        }
+
+        return *this;
+    }
+
     bool isValid(){return (ip.size() > 0 && port > 0);}
     void setConnected(bool flag){connected = flag;}
     bool isConnected(){return connected;}
@@ -219,7 +238,7 @@ struct NetworkSettings{
 
     IpPort textServer;              //主服务器
 #ifndef __LOCAL_CONTACT__
-    IpPort fileSever;               //文件服务器
+    IpPort fileServer;              //文件服务器
 #endif
     IpPort tandemServer;            //串联服务器
 

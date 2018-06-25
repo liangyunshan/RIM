@@ -92,7 +92,7 @@ void SplashLoginDialogPrivate::initWidget()
     tcpServerIp = new QLabel(bottomWidget);
 
     QLabel * tandemtServerIp = new QLabel(bottomWidget);
-    tandemtServerIp->setText(QObject::tr("Tandem Server Ip"));
+    tandemtServerIp->setText(QObject::tr("Tandem Server IP"));
 
     tcpFlowServerIp1 = new QLabel(bottomWidget);
 
@@ -358,6 +358,8 @@ void SplashLoginDialog::respTextConnect(bool flag)
     if(!flag){
         RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+    }else{
+        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
     }
 
     if(G_User == nullptr){

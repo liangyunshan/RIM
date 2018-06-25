@@ -175,7 +175,13 @@ void TextNetConnector::respSocketError(CommMethod method)
 {
     switch(method){
         case C_TCP:
-            MessDiapatch::instance()->onTextSocketError();
+            {
+                MessDiapatch::instance()->onTextSocketError();
+                std::shared_ptr<ClientNetwork::TextReceive> tcpTrans = msgReceives.at(C_TCP);
+                if(tcpTrans.get()){
+                    tcpTrans->stopMe();
+                }
+            }
             break;
         default:
             break;
@@ -295,11 +301,11 @@ void FileNetConnector::doConnect()
     if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
 #ifndef __LOCAL_CONTACT__
-        memcpy(ip,G_NetSettings.fileServerIp.toLocal8Bit().data(),G_NetSettings.fileServerIp.toLocal8Bit().size());
-        bool connected = tcpTrans->connect(ip,G_NetSettings.fileServerPort,delayTime);
-        MessDiapatch::instance()->onTextConnected(connected);
+        memcpy(ip,G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.ip.toLocal8Bit().size());
+        bool connected = tcpTrans->connect(ip,G_NetSettings.fileServer.port,delayTime);
+        MessDiapatch::instance()->onFileConnected(connected);
         if(connected){
-            if(msgSender.get()= nullptr && !msgSender->running())
+            if(msgSender.get() != nullptr && !msgSender->running())
                 msgSender->startMe();
 
             if(msgReceives.at(C_TCP).get() != nullptr && !msgReceives.at(C_TCP)->running())
