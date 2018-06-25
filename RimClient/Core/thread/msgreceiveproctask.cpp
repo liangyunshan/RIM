@@ -59,14 +59,7 @@ void MsgReceiveProcTask::run()
 
             if(array.size() > 0)
             {
-                //716_TK兼容调试,解析头
-                ProtocolPackage package;
-                QByteArray recvBuff = RSingleton<QDB21_WrapRule>::instance()->unwrap(array);
-                recvBuff = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvBuff);
-                package.cFileData = recvBuff;
-                //[~716]
-
-                validateRecvData(recvBuff);
+                validateRecvData(array);
             }
         }
     }
@@ -74,6 +67,11 @@ void MsgReceiveProcTask::run()
 
 void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 {
+#ifdef __LOCAL_CONTACT__
+    //716_TK兼容调试,解析头
+    RSingleton<DataProcess>::instance()->proTCPText(RBuffer(data));
+    //[~716]
+#else
     QJsonDocument document = QJsonDocument::fromJson(data,&jsonParseError);
     if(jsonParseError.error == QJsonParseError::NoError)
     {
@@ -93,6 +91,7 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
                 break;
         }
     }
+#endif
 }
 
 /*!
