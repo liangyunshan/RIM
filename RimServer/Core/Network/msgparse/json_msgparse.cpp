@@ -1,4 +1,5 @@
-﻿#include "dataparse.h"
+﻿#include "json_msgparse.h"
+
 
 #include <QJsonDocument>
 #include <QJsonParseError>
@@ -8,14 +9,14 @@
 
 #include "Util/rlog.h"
 #include "rsingleton.h"
-#include "dataprocess.h"
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 #include "jsonkey.h"
 #include "global.h"
+#include "thread/dataprocess.h"
 
 using namespace ProtocolType;
 
-DataParse::DataParse(QObject *parent) : QObject(parent)
+Json_MsgParse::Json_MsgParse()
 {
 
 }
@@ -25,7 +26,7 @@ DataParse::DataParse(QObject *parent) : QObject(parent)
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void DataParse::processData(Database *db,const SocketInData &data)
+void Json_MsgParse::processData(Database *db,const SocketInData &data)
 {
     if(RGlobal::G_SERVICE_TYPE == SERVICE_TEXT)
     {
@@ -72,7 +73,7 @@ void DataParse::processData(Database *db,const SocketInData &data)
      * @param[in] obj 解析后json请求数据
      * @return 无
      */
-void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
 {
     switch(obj.value(JsonKey::key(JsonKey::Command)).toInt())
     {
@@ -130,7 +131,7 @@ void DataParse::parseControlData(Database * db,int socketId,QJsonObject &obj)
  * @param[in] obj 解析后json请求数据
  * @return 无
  */
-void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
 {
     QJsonObject dataObj = obj.value(JsonKey::key(JsonKey::Data)).toObject();
     if(!dataObj.isEmpty())
@@ -160,7 +161,7 @@ void DataParse::parseTextData(Database * db,int socketId,QJsonObject &obj)
  * @param[in] obj 解析后json请求数据
  * @return 无
  */
-void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
+void Json_MsgParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
 {
     if(buffer.seek(0) && buffer.skipInt())
     {
@@ -183,7 +184,7 @@ void DataParse::parseFileData(Database *db, int socketId, RBuffer &buffer)
     }
 }
 
-void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
 {
     std::shared_ptr<RegistRequest> request(new RegistRequest);
     request->nickName = obj.value(JsonKey::key(JsonKey::NickName)).toString();
@@ -192,7 +193,7 @@ void DataParse::onProcessUserRegist(Database * db,int socketId,QJsonObject &obj)
     RSingleton<DataProcess>::instance()->processUserRegist(db,socketId,request);
 }
 
-void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<LoginRequest> request(new LoginRequest);
     request->loginType = (LoginType)obj.value(JsonKey::key(JsonKey::LoginType)).toInt();
@@ -203,7 +204,7 @@ void DataParse::onProcessUserLogin(Database * db,int socketId,QJsonObject &obj)
     RSingleton<DataProcess>::instance()->processUserLogin(db,socketId,request);
 }
 
-void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<UpdateBaseInfoRequest> request (new UpdateBaseInfoRequest);
     request->baseInfo.accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
@@ -221,7 +222,7 @@ void DataParse::onProcessUpdateUserInfo(Database * db,int socketId,QJsonObject &
     RSingleton<DataProcess>::instance()->processUpdateUserInfo(db,socketId,request);
 }
 
-void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<UserStateRequest> request (new UserStateRequest());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
@@ -230,7 +231,7 @@ void DataParse::onProcessUserStateChanged(Database * db,int socketId,QJsonObject
     RSingleton<DataProcess>::instance()->processUserStateChanged(db,socketId,request);
 }
 
-void DataParse::onProcessHistoryMsg(Database *db, int socketId, QJsonObject &obj)
+void Json_MsgParse::onProcessHistoryMsg(Database *db, int socketId, QJsonObject &obj)
 {
     QSharedPointer<HistoryMessRequest> request (new HistoryMessRequest());
     request->accountId = obj.value(JsonKey::key(JsonKey::AccountId)).toString();
@@ -238,7 +239,7 @@ void DataParse::onProcessHistoryMsg(Database *db, int socketId, QJsonObject &obj
     RSingleton<DataProcess>::instance()->processHistoryMsg(db,socketId,request);
 }
 
-void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<SearchFriendRequest> request (new SearchFriendRequest());
     request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::OperateType)).toInt();
@@ -247,7 +248,7 @@ void DataParse::onProcessSearchFriend(Database * db,int socketId,QJsonObject &ob
     RSingleton<DataProcess>::instance()->processSearchFriend(db,socketId,request);
 }
 
-void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<OperateFriendRequest> request (new OperateFriendRequest);
     request->type = (OperateFriend)obj.value(JsonKey::key(JsonKey::Type)).toInt();
@@ -261,7 +262,7 @@ void DataParse::onProcessRelationOperate(Database * db,int socketId,QJsonObject 
     RSingleton<DataProcess>::instance()->processRelationOperate(db,socketId,request);
 }
 
-void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<AddFriendRequest> request (new AddFriendRequest);
     request->stype = (OperateType)obj.value(JsonKey::key(JsonKey::AddType)).toInt();
@@ -271,7 +272,7 @@ void DataParse::onProcessAddFriend(Database * db,int socketId,QJsonObject &obj)
     RSingleton<DataProcess>::instance()->processAddFriend(db,socketId,request);
 }
 
-void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<FriendListRequest> request (new FriendListRequest);
     request->type = static_cast<OperateListTimeType>(obj.value(JsonKey::key(JsonKey::Type)).toInt());
@@ -280,7 +281,7 @@ void DataParse::onProcessFriendListOperate(Database * db,int socketId,QJsonObjec
     RSingleton<DataProcess>::instance()->processFriendList(db,socketId,request);
 }
 
-void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject &dataObj)
+void Json_MsgParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject &dataObj)
 {
     QSharedPointer<GroupingFriendRequest> request (new GroupingFriendRequest);
     request->type = (OperateGroupingFriend) dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
@@ -300,7 +301,7 @@ void DataParse::onProcessGroupingFriend(Database *db, int socketId, QJsonObject 
     RSingleton<DataProcess>::instance()->processGroupingFriend(db,socketId,request);
 }
 
-void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)
+void Json_MsgParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject &obj)
 {
     QSharedPointer<GroupingRequest> request (new GroupingRequest);
     request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
@@ -313,7 +314,7 @@ void DataParse::onProcessGroupingOperate(Database * db,int socketId,QJsonObject 
     RSingleton<DataProcess>::instance()->processGroupingOperate(db,socketId,request);
 }
 
-void DataParse::onProcessGroupList(Database *db, int socketId, QJsonObject &obj)
+void Json_MsgParse::onProcessGroupList(Database *db, int socketId, QJsonObject &obj)
 {
     QSharedPointer<ChatGroupListRequest> request (new ChatGroupListRequest);
     request->uuid = obj.value(JsonKey::key(JsonKey::Uuid)).toString();
@@ -321,7 +322,7 @@ void DataParse::onProcessGroupList(Database *db, int socketId, QJsonObject &obj)
     RSingleton<DataProcess>::instance()->processGroupList(db,socketId,request);
 }
 
-void DataParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &obj)
+void Json_MsgParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &obj)
 {
     QSharedPointer<RegistGroupRequest> request (new RegistGroupRequest);
     request->groupName = obj.value(JsonKey::key(JsonKey::GroupName)).toString();
@@ -337,7 +338,7 @@ void DataParse::onProcessRegistGroup(Database *db, int socketId, QJsonObject &ob
     RSingleton<DataProcess>::instance()->processRegistGroup(db,socketId,request);
 }
 
-void DataParse::onProcessGroupCommand(Database *db, int socketId, QJsonObject &obj)
+void Json_MsgParse::onProcessGroupCommand(Database *db, int socketId, QJsonObject &obj)
 {
     QSharedPointer<GroupingCommandRequest> request (new GroupingCommandRequest);
 
@@ -350,7 +351,7 @@ void DataParse::onProcessGroupCommand(Database *db, int socketId, QJsonObject &o
     RSingleton<DataProcess>::instance()->processGroupCommand(db,socketId,request);
 }
 
-void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
+void Json_MsgParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
 {
     QSharedPointer<FileItemRequest> request (new FileItemRequest());
 
@@ -395,7 +396,7 @@ void DataParse::onProcessFileRequest(Database *db, int socketId, RBuffer &obj)
  * @param[in] obj 数据缓冲区
  * @return 无
  */
-void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
+void Json_MsgParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
 {
     QSharedPointer<SimpleFileItemRequest> request (new SimpleFileItemRequest());
     int controlType = 0;
@@ -422,7 +423,7 @@ void DataParse::onProcessFileControl(Database *db, int socketId, RBuffer &obj)
     RSingleton<DataProcess>::instance()->processFileControl(db,socketId,request);
 }
 
-void DataParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
+void Json_MsgParse::onProcessFileData(Database *db, int socketId, RBuffer &obj)
 {
     QSharedPointer<FileDataRequest> request (new FileDataRequest());
     request->control =  T_DATA;

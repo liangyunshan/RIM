@@ -22,6 +22,7 @@
 #include "thread/sendtextprocessthread.h"
 #include "constants.h"
 #include "global.h"
+#include "file/xmlparse.h"
 
 #ifdef Q_OS_WIN
 #pragma  comment(lib,"ws2_32.lib")
@@ -361,6 +362,16 @@ int main(int argc, char *argv[])
 
         SettingConfig settingConfig;
         readSettings(settings,settingConfig);
+
+#ifdef __LOCAL_CONTACT__
+        RGlobal::G_ParaSettings = new ParameterSettings::ParaSettings;
+        QString localConfigName = configFullPath + QDir::separator() + QStringLiteral("参数配置.txt");
+        if(!RSingleton<XMLParse>::instance()->parse(localConfigName,RGlobal::G_ParaSettings)){
+            QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Paramter settings read failed,system exit!"),
+                                 QMessageBox::Yes,QMessageBox::Yes);
+            exit(-1);
+        }
+#endif
 
         RGlobal::G_SERVICE_TYPE = commandResult.serviceType;
 

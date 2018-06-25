@@ -1,35 +1,29 @@
 ﻿/*!
- *  @brief     网络数据转换
- *  @details   接收应用层的数据，将其转换为网络数据发送结构
- *  @file      msgwrap.h
+ *  @brief     内部数据传输封装
+ *  @details   将protocoldata中的结构体，按照json格式封装
  *  @author    wey
  *  @version   1.0
- *  @date      2018.01.15
+ *  @date      2018.06.25
  *  @warning
  *  @copyright NanJing RenGu.
  */
-#ifndef MSGWRAP_H
-#define MSGWRAP_H
+#ifndef JSON_WRAPFORMAT_H
+#define JSON_WRAPFORMAT_H
 
-#include <QJsonObject>
-#include <QJsonArray>
+#include "msgwrap.h"
 
-#include "protocoldata.h"
-using namespace ProtocolType;
-
-class MsgWrap
+class Json_WrapFormat : public MsgWrap
 {
 public:
-    MsgWrap();
+    explicit Json_WrapFormat();
 
-    QByteArray handleMsg(MsgPacket * packet, int result = 0);
-    QByteArray handleText(TextRequest * request);
-    QByteArray handleTextReply(TextReply * response);
+    QByteArray handleMsg(MsgPacket * packet, int result = 0
+#ifdef __LOCAL_CONTACT__
+                           ,CommucationMethod method = C_None,MessageFormat format = M_NONE
+#endif
+            );
+
     QByteArray handleMsgReply(MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
-
-    QByteArray handleFile(MsgPacket *response);
-
-    QByteArray handleFileData(QString fileMd5,size_t currIndex,QByteArray array);
 
 private:
     QByteArray handleRegistResponse(RegistResponse * packet);
@@ -49,12 +43,12 @@ private:
     QByteArray handleOpreateGroup(GroupingChatResponse *packet,int result);
     QByteArray handleOpreateCommand(GroupingCommandResponse *packet,int result);
 
-    QByteArray handleFileControl(SimpleFileItemRequest * packet);
-    QByteArray handleFileRequest(FileItemRequest * packet);
+    QByteArray handleText(TextRequest * request);
+    QByteArray handleTextReply(TextReply * response);
 
-    QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
     QByteArray wrappedPack(MsgPacket * packet, int status, QJsonArray &data);
+    QByteArray wrappedPack(MsgPacket * packet,  int status, QJsonObject &data);
 
 };
 
-#endif // MSGWRAP_H
+#endif // JSON_WRAPFORMAT_H

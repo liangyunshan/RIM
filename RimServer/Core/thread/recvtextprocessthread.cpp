@@ -4,7 +4,7 @@
 #include "Network/win32net/netutils.h"
 #include "Network/tcpclient.h"
 #include "Util/rlog.h"
-#include "dataparse.h"
+#include "Network/msgparse/msgparsefactory.h"
 #include "rsingleton.h"
 
 #include <QDebug>
@@ -45,6 +45,6 @@ void RecvTextProcessThread::run()
         }
 
         G_RecvMutex.unlock();
-        RSingleton<DataParse>::instance()->processData(database,sockData);
+        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
     }
 }

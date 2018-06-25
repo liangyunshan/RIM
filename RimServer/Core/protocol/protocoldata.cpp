@@ -267,4 +267,10 @@ HistoryMessRequest::HistoryMessRequest()
     msgCommand = MSG_USER_HISTORY_MSG;
 }
 
+FileDataTrunkRequest::FileDataTrunkRequest()
+{
+    msgType = MSG_FILE;
+    msgCommand = MSG_FILE_DATA;
+}
+
 } //namespace Protocol

@@ -1123,6 +1123,21 @@ public:
     QString fileId;                 /*!< 文件在数据库中的唯一ID,用户可以拿着此ID下载文件或者告诉对方下载文件 */
 };
 
+/*!
+ *  @brief 阐述传输块
+ */
+class FileDataTrunkRequest : public MsgPacket
+{
+public:
+    FileDataTrunkRequest();
+    ~FileDataTrunkRequest(){
+
+    }
+    QString md5;                    /*!< 当前文件唯一标识,以文件的MD5作为索引 @attention 服务器以此文件名作为在磁盘中保存的索引 */
+    size_t currIndex;               /*!< 当前索引帧 */
+    QByteArray data;                /*!< 数据块 */
+};
+
 }
 
 #endif // PROTOCOLDATA_H

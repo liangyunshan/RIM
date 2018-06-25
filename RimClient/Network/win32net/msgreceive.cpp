@@ -35,11 +35,8 @@ void RecveiveTask::startMe()
 
 void RecveiveTask::stopMe()
 {
-    if(runningFlag)
-    {
-        RTask::stopMe();
-        runningFlag = false;
-    }
+    RTask::stopMe();
+    runningFlag = false;
 }
 
 void RecveiveTask::run()

@@ -40,7 +40,8 @@ HEADERS += \
     win32net/iopacket.h \
     win32net/iocpcontext.h \
     socket.h \
-    abstractserver.h
+    abstractserver.h \
+    wraprule/wraprule.h
 
 SOURCES += \
     netglobal.cpp \
@@ -52,7 +53,8 @@ SOURCES += \
     win32net/iopacket.cpp \
     win32net/iocpcontext.cpp \
     socket.cpp \
-    abstractserver.cpp
+    abstractserver.cpp \
+    wraprule/wraprule.cpp
 
 INCLUDEPATH += $$PWD/../../RimClient/
 

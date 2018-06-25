@@ -20,7 +20,7 @@
 #include <QSharedPointer>
 #include <memory>
 
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class Database;

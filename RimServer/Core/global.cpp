@@ -7,5 +7,6 @@ ServiceType G_SERVICE_TYPE;             /*!< 当前服务器运行的模式，�
 
 QString G_FILE_UPLOAD_PATH;             /*!< 文件上传保存的路径 */
 
+ParameterSettings::ParaSettings* G_ParaSettings;   /*!< 本地参数配置 */
 }
 

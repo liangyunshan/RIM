@@ -44,6 +44,7 @@ private slots:
     void updateNetConnector();
     void viewFileServerState();
     void updateNetConnectorInfo();
+    void respChangeConnector(bool);
 
 private:
     void networkIsConnected(bool connected);

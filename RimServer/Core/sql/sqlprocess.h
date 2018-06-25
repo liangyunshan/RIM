@@ -17,7 +17,7 @@
 #ifndef SQLPROCESS_H
 #define SQLPROCESS_H
 
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 using namespace ProtocolType;
 
 #include "Network/tcpclient.h"
