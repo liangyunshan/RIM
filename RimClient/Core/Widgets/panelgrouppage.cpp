@@ -5,7 +5,7 @@
 
 #include "head.h"
 #include "global.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"

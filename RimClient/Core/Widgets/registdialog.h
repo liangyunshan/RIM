@@ -13,7 +13,7 @@
 
 #include "widget.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class RegistDialogPrivate;

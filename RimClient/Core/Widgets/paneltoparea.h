@@ -17,7 +17,7 @@
 #include <QWidget>
 #include "observer.h"
 #include "onlinestate.h"
-#include "../protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 class QLabel;
 class QLineEdit;

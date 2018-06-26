@@ -8,7 +8,7 @@
 #include <QLabel>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
 #include "widget/rtoolbutton.h"

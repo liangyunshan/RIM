@@ -20,9 +20,8 @@ class TK205_WrapRule : public WrapRule
 public:
     TK205_WrapRule();
 
-    QByteArray wrap(const QByteArray &data);
-    QByteArray unwrap(const QByteArray &data);
-
+    QByteArray wrap(const ProtocolPackage &data);
+    ProtocolPackage unwrap(const QByteArray &data);
 
 };
 

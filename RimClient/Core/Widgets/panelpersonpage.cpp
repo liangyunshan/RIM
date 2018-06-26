@@ -11,7 +11,7 @@
 #include <QTimer>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "maindialog.h"
 #include "global.h"

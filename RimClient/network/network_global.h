@@ -96,16 +96,15 @@ struct ProtocolPackage
         cFileType = 0;
     }
 
-    ProtocolPackage operator=(ProtocolPackage package)
+    ProtocolPackage operator=(const ProtocolPackage & package)
     {
-        ProtocolPackage pack;
-        pack.bPackType = package.bPackType;
-        pack.cFileData = package.cFileData;
-        pack.cFilename = package.cFilename;
-        pack.cFileType = package.cFileType;
-        pack.wDestAddr = package.wDestAddr;
-        pack.wSourceAddr = package.wSourceAddr;
-        return pack;
+        this->bPackType = package.bPackType;
+        this->cFileData = package.cFileData;
+        this->cFilename = package.cFilename;
+        this->cFileType = package.cFileType;
+        this->wDestAddr = package.wDestAddr;
+        this->wSourceAddr = package.wSourceAddr;
+        return *this;
     }
 };
 

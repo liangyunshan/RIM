@@ -6,7 +6,7 @@
 #include <QMetaEnum>
 #include <QHBoxLayout>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "head.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"

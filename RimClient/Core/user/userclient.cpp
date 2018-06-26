@@ -13,7 +13,7 @@
 #include "thread/filerecvtask.h"
 #include "file/filedesc.h"
 #include "Widgets/toolbox/toolitem.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "thread/chatmsgprocess.h"
 #include "../Widgets/chatpersonwidget.h"
 

@@ -16,7 +16,7 @@
 #include <QWidget>
 
 #include "observer.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 struct ChatInfoUnit;
 class RToolButton;

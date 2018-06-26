@@ -11,8 +11,8 @@ class QDB61A_WrapRule : public WrapRule
 public:
     QDB61A_WrapRule();
 
-    QByteArray wrap(const QByteArray &data);
-    QByteArray unwrap(const QByteArray &data);
+    QByteArray wrap(const ProtocolPackage &data);
+    ProtocolPackage unwrap(const QByteArray &data);
 };
 
 #endif

@@ -1,9 +1,8 @@
 ﻿#include "qdb495_wraprule.h"
 #include <QTime>
-#include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
-#include "localprotocoldata.h"
+#include "../../protocol/localprotocoldata.h"
 using namespace QDB495;
 
 QDB495_WrapRule::QDB495_WrapRule():WrapRule()

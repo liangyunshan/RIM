@@ -7,7 +7,7 @@
 #include <QDomDocument>
 
 #include "Util/rlog.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 XMLParse::XMLParse(QObject *parent):QObject(parent)
 {

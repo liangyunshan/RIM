@@ -8,9 +8,8 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QComboBox>
-#include <QDebug>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "global.h"
 #include "head.h"
 #include "Util/imagemanager.h"
@@ -21,7 +20,7 @@
 #include "user/user.h"
 #include "Network/msgwrap/wrapfactory.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class RegistGroupDialogPrivate : public GlobalData<RegistGroupDialog>

@@ -7,7 +7,7 @@
 #include <QEvent>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "Util/rutil.h"
 

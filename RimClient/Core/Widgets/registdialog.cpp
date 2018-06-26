@@ -8,7 +8,7 @@
 
 #include "constants.h"
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "widget/rbutton.h"
@@ -16,7 +16,7 @@
 #include "Util/rutil.h"
 #include "Network/netconnector.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
@@ -225,7 +225,6 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
-    MQ_D(RegistDialog);
     TextNetConnector::instance()->connect();
     enableInput(false);
 }

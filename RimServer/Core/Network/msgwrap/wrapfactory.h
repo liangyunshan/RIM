@@ -7,17 +7,17 @@
  *  @warning
  *  @copyright NanJing RenGu.
  */
-#ifndef TEXTWRAPFACTORY_H
-#define TEXTWRAPFACTORY_H
+#ifndef WRAPFACTORY_H
+#define WRAPFACTORY_H
 
 #include "msgwrap.h"
 
-class TextWrapFactory
+class WrapFactory
 {
 public:
-    explicit TextWrapFactory();
+    explicit WrapFactory();
 
-    MsgWrap * getTextWrap();
+    MsgWrap * getWrap();
 
 private:
     MsgWrap * msgWrap;

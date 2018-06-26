@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 
 #include "jsonkey.h"
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 
 Json_WrapFormat::Json_WrapFormat():WrapFormat()
 {

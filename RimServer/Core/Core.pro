@@ -46,7 +46,6 @@ SOURCES += main.cpp\
     sql/database.cpp \
     sql/datatable.cpp \
     thread/recvtextprocessthread.cpp \
-    thread/dataprocess.cpp \
     thread/sendtextprocessthread.cpp \
     jsonkey.cpp \
     sql/rpersistence.cpp \
@@ -54,10 +53,8 @@ SOURCES += main.cpp\
     sql/autotransaction.cpp \
     file/xmlparse.cpp \
     Network/msgwrap/binary_wrapformat.cpp \
-    Network/msgwrap/binarywrapfactory.cpp \
     Network/msgwrap/json_wrapformat.cpp \
     Network/msgwrap/msgwrap.cpp \
-    Network/msgwrap/textwrapfactory.cpp \
     Network/wraprule/qdb21_wraprule.cpp \
     Network/wraprule/qdb61a_wraprule.cpp \
     Network/wraprule/qdb495_wraprule.cpp \
@@ -70,7 +67,11 @@ SOURCES += main.cpp\
     Network/msgparse/msgparsefactory.cpp \
     protocol/datastruct.cpp \
     protocol/localprotocoldata.cpp \
-    protocol/protocoldata.cpp
+    protocol/protocoldata.cpp \
+    Network/msgprocess/dataprocess.cpp \
+    Network/msgwrap/wrapformat.cpp \
+    Network/msgwrap/basemsgwrap.cpp \
+    Network/msgwrap/wrapfactory.cpp
 HEADERS  += widget.h \
     rsingleton.h \
     constants.h \
@@ -79,7 +80,6 @@ HEADERS  += widget.h \
     sql/database.h \
     sql/datatable.h \
     thread/recvtextprocessthread.h \
-    thread/dataprocess.h \
     thread/sendtextprocessthread.h \
     jsonkey.h \
     sql/rpersistence.h \
@@ -87,10 +87,8 @@ HEADERS  += widget.h \
     sql/autotransaction.h \
     file/xmlparse.h \
     Network/msgwrap/binary_wrapformat.h \
-    Network/msgwrap/binarywrapfactory.h \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/msgwrap.h \
-    Network/msgwrap/textwrapfactory.h \
     Network/wraprule/qdb21_wraprule.h \
     Network/wraprule/qdb61a_wraprule.h \
     Network/wraprule/qdb495_wraprule.h \
@@ -103,7 +101,11 @@ HEADERS  += widget.h \
     Network/msgparse/msgparsefactory.h \
     protocol/datastruct.h \
     protocol/localprotocoldata.h \
-    protocol/protocoldata.h
+    protocol/protocoldata.h \
+    Network/msgprocess/dataprocess.h \
+    Network/msgwrap/wrapformat.h \
+    Network/msgwrap/basemsgwrap.h \
+    Network/msgwrap/wrapfactory.h
 
 FORMS    += widget.ui
 

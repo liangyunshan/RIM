@@ -1,7 +1,7 @@
 ﻿#include "toolpage.h"
 
 #include "head.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 #include "constants.h"
 #include "toolbox.h"
 #include "../actionmanager/actionmanager.h"

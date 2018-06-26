@@ -15,7 +15,7 @@
 #include <QWaitCondition>
 
 #include "sql/database.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "Network/rtask.h"
 
 class ChatMsgProcess : public ClientNetwork::RTask

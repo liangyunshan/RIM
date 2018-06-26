@@ -10,18 +10,16 @@
 #ifndef JSON_WRAPFORMAT_H
 #define JSON_WRAPFORMAT_H
 
-#include "msgwrap.h"
+#include <QJsonArray>
 
-class Json_WrapFormat : public MsgWrap
+#include "wrapformat.h"
+
+class Json_WrapFormat : public WrapFormat
 {
 public:
     explicit Json_WrapFormat();
 
-    QByteArray handleMsg(MsgPacket * packet, int result = 0
-#ifdef __LOCAL_CONTACT__
-                           ,CommucationMethod method = C_None,MessageFormat format = M_NONE
-#endif
-            );
+    QByteArray handleMsg(MsgPacket * packet,int result = 0);
 
     QByteArray handleMsgReply(MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 

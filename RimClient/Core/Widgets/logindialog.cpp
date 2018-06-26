@@ -20,7 +20,7 @@
 #include <QListWidget>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "toolbar.h"
 #include "constants.h"
 #include "onlinestate.h"
@@ -389,7 +389,6 @@ void LoginDialog::respFileSocketError()
 
 void LoginDialog::login()
 {
-    MQ_D(LoginDialog);
 #ifndef __NO_SERVER__
     G_NetSettings.connectedIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
@@ -873,8 +872,6 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
  */
 void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
-    MQ_D(LoginDialog);
-
     if(G_User->systemSettings()->soundAvailable)
         RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
 
@@ -897,16 +894,13 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 void LoginDialog::procRecvText(TextRequest response)
 {
-    MQ_D(LoginDialog);
 //    UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
 
     //716_TK兼容调试
     //此时的识别ID应该查询信息的来源ID
 
     UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<""<<response.accountId<<response.otherSideId<<client
-          <<"\n";
+
     if(client)
         client->procRecvContent(response);
 }

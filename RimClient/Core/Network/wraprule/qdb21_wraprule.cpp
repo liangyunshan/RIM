@@ -2,7 +2,7 @@
 #include <QTime>
 
 #ifdef __LOCAL_CONTACT__
-#include "localprotocoldata.h"
+#include "../../protocol/localprotocoldata.h"
 using namespace QDB21;
 
 QDB21_WrapRule::QDB21_WrapRule():WrapRule()

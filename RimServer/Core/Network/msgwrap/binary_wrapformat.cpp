@@ -3,16 +3,12 @@
 #include "Util/rbuffer.h"
 
 Binary_WrapFormat::Binary_WrapFormat():
-    MsgWrap()
+    WrapFormat()
 {
 
 }
 
-QByteArray Binary_WrapFormat::handleMsg(MsgPacket *packet, int result
-#ifdef __LOCAL_CONTACT__
-        , CommucationMethod method, MessageFormat format
-#endif
-        )
+QByteArray Binary_WrapFormat::handleMsg(MsgPacket * packet,int result)
 {
     switch(packet->msgCommand)
     {

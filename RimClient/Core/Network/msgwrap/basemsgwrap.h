@@ -10,7 +10,7 @@
 #ifndef BASEMSGWRAP_H
 #define BASEMSGWRAP_H
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 #include "msgwrap.h"

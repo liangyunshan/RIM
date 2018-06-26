@@ -12,11 +12,6 @@
 #define MSGRECEIVEPROCTASK_H
 
 #include "Network/rtask.h"
-#include "protocoldata.h"
-using namespace ProtocolType;
-
-#include <QJsonObject>
-#include <QJsonParseError>
 
 namespace ClientNetwork{
 class RTask;
@@ -37,11 +32,7 @@ protected:
 
 private:
     void validateRecvData(const QByteArray & data);
-    void handleCommandMsg(MsgCommand commandType, QJsonObject &obj);
-    void handleTextMsg(MsgCommand commandType, QJsonObject &obj);
 
-private:
-    QJsonParseError jsonParseError;
 };
 
 #endif // MSGRECEIVEPROCTASK_H

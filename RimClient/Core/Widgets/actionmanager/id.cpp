@@ -3,8 +3,6 @@
 #include "iostream"
 #include "string.h"
 
-#include <QDebug>
-
 Id::Id():str(NULL)
 {
 

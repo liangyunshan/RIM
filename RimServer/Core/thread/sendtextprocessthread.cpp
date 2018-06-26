@@ -34,9 +34,7 @@ void SendTextProcessThread::run()
             {
                 break;
             }
-            G_SendMutex.lock();
-            G_SendCondition.wait(&G_SendMutex);
-            G_SendMutex.unlock();
+            G_SendCondition.wait(std::unique_lock<std::mutex>(G_SendMutex));
         }
 
         if(runningFlag)
@@ -46,7 +44,8 @@ void SendTextProcessThread::run()
             G_SendMutex.lock();
             if(G_SendButts.size() > 0)
             {
-               sockData =  G_SendButts.dequeue();
+               sockData =  G_SendButts.front();
+               G_SendButts.pop();
             }
             G_SendMutex.unlock();
 

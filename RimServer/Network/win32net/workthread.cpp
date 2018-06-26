@@ -134,11 +134,10 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                         socketData.data.resize(packet.currentLen);
                         memcpy(socketData.data.data(),recvData + processLen,packet.currentLen);
 
-                        G_RecvMutex.lock();
-                        G_RecvButts.enqueue(socketData);
-                        G_RecvMutex.unlock();
+                        std::unique_lock<std::mutex> ul(G_RecvMutex);
+                        G_RecvButts.push(socketData);
 
-                        G_RecvCondition.wakeOne();
+                        G_RecvCondition.notify_one();
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
@@ -175,11 +174,10 @@ void WorkThread::processRecvData(char * recvData,unsigned long recvLen,IocpConte
                                     ioData->getClient()->getPacketBuffs().remove(packet.packId);
                                     delete buff;
 
-                                    G_RecvMutex.lock();
-                                    G_RecvButts.enqueue(socketData);
-                                    G_RecvMutex.unlock();
+                                    std::unique_lock<std::mutex> ul(G_RecvMutex);
+                                    G_RecvButts.push(socketData);
 
-                                    G_RecvCondition.wakeOne();
+                                    G_RecvCondition.notify_one();
                                 }
                             }
                        }

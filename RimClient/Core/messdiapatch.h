@@ -13,8 +13,8 @@
 
 #include <QObject>
 
-#include "datastruct.h"
-#include "protocoldata.h"
+#include "protocol/datastruct.h"
+#include "protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class MessDiapatch : public QObject

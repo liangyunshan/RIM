@@ -4,7 +4,6 @@
 #include "constants.h"
 #include "actionmanager/shortcutsettings.h"
 
-#include <QDebug>
 #include <QAction>
 #include <QKeySequence>
 #include <QClipboard>

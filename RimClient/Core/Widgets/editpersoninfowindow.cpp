@@ -12,7 +12,7 @@
 
 #include "head.h"
 #include "constants.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "global.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
@@ -359,7 +359,6 @@ void EditPersonInfoWindow::openSystemImage()
 
 void EditPersonInfoWindow::openLocalImage()
 {
-    MQ_D(EditPersonInfoWindow);
     QString imageFile = QFileDialog::getOpenFileName(this,tr("Local image"),"/home", tr("Image Files (*.png)"));
     if(!imageFile.isNull())
     {

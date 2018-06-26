@@ -17,8 +17,8 @@
 class ToolItem;
 class ChatPersonWidget;
 
-#include "protocoldata.h"
-#include "datastruct.h"
+#include "../protocol/protocoldata.h"
+#include "../protocol/datastruct.h"
 using namespace ProtocolType;
 
 class GroupClient

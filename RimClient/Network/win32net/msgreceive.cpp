@@ -86,10 +86,6 @@ void TextReceive::processData(QByteArray &data)
     G_TextRecvBuffs.push(data);
     G_TextRecvMutex.unlock();
 
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"processData recv data:"<<data
-          <<"\n";
-
     G_TextRecvCondition.notify_one();
 }
 

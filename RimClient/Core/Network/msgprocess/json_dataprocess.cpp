@@ -1,30 +1,26 @@
-﻿#include "dataprocess.h"
+﻿#include "json_dataprocess.h"
 
-#include <QDebug>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QVariant>
 
 #include "Util/rlog.h"
 #include "rsingleton.h"
 #include "messdiapatch.h"
 #include "jsonkey.h"
-#include "file/filedesc.h"
-#include "file/filemanager.h"
 
-#include "../Network/wraprule/qdb21_wraprule.h"
-#include "../Network/wraprule/qdb2051_wraprule.h"
+#include "../wraprule/qdb21_wraprule.h"
+#include "../wraprule/qdb2051_wraprule.h"
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
-#define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度
-
-DataProcess::DataProcess()
+Json_DataProcess::Json_DataProcess()
 {
 
 }
 
-void DataProcess::proRegistResponse(QJsonObject & data)
+void Json_DataProcess::proRegistResponse(QJsonObject & data)
 {
     RegistResponse response;
     if(data.value(JsonKey::key(JsonKey::Status)).toInt() == REGISTER_SUCCESS)
@@ -43,7 +39,7 @@ void DataProcess::proRegistResponse(QJsonObject & data)
     }
 }
 
-void DataProcess::proLoginResponse(QJsonObject &data)
+void Json_DataProcess::proLoginResponse(QJsonObject &data)
 {
     LoginResponse response;
     ResponseLogin rr = (ResponseLogin)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -73,7 +69,7 @@ void DataProcess::proLoginResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvLoginResponse(rr,response);
 }
 
-void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
+void Json_DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
 {
     UpdateBaseInfoResponse response;
     ResponseUpdateUser status = (ResponseUpdateUser)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -100,7 +96,7 @@ void DataProcess::proUpdateBaseInfoResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvUpdateBaseInfoResponse(status,response);
 }
 
-void DataProcess::proUserStateChanged(QJsonObject &data)
+void Json_DataProcess::proUserStateChanged(QJsonObject &data)
 {
     UserStateResponse response;
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -116,7 +112,7 @@ void DataProcess::proUserStateChanged(QJsonObject &data)
     MessDiapatch::instance()->onRecvUserStateChangedResponse(status,response);
 }
 
-void DataProcess::proSearchFriendResponse(QJsonObject &data)
+void Json_DataProcess::proSearchFriendResponse(QJsonObject &data)
 {
     SearchFriendResponse response;
     ResponseAddFriend status = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -147,12 +143,12 @@ void DataProcess::proSearchFriendResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvSearchFriendResponse(status,response);
 }
 
-void DataProcess::proAddFriendResponse(QJsonObject &data)
+void Json_DataProcess::proAddFriendResponse(QJsonObject &data)
 {
    MessDiapatch::instance()->onRecvAddFriendResponse((ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt());
 }
 
-void DataProcess::proOperateFriendResponse(QJsonObject &data)
+void Json_DataProcess::proOperateFriendResponse(QJsonObject &data)
 {
     QJsonObject dataobj = data.value(JsonKey::key(JsonKey::Data)).toObject();
 
@@ -186,7 +182,7 @@ void DataProcess::proOperateFriendResponse(QJsonObject &data)
     }
 }
 
-void DataProcess::proFriendListResponse(QJsonObject &data)
+void Json_DataProcess::proFriendListResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     FriendListResponse * response = nullptr;
@@ -231,7 +227,7 @@ void DataProcess::proFriendListResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvFriendList(status,response);
 }
 
-void DataProcess::proGroupingOperateResponse(QJsonObject &data)
+void Json_DataProcess::proGroupingOperateResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
 
@@ -248,7 +244,7 @@ void DataProcess::proGroupingOperateResponse(QJsonObject &data)
         MessDiapatch::instance()->onRecvGroupGroupingOperate(status,response);
 }
 
-void DataProcess::proGroupingFriendResponse(QJsonObject &data)
+void Json_DataProcess::proGroupingFriendResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
@@ -274,7 +270,7 @@ void DataProcess::proGroupingFriendResponse(QJsonObject &data)
     }
 }
 
-void DataProcess::proGroupListResponse(QJsonObject &data)
+void Json_DataProcess::proGroupListResponse(QJsonObject &data)
 {
     MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     ChatGroupListResponse * response = nullptr;
@@ -315,7 +311,7 @@ void DataProcess::proGroupListResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvGroupList(result,response);
 }
 
-void DataProcess::proRegistGroupResponse(QJsonObject &data)
+void Json_DataProcess::proRegistGroupResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     RegistGroupResponse response;
@@ -339,7 +335,7 @@ void DataProcess::proRegistGroupResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvResitGroup(status,response);
 }
 
-void DataProcess::proSearchGroupResponse(QJsonObject &data)
+void Json_DataProcess::proSearchGroupResponse(QJsonObject &data)
 {
     SearchGroupResponse response;
     ResponseAddFriend status = (ResponseAddFriend)data.value(JsonKey::key(JsonKey::Status)).toInt();
@@ -375,7 +371,7 @@ void DataProcess::proSearchGroupResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvSearchChatroomResponse(status,response);
 }
 
-void DataProcess::proOpreateGroupResponse(QJsonObject &data)
+void Json_DataProcess::proOpreateGroupResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     GroupingChatResponse response;
@@ -401,7 +397,7 @@ void DataProcess::proOpreateGroupResponse(QJsonObject &data)
     MessDiapatch::instance()->onRecvOpreateGroup(status,response);
 }
 
-void DataProcess::proGroupCommandResponse(QJsonObject &data)
+void Json_DataProcess::proGroupCommandResponse(QJsonObject &data)
 {
     MsgOperateResponse status = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     if(status == STATUS_SUCCESS)
@@ -424,7 +420,7 @@ void DataProcess::proGroupCommandResponse(QJsonObject &data)
     }
 }
 
-void DataProcess::proText(QJsonObject &data)
+void Json_DataProcess::proText(QJsonObject &data)
 {
     MsgOperateResponse result = (MsgOperateResponse)data.value(JsonKey::key(JsonKey::Status)).toInt();
     if(result == STATUS_SUCCESS)
@@ -452,7 +448,7 @@ void DataProcess::proText(QJsonObject &data)
     }
 }
 
-void DataProcess::proTextApply(QJsonObject &data)
+void Json_DataProcess::proTextApply(QJsonObject &data)
 {
     QJsonObject dataObj = data.value(JsonKey::key(JsonKey::Data)).toObject();
     TextReply textReply;
@@ -460,139 +456,4 @@ void DataProcess::proTextApply(QJsonObject &data)
     textReply.applyType = (TextReplyType)dataObj.value(JsonKey::key(JsonKey::Type)).toInt();
 
     MessDiapatch::instance()->onRecvTextReply(textReply);
-}
-
-/*!
- * @attention 注意RBuffer中数据的开始指针已经不是指向0的位置
- */
-void DataProcess::proFileControl(RBuffer &data)
-{
-    SimpleFileItemRequest simpleControl;
-
-    int status;
-    if(!data.read(status))
-        return;
-    if((MsgOperateResponse)status == STATUS_SUCCESS)
-    {
-        int control;
-        if(!data.read(control))
-            return;
-        simpleControl.control = (FileTransferControl)control;
-
-        int itemType;
-        if(!data.read(itemType))
-            return;
-        simpleControl.itemType = static_cast<FileItemType>(itemType);
-
-        int itemKind;
-        if(!data.read(itemKind))
-            return;
-        simpleControl.itemKind = static_cast<FileItemKind>(itemKind);
-
-        if(!data.read(simpleControl.md5))
-            return;
-
-        if(!data.read(simpleControl.fileId))
-            return;
-
-        MessDiapatch::instance()->onRecvFileControl(simpleControl);
-    }
-}
-
-/*!
- * @attention 注意RBuffer中数据的开始指针已经不是指向0的位置
- */
-void DataProcess::proFileRequest(RBuffer & data)
-{
-    FileItemRequest itemRequest;
-
-    int status;
-    if(!data.read(status))
-        return;
-    if((MsgOperateResponse)status == STATUS_SUCCESS)
-    {
-        int control;
-        if(!data.read(control))
-            return;
-        itemRequest.control = (FileTransferControl)control;
-
-        int itemType;
-        if(!data.read(itemType))
-            return;
-        itemRequest.itemType = static_cast<FileItemType>(itemType);
-
-        int itemKind;
-        if(!data.read(itemKind))
-            return;
-        itemRequest.itemKind = static_cast<FileItemKind>(itemKind);
-
-        if(!data.read(itemRequest.fileName))
-            return;
-
-        if(!data.read(itemRequest.size))
-            return;
-
-        if(!data.read(itemRequest.fileId))
-            return;
-
-        if(!data.read(itemRequest.md5))
-            return;
-
-        if(!data.read(itemRequest.accountId))
-            return;
-
-        if(!data.read(itemRequest.otherId))
-            return;
-
-        MessDiapatch::instance()->onRecvFileRequest(itemRequest);
-    }
-}
-
-void DataProcess::proFileData(RBuffer &data)
-{
-    FileDataRequest request;
-
-    int control = 0;
-
-    if(!data.read(control))
-        return;
-    request.control = static_cast<FileTransferControl>(control);
-
-    if(!data.read(request.fileId))
-        return;
-
-    if(!data.read(request.index))
-        return;
-
-    const char * recvData = NULL;
-    size_t dataLen = 0;
-    if(!data.read(&recvData,BUFFER_DEFAULT_SIZE,dataLen))
-        return;
-    request.array.append(recvData,dataLen);
-
-    FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
-    if(fileDesc)
-    {
-        if(fileDesc->isNull() && !fileDesc->create())
-        {
-            return;
-        }
-
-//        if(fileDesc->state() == FILE_TRANING || fileDesc->state() == FILE_PAUSE)
-        if(fileDesc->seek(request.index * FILE_MAX_PACK_SIZE) && fileDesc->write(request.array) > 0)
-        {
-            qDebug()<<"++:"<<fileDesc->getWriteSize()<<":index:"<<request.index<<"_"<<fileDesc->fileSize();
-            if(fileDesc->flush() && fileDesc->isRecvOver())
-            {
-                fileDesc->close();
-
-                MessDiapatch::instance()->onRecvFileData(fileDesc->fileId,fileDesc->fileName);
-            }
-        }
-    }
-}
-
-void DataProcess::proTCPData(RBuffer &data)
-{
-
 }

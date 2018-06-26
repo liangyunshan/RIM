@@ -12,8 +12,8 @@
 
 #include <QString>
 #include <QDateTime>
-#include "protocoldata.h"
-#include "datastruct.h"
+#include "protocol/protocoldata.h"
+#include "protocol/datastruct.h"
 
 class QAction;
 class ScreenShot;

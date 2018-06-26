@@ -16,7 +16,7 @@
 class QSettings;
 class NetSettingsPrivate;
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class NetSettings : public Widget
