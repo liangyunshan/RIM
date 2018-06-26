@@ -13,7 +13,7 @@
 #include <QDebug>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 #define CHAT_Font_MAX_HEIGHT 30
 

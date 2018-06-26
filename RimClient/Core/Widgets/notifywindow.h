@@ -15,7 +15,7 @@
 #define NOTIFYWINDOW_H
 
 #include "widget.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "observer.h"
 
 class NotifyWindowPrivate;

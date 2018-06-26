@@ -22,7 +22,7 @@
 #include <functional>
 
 #include "toolitem.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 
 class ToolBox;
 class ToolPagePrivate;

@@ -26,12 +26,21 @@ QByteArray TCP_WrapRule::wrap(const ProtocolPackage &package)
     return wrapdata;
 }
 
-QByteArray TCP_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage TCP_WrapRule::unwrap(const QByteArray &data)
 {
-    QByteArray wrapdata = RSingleton<QDB495_WrapRule>::instance()->unwrap(data);
-    wrapdata = RSingleton<QDB21_WrapRule>::instance()->unwrap(wrapdata);
-    wrapdata = RSingleton<QDB2051_WrapRule>::instance()->unwrap(wrapdata);
-    return wrapdata;
+    ProtocolPackage package;
+    package.cFileData = data;
+
+    ProtocolPackage tempPack;
+    package = RSingleton<QDB495_WrapRule>::instance()->unwrap(package.cFileData);
+
+    tempPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(package.cFileData);
+    package.cFileData = tempPack.cFileData;
+
+    tempPack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(package.cFileData);
+    package.cFileData = tempPack.cFileData;
+
+    return package;
 }
 
 #endif

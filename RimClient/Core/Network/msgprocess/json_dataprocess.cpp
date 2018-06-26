@@ -12,7 +12,7 @@
 #include "../wraprule/qdb21_wraprule.h"
 #include "../wraprule/qdb2051_wraprule.h"
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 Json_DataProcess::Json_DataProcess()
@@ -457,21 +457,3 @@ void Json_DataProcess::proTextApply(QJsonObject &data)
 
     MessDiapatch::instance()->onRecvTextReply(textReply);
 }
-
-////用于处理TCP协议数据
-//void Json_DataProcess::proTCPText(RBuffer &data)
-//{
-//    ProtocolPackage package;
-//    QByteArray recvBuff = RSingleton<QDB21_WrapRule>::instance()->unwrap(data.byteArray());
-//    recvBuff = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvBuff);
-//    package.cFileData = recvBuff;
-
-//    TextRequest response;
-//    response.msgCommand = MSG_TEXT_TEXT;
-//    response.accountId = package.wSourceAddr;
-//    response.otherSideId = package.wDestAddr;
-//    response.sendData = package.cFileData;
-
-//    MessDiapatch::instance()->onRecvText(response);
-
-//}

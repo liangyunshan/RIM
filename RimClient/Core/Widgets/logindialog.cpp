@@ -20,7 +20,7 @@
 #include <QListWidget>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "toolbar.h"
 #include "constants.h"
 #include "onlinestate.h"

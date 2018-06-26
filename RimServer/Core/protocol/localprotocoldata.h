@@ -24,6 +24,8 @@ struct QDB21_Head{
     unsigned short usOrderNo;
                                     //后面是可变长数据
 };//20字节长度
+
+#define QDB21_Head_Length sizeof(QDB21_Head)
 }
 
 namespace QDB2051{
@@ -33,8 +35,7 @@ struct QDB2051_Head{
     unsigned long ulDestDeviceNo;
     char cFileType;
     char cFilenameLen;
-    char cFilename;
-    char cFileData;
+    char cFileNameData[0];
                                     //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
 };//信息类别号为2051的文本信息
 }
@@ -85,8 +86,10 @@ struct QDB495_SendPackage{
     unsigned long dwPackAllLen;
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
-    char cPackDataBuf[1];
+    char cPackDataBuf[];
 };
+
+#define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
 
 }
 

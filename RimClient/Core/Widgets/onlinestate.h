@@ -14,7 +14,7 @@
 
 #include <QWidget>
 #include <QMap>
-#include "../protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 class QToolButton;
 class QAction;

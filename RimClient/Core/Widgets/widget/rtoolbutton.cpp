@@ -7,7 +7,7 @@
 #include <QStyle>
 
 #include "constants.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 #include "head.h"
 
 class RToolButtonPrivate : public GlobalData<RToolButton>

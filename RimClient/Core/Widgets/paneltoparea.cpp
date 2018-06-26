@@ -6,7 +6,7 @@
 #include <QLineEdit>
 #include <QDir>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "global.h"
 #include "head.h"
@@ -14,7 +14,7 @@
 #include "rsingleton.h"
 #include "maindialog.h"
 #include "widget/rlineedit.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "user/user.h"

@@ -5,7 +5,7 @@
 #include "file/filemanager.h"
 #include "messdiapatch.h"
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 #define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度

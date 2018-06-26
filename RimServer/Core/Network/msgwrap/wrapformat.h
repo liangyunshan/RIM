@@ -18,7 +18,7 @@ class WrapFormat
 public:
     WrapFormat();
 
-    virtual void handleMsg(MsgPacket * packet,QByteArray & result) = 0;
+    virtual QByteArray handleMsg(MsgPacket * packet,int result = 0) = 0;
 };
 
 #endif // WRAPFORMAT_H

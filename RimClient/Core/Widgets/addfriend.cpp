@@ -15,7 +15,7 @@
 #include "head.h"
 #include "constants.h"
 #include "global.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "widget/rbutton.h"
 #include "Util/rutil.h"
 #include "widget/rlabel.h"

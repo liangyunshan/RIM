@@ -18,20 +18,22 @@
 using namespace ProtocolType;
 
 #include "protocol/datastruct.h"
+#ifdef __LOCAL_CONTACT__
 using namespace ParameterSettings;
+#endif
 
 class MsgWrap
 {
 public:
     MsgWrap();
 
-    virtual QByteArray handleMsg(MsgPacket * packet, int result = 0
+    virtual void handleMsg(int sockId , MsgPacket * packet, int result = 0
 #ifdef __LOCAL_CONTACT__
                            ,CommucationMethod method = C_None,MessageFormat format = M_NONE
 #endif
             ) = 0;
 
-    virtual QByteArray handleMsgReply(MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1) = 0;
+    virtual void handleMsgReply(int sockId ,MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1) = 0;
 };
 
 #endif // MSGWRAP_H

@@ -1,6 +1,5 @@
 ﻿#include "json_msgparse.h"
 
-
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QSharedPointer>
@@ -12,7 +11,7 @@
 #include "protocol/protocoldata.h"
 #include "jsonkey.h"
 #include "global.h"
-#include "thread/dataprocess.h"
+#include "../msgprocess/dataprocess.h"
 
 using namespace ProtocolType;
 

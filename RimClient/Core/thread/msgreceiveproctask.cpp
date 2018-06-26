@@ -67,12 +67,16 @@ void MsgReceiveProcTask::run()
 
 void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 {
+
 #ifdef __LOCAL_CONTACT__
-    //716_TK兼容调试,解析头
-//    RSingleton<DataProcess>::instance()->proTCPText(RBuffer(data));
-    //[~716]
-#endif
+    ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(data);
+    ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
+    recvPack.cFileData = recv2051Pack.cFileData;
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(recvPack.cFileData);
+#else
     RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+#endif
+
 }
 
 void MsgReceiveProcTask::stopMe()

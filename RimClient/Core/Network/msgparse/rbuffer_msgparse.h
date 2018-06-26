@@ -13,7 +13,7 @@
 #include "dataparse.h"
 #include "Util/rbuffer.h"
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class RBuffer_MsgParse : public DataParse

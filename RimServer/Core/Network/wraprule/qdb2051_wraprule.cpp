@@ -11,30 +11,44 @@ QDB2051_WrapRule::QDB2051_WrapRule()
 
 }
 
-QByteArray QDB2051_WrapRule::wrap(const QByteArray &data)
+QByteArray QDB2051_WrapRule::wrap(const ProtocolPackage &package)
 {
     QDB2051_Head qdb21_2051;
     memset(&qdb21_2051,0,sizeof(QDB2051_Head));
-    qdb21_2051.cFileType = 0;
-    qdb21_2051.cFilenameLen = 0;
-    qdb21_2051.ulDestDeviceNo = QTime::currentTime().msecsTo(QTime(0,0,0,0));
+    qdb21_2051.cFileType = package.cFileType;
+    qdb21_2051.cFilenameLen = package.cFilename.length();
+    qdb21_2051.ulDestDeviceNo = package.wDestAddr;
+    qdb21_2051.usDestSiteNo = package.wDestAddr;
     qdb21_2051.ulPackageLen = sizeof(qdb21_2051.ulPackageLen)
                             + sizeof(qdb21_2051.usDestSiteNo)
                             + sizeof(qdb21_2051.ulDestDeviceNo)
                             + sizeof(qdb21_2051.cFileType)
                             + sizeof(qdb21_2051.cFilenameLen)
                             + qdb21_2051.cFilenameLen
-                            + data.size();
+                            + package.cFileData.size();
 
     QByteArray ddsdata;
-    ddsdata.append((char*)&qdb21_2051,qdb21_2051.ulPackageLen-data.size());
-    ddsdata.append(data);
+    ddsdata.append((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.cFileData.size());
+    ddsdata.append(package.cFileData);
     return ddsdata;
 }
 
-QByteArray QDB2051_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage QDB2051_WrapRule::unwrap(const QByteArray &data)
 {
-    return QByteArray(data);
+    QDB2051_Head qdb21_2051;
+    memset(&qdb21_2051,0,sizeof(QDB2051_Head));
+    memcpy(&qdb21_2051,data.data(),sizeof(QDB2051_Head));
+
+    int realsize = 0;
+    realsize = qdb21_2051.ulPackageLen
+            - sizeof(QDB2051_Head)
+            - (int)qdb21_2051.cFilenameLen;
+
+    QByteArray tempdata = data.right(realsize);
+
+    ProtocolPackage package;
+    package.cFileData = tempdata;
+    return package;
 }
 
 #endif

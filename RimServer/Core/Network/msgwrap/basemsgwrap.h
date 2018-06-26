@@ -1,4 +1,4 @@
-﻿/*!
+/*!
  *  @brief     基本数据包装
  *  @details   用于Client-Server之间的信息协议传输
  *  @author    wey
@@ -20,12 +20,13 @@ class BaseMsgWrap : public MsgWrap
 public:
     BaseMsgWrap();
 
-    void handleMsg(MsgPacket * packet
+    void handleMsg(int sockId ,MsgPacket * packet, int result = 0
 #ifdef __LOCAL_CONTACT__
-                   , CommucationMethod method = C_None, MessageFormat format = M_NONE
+                           ,CommucationMethod method = C_None,MessageFormat format = M_NONE
 #endif
             );
 
+    void handleMsgReply(int sockId ,MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 };
 
 #endif // BASEMSGWRAP_H

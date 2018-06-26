@@ -18,7 +18,6 @@
 #include "../network_global.h"
 #include "../rtask.h"
 #include "../rsocket.h"
-#include "../wraprule/datapacketrule.h"
 #include <memory>
 
 namespace ClientNetwork{

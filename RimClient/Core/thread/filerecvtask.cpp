@@ -7,7 +7,7 @@
 #include <QMutexLocker>
 
 #include "global.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "Util/rutil.h"
 #include "Util/rbuffer.h"
 #include "rsingleton.h"

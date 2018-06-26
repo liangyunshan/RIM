@@ -106,14 +106,12 @@ SOURCES += \
     Widgets/widget/rbutton.cpp \
     Widgets/widget/rmessagebox.cpp \
     Widgets/widget/rtoolbutton.cpp \
-    datastruct.cpp \
     global.cpp \
     main.cpp \
     thread/msgreceiveproctask.cpp \
     thread/taskmanager.cpp \
     rsingleton.cpp \
     user/userinfofile.cpp \
-    protocoldata.cpp \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
@@ -162,7 +160,6 @@ SOURCES += \
     file/xmlparse.cpp \
     Widgets/splashlogindialog.cpp \
     Network/msgwrap/localmsgwrap.cpp \
-    localprotocoldata.cpp \
     Network/wraprule/qdb61a_wraprule.cpp \
     Network/wraprule/qdb21_wraprule.cpp \
     Network/wraprule/qdb495_wraprule.cpp \
@@ -183,7 +180,10 @@ SOURCES += \
     Network/msgprocess/json_dataprocess.cpp \
     Network/msgparse/rbuffer_msgparse.cpp \
     Network/msgparse/binaryparsefactory.cpp \
-    Network/msgprocess/binary_dataprocess.cpp
+    Network/msgprocess/binary_dataprocess.cpp \
+    protocol/datastruct.cpp \
+    protocol/localprotocoldata.cpp \
+    protocol/protocoldata.cpp
 
 
 HEADERS  += \
@@ -226,7 +226,6 @@ HEADERS  += \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
     constants.h \
-    datastruct.h \
     global.h \
     head.h \
     thread/msgreceiveproctask.h \
@@ -283,7 +282,6 @@ HEADERS  += \
     file/xmlparse.h \
     Widgets/splashlogindialog.h \
     Network/msgwrap/localmsgwrap.h \
-    localprotocoldata.h \
     Network/wraprule/qdb61a_wraprule.h \
     Network/wraprule/qdb21_wraprule.h \
     Network/wraprule/qdb495_wraprule.h \
@@ -304,7 +302,10 @@ HEADERS  += \
     Network/msgprocess/json_dataprocess.h \
     Network/msgparse/rbuffer_msgparse.h \
     Network/msgparse/binaryparsefactory.h \
-    Network/msgprocess/binary_dataprocess.h
+    Network/msgprocess/binary_dataprocess.h \
+    protocol/datastruct.h \
+    protocol/localprotocoldata.h \
+    protocol/protocoldata.h
 
 DISTFILES += \
     Widgets/Widgets.pri

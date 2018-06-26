@@ -40,8 +40,6 @@ public:
     void proText(QJsonObject &data);
     void proTextApply(QJsonObject &data);
 
-//    void proTCPText(RBuffer &data);
-
 private:
 
 };

@@ -1,12 +1,13 @@
 ﻿#include "json_wrapformat.h"
 
 #include <QJsonDocument>
+#include <QJsonObject>
 #include "jsonkey.h"
 #include "Util/rlog.h"
 #include "Util/rbuffer.h"
 
 Json_WrapFormat::Json_WrapFormat():
-    MsgWrap()
+    WrapFormat()
 {
 
 }
@@ -17,10 +18,7 @@ Json_WrapFormat::Json_WrapFormat():
  * @param[in] result 自定义参数，可用于补充头部状态信息
  * @return 添加信息头后的数据信息
  */
-QByteArray Json_WrapFormat::handleMsg(MsgPacket *packet, int result
-#ifdef __LOCAL_CONTACT__
-                         ,CommucationMethod method,MessageFormat format)
-#endif
+QByteArray Json_WrapFormat::handleMsg(MsgPacket *packet, int result)
 {
     if(packet == NULL)
     {

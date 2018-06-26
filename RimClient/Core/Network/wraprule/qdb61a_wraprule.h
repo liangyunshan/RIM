@@ -12,7 +12,7 @@ public:
     QDB61A_WrapRule();
 
     QByteArray wrap(const ProtocolPackage &data);
-    QByteArray unwrap(const QByteArray &data);
+    ProtocolPackage unwrap(const QByteArray &data);
 };
 
 #endif

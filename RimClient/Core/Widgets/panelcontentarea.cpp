@@ -10,7 +10,7 @@
 #include <QStyle>
 #include <QLabel>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "head.h"
 #include "panelpersonpage.h"

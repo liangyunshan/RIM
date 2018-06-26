@@ -17,7 +17,7 @@
 #include "widget.h"
 
 #include "observer.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class SplashLoginDialogPrivate;
 

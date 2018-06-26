@@ -14,7 +14,7 @@
 #include "rsingleton.h"
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 #include "global.h"
 #include "application.h"
 using namespace ProtocolType;

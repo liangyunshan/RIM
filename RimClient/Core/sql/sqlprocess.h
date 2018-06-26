@@ -11,9 +11,9 @@
 #define SQLPROCESS_H
 
 #include <QObject>
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "sqlheader.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 using namespace SQLHeader;
 

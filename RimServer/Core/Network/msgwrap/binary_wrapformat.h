@@ -1,18 +1,14 @@
 ﻿#ifndef BINARY_WRAPFORMAT_H
 #define BINARY_WRAPFORMAT_H
 
-#include "msgwrap.h"
+#include "wrapformat.h"
 
-class Binary_WrapFormat : public MsgWrap
+class Binary_WrapFormat : public WrapFormat
 {
 public:
     explicit Binary_WrapFormat();
 
-    QByteArray handleMsg(MsgPacket * packet, int result = 0
-#ifdef __LOCAL_CONTACT__
-                           ,CommucationMethod method = C_None,MessageFormat format = M_NONE
-#endif
-            );
+    QByteArray handleMsg(MsgPacket * packet,int result = 0);
 
     QByteArray handleMsgReply(MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 

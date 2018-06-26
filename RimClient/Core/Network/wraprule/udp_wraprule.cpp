@@ -21,9 +21,11 @@ QByteArray UDP_WrapRule::wrap(const ProtocolPackage &package)
     return wrapdata;
 }
 
-QByteArray UDP_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage UDP_WrapRule::unwrap(const QByteArray &data)
 {
-    return QByteArray();
+    ProtocolPackage package;
+    package.cFileData = data;
+    return package;
 }
 
 #endif

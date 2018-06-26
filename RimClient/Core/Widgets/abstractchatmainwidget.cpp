@@ -23,7 +23,7 @@
 #include "document.h"
 #include "constants.h"
 #include "user/user.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "Util/rutil.h"
 #include "screenshot.h"
 #include "rsingleton.h"

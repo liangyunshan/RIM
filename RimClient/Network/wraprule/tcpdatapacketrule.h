@@ -24,7 +24,7 @@ public:
     QByteArray wrap(const ProtocolPackage &data);
     bool wrap(const QByteArray & data, std::function<int(const char *,const int)> sendDataFunc);
 
-    QByteArray unwrap(const QByteArray &data);
+    ProtocolPackage unwrap(const QByteArray &data);
     bool unwrap(const char * data,const int length,ByteArrayHandler recvDataFunc);
 
 private:

@@ -17,7 +17,7 @@
 #include <QQueue>
 #include <QByteArray>
 
-#include "../Core/localprotocoldata.h"
+#include "../Core/protocol/localprotocoldata.h"
 #include "../network_global.h"
 using namespace GJB4908;
 

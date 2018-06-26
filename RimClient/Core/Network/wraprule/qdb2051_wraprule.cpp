@@ -2,7 +2,7 @@
 #include <QTime>
 
 #ifdef __LOCAL_CONTACT__
-#include "localprotocoldata.h"
+#include "../../protocol/localprotocoldata.h"
 using namespace QDB2051;
 
 QDB2051_WrapRule::QDB2051_WrapRule()
@@ -32,7 +32,7 @@ QByteArray QDB2051_WrapRule::wrap(const ProtocolPackage &package)
     return ddsdata;
 }
 
-QByteArray QDB2051_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage QDB2051_WrapRule::unwrap(const QByteArray &data)
 {
     QDB2051_Head qdb21_2051;
     memset(&qdb21_2051,0,sizeof(QDB2051_Head));
@@ -44,7 +44,10 @@ QByteArray QDB2051_WrapRule::unwrap(const QByteArray &data)
             - (int)qdb21_2051.cFilenameLen;
 
     QByteArray tempdata = data.right(realsize);
-    return tempdata;
+
+    ProtocolPackage package;
+    package.cFileData = tempdata;
+    return package;
 }
 
 #endif

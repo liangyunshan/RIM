@@ -16,7 +16,7 @@
 #include "dataparse.h"
 #include "Util/rbuffer.h"
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class Json_MsgParse : public DataParse

@@ -9,7 +9,7 @@
 
 #include "head.h"
 #include "constants.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 
 class ListBoxPrivate : public GlobalData<ListBox>
 {

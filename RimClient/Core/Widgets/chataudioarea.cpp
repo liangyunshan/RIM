@@ -1,7 +1,7 @@
 ﻿#include "chataudioarea.h"
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 #include <QLabel>
 #include <QHBoxLayout>

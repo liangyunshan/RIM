@@ -14,7 +14,7 @@
 
 #include <QList>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class Observer;
 

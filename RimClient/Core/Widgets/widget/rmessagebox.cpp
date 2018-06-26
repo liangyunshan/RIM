@@ -9,7 +9,7 @@
 #include "qmath.h"
 
 #include "head.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 #include "constants.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"

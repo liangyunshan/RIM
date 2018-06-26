@@ -6,7 +6,7 @@
 #include <QLabel>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 #include "global.h"
 #include "toolbar.h"
