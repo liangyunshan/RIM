@@ -34,12 +34,18 @@ QByteArray QDB495_WrapRule::wrap(const ProtocolPackage &package)
     return ddsdata;
 }
 
-QByteArray QDB495_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage QDB495_WrapRule::unwrap(const QByteArray &data)
 {
     QDB495_SendPackage SendPackage;
     memcpy(&SendPackage,data.data(),QDB495_SendPackage_Length);
     QByteArray tempdata = data.right(data.size() - QDB495_SendPackage_Length);
-    return tempdata;
+
+    ProtocolPackage package;
+    package.cFileData = tempdata;
+    package.bPackType = SendPackage.bPackType;
+    package.wDestAddr = SendPackage.wDestAddr;
+    package.wSourceAddr = SendPackage.wSourceAddr;
+    return package;
 }
 
 /*

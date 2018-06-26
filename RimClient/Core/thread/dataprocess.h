@@ -45,7 +45,7 @@ public:
     void proFileRequest(RBuffer & data);
     void proFileData(RBuffer & data);
 
-    void proTCPText(RBuffer &data);
+    void proTCPData(RBuffer & data);
 
 private:
 

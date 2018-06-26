@@ -67,12 +67,18 @@ void MsgReceiveProcTask::run()
 
 void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
 {
+    QByteArray recvData = data;
 #ifdef __LOCAL_CONTACT__
     //716_TK兼容调试,解析头
-    RSingleton<DataProcess>::instance()->proTCPText(RBuffer(data));
+    ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(recvData);
+    ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
+    recvPack.cFileData = recv2051Pack.cFileData;
+    recvData = recvPack.cFileData;
     //[~716]
 #else
-    QJsonDocument document = QJsonDocument::fromJson(data,&jsonParseError);
+#endif
+
+    QJsonDocument document = QJsonDocument::fromJson(recvData,&jsonParseError);
     if(jsonParseError.error == QJsonParseError::NoError)
     {
         QJsonObject root = document.object();
@@ -91,7 +97,6 @@ void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
                 break;
         }
     }
-#endif
 }
 
 /*!

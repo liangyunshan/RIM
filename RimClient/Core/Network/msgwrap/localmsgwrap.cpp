@@ -70,6 +70,20 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             sendResult = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
         }
 
+    #ifdef __LOCAL_CONTACT__
+        QByteArray testData = sendResult;
+        //716_TK兼容调试,解析头
+        ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(testData);
+        ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
+        recvPack.cFileData = recv2051Pack.cFileData;
+        testData = recvPack.cFileData;
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<testData<<recvPack.wSourceAddr<<recvPack.wDestAddr
+              <<"\n";
+        //[~716]
+    #else
+    #endif
+
         if(commMethod != C_NONE){
             G_TextSendMutex.lock();
             SendUnit unit;

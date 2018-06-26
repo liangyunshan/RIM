@@ -592,20 +592,7 @@ void DataProcess::proFileData(RBuffer &data)
     }
 }
 
-//用于处理TCP协议数据
-void DataProcess::proTCPText(RBuffer &data)
+void DataProcess::proTCPData(RBuffer &data)
 {
-    ProtocolPackage package;
-    QByteArray recvBuff = RSingleton<QDB21_WrapRule>::instance()->unwrap(data.byteArray());
-    recvBuff = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvBuff);
-    package.cFileData = recvBuff;
-
-    TextRequest response;
-    response.msgCommand = MSG_TEXT_TEXT;
-    response.accountId = package.wSourceAddr;
-    response.otherSideId = package.wDestAddr;
-    response.sendData = package.cFileData;
-
-    MessDiapatch::instance()->onRecvText(response);
 
 }

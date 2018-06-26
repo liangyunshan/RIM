@@ -58,9 +58,11 @@ bool TCPDataPacketRule::wrap(const QByteArray &data, std::function<int (const ch
     return false;
 }
 
-QByteArray TCPDataPacketRule::unwrap(const QByteArray &data)
+ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
 {
-    return QByteArray(data);
+    ProtocolPackage package;
+    package.cFileData = data;
+    return package;
 }
 
 /*!

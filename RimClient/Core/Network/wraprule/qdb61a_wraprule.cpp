@@ -14,9 +14,11 @@ QByteArray QDB61A_WrapRule::wrap(const ProtocolPackage &data)
     return QByteArray();
 }
 
-QByteArray QDB61A_WrapRule::unwrap(const QByteArray &data)
+ProtocolPackage QDB61A_WrapRule::unwrap(const QByteArray &data)
 {
-    return QByteArray();
+    ProtocolPackage package;
+    package.cFileData = data;
+    return package;
 }
 
 #endif
