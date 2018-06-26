@@ -20,7 +20,6 @@
 #include <memory>
 #include <mutex>
 #include <map>
-#include "../wraprule/datapacketrule.h"
 
 namespace ClientNetwork{
 

@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QTimer>
 #include <QMap>
+#include <QDebug>
 
 #include "head.h"
 #include "constants.h"
@@ -108,6 +109,11 @@ SystemTrayIcon::~SystemTrayIcon()
             delete d->blinkingTimer;
         }
     }
+
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"delete icon"
+          <<"\n";
+
 }
 
 /*!

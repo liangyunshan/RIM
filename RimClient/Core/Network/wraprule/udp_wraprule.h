@@ -12,7 +12,7 @@ public:
     UDP_WrapRule();
 
     QByteArray wrap(const ProtocolPackage &package);
-    QByteArray unwrap(const QByteArray &data);
+    ProtocolPackage unwrap(const QByteArray &data);
 };
 
 #endif

@@ -21,8 +21,7 @@ public:
     TK205_WrapRule();
 
     QByteArray wrap(const ProtocolPackage &data);
-    QByteArray unwrap(const QByteArray &data);
-
+    ProtocolPackage unwrap(const QByteArray &data);
 
 };
 
