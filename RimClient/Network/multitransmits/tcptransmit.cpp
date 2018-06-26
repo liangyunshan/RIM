@@ -60,9 +60,6 @@ bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler re
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
     if(recvLen > 0)
     {
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"recvBuff:"<<recvBuff
-              <<"\n";
         if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
             RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
         }else{

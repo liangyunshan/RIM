@@ -19,9 +19,9 @@ using namespace ServerNetwork;
 
 #define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度
 
-#define SendData(data) { G_SendMutex.lock();\
-                         G_SendButts.enqueue(data);\
-                         G_SendMutex.unlock();G_SendCondition.wakeOne();}
+#define SendData(data) { std::unique_lock<std::mutex> ul(G_SendMutex);\
+                         G_SendButts.push(data);\
+                         G_SendCondition.notify_one();}
 
 DataProcess::DataProcess()
 {

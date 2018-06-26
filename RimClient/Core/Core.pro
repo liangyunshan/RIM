@@ -20,7 +20,7 @@ QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 DEFINES += __NO_SQL_PRINT__
 
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
-#DEFINES += __LOCAL_CONTACT__
+DEFINES += __LOCAL_CONTACT__
 
 TARGET = RimClient
 TEMPLATE = app
@@ -117,7 +117,6 @@ SOURCES += \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
-    thread/dataprocess.cpp \
     messdiapatch.cpp \
     sql/database.cpp \
     sql/databasemanager.cpp \
@@ -177,7 +176,14 @@ SOURCES += \
     Network/msgwrap/binary_wrapformat.cpp \
     Network/msgwrap/json_wrapformat.cpp \
     Widgets/chatpersonwidget.cpp \
-    Network/wraprule/qdb2051_wraprule.cpp
+    Network/wraprule/qdb2051_wraprule.cpp \
+    Network/msgparse/dataparse.cpp \
+    Network/msgparse/json_msgparse.cpp \
+    Network/msgparse/msgparsefactory.cpp \
+    Network/msgprocess/json_dataprocess.cpp \
+    Network/msgparse/rbuffer_msgparse.cpp \
+    Network/msgparse/binaryparsefactory.cpp \
+    Network/msgprocess/binary_dataprocess.cpp
 
 
 HEADERS  += \
@@ -231,7 +237,6 @@ HEADERS  += \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
-    thread/dataprocess.h \
     messdiapatch.h \
     sql/database.h \
     sql/databasemanager.h \
@@ -292,7 +297,14 @@ HEADERS  += \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/binary_wrapformat.h \
     Widgets/chatpersonwidget.h \
-    Network/wraprule/qdb2051_wraprule.h
+    Network/wraprule/qdb2051_wraprule.h \
+    Network/msgparse/dataparse.h \
+    Network/msgparse/json_msgparse.h \
+    Network/msgparse/msgparsefactory.h \
+    Network/msgprocess/json_dataprocess.h \
+    Network/msgparse/rbuffer_msgparse.h \
+    Network/msgparse/binaryparsefactory.h \
+    Network/msgprocess/binary_dataprocess.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -359,7 +359,6 @@ void EditPersonInfoWindow::openSystemImage()
 
 void EditPersonInfoWindow::openLocalImage()
 {
-    MQ_D(EditPersonInfoWindow);
     QString imageFile = QFileDialog::getOpenFileName(this,tr("Local image"),"/home", tr("Image Files (*.png)"));
     if(!imageFile.isNull())
     {

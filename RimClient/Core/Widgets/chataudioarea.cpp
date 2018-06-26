@@ -8,7 +8,6 @@
 #include <QPainter>
 #include <QEvent>
 #include <QTimer>
-#include <QDebug>
 
 #include "widget/rbutton.h"
 #include "constants.h"

@@ -225,7 +225,6 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
-    MQ_D(RegistDialog);
     TextNetConnector::instance()->connect();
     enableInput(false);
 }

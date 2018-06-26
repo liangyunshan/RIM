@@ -8,7 +8,6 @@
 #include <QSettings>
 #include <QIntValidator>
 #include <QRegExpValidator>
-#include <QDebug>
 
 #include "constants.h"
 #include "head.h"

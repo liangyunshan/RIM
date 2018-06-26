@@ -11,13 +11,7 @@
 #ifndef FILERECEIVEPROCTASK_H
 #define FILERECEIVEPROCTASK_H
 
-#include <QJsonParseError>
-#include <QJsonObject>
-
 #include "Network/rtask.h"
-#include "Util/rbuffer.h"
-#include "protocoldata.h"
-using namespace ProtocolType;
 
 class FileReceiveProcTask : public ClientNetwork::RTask
 {
@@ -31,13 +25,6 @@ public:
 
 protected:
     void run();
-
-private:
-    void validateRecvData(const QByteArray &data);
-    void handleFileMsg(MsgCommand commandType, RBuffer &obj);
-
-private:
-    QJsonParseError jsonParseError;
 };
 
 #endif // FILERECEIVEPROCTASK_H

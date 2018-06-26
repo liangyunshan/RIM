@@ -8,7 +8,6 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QComboBox>
-#include <QDebug>
 
 #include "datastruct.h"
 #include "global.h"

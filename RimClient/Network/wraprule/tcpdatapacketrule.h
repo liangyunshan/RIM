@@ -1,4 +1,13 @@
-﻿#ifndef TCPDATAPACKETRULE_H
+﻿/*!
+ *  @brief     TCP数据包封装
+ *  @details
+ *  @author    wey
+ *  @version   1.0
+ *  @date      2018.06.26
+ *  @warning
+ *  @copyright NanJing RenGu.
+ */
+#ifndef TCPDATAPACKETRULE_H
 #define TCPDATAPACKETRULE_H
 
 #include <QHash>

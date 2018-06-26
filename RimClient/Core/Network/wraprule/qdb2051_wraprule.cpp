@@ -1,6 +1,5 @@
 ﻿#include "qdb2051_wraprule.h"
 #include <QTime>
-#include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
 #include "localprotocoldata.h"

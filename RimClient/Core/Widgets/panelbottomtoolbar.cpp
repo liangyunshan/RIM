@@ -293,7 +293,6 @@ void PanelBottomToolBar::updateNetConnector()
 
 void PanelBottomToolBar::viewFileServerState()
 {
-    MQ_D(PanelBottomToolBar);
     if(!G_User->isFileOnLine()){
         if(FileNetConnector::instance())
             FileNetConnector::instance()->reconnect();
@@ -305,7 +304,6 @@ void PanelBottomToolBar::viewFileServerState()
 
 void PanelBottomToolBar::networkIsConnected(bool connected)
 {
-    MQ_D(PanelBottomToolBar);
     RToolButton * butt = ActionManager::instance()->toolButton(Constant::TOOL_PANEL_FILESERVER);
     if(butt){
         if(connected){

@@ -17,8 +17,6 @@
 #include <QWebEnginePage>
 #include <QHostAddress>
 
-#include <QDebug>
-
 #include "head.h"
 #include "global.h"
 #include "toolbar.h"

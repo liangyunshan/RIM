@@ -9,16 +9,15 @@
  *  @copyright NanJing RenGu.
  *  @note   20180124:wey:增加更新个人基本信息
  */
-#ifndef DATAPROCESS_H
-#define DATAPROCESS_H
+#ifndef JSON_DATAPROCESS_H
+#define JSON_DATAPROCESS_H
 
 #include <QJsonObject>
-#include "Util/rbuffer.h"
 
-class DataProcess
+class Json_DataProcess
 {
 public:
-    DataProcess();
+    Json_DataProcess();
 
     void proRegistResponse(QJsonObject &data);
     void proLoginResponse(QJsonObject &data);
@@ -41,11 +40,7 @@ public:
     void proText(QJsonObject &data);
     void proTextApply(QJsonObject &data);
 
-    void proFileControl(RBuffer &data);
-    void proFileRequest(RBuffer & data);
-    void proFileData(RBuffer & data);
-
-    void proTCPText(RBuffer &data);
+//    void proTCPText(RBuffer &data);
 
 private:
 

@@ -2,13 +2,10 @@
 
 #include "Network/netglobal.h"
 #include "Network/win32net/netutils.h"
-#include "Network/tcpclient.h"
-#include "Util/rlog.h"
 #include "Network/msgparse/msgparsefactory.h"
 #include "rsingleton.h"
 
 #include <QDebug>
-
 
 using namespace ServerNetwork;
 
@@ -28,23 +25,21 @@ void RecvTextProcessThread::run()
     {
         while(G_RecvButts.size() == 0)
         {
-            G_RecvMutex.lock();
-            G_RecvCondition.wait(&G_RecvMutex);
-            G_RecvMutex.unlock();
+            G_RecvCondition.wait(std::unique_lock<std::mutex>(G_RecvMutex));
         }
 
         SocketInData sockData;
-        int count = 0;
 
         G_RecvMutex.lock();
 
         if(G_RecvButts.size() > 0)
         {
-           sockData =  G_RecvButts.dequeue();
-           count = G_RecvButts.size();
+           sockData =  G_RecvButts.front();
+           G_RecvButts.pop();
         }
 
         G_RecvMutex.unlock();
+
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
     }
 }
