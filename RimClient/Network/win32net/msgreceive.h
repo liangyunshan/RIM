@@ -41,7 +41,7 @@ signals:
 
 protected:
     void run();
-    virtual void processData(QByteArray & data)=0;
+    virtual void processData(RecvUnit & data)=0;
 
 protected:
     QString errorString;
@@ -59,7 +59,7 @@ public:
     ~TextReceive();
 
 private:
-    void processData(QByteArray & data);
+    void processData(RecvUnit &data);
 };
 
 class NETWORKSHARED_EXPORT FileReceive : public RecveiveTask
@@ -70,7 +70,7 @@ public:
     ~FileReceive();
 
 private:
-    void processData(QByteArray & data);
+    void processData(RecvUnit & data);
 };
 
 } //ClientNetwork

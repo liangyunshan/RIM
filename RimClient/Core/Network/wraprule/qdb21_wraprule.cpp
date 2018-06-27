@@ -17,12 +17,12 @@ QByteArray QDB21_WrapRule::wrap(const ProtocolPackage &package)
     qdb21_Head.usDestAddr = package.wDestAddr;
     qdb21_Head.usSourceAddr = package.wSourceAddr;
     qdb21_Head.cTypeNum =1;
-    qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + package.cFileData.size();
+    qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + package.data.size();
     qdb21_Head.usOrderNo = 2051;
 
     QByteArray wrap;
     wrap.append((char*)&qdb21_Head,sizeof(QDB21_Head));
-    wrap.append(package.cFileData);
+    wrap.append(package.data);
     return wrap;
 }
 
@@ -35,7 +35,7 @@ ProtocolPackage QDB21_WrapRule::unwrap(const QByteArray &data)
     QByteArray tempdata = data.right(data.size() - QDB21_Head_Length);
 
     ProtocolPackage package;
-    package.cFileData = tempdata;
+    package.data = tempdata;
     package.wDestAddr = qdb21_Head.usDestAddr;
     package.wSourceAddr = qdb21_Head.usSourceAddr;
 

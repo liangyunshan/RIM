@@ -9,9 +9,9 @@
 #include "Util/rlog.h"
 #include "rsingleton.h"
 #include "protocol/protocoldata.h"
+#include "../msgprocess/dataprocess.h"
 #include "jsonkey.h"
 #include "global.h"
-#include "../msgprocess/dataprocess.h"
 
 using namespace ProtocolType;
 
@@ -25,7 +25,7 @@ Json_MsgParse::Json_MsgParse()
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void Json_MsgParse::processData(Database *db,const SocketInData &data)
+void Json_MsgParse::processData(Database *db,const RecvUnit &data)
 {
     if(RGlobal::G_SERVICE_TYPE == SERVICE_TEXT)
     {
@@ -37,10 +37,10 @@ void Json_MsgParse::processData(Database *db,const SocketInData &data)
             switch(obj.value(JsonKey::key(JsonKey::Type)).toInt())
             {
                 case MSG_CONTROL:
-                    parseControlData(db,data.sockId,obj);
+                    parseControlData(db,data.extendData.sockId,obj);
                     break;
                 case MSG_TEXT:
-                    parseTextData(db,data.sockId,obj);
+                    parseTextData(db,data.extendData.sockId,obj);
                     break;
                 default:
                       break;
@@ -59,7 +59,7 @@ void Json_MsgParse::processData(Database *db,const SocketInData &data)
             return;
         if((MsgType)msgType == MSG_FILE)
         {
-            parseFileData(db,data.sockId,buffer);
+            parseFileData(db,data.extendData.sockId,buffer);
         }
     }
 }

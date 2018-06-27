@@ -13,8 +13,11 @@
 #include <QHash>
 
 #include "wraprule.h"
+#include "../tcpclient.h"
 
-namespace ClientNetwork{
+namespace ServerNetwork{
+class IocpContext;
+class Handler;
 
 class TCPDataPacketRule : public WrapRule
 {
@@ -24,16 +27,20 @@ public:
     QByteArray wrap(const ProtocolPackage &data);
     bool wrap(const ProtocolPackage &data, std::function<int(const char *,const int)> sendDataFunc);
 
+    void registHandler(Handler * dataHandler);
+    void bindContext(IocpContext * context,unsigned long recvLen);
+
     ProtocolPackage unwrap(const QByteArray &data);
-    bool unwrap(const char * data,const int length,DataHandler handler);
 
 private:
-    void recvData(const char *recvData, int recvLen, RecvUnit &result);
+    void recvData(const char *recvData, int recvLen);
 
 private:
     int SendPackId;
     char sendBuff[MAX_SEND_BUFF];
 
+    IocpContext * ioContext;              /*!< 当前处理的客户端信息 */
+    Handler * handler;                    /*!< 数据处理器 */
     QByteArray lastRecvBuff;              //断包接收缓冲区
     QHash<int,PacketBuff*> packetBuffs;   //多包缓冲区
 };

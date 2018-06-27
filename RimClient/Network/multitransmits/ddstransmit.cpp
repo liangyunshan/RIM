@@ -43,7 +43,7 @@ QString DDSTransmit::name()
 
 bool DDSTransmit::startTransmit(const SendUnit &unit)
 {
-    QByteArray ddsdata = unit.data;
+    QByteArray ddsdata = unit.dataUnit.data;
     int iRet = DDSSend(ddsdata.data(),ddsdata.size(),3);
     if (iRet < 1){
         RLOG_ERROR("DDS send topic failed!");
@@ -52,7 +52,7 @@ bool DDSTransmit::startTransmit(const SendUnit &unit)
     return iRet;
 }
 
-bool DDSTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)
+bool DDSTransmit::startRecv(char *recvBuff, int recvBuffLen, DataHandler recvDataFunc)
 {
     char buf[1024];
     memset(buf, 0, sizeof(buf));
@@ -64,8 +64,9 @@ bool DDSTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler re
     {
         if(topic == 4)
         {
-            QByteArray recvDDS(buf,bwlen);
-            recvDataFunc(recvDDS);
+            RecvUnit inData;
+            inData.data = QByteArray(buf,bwlen);
+            recvDataFunc(inData);
         }
         else
         {

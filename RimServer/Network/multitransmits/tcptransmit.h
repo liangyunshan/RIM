@@ -16,8 +16,7 @@
 #include "../wraprule/tcpdatapacketrule.h"
 #include "../wraprule/tcp495datapacketrule.h"
 
-
-namespace ClientNetwork{
+namespace ServerNetwork{
 
 class RSocket;
 
@@ -31,7 +30,7 @@ public:
     QString name();
 
     bool startTransmit(const SendUnit &unit);
-    bool startRecv(char *recvBuff, int recvBuffLen,DataHandler recvDataFunc);
+    bool startRecv(char *recvBuff, int recvBuffLen,ByteArrayHandler recvDataFunc);
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);
     bool close();

@@ -162,7 +162,6 @@ SOURCES += \
     Network/msgwrap/localmsgwrap.cpp \
     Network/wraprule/qdb61a_wraprule.cpp \
     Network/wraprule/qdb21_wraprule.cpp \
-    Network/wraprule/qdb495_wraprule.cpp \
     Network/wraprule/udp_wraprule.cpp \
     Network/wraprule/tcp_wraprule.cpp \
     Network/wraprule/tk205_wraprule.cpp \
@@ -284,7 +283,6 @@ HEADERS  += \
     Network/msgwrap/localmsgwrap.h \
     Network/wraprule/qdb61a_wraprule.h \
     Network/wraprule/qdb21_wraprule.h \
-    Network/wraprule/qdb495_wraprule.h \
     Network/wraprule/udp_wraprule.h \
     Network/wraprule/tcp_wraprule.h \
     Network/wraprule/tk205_wraprule.h \

@@ -13,6 +13,9 @@ TEMPLATE = lib
 
 DEFINES += NETWORK_LIBRARY
 
+#读取本地联系人列表，为了解决并需求变动带来的冲突问题
+DEFINES += __LOCAL_CONTACT__
+
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
 
@@ -62,7 +65,8 @@ SOURCES += \
     win32net/msgsender.cpp \
     win32net/msgreceive.cpp \
     multitransmits/ddstransmit.cpp \
-    wraprule/tcpdatapacketrule.cpp
+    wraprule/tcpdatapacketrule.cpp \
+    wraprule/tcp495datapacketrule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -79,4 +83,5 @@ HEADERS +=\
     win32net/msgsender.h \
     multitransmits/ddstransmit.h \
     3rdhead/DDS.h \
-    wraprule/tcpdatapacketrule.h
+    wraprule/tcpdatapacketrule.h \
+    wraprule/tcp495datapacketrule.h

@@ -39,7 +39,7 @@ void SendTextProcessThread::run()
 
         if(runningFlag)
         {
-            SocketOutData sockData;
+            SendUnit sockData;
 
             G_SendMutex.lock();
             if(G_SendButts.size() > 0)
@@ -57,21 +57,21 @@ void SendTextProcessThread::run()
                 packet.magicNum = SEND_MAGIC_NUM;
 
                 packet.packId = client->getPackId();
-                packet.totalIndex = qCeil(((float)sockData.data.length() / MAX_PACKET));
-                packet.totalLen = sockData.data.size();
+                packet.totalIndex = qCeil(((float)sockData.dataUnit.data.length() / MAX_PACKET));
+                packet.totalLen = sockData.dataUnit.data.size();
 
                 int sendLen = 0;
                 for(unsigned int i = 0; i < packet.totalIndex; i++)
                 {
                     packet.currentIndex = i;
-                    int leftLen = sockData.data.size() - sendLen;
+                    int leftLen = sockData.dataUnit.data.size() - sendLen;
                     packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
 
                     int dataLen = packet.currentLen + sizeof(DataPacket);
 
                     IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
                     memcpy(context->getPakcet(),(char *)&packet,sizeof(DataPacket));
-                    memcpy(context->getPakcet()+ sizeof(DataPacket),sockData.data.data() + sendLen,packet.currentLen);
+                    memcpy(context->getPakcet()+ sizeof(DataPacket),sockData.dataUnit.data.data() + sendLen,packet.currentLen);
 
                     context->getWSABUF().len = dataLen;
 

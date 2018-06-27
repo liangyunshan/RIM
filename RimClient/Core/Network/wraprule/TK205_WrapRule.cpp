@@ -19,7 +19,7 @@ QByteArray TK205_WrapRule::wrap(const ProtocolPackage &data)
 ProtocolPackage TK205_WrapRule::unwrap(const QByteArray &data)
 {
     ProtocolPackage package;
-    package.cFileData = data;
+    package.data = data;
     return package;
 }
 

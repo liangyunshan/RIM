@@ -20,7 +20,6 @@
 #include <functional>
 
 typedef int(*Func)(const char *,const int);
-typedef std::function<void(QByteArray &)> ByteArrayHandler;
 
 struct DataPacket
 {
@@ -63,16 +62,40 @@ struct PacketBuff
     QLinkedList<QByteArray> buff;               //存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1
 };
 
-/*!
- *  @brief 传输方式
- *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
- */
-enum CommMethod{
-    C_NONE,     /*!< 错误方式*/
-    C_UDP,      /*!< UDP方式 */
-    C_TCP,      /*!< TCP方式 */
-    C_BUS       /*!< 总线方式 */
+namespace QDB495{
+
+//报文类型
+#define WM_DATA_AFFIRM      0   //需要信息回执
+#define WM_DATA_NOAFFIRM    1   //不需要信息回执
+#define WM_TRANS_AFFIRM     2
+#define WM_DATA_REG         3   //注册、注销
+#define WM_TEST             4
+#define WM_TEST_RESULT      5
+#define WM_STREAM_CTRL      6
+#define WM_SENDREC_CTRL     7
+#define WM_CONNECT_TEST     8   //终端空闲时，发送给服务器请求测试自身是否在线
+#define WM_UNROUTE          12  //路由不存在
+#define WM_ROUTE_BLOCK      13  //路由不通
+#define WM_UNREGISTER       14  //对端未注册
+#define WM_SERVER_BUSY      21  //服务器忙
+
+struct QDB495_SendPackage{
+    unsigned char bVersion;
+    unsigned char bPackType;
+    unsigned short wPackLen;
+    unsigned char bPriority;
+    unsigned char bPeserve;
+    unsigned short wSerialNo;
+    unsigned short wCheckout;
+    unsigned short wOffset;
+    unsigned long dwPackAllLen;
+    unsigned short wDestAddr;
+    unsigned short wSourceAddr;
 };
+
+#define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
+
+}
 
 /*!
  *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
@@ -86,7 +109,7 @@ struct ProtocolPackage
     unsigned char bPackType;        /*!< 报文类型 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
     QByteArray cFilename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
-    QByteArray cFileData;           /*!< 正文内容 */
+    QByteArray data;                /*!< 正文内容 */
 
     ProtocolPackage()
     {
@@ -96,17 +119,75 @@ struct ProtocolPackage
         cFileType = 0;
     }
 
+    ProtocolPackage(QByteArray dataArray){
+        this->data = dataArray;
+    }
+
     ProtocolPackage operator=(const ProtocolPackage & package)
     {
-        this->bPackType = package.bPackType;
-        this->cFileData = package.cFileData;
-        this->cFilename = package.cFilename;
-        this->cFileType = package.cFileType;
-        this->wDestAddr = package.wDestAddr;
         this->wSourceAddr = package.wSourceAddr;
+        this->wDestAddr = package.wDestAddr;
+        this->bPackType = package.bPackType;
+        this->cFileType = package.cFileType;
+        this->cFilename = package.cFilename;
+        this->data = package.data;
         return *this;
     }
 };
+
+/*!
+ *  @brief 传输方式
+ *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
+ */
+enum CommMethod{
+    C_NONE,     /*!< 错误方式*/
+    C_UDP,      /*!< UDP方式 */
+    C_TCP,      /*!< TCP方式 */
+    C_BUS       /*!< 总线方式 */
+};
+
+/*!
+ *  @brief  使用495传输协议时，用于表示每种传输的类型，此类型由网络层根据495协议中选择设置
+ */
+enum PacketType_495{
+    T_DATA_AFFIRM = 0,           /*!< 需要信息回执 */
+    T_DATA_NOAFFIRM = 1,         /*!< 不需要信息回执 */
+    T_TRANS_AFFIRM = 2,
+    T_DATA_REG = 3,              /*!< 注册、注销 */
+    T_TEST = 4,
+    T_TEST_RESULT = 5,
+    T_STREAM_CTRL = 6,
+    T_SENDREC_CTRL = 7,
+    T_CONNECT_TEST = 8,          /*!< 终端空闲时，发送给服务器请求测试自身是否在线 */
+    T_UNROUTE = 12,              /*!< 路由不存在 */
+    T_ROUTE_BLOCK = 13,          /*!< 路由不通 */
+    T_UNREGISTER = 14,           /*!< 对端未注册 */
+    T_SERVER_BUSY = 21,          /*!< 服务器忙 */
+};
+
+/*!
+ *  @brief  接收时由网络层提取出的信息字段，该结构信息可用于应用层进行数据处理
+ *  @note   需要由网络层向应用层传递数据时，可在此结构体内添加字段，并在网络层中将对应的信息赋值即可。
+ */
+struct ExtendData
+{
+    PacketType_495 type495;     /*!< 495信息类型 */
+};
+
+/*!
+ *  @brief 数据接收处理单元
+ *  @details 由接收线程根据网络层传输协议，将分包的数据组装完毕后，并将网络层附带信息补充完整，交由应用层处理。 \n
+ *           目前支持两种网络层传输控制协议：
+ *              1.DataPacket;
+ *              2.QDB495_SendPackage
+ */
+struct RecvUnit
+{
+    ExtendData extendData;      /*!< 可扩充数据信息，包含网络层相关信息 */
+    QByteArray data;            /*!< 请求数据内容，已经去除网络层( @link DataPacket @endlink )数据头 */
+};
+
+typedef std::function<void(RecvUnit &)> DataHandler;
 
 /*!
  *  @brief 待发送数据单元描述，包含了发送时使用的方式，以及待发送的数据
@@ -114,7 +195,7 @@ struct ProtocolPackage
 struct SendUnit
 {
     CommMethod method;              /*!< 发送方式 */
-    QByteArray data;                /*!< 待发送的数据 */
+    ProtocolPackage dataUnit;       /*!< 待发送数据包及描述 */
 };
 
 #endif // NETWORK_GLOBAL_H
