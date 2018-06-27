@@ -23,7 +23,7 @@ class DataParse
 public:
     DataParse();
 
-    virtual void processData(Database *db, const SocketInData & data) = 0;
+    virtual void processData(Database *db, const RecvUnit & data) = 0;
 };
 
 #endif // DATAPARSE_H

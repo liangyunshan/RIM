@@ -8,6 +8,9 @@ CONFIG -= app_bundle
 
 DEFINES += NETWORK_LIBRARY
 
+#读取本地联系人列表，为了解决并需求变动带来的冲突问题
+DEFINES += __LOCAL_CONTACT__
+
 TEMPLATE = lib
 
 CONFIG(debug, debug|release) {
@@ -41,7 +44,13 @@ HEADERS += \
     win32net/iocpcontext.h \
     socket.h \
     abstractserver.h \
-    wraprule/wraprule.h
+    wraprule/wraprule.h \
+    multitransmits/basetransmit.h \
+    multitransmits/tcptransmit.h \
+    wraprule/tcp495datapacketrule.h \
+    wraprule/tcpdatapacketrule.h \
+    dataprocess/handler.h \
+    dataprocess/sockdatahandler.h
 
 SOURCES += \
     netglobal.cpp \
@@ -54,7 +63,13 @@ SOURCES += \
     win32net/iocpcontext.cpp \
     socket.cpp \
     abstractserver.cpp \
-    wraprule/wraprule.cpp
+    wraprule/wraprule.cpp \
+    multitransmits/basetransmit.cpp \
+    multitransmits/tcptransmit.cpp \
+    wraprule/tcp495datapacketrule.cpp \
+    wraprule/tcpdatapacketrule.cpp \
+    dataprocess/handler.cpp \
+    dataprocess/sockdatahandler.cpp
 
 INCLUDEPATH += $$PWD/../../RimClient/
 

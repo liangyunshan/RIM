@@ -20,7 +20,7 @@ class Json_MsgParse : public DataParse
 public:
     Json_MsgParse();
 
-    void processData(Database *db, const SocketInData &data);
+    void processData(Database *db, const RecvUnit &data);
 
 private:
     void parseControlData(Database *db, int socketId, QJsonObject & obj);

@@ -8,10 +8,6 @@
 #include "rsingleton.h"
 #include "Network/tcpclient.h"
 
-#include <QDebug>
-
-using namespace ServerNetwork;
-
 RecvTextProcessThread::RecvTextProcessThread()
 {
 
@@ -31,7 +27,7 @@ void RecvTextProcessThread::run()
             G_RecvCondition.wait(std::unique_lock<std::mutex>(G_RecvMutex));
         }
 
-        SocketInData sockData;
+        RecvUnit sockData;
 
         G_RecvMutex.lock();
 
@@ -45,13 +41,8 @@ void RecvTextProcessThread::run()
 
 #ifdef __LOCAL_CONTACT__
         ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(sockData.data);
-        ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
-        sockData.data = recv2051Pack.cFileData;
-
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"sockData.data:"<<sockData.data
-              <<"\n";
-
+        ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.data);
+        sockData.data = recv2051Pack.data;
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
 #else
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);

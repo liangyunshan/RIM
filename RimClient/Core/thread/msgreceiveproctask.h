@@ -31,7 +31,7 @@ protected:
     void run();
 
 private:
-    void validateRecvData(const QByteArray & data);
+    void validateRecvData(const RecvUnit &data);
 
 };
 

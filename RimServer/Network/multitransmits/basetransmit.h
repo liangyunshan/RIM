@@ -11,10 +11,11 @@
 #define BASETRANSMIT_H
 
 #include "../network_global.h"
+#include "head.h"
 #include <functional>
 #include <QByteArray>
 
-namespace ClientNetwork{
+namespace ServerNetwork{
 
 class NETWORKSHARED_EXPORT BaseTransmit
 {
@@ -23,7 +24,7 @@ public:
     virtual ~BaseTransmit();
 
     virtual bool startTransmit(const SendUnit & unit) = 0;
-    virtual bool startRecv(char * recvBuff,int recvBuffLen,DataHandler recvDataFunc) = 0;
+    virtual bool startRecv(char * recvBuff,int recvBuffLen,ByteArrayHandler recvDataFunc) = 0;
 
     virtual CommMethod type() = 0;
     virtual QString name() = 0;

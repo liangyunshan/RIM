@@ -54,11 +54,11 @@ void FileReceiveProcTask::run()
         if(runningFlag && G_FileRecvBuffs.size() > 0)
         {
             G_FileRecvMutex.lock();
-            QByteArray array = G_FileRecvBuffs.front();
+            RecvUnit array = G_FileRecvBuffs.front();
             G_FileRecvBuffs.pop();
             G_FileRecvMutex.unlock();
 
-            if(array.size() > 0)
+            if(array.data.size() > 0)
             {
                 RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(array);
             }

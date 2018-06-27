@@ -2,10 +2,13 @@
 #include <qmath.h>
 #include <QDebug>
 
-namespace ClientNetwork{
+#include "../win32net/iocpcontext.h"
+#include "../dataprocess/handler.h"
+
+namespace ServerNetwork{
 
 TCPDataPacketRule::TCPDataPacketRule():
-    WrapRule()
+    WrapRule(),handler(nullptr)
 {
     SendPackId = qrand()%1024 + 1000;
 }
@@ -58,53 +61,50 @@ bool TCPDataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int 
     return false;
 }
 
-ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
+void TCPDataPacketRule::registHandler(Handler *dataHandler)
 {
-    return ProtocolPackage();
+    handler = dataHandler;
 }
 
-/*!
- * @brief 将接收的数据根据协议进行解析，返回解析后的结果数据
- * @param[in] data 待处理的接收数据
- * @param[in] length 数据长度
- * @return 解析后的数据
- */
-bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler handler)
+void TCPDataPacketRule::bindContext(IocpContext * context, unsigned long recvLen)
 {
-    RecvUnit result;
-    if(lastRecvBuff.size() > 0)
+    ioContext = context;
+
+    ioContext->getPakcet()[recvLen] = 0;
+    int lastRecvBuffSize = ioContext->getClient()->getHalfPacketBuff().size();
+
+    if(lastRecvBuffSize > 0)
     {
-        int tmpBuffLen = lastRecvBuff.size() + length + 1;
+        int tmpBuffLen = lastRecvBuffSize + recvLen + 1;
         char * dataBuff = new char[tmpBuffLen];
         memset(dataBuff,0,tmpBuffLen * sizeof(char));
 
-        memcpy(dataBuff,lastRecvBuff.data(),lastRecvBuff.size());
-        memcpy(dataBuff + lastRecvBuff.size(),data,length);
+        memcpy(dataBuff,ioContext->getClient()->getHalfPacketBuff().data(),lastRecvBuffSize);
+        memcpy(dataBuff + lastRecvBuffSize,ioContext->getPakcet(),recvLen);
 
-        lastRecvBuff.clear();
-        recvData(dataBuff,tmpBuffLen - 1,result);
+        ioContext->getClient()->getHalfPacketBuff().clear();
+
+        recvData(dataBuff,lastRecvBuffSize + recvLen);
 
         delete[] dataBuff;
     }
     else
     {
-        recvData(data,length,result);
+        recvData(ioContext->getPakcet(),recvLen);
     }
-
-    if(result.data.size() > 0){
-        handler(result);
-        return true;
-    }
-
-    return false;
 }
 
-void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & result)
+ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
+{
+    return ProtocolPackage();
+}
+
+void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
 {
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
 
-    if(recvLen > sizeof(DataPacket))
+    if(recvLen >= sizeof(DataPacket))
     {
         unsigned int processLen = 0;
         do
@@ -114,23 +114,30 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
             //[1]数据头部分正常
             if(packet.magicNum == RECV_MAGIC_NUM)
             {
+                RecvUnit socketData;
+                socketData.extendData.sockId = ioContext->getClient()->socket();
+
                 //[1.1]至少存在多余一个完整数据包
                 if(packet.currentLen <= recvLen - processLen)
                 {
                     //[1.1.1]一包数据
                     if(packet.totalIndex == 1)
                     {
-                        result.data.resize(packet.currentLen);
-                        memcpy(result.data.data(),recvData + processLen,packet.currentLen);
+                        socketData.data.resize(packet.currentLen);
+                        memcpy(socketData.data.data(),recvData + processLen,packet.currentLen);
+
+                        if(handler)
+                            handler->handle(socketData);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
                     {
                        QByteArray data;
                        data.resize(packet.currentLen);
-                       memcpy(data.data(),recvData + processLen,packet.currentLen);
+                       memcpy(data.data(),ioContext->getPakcet() + processLen,packet.currentLen);
 
-                       if(packetBuffs.value(packet.packId,NULL) == NULL)
+                       ioContext->getClient()->lock();
+                       if(ioContext->getClient()->getPacketBuffs().value(packet.packId,NULL) == NULL)
                        {
                             PacketBuff * buff = new PacketBuff;
                             buff->totalPackIndex = packet.totalIndex;
@@ -138,11 +145,11 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                             buff->recvSize += packet.currentLen;
                             buff->buff.append(data);
 
-                            packetBuffs.insert(packet.packId,buff);
+                            ioContext->getClient()->getPacketBuffs().insert(packet.packId,buff);
                        }
                        else
                        {
-                            PacketBuff * buff = packetBuffs.value(packet.packId,NULL);
+                            PacketBuff * buff = ioContext->getClient()->getPacketBuffs().value(packet.packId,NULL);
                             if(buff)
                             {
                                 buff->buff.append(data);
@@ -152,21 +159,27 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                                 {
                                     buff->isCompleted = true;
 
-                                    result.data.append(buff->getFullData());
+                                    socketData.data.append(buff->getFullData());
 
-                                    packetBuffs.remove(packet.packId);
+                                    ioContext->getClient()->getPacketBuffs().remove(packet.packId);
                                     delete buff;
+
+                                    if(handler)
+                                        handler->handle(socketData);
                                 }
                             }
                        }
+                       ioContext->getClient()->unLock();
                     }
+
                     processLen += packet.currentLen;
 
-                    //[1.1.3]
+                    //[1.1.3]检验是否满足下次处理需求
                     int leftLen = recvLen - processLen;
-
                     if(leftLen <= 0)
+                    {
                         break;
+                    }
 
                     if(leftLen >= sizeof(DataPacket))
                     {
@@ -177,22 +190,24 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                         //[1.1.3.1]【信息被截断】
                         memcpy(&packet,recvData + processLen,leftLen);
 
-                        lastRecvBuff.clear();
-                        lastRecvBuff.append(recvData + processLen,leftLen);
-
+                        ioContext->getClient()->lock();
+                        ioContext->getClient()->getHalfPacketBuff().clear();
+                        ioContext->getClient()->getHalfPacketBuff().append(recvData + processLen,leftLen);
+                        ioContext->getClient()->unLock();
                         processLen += leftLen;
                         break;
                     }
-
                 }
                 //[1.2]【信息被截断】
                 else
                 {
                     int leftLen = recvLen - processLen;
 
-                    lastRecvBuff.clear();
-                    lastRecvBuff.append((char *)&packet,sizeof(DataPacket));
-                    lastRecvBuff.append(recvData+processLen,leftLen);
+                    ioContext->getClient()->lock();
+                    ioContext->getClient()->getHalfPacketBuff().clear();
+                    ioContext->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(DataPacket));
+                    ioContext->getClient()->getHalfPacketBuff().append(recvData+processLen,leftLen);
+                    ioContext->getClient()->unLock();
 
                     processLen += leftLen;
                     break;
@@ -206,8 +221,10 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
     }
     else
     {
-        lastRecvBuff.clear();
-        lastRecvBuff.append(recvData,recvLen);
+        ioContext->getClient()->lock();
+        ioContext->getClient()->getHalfPacketBuff().clear();
+        ioContext->getClient()->getHalfPacketBuff().append((char *)recvData,recvLen);
+        ioContext->getClient()->unLock();
     }
 }
 

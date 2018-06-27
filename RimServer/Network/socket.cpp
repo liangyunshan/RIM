@@ -288,6 +288,14 @@ bool RSocket::setBlock(bool flag)
     return true;
 }
 
+int RSocket::setSockopt(int optname, const char *optval, int optlen)
+{
+    if(!isValid())
+        return false;
+
+    return setsockopt(tcpSocket,SOL_SOCKET,optname,optval,optlen);
+}
+
 int RSocket::getLastError()
 {
     return errorCode;

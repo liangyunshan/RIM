@@ -1,75 +1,75 @@
-﻿#include "tcpdatapacketrule.h"
+#include "tcp495datapacketrule.h"
+
 #include <qmath.h>
 #include <QDebug>
 
+#include "Network/network_global.h"
+
 namespace ClientNetwork{
 
-TCPDataPacketRule::TCPDataPacketRule():
+using namespace QDB495;
+
+TCP495DataPacketRule::TCP495DataPacketRule():
     WrapRule()
 {
-    SendPackId = qrand()%1024 + 1000;
+    SendPackId = qrand()%1024;
 }
 
-QByteArray TCPDataPacketRule::wrap(const ProtocolPackage &data)
+QByteArray TCP495DataPacketRule::wrap(const ProtocolPackage &data)
 {
     return QByteArray(data.data);
 }
 
-/*!
- * @brief 封装发送数据，并传递发送到方式
- * @param[in] data 待发送的数据
- * @param[in] func 发送数据函数
- * @return 返回是否发送成功
- */
-bool TCPDataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int (const char *, const int)> sendDataFunc)
+bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int (const char *, const int)> sendDataFunc)
 {
-    DataPacket packet;
-    memset((char *)&packet,0,sizeof(DataPacket));
-    packet.magicNum = SEND_MAGIC_NUM;
-    packet.packId = ++SendPackId;
-    packet.totalIndex = qCeil(((float)dataUnit.data.length() / MAX_PACKET));
-    packet.totalLen = dataUnit.data.length();
+    QDB495_SendPackage packet;
+    memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+    packet.bVersion = 1;
+    packet.bPackType = dataUnit.bPackType;
+    packet.bPriority = 0;
+    packet.bPeserve = 0;
+    packet.wSerialNo = ++SendPackId;
+    packet.wCheckout = 0;
+    packet.dwPackAllLen = dataUnit.data.size();
+    packet.wDestAddr = dataUnit.wDestAddr;
+    packet.wSourceAddr = dataUnit.wSourceAddr;
 
+    int totalIndex = countTotoalIndex(dataUnit.data.length());
     int sendLen = 0;
 
-    for(unsigned int i = 0; i < packet.totalIndex; i++)
+    for(unsigned int i = 0; i < totalIndex; i++)
     {
         memset(sendBuff,0,MAX_SEND_BUFF);
-        packet.currentIndex = i;
+        packet.wOffset = i;
         int leftLen = dataUnit.data.length() - sendLen;
-        packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+        packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
 
-        memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
-        memcpy(sendBuff + sizeof(DataPacket),dataUnit.data.data() + sendLen,packet.currentLen);
+        memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+        memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data() + sendLen,packet.wPackLen);
 
-        int dataLen = sizeof(DataPacket)+packet.currentLen;
+        int dataLen = sizeof(QDB495_SendPackage)+packet.wPackLen;
         int realSendLen = sendDataFunc(sendBuff,dataLen);
 
         if(realSendLen == dataLen){
-            sendLen += packet.currentLen;
+            sendLen += packet.wPackLen;
         }else{
             break;
         }
     }
 
-    if(sendLen == packet.totalLen){
+    if(sendLen == packet.dwPackAllLen){
         return true;
     }
+
     return false;
 }
 
-ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
+ProtocolPackage TCP495DataPacketRule::unwrap(const QByteArray &data)
 {
     return ProtocolPackage();
 }
 
-/*!
- * @brief 将接收的数据根据协议进行解析，返回解析后的结果数据
- * @param[in] data 待处理的接收数据
- * @param[in] length 数据长度
- * @return 解析后的数据
- */
-bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler handler)
+bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandler recvDataFunc)
 {
     RecvUnit result;
     if(lastRecvBuff.size() > 0)
@@ -92,75 +92,78 @@ bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler h
     }
 
     if(result.data.size() > 0){
-        handler(result);
+        recvDataFunc(result);
         return true;
     }
 
     return false;
 }
 
-void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & result)
+void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit &result)
 {
-    DataPacket packet;
-    memset((char *)&packet,0,sizeof(DataPacket));
+    QDB495_SendPackage packet;
+    memset((char *)&packet,0,sizeof(QDB495_SendPackage));
 
-    if(recvLen > sizeof(DataPacket))
+    if(recvLen > sizeof(QDB495_SendPackage))
     {
         unsigned int processLen = 0;
         do
         {
-            memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
-            processLen += sizeof(DataPacket);
+            memcpy((char *)&packet,recvData+processLen,sizeof(QDB495_SendPackage));
+            processLen += sizeof(QDB495_SendPackage);
             //[1]数据头部分正常
-            if(packet.magicNum == RECV_MAGIC_NUM)
+            if(true)
             {
                 //[1.1]至少存在多余一个完整数据包
-                if(packet.currentLen <= recvLen - processLen)
+                if(packet.wPackLen <= recvLen - processLen)
                 {
+                    int totalIndex = countTotoalIndex(packet.dwPackAllLen);
                     //[1.1.1]一包数据
-                    if(packet.totalIndex == 1)
+                    if(totalIndex == 1)
                     {
-                        result.data.resize(packet.currentLen);
-                        memcpy(result.data.data(),recvData + processLen,packet.currentLen);
+                        result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                        result.data.resize(packet.wPackLen);
+                        memcpy(result.data.data(),recvData + processLen,packet.wPackLen);
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
                     {
                        QByteArray data;
-                       data.resize(packet.currentLen);
-                       memcpy(data.data(),recvData + processLen,packet.currentLen);
+                       data.resize(packet.wPackLen);
+                       memcpy(data.data(),recvData + processLen,packet.wPackLen);
 
-                       if(packetBuffs.value(packet.packId,NULL) == NULL)
+                       if(packetBuffs.value(packet.wSerialNo,NULL) == NULL)
                        {
                             PacketBuff * buff = new PacketBuff;
-                            buff->totalPackIndex = packet.totalIndex;
+                            buff->totalPackIndex = totalIndex;
                             buff->recvPackIndex += 1;
-                            buff->recvSize += packet.currentLen;
+                            buff->recvSize += packet.wPackLen;
                             buff->buff.append(data);
 
-                            packetBuffs.insert(packet.packId,buff);
+                            packetBuffs.insert(packet.wSerialNo,buff);
                        }
                        else
                        {
-                            PacketBuff * buff = packetBuffs.value(packet.packId,NULL);
+                            PacketBuff * buff = packetBuffs.value(packet.wSerialNo,NULL);
                             if(buff)
                             {
                                 buff->buff.append(data);
-                                buff->recvSize += packet.currentLen;
+                                buff->recvSize += packet.wPackLen;
                                 buff->recvPackIndex += 1;
                                 if(buff->recvPackIndex == buff->totalPackIndex)
                                 {
                                     buff->isCompleted = true;
 
+                                    result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                                     result.data.append(buff->getFullData());
 
-                                    packetBuffs.remove(packet.packId);
+                                    packetBuffs.remove(packet.wSerialNo);
                                     delete buff;
                                 }
                             }
                        }
                     }
-                    processLen += packet.currentLen;
+                    processLen += packet.wPackLen;
 
                     //[1.1.3]
                     int leftLen = recvLen - processLen;
@@ -168,7 +171,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                     if(leftLen <= 0)
                         break;
 
-                    if(leftLen >= sizeof(DataPacket))
+                    if(leftLen >= sizeof(QDB495_SendPackage))
                     {
                         continue;
                     }
@@ -191,7 +194,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                     int leftLen = recvLen - processLen;
 
                     lastRecvBuff.clear();
-                    lastRecvBuff.append((char *)&packet,sizeof(DataPacket));
+                    lastRecvBuff.append((char *)&packet,sizeof(QDB495_SendPackage));
                     lastRecvBuff.append(recvData+processLen,leftLen);
 
                     processLen += leftLen;
@@ -211,7 +214,14 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
     }
 }
 
+/*!
+ * @brief 计算数据总分包数量
+ * @param[in] totalLength 数据总长度
+ * @return 总分包大小
+ */
+int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
+{
+    return qCeil(((float) totalLength/ MAX_PACKET));
+}
 
-} // namespace ClientNetwork
-
-
+}
