@@ -506,7 +506,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 #endif
     request->accountId = G_User->BaseInfo().accountId;
     request->sendData = t_sendHtml;     //FIXME LYS-20180608
-    request->sendData = d->chatInputArea->toPlainText();
+//    request->sendData = d->chatInputArea->toPlainText();
     request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);

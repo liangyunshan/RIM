@@ -10,6 +10,9 @@
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
+#include "global.h"
+#include "user/user.h"
+#include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
 {
@@ -27,36 +30,67 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
     if(packet == nullptr)
         return;
 
+    QByteArray result;
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"packet->msgType"<<packet->msgType
+          <<"\n";
+    switch(packet->msgType){
+        case MSG_CONTROL:
+        case MSG_TEXT:
+            {
+                RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
+            }
+            break;
+        case MSG_FILE:
+            {
+                RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
+            }
+            break;
+        default:
+            break;
+    }
+
     TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
+    ProtocolPackage package;
+    QByteArray sendResult;
+    CommMethod commMethod = C_NONE;
     if(packet->msgCommand == MsgCommand::MSG_TEXT_TEXT && textRequest)
     {
-        ProtocolPackage package;
         package.wSourceAddr = textRequest->accountId.toInt();
         package.wDestAddr = textRequest->otherSideId.toInt();
-        package.cFileData = textRequest->sendData.toLocal8Bit();
+        package.cFileData = result;
+    }
+    else
+    {
+        package.wSourceAddr = G_User->BaseInfo().accountId.toInt();
+        package.wDestAddr = package.wSourceAddr;
+        package.cFileData = result;
+        method = C_TongKong ;
+        format = M_495;
+    }
 
-        QByteArray sendResult;
-        CommMethod commMethod = C_NONE;
-        if(method == C_NetWork && format == M_205){
-            commMethod = C_UDP;
-            sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(package);
-        }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
-            sendResult = RSingleton<QDB2051_WrapRule>::instance()->wrap(package);
-            package.cFileData = sendResult;
-            sendResult = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
-        }
+    if(method == C_NetWork && format == M_205){
+        commMethod = C_UDP;
+        sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(package);
+    }else if(method == C_TongKong && format == M_495){
+        commMethod = C_TCP;
+        sendResult = RSingleton<QDB2051_WrapRule>::instance()->wrap(package);
+        package.cFileData = sendResult;
+        sendResult = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
+    }
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"sendResult:"<<sendResult<<commMethod<<G_TextSendBuffs.size()
+          <<"\n";
 
-        if(commMethod != C_NONE){
-            G_TextSendMutex.lock();
-            SendUnit unit;
-            unit.method = commMethod;
-            unit.data = sendResult;
-            G_TextSendBuffs.push(unit);
-            G_TextSendMutex.unlock();
+    if(commMethod != C_NONE){
+        G_TextSendMutex.lock();
+        SendUnit unit;
+        unit.method = commMethod;
+        unit.data = sendResult;
+        G_TextSendBuffs.push(unit);
+        G_TextSendMutex.unlock();
 
-            G_TextSendWaitCondition.notify_one();
-        }
+        G_TextSendWaitCondition.notify_one();
     }
 }
 

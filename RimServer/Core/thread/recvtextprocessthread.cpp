@@ -6,6 +6,7 @@
 #include "Network/wraprule/qdb2051_wraprule.h"
 #include "Network/head.h"
 #include "rsingleton.h"
+#include "Network/tcpclient.h"
 
 #include <QDebug>
 
@@ -46,6 +47,11 @@ void RecvTextProcessThread::run()
         ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(sockData.data);
         ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
         sockData.data = recv2051Pack.cFileData;
+
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<"sockData.data:"<<sockData.data
+              <<"\n";
+
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
 #else
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
