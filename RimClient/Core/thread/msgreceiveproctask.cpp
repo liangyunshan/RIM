@@ -1,7 +1,5 @@
 ﻿#include "msgreceiveproctask.h"
 
-#include <QJsonDocument>
-
 #include "network/netglobal.h"
 #include "rsingleton.h"
 #include "head.h"
@@ -53,11 +51,11 @@ void MsgReceiveProcTask::run()
         if(runningFlag && G_TextRecvBuffs.size() > 0)
         {
             G_TextRecvMutex.lock();
-            QByteArray array = G_TextRecvBuffs.front();
+            RecvUnit array = G_TextRecvBuffs.front();
             G_TextRecvBuffs.pop();
             G_TextRecvMutex.unlock();
 
-            if(array.size() > 0)
+            if(array.data.size() > 0)
             {
                 validateRecvData(array);
             }
@@ -65,14 +63,14 @@ void MsgReceiveProcTask::run()
     }
 }
 
-void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
+void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
 
 #ifdef __LOCAL_CONTACT__
-    ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(data);
-    ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.cFileData);
-    recvPack.cFileData = recv2051Pack.cFileData;
-    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(recvPack.cFileData);
+    ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(data.data);
+    ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.data);
+    recvPack.data = recv2051Pack.data;
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
 #else
     RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
 #endif

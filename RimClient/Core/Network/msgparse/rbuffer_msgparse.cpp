@@ -8,9 +8,9 @@ RBuffer_MsgParse::RBuffer_MsgParse()
 
 }
 
-void RBuffer_MsgParse::processData(const QByteArray &recvData)
+void RBuffer_MsgParse::processData(const RecvUnit &recvData)
 {
-    RBuffer buffer(recvData);
+    RBuffer buffer(recvData.data);
     int type;
     if(!buffer.read(type))
         return;

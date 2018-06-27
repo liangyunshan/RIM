@@ -57,42 +57,6 @@ struct TK205_SendPackage{
 
 }
 
-namespace QDB495{
-
-//报文类型
-#define WM_DATA_AFFIRM      0   //需要信息回执
-#define WM_DATA_NOAFFIRM    1   //不需要信息回执
-#define WM_TRANS_AFFIRM     2
-#define WM_DATA_REG         3   //注册、注销
-#define WM_TEST             4
-#define WM_TEST_RESULT      5
-#define WM_STREAM_CTRL      6
-#define WM_SENDREC_CTRL     7
-#define WM_CONNECT_TEST     8   //终端空闲时，发送给服务器请求测试自身是否在线
-#define WM_UNROUTE          12  //路由不存在
-#define WM_ROUTE_BLOCK      13  //路由不通
-#define WM_UNREGISTER       14  //对端未注册
-#define WM_SERVER_BUSY      21  //服务器忙
-
-struct QDB495_SendPackage{
-    unsigned char bVersion;
-    unsigned char bPackType;
-    unsigned short wPackLen;
-    unsigned char bPriority;
-    unsigned char bPeserve;
-    unsigned short wSerialNo;
-    unsigned short wCheckout;
-    unsigned short wOffset;
-    unsigned long dwPackAllLen;
-    unsigned short wDestAddr;
-    unsigned short wSourceAddr;
-    char cPackDataBuf[];
-};
-
-#define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
-
-}
-
 namespace QDB61A {
 
 struct QDB61A_InterfaceCore{

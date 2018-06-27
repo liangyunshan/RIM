@@ -14,14 +14,14 @@
 #ifndef DATAPARSE_H
 #define DATAPARSE_H
 
-#include <QByteArray>
+#include "Network/network_global.h"
 
 class DataParse
 {
 public:
     DataParse();
 
-    virtual void processData(const QByteArray & recvData) = 0;
+    virtual void processData(const RecvUnit & recvData) = 0;
 };
 
 #endif // DATAPARSE_H

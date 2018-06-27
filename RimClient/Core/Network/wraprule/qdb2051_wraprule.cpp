@@ -24,11 +24,11 @@ QByteArray QDB2051_WrapRule::wrap(const ProtocolPackage &package)
                             + sizeof(qdb21_2051.cFileType)
                             + sizeof(qdb21_2051.cFilenameLen)
                             + qdb21_2051.cFilenameLen
-                            + package.cFileData.size();
+                            + package.data.size();
 
     QByteArray ddsdata;
-    ddsdata.append((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.cFileData.size());
-    ddsdata.append(package.cFileData);
+    ddsdata.append((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.data.size());
+    ddsdata.append(package.data);
     return ddsdata;
 }
 
@@ -46,7 +46,7 @@ ProtocolPackage QDB2051_WrapRule::unwrap(const QByteArray &data)
     QByteArray tempdata = data.right(realsize);
 
     ProtocolPackage package;
-    package.cFileData = tempdata;
+    package.data = tempdata;
     return package;
 }
 

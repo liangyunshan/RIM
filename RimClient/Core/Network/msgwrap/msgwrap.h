@@ -5,7 +5,7 @@
 #include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
 #else
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 #endif
 

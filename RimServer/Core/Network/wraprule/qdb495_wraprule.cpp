@@ -18,9 +18,9 @@ QByteArray QDB495_WrapRule::wrap(const ProtocolPackage &package)
 
     SendPackage.bVersion = 1;
     SendPackage.bPackType = WM_DATA_NOAFFIRM;
-    SendPackage.wPackLen = package.cFileData.size();
+    SendPackage.wPackLen = package.data.size();
     SendPackage.wOffset = 1;
-    SendPackage.dwPackAllLen = package.cFileData.size();
+    SendPackage.dwPackAllLen = package.data.size();
     SendPackage.wDestAddr = package.wDestAddr;
     SendPackage.wSourceAddr = package.wSourceAddr ;
     SendPackage.wSerialNo = QTime::currentTime().msecsTo(QTime(0,0,0,0))
@@ -30,7 +30,7 @@ QByteArray QDB495_WrapRule::wrap(const ProtocolPackage &package)
 
     QByteArray ddsdata;
     ddsdata.append((char*)&SendPackage,sizeof(QDB495_SendPackage));
-    ddsdata.append(package.cFileData);
+    ddsdata.append(package.data);
     return ddsdata;
 }
 
@@ -41,7 +41,7 @@ ProtocolPackage QDB495_WrapRule::unwrap(const QByteArray &data)
     QByteArray tempdata = data.right(data.size() - QDB495_SendPackage_Length);
 
     ProtocolPackage package;
-    package.cFileData = tempdata;
+    package.data = tempdata;
     package.bPackType = SendPackage.bPackType;
     package.wDestAddr = SendPackage.wDestAddr;
     package.wSourceAddr = SendPackage.wSourceAddr;

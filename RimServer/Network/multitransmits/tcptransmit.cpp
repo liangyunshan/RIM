@@ -1,14 +1,14 @@
 ﻿#include "tcptransmit.h"
 
 #include "Util/rlog.h"
-#include "../rsocket.h"
+#include "../socket.h"
 #include <QDebug>
 
 #ifdef Q_OS_WIN
 #include <WinSock2.h>
 #endif
 
-namespace ClientNetwork{
+namespace ServerNetwork{
 
 TcpTransmit::TcpTransmit():
     BaseTransmit(),tcpSocket(nullptr)
@@ -49,8 +49,8 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
             return tcpSocket->send(buff,length);
         };
 
-        if(dataPacketRule->wrap(unit.dataUnit,func))
-            return true;
+//        if(dataPacketRule->wrap(unit.dataUnit,func))
+//            return true;
     }
 
     close();
@@ -58,16 +58,16 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
     return false;
 }
 
-bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, DataHandler recvDataFunc)
+bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)
 {
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
     if(recvLen > 0)
     {
-        if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
-            RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
-        }else{
-            return true;
-        }
+//        if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
+//            RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
+//        }else{
+//            return true;
+//        }
     }
     else if(recvLen == 0)
     {

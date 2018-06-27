@@ -44,7 +44,7 @@ void RecveiveTask::run()
     runningFlag = true;
 
     char recvBuff[MSG_RECV_BUFF] = {0};
-    std::function<void(QByteArray&)> func = std::bind(&ClientNetwork::RecveiveTask::processData,this,std::placeholders::_1);
+    std::function<void(RecvUnit&)> func = std::bind(&ClientNetwork::RecveiveTask::processData,this,std::placeholders::_1);
     while(runningFlag)
     {
         memset(recvBuff,0,MSG_RECV_BUFF);
@@ -80,7 +80,7 @@ TextReceive::~TextReceive()
  * @warning 接收由网络层拼接后的完整数据包，用户可在此处进行数据包处理，建议不要做复杂的逻辑运算，否则会影响数据接收。
  * @param[in] data 待处理的数据
  */
-void TextReceive::processData(QByteArray &data)
+void TextReceive::processData(RecvUnit &data)
 {
     G_TextRecvMutex.lock();
     G_TextRecvBuffs.push(data);
@@ -101,7 +101,7 @@ FileReceive::~FileReceive()
     wait();
 }
 
-void FileReceive::processData(QByteArray &data)
+void FileReceive::processData(RecvUnit &data)
 {
     G_FileRecvMutex.lock();
     G_FileRecvBuffs.push(data);

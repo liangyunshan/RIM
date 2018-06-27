@@ -15,6 +15,14 @@
 
 #include "SharedIocpData.h"
 
+#include <memory>
+
+#include "../wraprule/tcpdatapacketrule.h"
+
+#ifdef __LOCAL_CONTACT__
+#include "../wraprule/tcp495datapacketrule.h"
+#endif
+
 namespace ServerNetwork {
 
 class TcpClient;
@@ -33,11 +41,15 @@ private:
     void handleSend(IocpContext *ioData);
     void handleClose(IocpContext *ioData);
 
-    void processRecvData(char * recvData, unsigned long recvLen, IocpContext *ioData);
-
 private:
     HANDLE threadId;
     SharedIocpData * serverSharedData;
+
+#ifdef __LOCAL_CONTACT__
+    std::shared_ptr<TCP495DataPacketRule> dataPacketRule;
+#else
+    std::shared_ptr<TCPDataPacketRule> dataPacketRule;
+#endif
 
 };
 

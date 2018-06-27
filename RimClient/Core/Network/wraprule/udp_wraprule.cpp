@@ -16,7 +16,7 @@ QByteArray UDP_WrapRule::wrap(const ProtocolPackage &package)
 {
     ProtocolPackage tempPack = package;
     QByteArray wrapdata = RSingleton<TK205_WrapRule>::instance()->wrap(tempPack);
-    tempPack.cFileData = wrapdata;
+    tempPack.data = wrapdata;
     wrapdata = RSingleton<QDB61A_WrapRule>::instance()->wrap(tempPack);
     return wrapdata;
 }
@@ -24,7 +24,7 @@ QByteArray UDP_WrapRule::wrap(const ProtocolPackage &package)
 ProtocolPackage UDP_WrapRule::unwrap(const QByteArray &data)
 {
     ProtocolPackage package;
-    package.cFileData = data;
+    package.data = data;
     return package;
 }
 
