@@ -10,9 +10,14 @@ TCPDataPacketRule::TCPDataPacketRule():
     SendPackId = qrand()%1024 + 1000;
 }
 
-QByteArray TCPDataPacketRule::wrap(const ProtocolPackage &data)
+void TCPDataPacketRule::wrap(ProtocolPackage &data)
 {
-    return QByteArray(data.data);
+
+}
+
+bool TCPDataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
+{
+    return false;
 }
 
 /*!
@@ -58,11 +63,6 @@ bool TCPDataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int 
     return false;
 }
 
-ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
-{
-    return ProtocolPackage();
-}
-
 /*!
  * @brief 将接收的数据根据协议进行解析，返回解析后的结果数据
  * @param[in] data 待处理的接收数据
@@ -72,6 +72,8 @@ ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
 bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler handler)
 {
     RecvUnit result;
+    result.extendData.method = C_TCP;
+
     if(lastRecvBuff.size() > 0)
     {
         int tmpBuffLen = lastRecvBuff.size() + length + 1;

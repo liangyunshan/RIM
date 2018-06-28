@@ -21,7 +21,7 @@ class RBuffer_MsgParse : public DataParse
 public:
     RBuffer_MsgParse();
 
-    void processData(const RecvUnit & recvData);
+    void processData(const ProtocolPackage & recvData);
 
 private:
     void handleFileMsg(MsgCommand commandType, RBuffer &obj);

@@ -50,15 +50,16 @@ void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recv
     }
 }
 
-QByteArray TCP495DataPacketRule::wrap(const ProtocolPackage &data)
+void TCP495DataPacketRule::wrap(ProtocolPackage &data)
 {
-    return QByteArray(data.data);
+
 }
 
-ProtocolPackage TCP495DataPacketRule::unwrap(const QByteArray &data)
+bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    return ProtocolPackage();
+    return false;
 }
+
 
 void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
@@ -99,7 +100,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                        data.resize(packet.wPackLen);
                        memcpy(data.data(),ioContext->getPakcet() + processLen,packet.wPackLen);
 
-                       ioContext->getClient()->lock();
+                       std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                        if(ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL) == NULL)
                        {
                             PacketBuff * buff = new PacketBuff;
@@ -132,7 +133,6 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                                 }
                             }
                        }
-                       ioContext->getClient()->unLock();
                     }
 
                     processLen += packet.wPackLen;
@@ -153,10 +153,9 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                         //[1.1.3.1]【信息被截断】
                         memcpy(&packet,recvData + processLen,leftLen);
 
-                        ioContext->getClient()->lock();
+                        std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                         ioContext->getClient()->getHalfPacketBuff().clear();
                         ioContext->getClient()->getHalfPacketBuff().append(recvData + processLen,leftLen);
-                        ioContext->getClient()->unLock();
                         processLen += leftLen;
                         break;
                     }
@@ -166,11 +165,10 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                 {
                     int leftLen = recvLen - processLen;
 
-                    ioContext->getClient()->lock();
+                    std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                     ioContext->getClient()->getHalfPacketBuff().clear();
                     ioContext->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(QDB495_SendPackage));
                     ioContext->getClient()->getHalfPacketBuff().append(recvData+processLen,leftLen);
-                    ioContext->getClient()->unLock();
 
                     processLen += leftLen;
                     break;
@@ -184,10 +182,9 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
     }
     else
     {
-        ioContext->getClient()->lock();
+        std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
         ioContext->getClient()->getHalfPacketBuff().clear();
         ioContext->getClient()->getHalfPacketBuff().append((char *)recvData,recvLen);
-        ioContext->getClient()->unLock();
     }
 }
 

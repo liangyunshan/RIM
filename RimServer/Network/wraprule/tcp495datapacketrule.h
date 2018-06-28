@@ -28,9 +28,8 @@ public:
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
 
-    QByteArray wrap(const ProtocolPackage & data);
-
-    ProtocolPackage unwrap(const QByteArray & data);
+    void wrap(ProtocolPackage & data);
+    bool unwrap(const QByteArray & data,ProtocolPackage & result);
 
 private:
     void recvData(const char *recvData, int recvLen);

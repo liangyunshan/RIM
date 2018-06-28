@@ -11,8 +11,8 @@ class UDP_WrapRule : public WrapRule
 public:
     UDP_WrapRule();
 
-    QByteArray wrap(const ProtocolPackage &package);
-    ProtocolPackage unwrap(const QByteArray &data);
+    void wrap(ProtocolPackage & data);
+    bool unwrap(const QByteArray & data,ProtocolPackage & result);
 };
 
 #endif

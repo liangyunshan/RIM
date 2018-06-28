@@ -24,7 +24,7 @@ TcpClient *TcpClient::create()
 
 int TcpClient::getPackId()
 {
-    QMutexLocker locker(&packIdMutex);
+    std::lock_guard<std::mutex> lg(packIdMutex);
     sendPackId++;
 
     return sendPackId;
@@ -33,17 +33,16 @@ int TcpClient::getPackId()
 bool TcpClient::addFile(QString fileId, FileRecvDesc *desc)
 {
     if(desc == NULL)
-    {
         return false;
-    }
-    QMutexLocker fileLocker(&fileMutex);
+
+    std::lock_guard<std::mutex> lg(fileMutex);
     fileRecvList.insert(fileId,desc);
     return true;
 }
 
 bool TcpClient::removeFile(QString &fileId)
 {
-    QMutexLocker fileLocker(&fileMutex);
+    std::lock_guard<std::mutex> lg(fileMutex);
     if(fileRecvList.contains(fileId))
     {
         FileRecvDesc * desc = fileRecvList.value(fileId);
@@ -56,9 +55,8 @@ bool TcpClient::removeFile(QString &fileId)
 
 FileRecvDesc *TcpClient::getFile(QString fileId)
 {
-    QMutexLocker fileLocker(&fileMutex);
-    if(fileRecvList.contains(fileId))
-    {
+    std::lock_guard<std::mutex> lg(fileMutex);
+    if(fileRecvList.contains(fileId)){
         return fileRecvList.value(fileId);
     }
     return NULL;
@@ -69,7 +67,7 @@ TcpClient::TcpClient()
     memset(cIp,0,32);
 
     sendPackId = qrand()%1024 + 1000;
-
+    onlineState = 0;
     cSocket = 0;
     cPort = 0;
 }
@@ -103,77 +101,92 @@ TcpClientManager *TcpClientManager::instance()
 
 void TcpClientManager::addClient(TcpClient *client)
 {
-    QMutexLocker locker(&mutex);
-    clientList.append(client);
+    std::lock_guard<std::mutex> lg(mutex);
+    clientList.push_back(client);
 }
 
 void TcpClientManager::remove(TcpClient *client)
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(mutex);
     if(client && clientList.size() > 0)
     {
         RLOG_INFO("Remove client %d,",client->socket());
         delete client;
-        clientList.removeOne(client);
+        clientList.remove(client);
     }
 }
 
 void TcpClientManager::removeAll()
 {
-    for(int i = 0; i < clientList.size(); i++)
-    {
-        delete clientList.at(i);
-    }
+    std::lock_guard<std::mutex> lg(mutex);
+    std::for_each(clientList.begin(),clientList.end(),[](TcpClient * client){
+        delete client;
+    });
+
     clientList.clear();
 }
 
 TcpClient *TcpClientManager::getClient(int sock)
 {
-    QMutexLocker locker(&mutex);
-    QList<TcpClient *>::iterator iter = clientList.begin();
-    while(iter != clientList.end())
-    {
-        if((*iter)->socket() == sock)
-        {
-            return (*iter);
-        }
-        iter++;
+    std::lock_guard<std::mutex> lg(mutex);
+    auto findIndex = std::find_if(clientList.begin(),clientList.end(),[&sock](TcpClient * client){
+        if(client->socket() == sock)
+            return true;
+        return false;
+    });
+
+    if(findIndex != clientList.end()){
+        return (*findIndex);
     }
+
     return NULL;
 }
 
 TcpClient *TcpClientManager::getClient(QString accountId)
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(mutex);
 
-    QList<TcpClient *>::iterator iter = clientList.begin();
-    while(iter != clientList.end())
-    {
-        if((*iter)->getAccount() == accountId)
-        {
-            return (*iter);
-        }
-        iter++;
+    auto findIndex = std::find_if(clientList.begin(),clientList.end(),[&accountId](TcpClient * client){
+        if(client->getAccount() == accountId)
+            return true;
+        return false;
+    });
+
+    if(findIndex != clientList.end()){
+        return (*findIndex);
     }
+
     return NULL;
+}
+
+ClientList TcpClientManager::getClients(QString accountId)
+{
+    std::lock_guard<std::mutex> lg(mutex);
+    std::list<TcpClient *> clients;
+    std::for_each(clientList.begin(),clientList.end(),[&](TcpClient * client){
+        if(client->getAccount() == accountId)
+            clients.push_back(client);
+    });
+
+    return clients;
 }
 
 TcpClient *TcpClientManager::addClient(int sockId, char *ip, unsigned short port)
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(mutex);
     TcpClient * client = new TcpClient;
     client->cSocket = sockId;
     client->cPort = port;
     memcpy(client->cIp,ip,strlen(ip));
 
-    clientList.append(client);
+    clientList.push_back(client);
 
     return client;
 }
 
 int TcpClientManager::counts()
 {
-    QMutexLocker locker(&mutex);
+    std::lock_guard<std::mutex> lg(mutex);
     return clientList.size();
 }
 

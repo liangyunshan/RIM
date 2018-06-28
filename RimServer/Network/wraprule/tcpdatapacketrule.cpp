@@ -13,11 +13,6 @@ TCPDataPacketRule::TCPDataPacketRule():
     SendPackId = qrand()%1024 + 1000;
 }
 
-QByteArray TCPDataPacketRule::wrap(const ProtocolPackage &data)
-{
-    return QByteArray(data.data);
-}
-
 /*!
  * @brief 封装发送数据，并传递发送到方式
  * @param[in] data 待发送的数据
@@ -94,9 +89,14 @@ void TCPDataPacketRule::bindContext(IocpContext * context, unsigned long recvLen
     }
 }
 
-ProtocolPackage TCPDataPacketRule::unwrap(const QByteArray &data)
+void TCPDataPacketRule::wrap(ProtocolPackage &data)
 {
-    return ProtocolPackage();
+
+}
+
+bool TCPDataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
+{
+    return false;
 }
 
 void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
@@ -136,7 +136,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
                        data.resize(packet.currentLen);
                        memcpy(data.data(),ioContext->getPakcet() + processLen,packet.currentLen);
 
-                       ioContext->getClient()->lock();
+                       std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                        if(ioContext->getClient()->getPacketBuffs().value(packet.packId,NULL) == NULL)
                        {
                             PacketBuff * buff = new PacketBuff;
@@ -169,7 +169,6 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
                                 }
                             }
                        }
-                       ioContext->getClient()->unLock();
                     }
 
                     processLen += packet.currentLen;
@@ -190,10 +189,10 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
                         //[1.1.3.1]【信息被截断】
                         memcpy(&packet,recvData + processLen,leftLen);
 
-                        ioContext->getClient()->lock();
+                        std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                         ioContext->getClient()->getHalfPacketBuff().clear();
                         ioContext->getClient()->getHalfPacketBuff().append(recvData + processLen,leftLen);
-                        ioContext->getClient()->unLock();
+
                         processLen += leftLen;
                         break;
                     }
@@ -203,11 +202,10 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
                 {
                     int leftLen = recvLen - processLen;
 
-                    ioContext->getClient()->lock();
+                    std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                     ioContext->getClient()->getHalfPacketBuff().clear();
                     ioContext->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(DataPacket));
                     ioContext->getClient()->getHalfPacketBuff().append(recvData+processLen,leftLen);
-                    ioContext->getClient()->unLock();
 
                     processLen += leftLen;
                     break;
@@ -221,10 +219,9 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
     }
     else
     {
-        ioContext->getClient()->lock();
+        std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
         ioContext->getClient()->getHalfPacketBuff().clear();
         ioContext->getClient()->getHalfPacketBuff().append((char *)recvData,recvLen);
-        ioContext->getClient()->unLock();
     }
 }
 

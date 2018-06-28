@@ -21,10 +21,10 @@ class TCPDataPacketRule : public WrapRule
 public:
     explicit TCPDataPacketRule();
 
-    QByteArray wrap(const ProtocolPackage &data);
-    bool wrap(const ProtocolPackage &data, std::function<int(const char *,const int)> sendDataFunc);
+    void wrap(ProtocolPackage & data);
+    bool unwrap(const QByteArray & data,ProtocolPackage & result);
 
-    ProtocolPackage unwrap(const QByteArray &data);
+    bool wrap(const ProtocolPackage &data, std::function<int(const char *,const int)> sendDataFunc);
     bool unwrap(const char * data,const int length,DataHandler handler);
 
 private:

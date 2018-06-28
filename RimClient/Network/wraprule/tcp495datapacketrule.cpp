@@ -1,4 +1,4 @@
-#include "tcp495datapacketrule.h"
+﻿#include "tcp495datapacketrule.h"
 
 #include <qmath.h>
 #include <QDebug>
@@ -15,9 +15,14 @@ TCP495DataPacketRule::TCP495DataPacketRule():
     SendPackId = qrand()%1024;
 }
 
-QByteArray TCP495DataPacketRule::wrap(const ProtocolPackage &data)
+void TCP495DataPacketRule::wrap(ProtocolPackage &data)
 {
-    return QByteArray(data.data);
+
+}
+
+bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
+{
+    return false;
 }
 
 bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int (const char *, const int)> sendDataFunc)
@@ -64,14 +69,11 @@ bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<i
     return false;
 }
 
-ProtocolPackage TCP495DataPacketRule::unwrap(const QByteArray &data)
-{
-    return ProtocolPackage();
-}
-
 bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandler recvDataFunc)
 {
     RecvUnit result;
+    result.extendData.method = C_TCP;
+
     if(lastRecvBuff.size() > 0)
     {
         int tmpBuffLen = lastRecvBuff.size() + length + 1;

@@ -7,8 +7,7 @@
 #include "messdiapatch.h"
 #include "Network/msgparse/msgparsefactory.h"
 
-#include "../Network/wraprule/qdb21_wraprule.h"
-#include "../Network/wraprule/qdb2051_wraprule.h"
+#include "../Network/wraprule/tcp_wraprule.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
@@ -65,14 +64,22 @@ void MsgReceiveProcTask::run()
 
 void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
-
+    ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
-    ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(data.data);
-    ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.data);
-    recvPack.data = recv2051Pack.data;
-    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+    bool result = false;
+    switch(data.extendData.method){
+        case C_TCP:
+            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+        break;
+
+        default:
+            break;
+    }
+    if(result)
+        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
 #else
-    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+    packData.data = data.data;
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
 #endif
 
 }

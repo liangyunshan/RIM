@@ -13,33 +13,21 @@ TCP_WrapRule::TCP_WrapRule():WrapRule()
 
 }
 
-QByteArray TCP_WrapRule::wrap(const ProtocolPackage &data)
+void TCP_WrapRule::wrap(ProtocolPackage &data)
 {
-    ProtocolPackage tempPack = data;
-
-    QByteArray wrapdata = RSingleton<QDB2051_WrapRule>::instance()->wrap(tempPack);
-    tempPack.data = wrapdata;
-    wrapdata = RSingleton<QDB21_WrapRule>::instance()->wrap(tempPack);
-    tempPack.data = wrapdata;
-    wrapdata = RSingleton<QDB495_WrapRule>::instance()->wrap(tempPack);
-    return wrapdata;
+    RSingleton<QDB2051_WrapRule>::instance()->wrap(data);
+    RSingleton<QDB21_WrapRule>::instance()->wrap(data);
 }
 
-ProtocolPackage TCP_WrapRule::unwrap(const QByteArray &data)
+bool TCP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    ProtocolPackage package;
-    package.data = data;
+    if(!RSingleton<QDB21_WrapRule>::instance()->unwrap(data,result))
+        return false;
 
-    ProtocolPackage tempPack;
-    package = RSingleton<QDB495_WrapRule>::instance()->unwrap(package.data);
+    if(!RSingleton<QDB2051_WrapRule>::instance()->unwrap(result.data,result))
+        return false;
 
-    tempPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(package.data);
-    package.data = tempPack.data;
-
-    tempPack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(package.data);
-    package.data = tempPack.data;
-
-    return package;
+    return true;
 }
 
 #endif
