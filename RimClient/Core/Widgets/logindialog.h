@@ -91,6 +91,9 @@ private:
     void resetDefaultPixmap();
     void enableInput(bool flag);
 
+    //95
+    //
+
 private:
     LoginDialogPrivate * d_ptr;
 };

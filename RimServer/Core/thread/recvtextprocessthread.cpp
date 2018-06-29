@@ -8,6 +8,8 @@
 #include "rsingleton.h"
 #include "Network/tcpclient.h"
 
+#include <QDebug>
+
 RecvTextProcessThread::RecvTextProcessThread()
 {
 
@@ -43,6 +45,9 @@ void RecvTextProcessThread::run()
         ProtocolPackage recvPack = RSingleton<QDB21_WrapRule>::instance()->unwrap(sockData.data);
         ProtocolPackage recv2051Pack = RSingleton<QDB2051_WrapRule>::instance()->unwrap(recvPack.data);
         sockData.data = recv2051Pack.data;
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<"sockData.data:"<<sockData.data<<"size"<<sockData.data.size()
+              <<"\n";
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
 #else
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);

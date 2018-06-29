@@ -48,6 +48,9 @@ void Json_MsgParse::processData(Database *db,const RecvUnit &data)
         }
         else
         {
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                   <<"recv a error data,skip!"
+                  <<"\n";
             RLOG_ERROR("recv a error data,skip!");
         }
     }
