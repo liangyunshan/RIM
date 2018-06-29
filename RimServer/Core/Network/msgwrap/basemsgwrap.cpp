@@ -15,6 +15,7 @@ void BaseMsgWrap::handleMsg(int sockId , MsgPacket * packet, int result)
 {
     SendUnit data;
     data.sockId = sockId;
+    data.method = C_TCP;
 
     switch(packet->msgType){
         case MSG_CONTROL:

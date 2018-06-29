@@ -46,6 +46,9 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.bPeserve = 0;
                 package.usSerialNo = textRequest->textId.toInt();
                 package.usOrderNo = 2051;
+
+                method = C_TongKong ;
+                format = M_495 ;
             }
         }
         break;
@@ -100,8 +103,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         G_TextSendMutex.unlock();
         G_TextSendWaitCondition.notify_one();
     }
-
-
 }
 
 #endif

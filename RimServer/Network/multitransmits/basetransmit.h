@@ -11,7 +11,8 @@
 #define BASETRANSMIT_H
 
 #include "../network_global.h"
-#include "head.h"
+#include "../head.h"
+
 #include <functional>
 #include <QByteArray>
 

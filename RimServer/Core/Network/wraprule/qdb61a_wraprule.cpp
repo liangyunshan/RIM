@@ -10,11 +10,13 @@ QDB61A_WrapRule::QDB61A_WrapRule():
 
 void QDB61A_WrapRule::wrap(ProtocolPackage &data)
 {
-
+    Q_UNUSED(data)
 }
 
 bool QDB61A_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
+    Q_UNUSED(data)
+    Q_UNUSED(result)
     return false;
 }
 

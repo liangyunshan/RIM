@@ -28,6 +28,8 @@ public:
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
 
+    bool wrap(const SendUnit &dunit, ContextSender sendFunc);
+
     void wrap(ProtocolPackage & data);
     bool unwrap(const QByteArray & data,ProtocolPackage & result);
 

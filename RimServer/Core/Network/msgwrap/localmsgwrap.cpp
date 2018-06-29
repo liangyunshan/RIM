@@ -50,6 +50,7 @@ void LocalMsgWrap::hanldeMsgProtol(int sockId,ProtocolPackage & package)
 {
     SendUnit sUnit;
     sUnit.sockId = sockId;
+    sUnit.method = C_NONE;
 
     //[1]数据内容封装
     sUnit.dataUnit.data = package.data;
@@ -59,19 +60,18 @@ void LocalMsgWrap::hanldeMsgProtol(int sockId,ProtocolPackage & package)
     sUnit.dataUnit.wDestAddr = package.wDestAddr;
 
     bool flag = false;
-    OuterNetConfig destConfig = queryNodeDescInfo(QString(package.wDestAddr),flag);
+    OuterNetConfig destConfig = queryNodeDescInfo(QString::number(package.wDestAddr),flag);
     if(flag){
-        CommMethod commMethod = C_NONE;
         if(destConfig.communicationMethod == C_NetWork && destConfig.messageFormat == M_205){
-            commMethod = C_UDP;
+            sUnit.method = C_UDP;
             RSingleton<UDP_WrapRule>::instance()->wrap(package);
         }else if(destConfig.communicationMethod == C_TongKong && destConfig.messageFormat == M_495){
-            commMethod = C_TCP;
+            sUnit.method = C_TCP;
             RSingleton<TCP_WrapRule>::instance()->wrap(sUnit.dataUnit);
         }
 
         //[3]加入发送队列
-        if(commMethod != C_NONE){
+        if(sUnit.method != C_NONE){
             std::unique_lock<std::mutex> ul(G_SendMutex);
             G_SendButts.push(sUnit);
             G_SendCondition.notify_one();

@@ -20,7 +20,7 @@ public:
     QByteArray handleMsg(MsgPacket * packet,int result = 0);
 
 private:
-    QByteArray handleText(TextRequest *request);
+    QByteArray handleText(TextRequest *);
 
 };
 

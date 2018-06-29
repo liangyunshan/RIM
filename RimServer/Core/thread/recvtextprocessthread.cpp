@@ -10,7 +10,7 @@
 
 RecvTextProcessThread::RecvTextProcessThread()
 {
-
+    runningFlag = true;
 }
 
 void RecvTextProcessThread::setDatabase(Database *db)
@@ -20,33 +20,31 @@ void RecvTextProcessThread::setDatabase(Database *db)
 
 void RecvTextProcessThread::run()
 {
-    while(true)
+    while(runningFlag)
     {
         while(G_RecvButts.size() == 0)
         {
             G_RecvCondition.wait(std::unique_lock<std::mutex>(G_RecvMutex));
         }
 
-        bool existed = false;
-        RecvUnit sockData;
+        if(runningFlag){
+            bool existed = false;
+            RecvUnit sockData;
 
-        G_RecvMutex.lock();
+            G_RecvMutex.lock();
 
-        if(G_RecvButts.size() > 0)
-        {
-           sockData =  G_RecvButts.front();
-           existed = true;
-           G_RecvButts.pop();
-        }
+            if(G_RecvButts.size() > 0)
+            {
+               sockData =  G_RecvButts.front();
+               existed = true;
+               G_RecvButts.pop();
+            }
 
-        G_RecvMutex.unlock();
+            G_RecvMutex.unlock();
 
-        if(existed)
-        {
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                   <<""<<sockData.extendData.type495<<sockData.data
-                  <<"\n";
-            RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
+            if(existed)
+                RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
+
         }
     }
 }
