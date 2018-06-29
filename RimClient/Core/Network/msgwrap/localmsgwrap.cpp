@@ -29,29 +29,61 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
 {
     if(packet == nullptr)
         return;
+/*
+    TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
+    if(textRequest && packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
+    {
+        ProtocolPackage package;
+        package.wSourceAddr = textRequest->accountId.toInt();
+        package.wDestAddr = textRequest->otherSideId.toInt();
+        package.data = textRequest->sendData.toLocal8Bit();
 
-    QByteArray result;
+        QByteArray sendResult;
+        CommMethod commMethod = C_NONE;
+        if(method == C_NetWork && format == M_205){
+            commMethod = C_UDP;
+            RSingleton<UDP_WrapRule>::instance()->wrap(package);
+        }else if(method == C_TongKong && format == M_495){
+            commMethod = C_TCP;
+            RSingleton<TCP_WrapRule>::instance()->wrap(package);
+        }
+
+        if(commMethod != C_NONE){
+
+            SendUnit unit;
+            unit.method = commMethod;
+            unit.dataUnit = package;
+
+            G_TextSendMutex.lock();
+            G_TextSendBuffs.push(unit);
+            G_TextSendMutex.unlock();
+            G_TextSendWaitCondition.notify_one();
+        }
+    }
+*/
+
+
     qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
            <<"packet->msgType"<<packet->msgType
           <<"\n";
-    switch(packet->msgType){
-        case MSG_CONTROL:
-        case MSG_TEXT:
-            {
-                RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
-            }
-            break;
-        case MSG_FILE:
-            {
-                RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
-            }
-            break;
-        default:
-            break;
-    }
+//    QByteArray result;
+//    switch(packet->msgType){
+//        case MSG_CONTROL:
+//        case MSG_TEXT:
+//            {
+//                RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
+//            }
+//            break;
+//        case MSG_FILE:
+//            {
+//                RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
+//            }
+//            break;
+//        default:
+//            break;
+//    }
 
     ProtocolPackage package;
-    QByteArray sendResult;
     CommMethod commMethod = C_NONE;
     switch (packet->msgCommand)
     {
@@ -86,11 +118,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
 
     if(method == C_NetWork && format == M_205){
         commMethod = C_UDP;
-        sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(package);
+        RSingleton<UDP_WrapRule>::instance()->wrap(package);
     }else if(method == C_TongKong && format == M_495){
         commMethod = C_TCP;
-        package.data = RSingleton<QDB2051_WrapRule>::instance()->wrap(package);
-        package.data = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
+        RSingleton<TCP_WrapRule>::instance()->wrap(package);
     }
     if(commMethod != C_NONE){
         SendUnit unit;
@@ -102,6 +133,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         G_TextSendMutex.unlock();
         G_TextSendWaitCondition.notify_one();
     }
+
 
 }
 

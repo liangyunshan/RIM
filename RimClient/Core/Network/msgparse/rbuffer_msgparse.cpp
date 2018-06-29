@@ -8,7 +8,7 @@ RBuffer_MsgParse::RBuffer_MsgParse()
 
 }
 
-void RBuffer_MsgParse::processData(const RecvUnit &recvData)
+void RBuffer_MsgParse::processData(const ProtocolPackage &recvData)
 {
     RBuffer buffer(recvData.data);
     int type;

@@ -8,15 +8,15 @@ QDB61A_WrapRule::QDB61A_WrapRule():
 
 }
 
-QByteArray QDB61A_WrapRule::wrap(const ProtocolPackage &data)
+void QDB61A_WrapRule::wrap(ProtocolPackage &data)
 {
 
-    return QByteArray();
 }
 
-ProtocolPackage QDB61A_WrapRule::unwrap(const QByteArray &data)
+bool QDB61A_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    return ProtocolPackage();
+    return false;
 }
+
 
 #endif

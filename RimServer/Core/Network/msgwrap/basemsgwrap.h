@@ -20,11 +20,8 @@ class BaseMsgWrap : public MsgWrap
 public:
     BaseMsgWrap();
 
-    void handleMsg(int sockId ,MsgPacket * packet, int result = 0
-#ifdef __LOCAL_CONTACT__
-                           ,CommucationMethod method = C_None,MessageFormat format = M_NONE
-#endif
-            );
+    void handleMsg(int sockId , MsgPacket * packet, int result = 0);
+    void hanldeMsgProtol(int sockId,ProtocolPackage & package){}
 
     void handleMsgReply(int sockId ,MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 };

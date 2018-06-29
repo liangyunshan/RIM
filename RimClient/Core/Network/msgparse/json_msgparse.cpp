@@ -21,7 +21,7 @@ Json_MsgParse::Json_MsgParse()
  * @param[in] toolButton 待插入的工具按钮
  * @return 是否插入成功
  */
-void Json_MsgParse::processData(const RecvUnit &recvData)
+void Json_MsgParse::processData(const ProtocolPackage &recvData)
 {
     QJsonDocument document = QJsonDocument::fromJson(recvData.data,&jsonParseError);
     if(jsonParseError.error == QJsonParseError::NoError)

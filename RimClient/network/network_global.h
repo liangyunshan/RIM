@@ -172,6 +172,7 @@ enum PacketType_495{
  */
 struct ExtendData
 {
+    CommMethod method;          /*!< 数据接收链路 */
     PacketType_495 type495;     /*!< 495信息类型 */
 };
 

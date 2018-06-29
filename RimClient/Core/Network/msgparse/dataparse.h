@@ -21,7 +21,7 @@ class DataParse
 public:
     DataParse();
 
-    virtual void processData(const RecvUnit & recvData) = 0;
+    virtual void processData(const ProtocolPackage & recvData) = 0;
 };
 
 #endif // DATAPARSE_H

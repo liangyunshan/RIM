@@ -22,8 +22,8 @@ class NETWORKSHARED_EXPORT WrapRule
 public:
     WrapRule();
 
-    virtual QByteArray wrap(const ProtocolPackage & data) = 0;
-    virtual ProtocolPackage unwrap(const QByteArray & data) = 0;
+    virtual void wrap(ProtocolPackage & data) = 0;
+    virtual bool unwrap(const QByteArray & data,ProtocolPackage & result) = 0;
 };
 
 } // namespace ClientNetwork
