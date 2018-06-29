@@ -2,7 +2,8 @@
 
 #include "rbuffer_msgparse.h"
 
-BinaryParseFactory::BinaryParseFactory()
+BinaryParseFactory::BinaryParseFactory():
+    dataParse(nullptr)
 {
 
 }

@@ -43,6 +43,9 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wDestAddr = textRequest->otherSideId.toInt();
                 package.data = textRequest->sendData.toLocal8Bit();
                 package.bPackType = T_DATA_NOAFFIRM;
+
+                method = C_TongKong ;
+                format = M_495 ;
             }
         }
         break;
@@ -89,17 +92,12 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         SendUnit unit;
         unit.method = commMethod;
         unit.dataUnit = package;
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<package.data
-              <<"\n";
 
         G_TextSendMutex.lock();
         G_TextSendBuffs.push(unit);
         G_TextSendMutex.unlock();
         G_TextSendWaitCondition.notify_one();
     }
-
-
 }
 
 #endif

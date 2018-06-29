@@ -16,9 +16,6 @@ QMAKE_LFLAGS_RELEASE += /MAP
 QMAKE_CFLAGS_RELEASE += /Zi
 QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 
-#是否开启Server:DEFINES += __NO_SERVER__
-DEFINES += __NO_SQL_PRINT__
-
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
 DEFINES += __LOCAL_CONTACT__
 

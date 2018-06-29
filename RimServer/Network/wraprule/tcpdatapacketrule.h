@@ -24,7 +24,7 @@ class TCPDataPacketRule : public WrapRule
 public:
     explicit TCPDataPacketRule();
 
-    bool wrap(const ProtocolPackage &data, std::function<int(const char *,const int)> sendDataFunc);
+    bool wrap(const SendUnit &data, ContextSender sendFunc);
 
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);

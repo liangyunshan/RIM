@@ -14,8 +14,13 @@
 #  define NETWORKSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
+namespace ServerNetwork {
+class IocpContext;
+}
+
 typedef int(*Func)(const char *,const int);
 typedef std::function<void(QByteArray &)> ByteArrayHandler;
+typedef std::function<bool(int,ServerNetwork::IocpContext *,DWORD &)> ContextSender;
 
 
 #endif // NETWORK_GLOBAL_H

@@ -17,7 +17,6 @@
 #include "../wraprule/tcp495datapacketrule.h"
 
 namespace ServerNetwork{
-
 class RSocket;
 
 class NETWORKSHARED_EXPORT TcpTransmit : public BaseTransmit
@@ -36,12 +35,17 @@ public:
     bool close();
 
 private:
+    bool sendData(int sockId,IocpContext * context,DWORD & sendLength);
+
+private:
 #ifdef __LOCAL_CONTACT__
     std::shared_ptr<TCP495DataPacketRule> dataPacketRule;
 #else
     std::shared_ptr<TCPDataPacketRule> dataPacketRule;
 #endif
     RSocket* tcpSocket;
+
+    ContextSender sendFunc;
 };
 
 }
