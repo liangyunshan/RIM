@@ -10,6 +10,9 @@
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
+#include "global.h"
+#include "user/user.h"
+#include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
 {
@@ -27,36 +30,76 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
     if(packet == nullptr)
         return;
 
-    TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
-    if(textRequest && packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
+    ProtocolPackage package;
+    CommMethod commMethod = C_NONE;
+    switch (packet->msgCommand)
     {
-        ProtocolPackage package;
-        package.wSourceAddr = textRequest->accountId.toInt();
-        package.wDestAddr = textRequest->otherSideId.toInt();
-        package.data = textRequest->sendData.toLocal8Bit();
-
-        QByteArray sendResult;
-        CommMethod commMethod = C_NONE;
-        if(method == C_NetWork && format == M_205){
-            commMethod = C_UDP;
-            RSingleton<UDP_WrapRule>::instance()->wrap(package);
-        }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
-            RSingleton<TCP_WrapRule>::instance()->wrap(package);
+    case MsgCommand::MSG_TEXT_TEXT:
+        {
+            TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
+            if(textRequest)
+            {
+                package.wSourceAddr = textRequest->accountId.toInt();
+                package.wDestAddr = textRequest->otherSideId.toInt();
+                package.data = textRequest->sendData.toLocal8Bit();
+                package.bPackType = T_DATA_NOAFFIRM;
+            }
         }
+        break;
+    case MsgCommand::MSG_USER_HISTORY_MSG:
+        {
+            HistoryMessRequest *textRequest = dynamic_cast<HistoryMessRequest *>(packet);
+            if(textRequest)
+            {
+                package.wSourceAddr = textRequest->accountId.toInt();
+                package.wDestAddr = textRequest->accountId.toInt();
+                package.bPackType = T_DATA_NOAFFIRM;
 
-        if(commMethod != C_NONE){
-
-            SendUnit unit;
-            unit.method = commMethod;
-            unit.dataUnit = package;
-
-            G_TextSendMutex.lock();
-            G_TextSendBuffs.push(unit);
-            G_TextSendMutex.unlock();
-            G_TextSendWaitCondition.notify_one();
+                method = C_TongKong ;
+                format = M_495 ;
+            }
         }
+        break;
+    case MsgCommand::MSG_TCP_TRANS:
+        {
+            DataPackType *dataPackType = dynamic_cast<DataPackType *>(packet);
+            if(dataPackType)
+            {
+                package.wSourceAddr = dataPackType->accountId.toInt();
+                package.wDestAddr = dataPackType->accountId.toInt();
+                package.bPackType = T_DATA_REG;
+
+                method = C_TongKong ;
+                format = M_495 ;
+            }
+        }
+        break;
+    default:
+        break;
     }
+
+    if(method == C_NetWork && format == M_205){
+        commMethod = C_UDP;
+        RSingleton<UDP_WrapRule>::instance()->wrap(package);
+    }else if(method == C_TongKong && format == M_495){
+        commMethod = C_TCP;
+        RSingleton<TCP_WrapRule>::instance()->wrap(package);
+    }
+    if(commMethod != C_NONE){
+        SendUnit unit;
+        unit.method = commMethod;
+        unit.dataUnit = package;
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<package.data
+              <<"\n";
+
+        G_TextSendMutex.lock();
+        G_TextSendBuffs.push(unit);
+        G_TextSendMutex.unlock();
+        G_TextSendWaitCondition.notify_one();
+    }
+
+
 }
 
 #endif

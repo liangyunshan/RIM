@@ -36,6 +36,7 @@
 #include "netsettings.h"
 #include "messdiapatch.h"
 #include "Util/rlog.h"
+#include "Network/msgwrap/wrapfactory.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -387,6 +388,13 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         hide();
         d->mainDialog->show();
+
+        DataPackType * request = new DataPackType();
+        request->msgType = MSG_CONTROL;
+        request->msgCommand = MSG_TCP_TRANS;
+        request->extendData.type495 = T_DATA_REG;
+        request->accountId = G_User->BaseInfo().accountId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
     }
 
     if(G_User){

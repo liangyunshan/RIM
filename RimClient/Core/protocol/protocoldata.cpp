@@ -267,4 +267,9 @@ HistoryMessRequest::HistoryMessRequest()
     msgCommand = MSG_USER_HISTORY_MSG;
 }
 
+DataPackType::DataPackType()
+{
+
+}
+
 } //namespace Protocol

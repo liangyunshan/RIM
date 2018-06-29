@@ -107,6 +107,7 @@ struct ProtocolPackage
     unsigned short wSourceAddr;     /*!< 本节点号 */
     unsigned short wDestAddr;       /*!< 目标节点号 */
     unsigned char bPackType;        /*!< 报文类型 */
+    unsigned char bPeserve;         /*!< 495保留字，用于扩展内部状态控制 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
     QByteArray cFilename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
     QByteArray data;                /*!< 正文内容 */
