@@ -26,7 +26,6 @@ void QDB2051_WrapRule::wrap(ProtocolPackage & package)
                             + qdb21_2051.cFilenameLen
                             + package.data.size();
 
-    package.data.clear();
     package.data.prepend((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.data.size());
 }
 

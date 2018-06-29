@@ -17,6 +17,7 @@
 
 #include <QString>
 #include <QList>
+#include "../network/network_global.h"
 
 /*!
  * @brief 应用层数据传输结构
@@ -138,7 +139,10 @@ enum MsgCommand
 /****MsgType为MSG_FILE时以下字段有效******/
     MSG_FILE_CONTROL = 0xB1,                           /*!< 传输控制命令 */
     MSG_FILE_REQUEST = 0xB2,                           /*!< 传输请求 */
-    MSG_FILE_DATA = 0xB3                               /*!< 传输正文 */
+    MSG_FILE_DATA = 0xB3,                               /*!< 传输正文 */
+
+/***TCP头部信息报文******/
+    MSG_TCP_TRANS = 0xC1
 };
 
 /*!
@@ -1121,6 +1125,19 @@ public:
     FileItemKind itemKind;          /*!< 文件类型 */
     QString md5;                    /*!< 当前文件唯一标识,以文件的MD5作为索引 @attention 服务器以此文件名作为在磁盘中保存的索引 */
     QString fileId;                 /*!< 文件在数据库中的唯一ID,用户可以拿着此ID下载文件或者告诉对方下载文件 */
+};
+
+/*!
+ *  @brief  95状态报
+ *  @details 对应95状态报字段
+ *  @attention
+ */
+class DataPackType : public MsgPacket
+{
+public:
+    DataPackType();
+    ExtendData extendData;          /*!< 可扩充数据信息，包含网络层相关信息 */
+    QString accountId;              /*!< 用户账号 */
 };
 
 }

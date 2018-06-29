@@ -4,6 +4,9 @@
 #include "Network/msgparse/msgparsefactory.h"
 #include "Network/head.h"
 #include "rsingleton.h"
+#include "Network/tcpclient.h"
+
+#include <QDebug>
 
 RecvTextProcessThread::RecvTextProcessThread()
 {
@@ -41,6 +44,7 @@ void RecvTextProcessThread::run()
 
             if(existed)
                 RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
+
         }
     }
 }

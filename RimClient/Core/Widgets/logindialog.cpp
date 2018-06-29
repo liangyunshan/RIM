@@ -393,6 +393,7 @@ void LoginDialog::login()
     G_NetSettings.connectedIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
+
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);

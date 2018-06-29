@@ -76,11 +76,11 @@ bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ContextSender sendFunc)
             int leftLen = dunit.dataUnit.data.length() - sendLen;
             packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
 
-            int dataLen = packet.wPackLen + sizeof(DataPacket);
+            int dataLen = packet.wPackLen + sizeof(QDB495_SendPackage);
 
             IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
-            memcpy(context->getPakcet(),(char *)&packet,sizeof(DataPacket));
-            memcpy(context->getPakcet()+ sizeof(DataPacket),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
+            memcpy(context->getPakcet(),(char *)&packet,sizeof(QDB495_SendPackage));
+            memcpy(context->getPakcet()+ sizeof(QDB495_SendPackage),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
 
             context->getWSABUF().len = dataLen;
 

@@ -328,7 +328,6 @@ void PanelPersonPage::updateFriendListAdapter()
  */
 void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListResponse *friendList)
 {
-    MQ_D(PanelPersonPage);
     if(status == STATUS_SUCCESS){
         RSingleton<UserFriendContainer>::instance()->reset(friendList->groups);
 
@@ -337,8 +336,9 @@ void PanelPersonPage::updateFriendList(MsgOperateResponse status,FriendListRespo
         }else if(friendList->type == REQUEST_RECONNECT || friendList->type == REQUEST_REFRESH){
             updateContactList();
         }
-
+#ifndef __LOCAL_CONTACT__
         QTimer::singleShot(500,this,SLOT(loadHistoryMsg()));
+#endif
     }else{
         RMessageBox::warning(this,QObject::tr("warning"),tr("Get friendList failed!"),RMessageBox::Yes);
     }

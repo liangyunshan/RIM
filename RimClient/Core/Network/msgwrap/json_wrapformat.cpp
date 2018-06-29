@@ -298,6 +298,8 @@ void Json_WrapFormat::wrappedPack(MsgPacket *packet,QJsonObject & data,QByteArra
     document.setObject(obj);
     result = document.toJson(QJsonDocument::Compact);
 
-    if(packet->isAutoDelete)
-        delete packet;
+    if(packet->isAutoDelete){
+
+    }
+//        delete packet;
 }

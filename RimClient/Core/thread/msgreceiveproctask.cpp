@@ -62,6 +62,11 @@ void MsgReceiveProcTask::run()
     }
 }
 
+/*!
+ * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
 void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
