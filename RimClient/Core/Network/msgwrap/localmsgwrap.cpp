@@ -43,6 +43,9 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wDestAddr = textRequest->otherSideId.toInt();
                 package.data = textRequest->sendData.toLocal8Bit();
                 package.bPackType = T_DATA_NOAFFIRM;
+                package.bPeserve = 0;
+                package.usSerialNo = textRequest->textId.toInt();
+                package.usOrderNo = 2051;
             }
         }
         break;
@@ -54,6 +57,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wSourceAddr = textRequest->accountId.toInt();
                 package.wDestAddr = textRequest->accountId.toInt();
                 package.bPackType = T_DATA_NOAFFIRM;
+                package.bPeserve = 1;
 
                 method = C_TongKong ;
                 format = M_495 ;
@@ -68,6 +72,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wSourceAddr = dataPackType->accountId.toInt();
                 package.wDestAddr = dataPackType->accountId.toInt();
                 package.bPackType = T_DATA_REG;
+                package.bPeserve = 2;
 
                 method = C_TongKong ;
                 format = M_495 ;
@@ -89,9 +94,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         SendUnit unit;
         unit.method = commMethod;
         unit.dataUnit = package;
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<package.data
-              <<"\n";
 
         G_TextSendMutex.lock();
         G_TextSendBuffs.push(unit);

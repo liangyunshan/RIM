@@ -70,7 +70,7 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
     switch(data.extendData.method){
         case C_TCP:
             result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-        break;
+            break;
 
         default:
             break;

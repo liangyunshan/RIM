@@ -32,7 +32,7 @@ bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<i
     packet.bVersion = 1;
     packet.bPackType = dataUnit.bPackType;
     packet.bPriority = 0;
-    packet.bPeserve = 0;
+    packet.bPeserve = dataUnit.bPeserve;
     packet.wSerialNo = ++SendPackId;
     packet.wCheckout = 0;
     packet.dwPackAllLen = dataUnit.data.size();
@@ -124,6 +124,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
                     if(totalIndex == 1)
                     {
                         result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                        result.extendData.bPeserve = packet.bPeserve;
                         result.data.resize(packet.wPackLen);
                         memcpy(result.data.data(),recvData + processLen,packet.wPackLen);
                     }
@@ -157,6 +158,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
                                     buff->isCompleted = true;
 
                                     result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                                    result.extendData.bPeserve = packet.bPeserve;
                                     result.data.append(buff->getFullData());
 
                                     packetBuffs.remove(packet.wSerialNo);
