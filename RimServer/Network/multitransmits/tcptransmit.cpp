@@ -2,6 +2,7 @@
 
 #include "Util/rlog.h"
 #include "../socket.h"
+#include "../win32net/iocpcontext.h"
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -18,7 +19,9 @@ TcpTransmit::TcpTransmit():
 #else
     dataPacketRule = std::make_shared<TCPDataPacketRule>();
 #endif
-    tcpSocket = new RSocket();
+//    tcpSocket = new RSocket();
+
+    sendFunc = std::bind(&TcpTransmit::sendData,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
 }
 
 TcpTransmit::~TcpTransmit()
@@ -44,18 +47,35 @@ QString TcpTransmit::name()
  */
 bool TcpTransmit::startTransmit(const SendUnit &unit)
 {
-    if(tcpSocket && tcpSocket->isValid()){
-        auto func = [&](const char * buff,const int length)->int{
-            return tcpSocket->send(buff,length);
-        };
+    if(dataPacketRule->wrap(unit,sendFunc))
+        return true;
 
-//        if(dataPacketRule->wrap(unit.dataUnit,func))
-//            return true;
-    }
-
-    close();
     RLOG_ERROR("Tcp send a data error!");
     return false;
+}
+
+/*!
+ * @brief 通过IOCP发送数据
+ * @param[in] sockId 目标主机连接sock id
+ * @param[in] context 重叠I/O，保存待发送数据信息
+ * @param[in] sendLength 实际发送数据长度
+ * @return 是否发送成功
+ */
+bool TcpTransmit::sendData(int sockId,IocpContext * context,DWORD & sendLength)
+{
+    DWORD sendFlags = 0;
+
+    if(WSASend(sockId, &context->getWSABUF(), 1, &sendLength, sendFlags, &context->getOverLapped(), NULL) == SOCKET_ERROR)
+    {
+        int error = WSAGetLastError();
+
+        if(error != ERROR_IO_PENDING)
+        {
+            //TODO 对错误进行处理
+            return false;
+        }
+    }
+    return true;
 }
 
 bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)

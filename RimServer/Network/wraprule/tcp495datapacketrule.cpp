@@ -50,13 +50,76 @@ void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recv
     }
 }
 
+bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ContextSender sendFunc)
+{
+    TcpClient * client = TcpClientManager::instance()->getClient(dunit.sockId);
+    if(client != NULL)
+    {
+        QDB495_SendPackage packet;
+        memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+        packet.bVersion = 1;
+        packet.bPackType = dunit.dataUnit.bPackType;
+        packet.bPriority = 0;
+        packet.bPeserve = 0;
+        packet.wSerialNo = ++SendPackId;
+        packet.wCheckout = 0;
+        packet.dwPackAllLen = dunit.dataUnit.data.size();
+        packet.wDestAddr = dunit.dataUnit.wDestAddr;
+        packet.wSourceAddr = dunit.dataUnit.wSourceAddr;
+
+        int totalIndex = countTotoalIndex(dunit.dataUnit.data.length());
+
+        int sendLen = 0;
+        for(int i = 0; i < totalIndex; i++)
+        {
+            packet.wOffset = i;
+            int leftLen = dunit.dataUnit.data.length() - sendLen;
+            packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+
+            int dataLen = packet.wPackLen + sizeof(DataPacket);
+
+            IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
+            memcpy(context->getPakcet(),(char *)&packet,sizeof(DataPacket));
+            memcpy(context->getPakcet()+ sizeof(DataPacket),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
+
+            context->getWSABUF().len = dataLen;
+
+            DWORD realSendLen = 0;
+            if(!sendFunc(dunit.sockId,context,realSendLen))
+                return false;
+
+            if(realSendLen == dataLen){
+                sendLen += packet.wPackLen;
+            }
+        }
+
+        if(sendLen == packet.dwPackAllLen){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 计算数据总分包数量
+ * @param[in] totalLength 数据总长度
+ * @return 总分包大小
+ */
+int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
+{
+    return qCeil(((float) totalLength/ MAX_PACKET));
+}
+
 void TCP495DataPacketRule::wrap(ProtocolPackage &data)
 {
-
+    Q_UNUSED(data)
 }
 
 bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
+    Q_UNUSED(data)
+    Q_UNUSED(result)
     return false;
 }
 
@@ -68,7 +131,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 
     if(recvLen >= sizeof(QDB495_SendPackage))
     {
-        unsigned int processLen = 0;
+        int processLen = 0;
         do
         {
             memcpy((char *)&packet,recvData+processLen,sizeof(QDB495_SendPackage));
@@ -186,16 +249,6 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
         ioContext->getClient()->getHalfPacketBuff().clear();
         ioContext->getClient()->getHalfPacketBuff().append((char *)recvData,recvLen);
     }
-}
-
-/*!
- * @brief 计算数据总分包数量
- * @param[in] totalLength 数据总长度
- * @return 总分包大小
- */
-int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
-{
-    return qCeil(((float) totalLength/ MAX_PACKET));
 }
 
 }

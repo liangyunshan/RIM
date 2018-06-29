@@ -21,7 +21,7 @@ public:
     BaseMsgWrap();
 
     void handleMsg(int sockId , MsgPacket * packet, int result = 0);
-    void hanldeMsgProtol(int sockId,ProtocolPackage & package){}
+    void hanldeMsgProtol(int,ProtocolPackage &){}
 
     void handleMsgReply(int sockId ,MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1);
 };

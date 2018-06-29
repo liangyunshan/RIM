@@ -59,7 +59,7 @@ void LocalMsgWrap::hanldeMsgProtol(int sockId,ProtocolPackage & package)
     sUnit.dataUnit.wDestAddr = package.wDestAddr;
 
     bool flag = false;
-    OuterNetConfig destConfig = queryNodeDescInfo(QString(package.wDestAddr),flag);
+    OuterNetConfig destConfig = queryNodeDescInfo(QString::number(package.wDestAddr),flag);
     if(flag){
         CommMethod commMethod = C_NONE;
         if(destConfig.communicationMethod == C_NetWork && destConfig.messageFormat == M_205){

@@ -5,7 +5,7 @@ Binary716_WrapFromat::Binary716_WrapFromat()
 
 }
 
-QByteArray Binary716_WrapFromat::handleMsg(MsgPacket *packet, int result)
+QByteArray Binary716_WrapFromat::handleMsg(MsgPacket *packet, int /*result*/)
 {
     if(packet == nullptr)
         return QByteArray();
@@ -20,7 +20,8 @@ QByteArray Binary716_WrapFromat::handleMsg(MsgPacket *packet, int result)
     return QByteArray();
 }
 
-QByteArray Binary716_WrapFromat::handleText(TextRequest *request)
+QByteArray Binary716_WrapFromat::handleText(TextRequest *)
 {
+
     return QByteArray();
 }

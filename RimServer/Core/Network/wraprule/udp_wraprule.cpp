@@ -13,12 +13,13 @@ UDP_WrapRule::UDP_WrapRule():WrapRule()
 
 void UDP_WrapRule::wrap(ProtocolPackage &data)
 {
-
+    Q_UNUSED(data)
 }
 
 bool UDP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-
+    Q_UNUSED(data)
+    Q_UNUSED(result)
     return false;
 }
 

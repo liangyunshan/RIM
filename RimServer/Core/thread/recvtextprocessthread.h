@@ -29,6 +29,7 @@ protected:
 
 private:
     Database * database;
+    bool runningFlag;
 };
 
 #endif // RECVTEXTPROCESSTHREAD_H

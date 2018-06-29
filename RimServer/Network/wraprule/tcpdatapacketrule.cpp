@@ -19,40 +19,48 @@ TCPDataPacketRule::TCPDataPacketRule():
  * @param[in] func 发送数据函数
  * @return 返回是否发送成功
  */
-bool TCPDataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int (const char *, const int)> sendDataFunc)
+bool TCPDataPacketRule::wrap(const SendUnit &dataUnit, ContextSender sendFunc)
 {
-    DataPacket packet;
-    memset((char *)&packet,0,sizeof(DataPacket));
-    packet.magicNum = SEND_MAGIC_NUM;
-    packet.packId = ++SendPackId;
-    packet.totalIndex = qCeil(((float)dataUnit.data.length() / MAX_PACKET));
-    packet.totalLen = dataUnit.data.length();
-
-    int sendLen = 0;
-
-    for(unsigned int i = 0; i < packet.totalIndex; i++)
+    TcpClient * client = TcpClientManager::instance()->getClient(dataUnit.sockId);
+    if(client != NULL)
     {
-        memset(sendBuff,0,MAX_SEND_BUFF);
-        packet.currentIndex = i;
-        int leftLen = dataUnit.data.length() - sendLen;
-        packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+        DataPacket packet;
+        memset((char *)&packet,0,sizeof(DataPacket));
+        packet.magicNum = SEND_MAGIC_NUM;
 
-        memcpy(sendBuff,(char *)&packet,sizeof(DataPacket));
-        memcpy(sendBuff + sizeof(DataPacket),dataUnit.data.data() + sendLen,packet.currentLen);
+        packet.packId = client->getPackId();
+        packet.totalIndex = qCeil(((float)dataUnit.dataUnit.data.length() / MAX_PACKET));
+        packet.totalLen = dataUnit.dataUnit.data.size();
 
-        int dataLen = sizeof(DataPacket)+packet.currentLen;
-        int realSendLen = sendDataFunc(sendBuff,dataLen);
+        int sendLen = 0;
+        for(unsigned int i = 0; i < packet.totalIndex; i++)
+        {
+            packet.currentIndex = i;
+            int leftLen = dataUnit.dataUnit.data.size() - sendLen;
+            packet.currentLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
 
-        if(realSendLen == dataLen){
-            sendLen += packet.currentLen;
-        }else{
-            break;
+            int dataLen = packet.currentLen + sizeof(DataPacket);
+
+            IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
+            memcpy(context->getPakcet(),(char *)&packet,sizeof(DataPacket));
+            memcpy(context->getPakcet()+ sizeof(DataPacket),dataUnit.dataUnit.data.data() + sendLen,packet.currentLen);
+
+            context->getWSABUF().len = dataLen;
+
+            DWORD realSendLen = 0;
+            if(!sendFunc(dataUnit.sockId,context,realSendLen))
+                return false;
+
+            if(realSendLen == dataLen){
+                sendLen += packet.currentLen;
+            }
+        }
+
+        if(sendLen == packet.totalLen){
+            return true;
         }
     }
 
-    if(sendLen == packet.totalLen){
-        return true;
-    }
     return false;
 }
 
@@ -91,11 +99,13 @@ void TCPDataPacketRule::bindContext(IocpContext * context, unsigned long recvLen
 
 void TCPDataPacketRule::wrap(ProtocolPackage &data)
 {
-
+    Q_UNUSED(data)
 }
 
 bool TCPDataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
+    Q_UNUSED(data)
+    Q_UNUSED(result)
     return false;
 }
 
@@ -106,7 +116,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
 
     if(recvLen >= sizeof(DataPacket))
     {
-        unsigned int processLen = 0;
+        int processLen = 0;
         do
         {
             memcpy((char *)&packet,recvData+processLen,sizeof(DataPacket));
