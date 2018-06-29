@@ -29,43 +29,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
 {
     if(packet == nullptr)
         return;
-/*
-    TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
-    if(textRequest && packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
-    {
-        ProtocolPackage package;
-        package.wSourceAddr = textRequest->accountId.toInt();
-        package.wDestAddr = textRequest->otherSideId.toInt();
-        package.data = textRequest->sendData.toLocal8Bit();
-
-        QByteArray sendResult;
-        CommMethod commMethod = C_NONE;
-        if(method == C_NetWork && format == M_205){
-            commMethod = C_UDP;
-            RSingleton<UDP_WrapRule>::instance()->wrap(package);
-        }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
-            RSingleton<TCP_WrapRule>::instance()->wrap(package);
-        }
-
-        if(commMethod != C_NONE){
-
-            SendUnit unit;
-            unit.method = commMethod;
-            unit.dataUnit = package;
-
-            G_TextSendMutex.lock();
-            G_TextSendBuffs.push(unit);
-            G_TextSendMutex.unlock();
-            G_TextSendWaitCondition.notify_one();
-        }
-    }
-*/
-
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"packet->msgType"<<packet->msgType<<"packet->msgCommand:"<<packet->msgCommand
-          <<"\n";
 
     ProtocolPackage package;
     CommMethod commMethod = C_NONE;
