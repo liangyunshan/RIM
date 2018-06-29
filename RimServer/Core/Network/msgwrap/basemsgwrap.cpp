@@ -11,17 +11,8 @@ BaseMsgWrap::BaseMsgWrap():MsgWrap()
 
 }
 
-void BaseMsgWrap::handleMsg(int sockId ,MsgPacket *packet, int result
-#ifdef __LOCAL_CONTACT__
-        ,CommucationMethod method,MessageFormat format
-#endif
-   )
+void BaseMsgWrap::handleMsg(int sockId , MsgPacket * packet, int result)
 {
-#ifdef __LOCAL_CONTACT__
-    Q_UNUSED(method)
-    Q_UNUSED(format)
-#endif
-
     SendUnit data;
     data.sockId = sockId;
 

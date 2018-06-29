@@ -11,19 +11,15 @@ UDP_WrapRule::UDP_WrapRule():WrapRule()
 
 }
 
-QByteArray UDP_WrapRule::wrap(const ProtocolPackage &package)
+void UDP_WrapRule::wrap(ProtocolPackage &data)
 {
-    ProtocolPackage tempPack = package;
-    QByteArray wrapdata = RSingleton<TK205_WrapRule>::instance()->wrap(tempPack);
-    tempPack.data = wrapdata;
-    wrapdata = RSingleton<QDB61A_WrapRule>::instance()->wrap(tempPack);
-    return wrapdata;
+
 }
 
-ProtocolPackage UDP_WrapRule::unwrap(const QByteArray &data)
+bool UDP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    ProtocolPackage package;
-    package.data = data;
-    return package;
+
+    return false;
 }
+
 #endif

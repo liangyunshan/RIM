@@ -10,36 +10,33 @@ QDB21_WrapRule::QDB21_WrapRule():WrapRule()
 
 }
 
-QByteArray QDB21_WrapRule::wrap(const ProtocolPackage &package)
+void QDB21_WrapRule::wrap(ProtocolPackage & data)
 {
     QDB21_Head qdb21_Head;
     memset(&qdb21_Head,0,sizeof(QDB21_Head));
-    qdb21_Head.usDestAddr = package.wDestAddr;
-    qdb21_Head.usSourceAddr = package.wSourceAddr;
+    qdb21_Head.usDestAddr = data.wDestAddr;
+    qdb21_Head.usSourceAddr = data.wSourceAddr;
     qdb21_Head.cTypeNum =1;
-    qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + package.data.size();
+    qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
     qdb21_Head.usOrderNo = 2051;
 
-    QByteArray wrap;
-    wrap.append((char*)&qdb21_Head,sizeof(QDB21_Head));
-    wrap.append(package.data);
-    return wrap;
+    data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));
 }
 
-ProtocolPackage QDB21_WrapRule::unwrap(const QByteArray &data)
+bool QDB21_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
 {
+    if(data.size() < sizeof(QDB21_Head))
+        return false;
+
     QDB21_Head qdb21_Head;
     memset(&qdb21_Head,0,sizeof(QDB21_Head));
     memcpy(&qdb21_Head,data.data(),sizeof(QDB21_Head));
 
-    QByteArray tempdata = data.right(data.size() - QDB21_Head_Length);
+    result.data = data.right(data.size() - QDB21_Head_Length);
+    result.wDestAddr = qdb21_Head.usDestAddr;
+    result.wSourceAddr = qdb21_Head.usSourceAddr;
 
-    ProtocolPackage package;
-    package.data = tempdata;
-    package.wDestAddr = qdb21_Head.usDestAddr;
-    package.wSourceAddr = qdb21_Head.usSourceAddr;
-
-    return package;
+    return true;
 }
 
 #endif

@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     495传输控制协议
  *  @details   采用716传输控制协议报文头，实现TCP传输，解决TCP传输粘包问题
  *  @author    wey
@@ -21,10 +21,10 @@ class TCP495DataPacketRule  : public WrapRule
 public:
     explicit TCP495DataPacketRule();
 
-    QByteArray wrap(const ProtocolPackage & data);
-    bool wrap(const ProtocolPackage &dataUnit, std::function<int(const char *,const int)> sendDataFunc);
+    void wrap(ProtocolPackage & data);
+    bool unwrap(const QByteArray & data,ProtocolPackage & result);
 
-    ProtocolPackage unwrap(const QByteArray & data);
+    bool wrap(const ProtocolPackage &dataUnit, std::function<int(const char *,const int)> sendDataFunc);
     bool unwrap(const char * data,const int length,DataHandler recvDataFunc);
 
 private:

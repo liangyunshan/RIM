@@ -28,7 +28,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         return;
 
     TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
-    if(packet->msgCommand == MsgCommand::MSG_TEXT_TEXT && textRequest)
+    if(textRequest && packet->msgCommand == MsgCommand::MSG_TEXT_TEXT)
     {
         ProtocolPackage package;
         package.wSourceAddr = textRequest->accountId.toInt();
@@ -39,11 +39,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         CommMethod commMethod = C_NONE;
         if(method == C_NetWork && format == M_205){
             commMethod = C_UDP;
-            sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(package);
+            RSingleton<UDP_WrapRule>::instance()->wrap(package);
         }else if(method == C_TongKong && format == M_495){
             commMethod = C_TCP;
-            package.data = RSingleton<QDB2051_WrapRule>::instance()->wrap(package);
-            package.data = RSingleton<QDB21_WrapRule>::instance()->wrap(package);
+            RSingleton<TCP_WrapRule>::instance()->wrap(package);
         }
 
         if(commMethod != C_NONE){

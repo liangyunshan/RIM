@@ -24,7 +24,7 @@ class Json_MsgParse : public DataParse
 public:
     Json_MsgParse();
 
-    void processData(const RecvUnit &recvData);
+    void processData(const ProtocolPackage &recvData);
 
 private:
     void handleCommandMsg(MsgCommand commandType, QJsonObject &obj);

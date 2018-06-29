@@ -11,41 +11,40 @@ QDB495_WrapRule::QDB495_WrapRule():WrapRule()
 
 }
 
-QByteArray QDB495_WrapRule::wrap(const ProtocolPackage &package)
+void QDB495_WrapRule::wrap(ProtocolPackage & data)
 {
     QDB495_SendPackage SendPackage;
     memset(&SendPackage,0,sizeof(QDB495_SendPackage));
 
     SendPackage.bVersion = 1;
     SendPackage.bPackType = WM_DATA_NOAFFIRM;
-    SendPackage.wPackLen = package.data.size();
+    SendPackage.wPackLen = data.data.size();
     SendPackage.wOffset = 1;
-    SendPackage.dwPackAllLen = package.data.size();
-    SendPackage.wDestAddr = package.wDestAddr;
-    SendPackage.wSourceAddr = package.wSourceAddr ;
+    SendPackage.dwPackAllLen = data.data.size();
+    SendPackage.wDestAddr = data.wDestAddr;
+    SendPackage.wSourceAddr = data.wSourceAddr ;
     SendPackage.wSerialNo = QTime::currentTime().msecsTo(QTime(0,0,0,0))
                             +SendPackage.wDestAddr
                             +SendPackage.wSourceAddr;
 
 
-    QByteArray ddsdata;
-    ddsdata.append((char*)&SendPackage,sizeof(QDB495_SendPackage));
-    ddsdata.append(package.data);
-    return ddsdata;
+    data.data.prepend((char*)&SendPackage,sizeof(QDB495_SendPackage));
 }
 
-ProtocolPackage QDB495_WrapRule::unwrap(const QByteArray &data)
+bool QDB495_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
 {
+    if(data.size() < sizeof(QDB495_SendPackage))
+        return false;
+
     QDB495_SendPackage SendPackage;
     memcpy(&SendPackage,data.data(),QDB495_SendPackage_Length);
-    QByteArray tempdata = data.right(data.size() - QDB495_SendPackage_Length);
 
-    ProtocolPackage package;
-    package.data = tempdata;
-    package.bPackType = SendPackage.bPackType;
-    package.wDestAddr = SendPackage.wDestAddr;
-    package.wSourceAddr = SendPackage.wSourceAddr;
-    return package;
+    result.data = data.right(data.size() - QDB495_SendPackage_Length);
+    result.bPackType = SendPackage.bPackType;
+    result.wDestAddr = SendPackage.wDestAddr;
+    result.wSourceAddr = SendPackage.wSourceAddr;
+
+    return true;
 }
 
 #endif

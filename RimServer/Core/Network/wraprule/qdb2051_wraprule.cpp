@@ -11,7 +11,7 @@ QDB2051_WrapRule::QDB2051_WrapRule()
 
 }
 
-QByteArray QDB2051_WrapRule::wrap(const ProtocolPackage &package)
+void QDB2051_WrapRule::wrap(ProtocolPackage & package)
 {
     QDB2051_Head qdb21_2051;
     memset(&qdb21_2051,0,sizeof(QDB2051_Head));
@@ -27,14 +27,15 @@ QByteArray QDB2051_WrapRule::wrap(const ProtocolPackage &package)
                             + qdb21_2051.cFilenameLen
                             + package.data.size();
 
-    QByteArray ddsdata;
-    ddsdata.append((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.data.size());
-    ddsdata.append(package.data);
-    return ddsdata;
+    package.data.clear();
+    package.data.prepend((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.data.size());
 }
 
-ProtocolPackage QDB2051_WrapRule::unwrap(const QByteArray &data)
+bool QDB2051_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
 {
+    if(data.size() < sizeof(QDB2051_Head))
+        return false;
+
     QDB2051_Head qdb21_2051;
     memset(&qdb21_2051,0,sizeof(QDB2051_Head));
     memcpy(&qdb21_2051,data.data(),sizeof(QDB2051_Head));
@@ -44,11 +45,8 @@ ProtocolPackage QDB2051_WrapRule::unwrap(const QByteArray &data)
             - sizeof(QDB2051_Head)
             - (int)qdb21_2051.cFilenameLen;
 
-    QByteArray tempdata = data.right(realsize);
-
-    ProtocolPackage package;
-    package.data = tempdata;
-    return package;
+    result.data = data.right(realsize);
+    return true;
 }
 
 #endif

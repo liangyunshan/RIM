@@ -14,8 +14,10 @@
 
 #include <QList>
 #include <QString>
-#include <QMutex>
 #include <QLinkedList>
+#include <QMutex>
+#include <mutex>
+#include <condition_variable>
 #include <QHash>
 #include <QFile>
 #include <QDataStream>
@@ -168,6 +170,7 @@ struct FileRecvDesc
     QMutex mutex;                        /*!< 文件读写锁 */
 };
 
+
 class NETWORKSHARED_EXPORT TcpClient
 {
 public:
@@ -188,8 +191,7 @@ public:
     void setNickName(QString name){nickName = name;}
     QString getNickName(){return nickName;}
 
-    void lock(){packBuffMutex.lock();}
-    void unLock(){packBuffMutex.unlock();}
+    std::mutex & BuffMutex(){return packBuffMutex;}
 
     int getPackId();
 
@@ -211,8 +213,8 @@ private:
     */
     QByteArray halfPackBufff;                       /*!< 非完整包缓冲区 */
     QHash<int,PacketBuff*> packetBuffs;             /*!< 多包缓冲区 */
-    QMutex packBuffMutex;
-    QMutex packIdMutex;
+    std::mutex packBuffMutex;
+    std::mutex packIdMutex;
     int sendPackId;                                 /*!< 每次响应结果ID，可能被拆分成多个包，但每个子包的ID是一致的。 */
 
     int onlineState;                   /*!< 在线状态(与OnlineStatus保持一致) */
@@ -220,10 +222,12 @@ private:
     QString nickName;                  /*!< 用户昵称 */
 
     QHash<QString,FileRecvDesc*> fileRecvList;      /*!< 文件接收缓冲列表 */
-    QMutex fileMutex;
+    std::mutex fileMutex;
 
     friend class TcpClientManager;
 };
+
+typedef std::list<TcpClient*> ClientList;
 
 class NETWORKSHARED_EXPORT TcpClientManager
 {
@@ -238,6 +242,7 @@ public:
 
     TcpClient *  getClient(int sock);
     TcpClient *  getClient(QString accountId);
+    ClientList   getClients(QString accountId);
     TcpClient *  addClient(int sockId, char* ip, unsigned short port);
 
     int counts();
@@ -245,9 +250,8 @@ public:
 private:
     static TcpClientManager * manager;
 
-    QList<TcpClient *> clientList;
-
-    QMutex mutex;
+    std::list<TcpClient *> clientList;
+    std::mutex mutex;
 };
 
 }   //namespace ServerNetwork

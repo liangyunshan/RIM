@@ -187,7 +187,7 @@ struct ExtendData
 struct RecvUnit
 {
     ExtendData extendData;      /*!< 可扩充数据信息，包含网络层相关信息 */
-    QByteArray data;            /*!< 请求数据内容，已经去除网络层( @link DataPacket @endlink )数据头 */
+    QByteArray data;            /*!< 请求数据内容，已经去除网络层( @link DataPacket @endlink )数据头，但其它应用层的数据格式头没有去除 */
 };
 
 #endif // HEAD_H

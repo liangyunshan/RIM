@@ -24,13 +24,13 @@ class TCPDataPacketRule : public WrapRule
 public:
     explicit TCPDataPacketRule();
 
-    QByteArray wrap(const ProtocolPackage &data);
     bool wrap(const ProtocolPackage &data, std::function<int(const char *,const int)> sendDataFunc);
 
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
 
-    ProtocolPackage unwrap(const QByteArray &data);
+    void wrap(ProtocolPackage & data);
+    bool unwrap(const QByteArray & data,ProtocolPackage & result);
 
 private:
     void recvData(const char *recvData, int recvLen);

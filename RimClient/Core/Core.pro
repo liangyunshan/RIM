@@ -231,7 +231,6 @@ HEADERS  += \
     thread/taskmanager.h \
     rsingleton.h \
     user/userinfofile.h \
-    protocoldata.h \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
