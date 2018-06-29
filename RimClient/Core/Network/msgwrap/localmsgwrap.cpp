@@ -64,24 +64,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
 
 
     qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"packet->msgType"<<packet->msgType
+           <<"packet->msgType"<<packet->msgType<<"packet->msgCommand:"<<packet->msgCommand
           <<"\n";
-//    QByteArray result;
-//    switch(packet->msgType){
-//        case MSG_CONTROL:
-//        case MSG_TEXT:
-//            {
-//                RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
-//            }
-//            break;
-//        case MSG_FILE:
-//            {
-//                RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
-//            }
-//            break;
-//        default:
-//            break;
-//    }
 
     ProtocolPackage package;
     CommMethod commMethod = C_NONE;
@@ -95,6 +79,21 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wSourceAddr = textRequest->accountId.toInt();
                 package.wDestAddr = textRequest->otherSideId.toInt();
                 package.data = textRequest->sendData.toLocal8Bit();
+                package.bPackType = T_DATA_NOAFFIRM;
+            }
+        }
+        break;
+    case MsgCommand::MSG_USER_HISTORY_MSG:
+        {
+            HistoryMessRequest *textRequest = dynamic_cast<HistoryMessRequest *>(packet);
+            if(textRequest)
+            {
+                package.wSourceAddr = textRequest->accountId.toInt();
+                package.wDestAddr = textRequest->accountId.toInt();
+                package.bPackType = T_DATA_NOAFFIRM;
+
+                method = C_TongKong ;
+                format = M_495 ;
             }
         }
         break;
@@ -127,6 +126,9 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         SendUnit unit;
         unit.method = commMethod;
         unit.dataUnit = package;
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<package.data
+              <<"\n";
 
         G_TextSendMutex.lock();
         G_TextSendBuffs.push(unit);
