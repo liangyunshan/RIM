@@ -22,6 +22,23 @@ TcpClient *TcpClient::create()
     return client;
 }
 
+void TcpClient::setIp(const char *destIp)
+{
+    if(destIp == nullptr)
+        return;
+
+    if(strlen(destIp) > SOCK_CHAR_BUFF_LEN )
+        return;
+
+    memset(cIp,0,SOCK_CHAR_BUFF_LEN);
+    strcpy(cIp,destIp);
+}
+
+void TcpClient::setPort(unsigned short cPort)
+{
+    this->cPort = cPort;
+}
+
 int TcpClient::getPackId()
 {
     std::lock_guard<std::mutex> lg(packIdMutex);

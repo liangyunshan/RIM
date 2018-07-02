@@ -4,7 +4,7 @@
 #include <Mswsock.h>
 #include <process.h>
 
-#include "tcpclient.h"
+#include "connection/tcpclient.h"
 #include "netutils.h"
 #include "Util/rlog.h"
 #include "netglobal.h"
@@ -110,9 +110,13 @@ void WorkThread::handleAccept(IocpContext *ioData)
             (struct sockaddr**)&lockAddr, &lockLen,
                 (struct sockaddr**)&remoteAddr, &remoteLen);
 
-    serverSharedData->m_clientManager->addClient(ioData->getClient());
+    TcpClient * client = ioData->getClient();
+    client->setPort(remoteAddr->sin_port);
+    client->setIp(inet_ntoa(remoteAddr->sin_addr));
 
-    NetUtil::crateIocp(ioData->getClient()->socket(), serverSharedData, (DWORD)ioData->getClient());
+    serverSharedData->m_clientManager->addClient(client);
+
+    NetUtil::crateIocp(client->socket(), serverSharedData, (DWORD)client);
 
     NetUtil::postRecv(ioData);
 

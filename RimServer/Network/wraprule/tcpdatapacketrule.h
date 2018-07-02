@@ -13,7 +13,7 @@
 #include <QHash>
 
 #include "wraprule.h"
-#include "../tcpclient.h"
+#include "../connection/tcpclient.h"
 
 namespace ServerNetwork{
 class IocpContext;
@@ -24,7 +24,7 @@ class TCPDataPacketRule : public WrapRule
 public:
     explicit TCPDataPacketRule();
 
-    bool wrap(const SendUnit &data, ContextSender sendFunc);
+    bool wrap(const SendUnit &data, IocpContextSender sendFunc);
 
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);

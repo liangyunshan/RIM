@@ -197,6 +197,37 @@ struct ParaSettings{
     QVector<OuterNetConfig> outerNetConfig;     /*!< 外发信息配置 */
 };
 
+/*!
+ *  @brief  Server节点信息
+ */
+struct NodeServer
+{
+    QString nodeId;             /*!< 本节点号 */
+    QString localIp;            /*!< 本机IP地址 */
+    QString localPort;          /*!< 本机监听端口号 */
+    CommucationMethod communicationMethod;    /*!< 通信方式 */
+    MessageFormat messageFormat;              /*!< 报文格式 */
+};
+
+/*!
+ *  @brief  Client节点信息
+ */
+struct NodeClient
+{
+    QString nodeId;             /*!< 本节点号 */
+    QString serverNodeId;       /*!< 所属服务器节点 */
+};
+
+/*!
+ *  @brief  服务器路由表
+ *  @note   服务器根据节点信息，查找对端服务器的配置信息. \n
+ *  @warning 此信息一定要配置准确和及时更新，否则会出现信息不可达的问题。
+ */
+struct RouteSettings{
+    QVector<NodeServer> servers;     /*!< 服务器节点配置 */
+    QVector<NodeClient> clients;     /*!< 客户端节点配置 */
+};
+
 }
 
 #endif  //namespace Datastruct

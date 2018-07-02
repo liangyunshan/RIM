@@ -27,7 +27,7 @@ public:
     MsgWrap();
 
     virtual void handleMsg(int sockId , MsgPacket * packet, int result = 0) = 0;
-    virtual void hanldeMsgProtol(int sockId,ProtocolPackage & package) = 0;
+    virtual void hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool inServer = true) = 0;
 
     virtual void handleMsgReply(int sockId ,MsgType type,MsgCommand command,int replyCode,int subMsgCommand = -1) = 0;
 };
