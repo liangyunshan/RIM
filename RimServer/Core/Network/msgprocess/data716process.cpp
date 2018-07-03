@@ -2,9 +2,10 @@
 
 #include "../msgwrap/localmsgwrap.h"
 #include "rsingleton.h"
-#include "Network/tcpclient.h"
-#include "global.h"
+#include "Network/connection/tcpclient.h"
+#include "Network/connection/seriesconnection.h"
 #include "../../protocol/datastruct.h"
+#include "global.h"
 using namespace ParameterSettings;
 
 using namespace ServerNetwork;
@@ -12,7 +13,8 @@ using namespace ServerNetwork;
 #ifdef __LOCAL_CONTACT__
 #include <QDebug>
 
-extern OuterNetConfig queryNodeDescInfo(QString nodeId,bool & result);
+extern OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result);
+extern NodeServer QueryServerDescInfo(QString nodeId,bool & result);
 
 Data716Process::Data716Process()
 {
@@ -23,17 +25,16 @@ Data716Process::Data716Process()
  * @brief 处理不同的文字信息发送
  * @note  【!!服务器在接收数据后，只根据目的节点号来判断!!】 \n
  *
- *        1.若目的节点号为服务器所在的指挥中心，那么需要将所有与服务器节点一致的客户端找到，并广播消息; \n
- *        2.若目的节点为非服务器所在的指挥所： \n
- *           a.对方可通过服务器的配置表直接找到 \n
- *              I.若对方在线，则直接投递消息； \n
- *              II.若对方未在线，则将消息缓存； \n
- *           b.对方不在服务器的配置表中，需要服务器解析【串联配置表】，获取对方客户端所在的服务器节点： \n
- *              I.若对方服务器未在Clients客户端列表中，则主动发送连接请求 \n
- *                  A.若连接成功，则将消息转发至对端服务器； \n
- *                  B.若连接不成功，则将消息存储，待下次再连接或者对方连接至本服务器后，再一并推送。 \n
- *              II.若对方服务器已经与当前服务器建立连接 \n
- *                  A.直接将消息转发至对端服务器。\n
+ *        1.若目的节点号为服务器所在的指挥中心:
+ *           1.1.若源节点号不是服务器所在节点号，查找所有与服务器节点一致的客户端，并广播消息; \n
+ *           1.2.若源节点号是服务器所在的节点号，通过节点号找到所有的客户端，并通过IP地址和端口号过滤掉发送源的节点号，对剩下的节点进行广播; \n
+ *        2.若目的节点为非服务器所在的指挥所节点： \n
+ *           2.1.查找目的节点是否在当前通信列表中，若不在则退出. \n
+ *           2.2.若目的节点在当前软件通信列表中，查找目的节点所属服务器的节点： \n
+ *              2.2.1.若所属服务器节点和本服务器节点一致，若在线则直接推送；若不在线，则离线缓存。 \n
+ *              2.2.2.若不是同一服务器节点： \n
+ *                  2.2.2.1.若对方服务器已经建立连接，则直接推送；
+ *                  2.2.2.2.若对方服务器未建立连接，则
  *       3.以上的传输方式不局限于TCP，还可能为其它方式。 \n
  * @param[in] db 数据库连接
  * @param[in] sockId 网络连接
@@ -43,27 +44,52 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
 {
     if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
         ClientList clist = TcpClientManager::instance()->getClients(QString::number(data.wDestAddr));
-        if(clist.size() > 0){
+        TcpClient * sourceClient = TcpClientManager::instance()->getClient(sockId);
+
+        if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
             std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
-                RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtol(destClient->socket(),data);
+                if(sourceClient && destClient->ip() != sourceClient->ip() && destClient->port() != sourceClient->port()){
+                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
+                }
             });
-        }else{
-            //TODO 20180628 存储至离线数据库
         }
-    }else{
-        bool finded = false;
-        queryNodeDescInfo(QString::number(data.wDestAddr),finded);
-        if(finded){
-            TcpClient * destClient = TcpClientManager::instance()->getClient(QString::number(data.wDestAddr));
-            if(destClient && ((OnlineStatus)destClient->getOnLineState() == STATUS_ONLINE)){
-                RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtol(destClient->socket(),data);
+        else{
+            if(clist.size() > 0){
+                std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
+                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
+                });
             }else{
-                //TODO 20180628 存储离线数据库
+                //TODO 20180628 存储至离线数据库
             }
         }
-        //根据串联配置表查找对应的节点信息
-        else{
+    }else{
+        bool findNode = false;
+        QueryNodeDescInfo(QString::number(data.wDestAddr),findNode);
 
+        if(findNode){
+            bool findServer = false;
+            NodeServer serverInfo = QueryServerDescInfo(QString::number(data.wDestAddr),findServer);
+            if(findServer){
+                if(serverInfo.nodeId == RGlobal::G_ParaSettings->baseInfo.nodeId){
+                    TcpClient * destClient = TcpClientManager::instance()->getClient(QString::number(data.wDestAddr));
+                    if(destClient && ((OnlineStatus)destClient->getOnLineState() == STATUS_ONLINE)){
+                        RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
+                    }else{
+                        //TODO 20180628 存储离线数据库
+                    }
+                }else{
+                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+                    if(conn.get() != nullptr){
+                        RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
+                    }else{
+                        RSingleton<LocalMsgWrap>::instance()->cacheMsgProtocol(serverInfo,data);
+                    }
+                }
+            }else{
+                //TODO 20180702 目的节点不在当前通信列表，通信丢弃？？
+            }
+        }else{
+            //TODO 20180702 目的节点不在当前通信列表，通信丢弃？？
         }
     }
 }

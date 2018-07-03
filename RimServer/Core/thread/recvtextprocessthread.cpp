@@ -4,7 +4,7 @@
 #include "Network/msgparse/msgparsefactory.h"
 #include "Network/head.h"
 #include "rsingleton.h"
-#include "Network/tcpclient.h"
+#include "Network/connection/tcpclient.h"
 
 #include <QDebug>
 

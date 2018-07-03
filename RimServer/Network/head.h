@@ -24,6 +24,8 @@
 #define MAX_PACKET 1024                         /*!< 应用层数据最大发送长度，超过此长度后，网络层会进行拆包。 @attention 未加入网络层协议头， @link DataPacket @endlink */
 #define MAX_SEND_BUFF (MAX_PACKET + 24)         /*!< 网络层最大发送长度 */
 
+#define SOCK_CHAR_BUFF_LEN  32                  /*!< 存储ip地址集合长度 */
+
 /*!
  *  @brief  接收/发送魔数
  *  @details 用于对接收数据的校验，服务器的接收与客户端的发送保持一致，服务器的发送与客户端的接收保持一致。
@@ -77,6 +79,7 @@ struct QDB495_SendPackage{
 };
 
 #define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
+#define MAX_495SEND_BUFF (MAX_PACKET+QDB495_SendPackage_Length)     /*!< 网络层最大发送长度 */
 
 }
 
@@ -142,7 +145,9 @@ enum CommMethod{
  */
 struct SendUnit
 {
+    SendUnit():localServer(true){}
     SOCKET sockId;                  /*!< 客户端Socket标识Id */
+    bool localServer;               /*!< 数据信息目的指挥中心是否为当前节点，默认为true */
     CommMethod method;              /*!< 发送方式 */
     ProtocolPackage dataUnit;       /*!< 待发送数据包及描述 */
 };

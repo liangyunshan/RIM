@@ -12,10 +12,12 @@
 
 #ifdef __LOCAL_CONTACT__
 #include <QObject>
+#include <QDomDocument>
 
 namespace ParameterSettings
 {
     struct ParaSettings;
+    struct RouteSettings;
 }
 
 class XMLParse : public QObject
@@ -25,8 +27,11 @@ public:
     explicit XMLParse(QObject * parent = nullptr);
     ~XMLParse();
 
-    bool parse(const QString & fileName, ParameterSettings::ParaSettings *paraSettings);
+    bool parseParaSettings(const QString & fileName, ParameterSettings::ParaSettings *paraSettings);
+    bool parseRouteSettings(const QString & fileName, ParameterSettings::RouteSettings *routeSettings);
 
+private:
+    bool validateParseFile(const QString & fileName, QDomDocument &document);
 };
 
 #endif

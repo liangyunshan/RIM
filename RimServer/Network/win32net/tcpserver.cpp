@@ -11,7 +11,7 @@
 #include <process.h>
 
 #include "Util/rlog.h"
-#include "tcpclient.h"
+#include "connection/tcpclient.h"
 #include "win32net/netutils.h"
 
 #pragma comment(lib,"Mswsock.lib")

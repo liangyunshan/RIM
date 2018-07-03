@@ -19,7 +19,7 @@ TCPDataPacketRule::TCPDataPacketRule():
  * @param[in] func 发送数据函数
  * @return 返回是否发送成功
  */
-bool TCPDataPacketRule::wrap(const SendUnit &dataUnit, ContextSender sendFunc)
+bool TCPDataPacketRule::wrap(const SendUnit &dataUnit, IocpContextSender sendFunc)
 {
     TcpClient * client = TcpClientManager::instance()->getClient(dataUnit.sockId);
     if(client != NULL)

@@ -21,7 +21,7 @@ TcpTransmit::TcpTransmit():
 #endif
 //    tcpSocket = new RSocket();
 
-    sendFunc = std::bind(&TcpTransmit::sendData,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
+    sendFunc = std::bind(&TcpTransmit::sendIocpData,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
 }
 
 TcpTransmit::~TcpTransmit()
@@ -43,12 +43,18 @@ QString TcpTransmit::name()
  * @brief 开始传输指定的数据单元
  * @param[in] SendUnit 待发送的数据单元
  * @return 是否传输成功
- * @note 若传输失败，则直接关闭socket，并将错误信息交由上层处理。
+ * @note 1.根据发送的目的服务器是否与当前服务器一致，若一致则走IOCP链路；若不一致，则走普通链路。
+ *       2.若传输失败，则直接关闭socket，并将错误信息交由上层处理。
  */
 bool TcpTransmit::startTransmit(const SendUnit &unit)
 {
-    if(dataPacketRule->wrap(unit,sendFunc))
-        return true;
+    if(unit.localServer){
+        if(dataPacketRule->wrap(unit,sendFunc))
+            return true;
+    }else{
+        if(dataPacketRule->wrap(unit,byteSendFunc))
+            return true;
+    }
 
     RLOG_ERROR("Tcp send a data error!");
     return false;
@@ -61,21 +67,45 @@ bool TcpTransmit::startTransmit(const SendUnit &unit)
  * @param[in] sendLength 实际发送数据长度
  * @return 是否发送成功
  */
-bool TcpTransmit::sendData(int sockId,IocpContext * context,DWORD & sendLength)
+bool TcpTransmit::sendIocpData(int sockId,IocpContext * context,DWORD & sendLength)
 {
     DWORD sendFlags = 0;
 
     if(WSASend(sockId, &context->getWSABUF(), 1, &sendLength, sendFlags, &context->getOverLapped(), NULL) == SOCKET_ERROR)
     {
         int error = WSAGetLastError();
-
-        if(error != ERROR_IO_PENDING)
-        {
+        if(error != ERROR_IO_PENDING){
             //TODO 对错误进行处理
             return false;
         }
     }
     return true;
+}
+
+/*!
+ * @brief 通过普通socket发送数据
+ * @note 若发送失败，上层应用应该尽快关闭当前socket。
+ * @param[in] sockId 目标主机连接sock id
+ * @param[in] buff  待发送数据缓冲区
+ * @param[in] length 待发送数据长度
+ * @return 是否发送成功
+ */
+int TcpTransmit::sendByteData(int sockId,const char * buff,const int length)
+{
+    if(buff == NULL)
+        return -1;
+
+    int sendLen = 0;
+    while(sendLen != length)
+    {
+        int ret = ::send(sockId,buff+sendLen,length-sendLen,0);
+        if (ret <= 0){
+            sendLen = -1;
+            break;
+        }
+        sendLen += ret;
+    }
+    return sendLen;
 }
 
 bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler recvDataFunc)

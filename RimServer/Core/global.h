@@ -15,7 +15,8 @@ extern ServiceType G_SERVICE_TYPE;             /*!< 当前服务器运行的模�
 
 extern QString G_FILE_UPLOAD_PATH;             /*!< 文件上传保存的路径 */
 
-extern ParameterSettings::ParaSettings* G_ParaSettings;   /*!< 本地参数配置 */
+extern ParameterSettings::ParaSettings* G_ParaSettings;     /*!< 本地参数配置 */
+extern ParameterSettings::RouteSettings* G_RouteSettings;   /*!< 路由配置信息 */
 }
 
 #endif // GLOBAL_H

@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDomDocument>
+#include <QDebug>
 
 #include "Util/rlog.h"
 #include "protocol/datastruct.h"
@@ -14,24 +15,17 @@ XMLParse::XMLParse(QObject *parent):QObject(parent)
 
 }
 
-bool XMLParse::parse(const QString &fileName,ParameterSettings::ParaSettings * paraSettings)
+/*!
+ * @brief 解析参数设置信息
+ * @param[in] fileName 待解析的文件名
+ * @param[in] routeSettings 解析后保存的结构体
+ * @return 是否解析成功
+ */
+bool XMLParse::parseParaSettings(const QString &fileName,ParameterSettings::ParaSettings * paraSettings)
 {
-    QFileInfo fileInfo(fileName);
-    if(!fileInfo.exists()){
-        RLOG_ERROR("Configure file not existed!");
-        return false;
-    }
-
-    QFile file(fileName);
-    if(!file.open(QFile::ReadOnly)){
-        return false;
-    }
     QDomDocument document("document");
-    if(!document.setContent(file.readAll())){
-        RLOG_ERROR("Read configure file error!");
-        file.close();
+    if(!validateParseFile(fileName,document))
         return false;
-    }
 
     QDomElement rootDom = document.documentElement();
     QDomNodeList rootChildNodes = rootDom.childNodes();
@@ -168,6 +162,77 @@ bool XMLParse::parse(const QString &fileName,ParameterSettings::ParaSettings * p
             }
         }
     }
+    return true;
+}
+
+/*!
+ * @brief 解析路由表信息
+ * @param[in] fileName 待解析的文件名
+ * @param[in] routeSettings 解析后保存的结构体
+ * @return 是否解析成功
+ */
+bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::RouteSettings *routeSettings)
+{
+    QDomDocument document("document");
+    if(!validateParseFile(fileName,document))
+        return false;
+
+    QDomElement rootDom = document.documentElement();
+
+    QDomNodeList serverNode = rootDom.elementsByTagName("Server");
+    if(serverNode.size() == 1){
+        QDomNodeList serverNodes = serverNode.at(0).toElement().childNodes();
+        for(int i = 0; i < serverNodes.count();i++){
+            QDomElement server = serverNodes.at(i).toElement();
+            ParameterSettings::NodeServer ss;
+            ss.localIp = server.attribute("ip");
+            ss.nodeId = server.attribute("nodeId");
+            ss.localPort = server.attribute("port");
+            ss.communicationMethod = static_cast<ParameterSettings::CommucationMethod> (server.attribute("commethod").toInt());
+            ss.messageFormat = static_cast<ParameterSettings::MessageFormat> (server.attribute("messageFormat").toInt());
+            routeSettings->servers.append(ss);
+        }
+    }
+
+    QDomNodeList clientNode = rootDom.elementsByTagName("Client");
+    if(clientNode.size() == 1){
+        QDomNodeList clientNodes = clientNode.at(0).toElement().childNodes();
+        for(int i = 0;i < clientNodes.size();i++){
+            QDomElement client = clientNodes.at(i).toElement();
+            ParameterSettings::NodeClient cl;
+            cl.nodeId = client.attribute("nodeId");
+            cl.serverNodeId = client.attribute("server");
+            routeSettings->clients.append(cl);
+        }
+    }
+
+    return true;
+}
+
+/*!
+ * @brief 验证待解析的配置文件
+ * @param[in] fileName 待解析的文件名
+ * @return 是否验证通过
+ */
+bool XMLParse::validateParseFile(const QString &fileName,QDomDocument &document)
+{
+    QFileInfo fileInfo(fileName);
+    if(!fileInfo.exists()){
+        RLOG_ERROR("Configure file not existed!");
+        return false;
+    }
+
+    QFile file(fileName);
+    if(!file.open(QFile::ReadOnly)){
+        return false;
+    }
+
+    if(!document.setContent(file.readAll())){
+        RLOG_ERROR("Read configure file error!");
+        file.close();
+        return false;
+    }
+
     return true;
 }
 
