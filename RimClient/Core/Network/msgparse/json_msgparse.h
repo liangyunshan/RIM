@@ -10,6 +10,8 @@
 #ifndef JSON_MSGPARSE_H
 #define JSON_MSGPARSE_H
 
+#ifndef __LOCAL_CONTACT__
+
 #include <QJsonObject>
 #include <QJsonParseError>
 
@@ -34,5 +36,7 @@ private:
     QJsonParseError jsonParseError;
 
 };
+
+#endif
 
 #endif // JSON_MSGPARSE_H

@@ -15,11 +15,7 @@ DataParse *MsgParseFactory::getDataParse()
 {
 #ifdef __LOCAL_CONTACT__
     if(dataParse == nullptr)
-//<<<<<<< HEAD
-//        dataParse = new Json_MsgParse();
-//=======
         dataParse = new Binary716_MsgParse();
-//>>>>>>> d3ffafb480aea1647881162c1a402b43ef93005c
 #else
     if(dataParse == nullptr)
         dataParse = new Json_MsgParse();

@@ -8,6 +8,8 @@
 #include "rsingleton.h"
 using namespace ServerNetwork;
 
+#include <QDebug>
+
 TCP_WrapRule::TCP_WrapRule():WrapRule()
 {
 
@@ -22,7 +24,9 @@ void TCP_WrapRule::wrap(ProtocolPackage &data)
 bool TCP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
     if(!RSingleton<QDB21_WrapRule>::instance()->unwrap(data,result))
+    {
         return false;
+    }
 
     if(!RSingleton<QDB2051_WrapRule>::instance()->unwrap(result.data,result))
         return false;

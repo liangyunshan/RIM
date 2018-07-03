@@ -11,6 +11,7 @@
 #include "../wraprule/tcp_wraprule.h"
 #include "rsingleton.h"
 #include "global.h"
+#include <QDebug>
 
 #include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
@@ -51,6 +52,7 @@ void LocalMsgWrap::hanldeMsgProtol(int sockId,ProtocolPackage & package)
     SendUnit sUnit;
     sUnit.sockId = sockId;
     sUnit.method = C_NONE;
+    sUnit.dataUnit = package;
 
     //[1]数据内容封装
     sUnit.dataUnit.data = package.data;
@@ -69,6 +71,9 @@ void LocalMsgWrap::hanldeMsgProtol(int sockId,ProtocolPackage & package)
             sUnit.method = C_TCP;
             RSingleton<TCP_WrapRule>::instance()->wrap(sUnit.dataUnit);
         }
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<"sUnit.dataUnit.usSerialNo:"<<sUnit.dataUnit.usSerialNo
+              <<"\n";
 
         //[3]加入发送队列
         if(sUnit.method != C_NONE){

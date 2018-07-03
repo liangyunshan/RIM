@@ -52,7 +52,7 @@ bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<i
         memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
         memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data() + sendLen,packet.wPackLen);
 
-        int dataLen = sizeof(QDB495_SendPackage)+packet.wPackLen;
+        int dataLen = QDB495_SendPackage_Length+packet.wPackLen;
         int realSendLen = sendDataFunc(sendBuff,dataLen);
 
         if(realSendLen == dataLen){

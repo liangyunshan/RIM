@@ -108,6 +108,7 @@ struct ProtocolPackage
     unsigned short wDestAddr;       /*!< 目标节点号 */
     unsigned char bPackType;        /*!< 报文类型 */
     unsigned char bPeserve;         /*!< 495保留字，用于扩展内部状态控制 */
+                                    /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
     unsigned short usSerialNo;      /*!< 流水号*/
     unsigned short usOrderNo;       /*!< 协议号*/
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
@@ -181,6 +182,7 @@ struct ExtendData
     CommMethod method;          /*!< 数据接收链路 */
     PacketType_495 type495;     /*!< 95信息类型 */
     unsigned char bPeserve;     /*!< 95保留字 */
+    unsigned char usSerialNo;   /*!< 流水号 */
 };
 
 /*!

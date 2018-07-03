@@ -80,8 +80,12 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
         default:
             break;
     }
+
+    //TODO:此时的 data 是解析后的正文
     if(result)
-        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
+    {
+        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+    }
 #else
     packData.data = data.data;
     RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);

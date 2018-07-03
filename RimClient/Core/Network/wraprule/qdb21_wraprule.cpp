@@ -1,5 +1,6 @@
 ﻿#include "qdb21_wraprule.h"
 #include <QTime>
+#include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
 #include "../../protocol/localprotocoldata.h"
@@ -19,6 +20,7 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     qdb21_Head.cTypeNum =1;
     qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
     qdb21_Head.usOrderNo = 2051;
+    qdb21_Head.usSerialNo = data.usSerialNo;
 
     data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));
 }
@@ -35,6 +37,8 @@ bool QDB21_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
     result.data = data.right(data.size() - QDB21_Head_Length);
     result.wDestAddr = qdb21_Head.usDestAddr;
     result.wSourceAddr = qdb21_Head.usSourceAddr;
+    result.usSerialNo = qdb21_Head.usSerialNo;
+    result.usOrderNo = qdb21_Head.usOrderNo;
 
     return true;
 }

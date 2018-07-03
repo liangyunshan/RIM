@@ -60,9 +60,7 @@ void FileReceiveProcTask::run()
 
             if(array.data.size() > 0)
             {
-                ProtocolPackage packData;
-                packData.data = array.data;
-                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(packData);
+                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(array);
             }
         }
     }

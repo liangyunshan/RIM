@@ -10,6 +10,7 @@ using namespace ParameterSettings;
 using namespace ServerNetwork;
 
 #ifdef __LOCAL_CONTACT__
+#include <QDebug>
 
 extern OuterNetConfig queryNodeDescInfo(QString nodeId,bool & result);
 

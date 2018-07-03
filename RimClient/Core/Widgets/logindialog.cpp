@@ -895,12 +895,7 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 void LoginDialog::procRecvText(TextRequest response)
 {
-//    UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
-
-    //716_TK兼容调试
-    //此时的识别ID应该查询信息的来源ID
-
-    UserClient * client = RSingleton<UserManager>::instance()->client(response.accountId);
+    UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
 
     if(client)
         client->procRecvContent(response);

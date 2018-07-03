@@ -179,7 +179,10 @@ SOURCES += \
     Network/msgprocess/binary_dataprocess.cpp \
     protocol/datastruct.cpp \
     protocol/localprotocoldata.cpp \
-    protocol/protocoldata.cpp
+    protocol/protocoldata.cpp \
+    Network/msgparse/binary716_msgparse.cpp \
+    Network/msgprocess/json_dataprocess.cpp \
+    Network/msgprocess/data716process.cpp
 
 
 HEADERS  += \
@@ -299,7 +302,10 @@ HEADERS  += \
     Network/msgprocess/binary_dataprocess.h \
     protocol/datastruct.h \
     protocol/localprotocoldata.h \
-    protocol/protocoldata.h
+    protocol/protocoldata.h \
+    Network/msgparse/binary716_msgparse.h \
+    Network/msgprocess/json_dataprocess.h \
+    Network/msgprocess/data716process.h
 
 DISTFILES += \
     Widgets/Widgets.pri

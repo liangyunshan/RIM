@@ -21,7 +21,11 @@ class DataParse
 public:
     DataParse();
 
+#ifdef __LOCAL_CONTACT__
+    virtual void processData(const RecvUnit & unit) = 0;
+#else
     virtual void processData(const ProtocolPackage & recvData) = 0;
+#endif
 };
 
 #endif // DATAPARSE_H
