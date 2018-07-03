@@ -25,6 +25,7 @@ public:
     explicit TCPDataPacketRule();
 
     bool wrap(const SendUnit &data, IocpContextSender sendFunc);
+    bool wrap(const SendUnit &dunit, ByteSender sendFunc){return true;}
 
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
