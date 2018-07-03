@@ -11,9 +11,11 @@
 #define TCP495DATAPACKETRULE_H
 
 #include "wraprule.h"
-#include "../tcpclient.h"
+#include "../connection/tcpclient.h"
 
 #include <QHash>
+
+using namespace QDB495;
 
 namespace ServerNetwork{
 
@@ -28,7 +30,8 @@ public:
     void registHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
 
-    bool wrap(const SendUnit &dunit, ContextSender sendFunc);
+    bool wrap(const SendUnit &dunit, IocpContextSender sendFunc);
+    bool wrap(const SendUnit &dunit, ByteSender sendFunc);
 
     void wrap(ProtocolPackage & data);
     bool unwrap(const QByteArray & data,ProtocolPackage & result);
@@ -39,7 +42,7 @@ private:
 
 private:
     unsigned short SendPackId;
-    char sendBuff[MAX_SEND_BUFF];
+    char sendBuff[MAX_495SEND_BUFF];
 
     IocpContext * ioContext;              /*!< 当前处理的客户端信息 */
     Handler * handler;                    /*!< 数据处理器 */

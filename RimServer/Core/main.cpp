@@ -366,8 +366,16 @@ int main(int argc, char *argv[])
 #ifdef __LOCAL_CONTACT__
         RGlobal::G_ParaSettings = new ParameterSettings::ParaSettings;
         QString localConfigName = configFullPath + QDir::separator() + QStringLiteral("参数配置.txt");
-        if(!RSingleton<XMLParse>::instance()->parse(localConfigName,RGlobal::G_ParaSettings)){
+        if(!RSingleton<XMLParse>::instance()->parseParaSettings(localConfigName,RGlobal::G_ParaSettings)){
             QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Paramter settings read failed,system exit!"),
+                                 QMessageBox::Yes,QMessageBox::Yes);
+            exit(-1);
+        }
+
+        RGlobal::G_RouteSettings = new ParameterSettings::RouteSettings;
+        localConfigName = configFullPath + QDir::separator() + QStringLiteral("路由表.txt");
+        if(!RSingleton<XMLParse>::instance()->parseRouteSettings(localConfigName,RGlobal::G_RouteSettings)){
+            QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Route settings read failed,system exit!"),
                                  QMessageBox::Yes,QMessageBox::Yes);
             exit(-1);
         }

@@ -13,7 +13,7 @@
 #include "global.h"
 #include "protocol/datastruct.h"
 
-#include "Network/tcpclient.h"
+#include "Network/connection/tcpclient.h"
 using namespace ServerNetwork;
 
 #define FILE_MAX_PACK_SIZE 900      //文件每包最大的长度

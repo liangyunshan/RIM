@@ -5,7 +5,7 @@
 
 #include "Network/netglobal.h"
 #include "Network/win32net/netutils.h"
-#include "Network/tcpclient.h"
+#include "Network/connection/tcpclient.h"
 #include "Network/win32net/iocpcontext.h"
 #include "Network/win32net/tcpserver.h"
 #include "Util/rlog.h"
@@ -41,8 +41,7 @@ void SendTextProcessThread::run()
 
     while(runningFlag)
     {
-        while(G_SendButts.size() == 0)
-        {
+        while(G_SendButts.size() == 0){
             G_SendCondition.wait(std::unique_lock<std::mutex>(G_SendMutex));
         }
 
@@ -59,7 +58,7 @@ void SendTextProcessThread::run()
             G_SendMutex.unlock();
 
             if(!handleDataSend(sockData)){
-                //TODO 对错误处理
+                //TODO 20180702 对错误处理,若为服务器连接，则需要从SeriesConnectionManager移除对应的连接
             }
         }
     }

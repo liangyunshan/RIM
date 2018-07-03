@@ -35,7 +35,8 @@ public:
     bool close();
 
 private:
-    bool sendData(int sockId,IocpContext * context,DWORD & sendLength);
+    bool sendIocpData(int sockId,IocpContext * context,DWORD & sendLength);
+    int sendByteData(int sockId,const char * buff,const int length);
 
 private:
 #ifdef __LOCAL_CONTACT__
@@ -45,7 +46,8 @@ private:
 #endif
     RSocket* tcpSocket;
 
-    ContextSender sendFunc;
+    IocpContextSender sendFunc;
+    ByteSender byteSendFunc;
 };
 
 }

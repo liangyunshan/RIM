@@ -35,7 +35,6 @@ HEADERS += \
     netglobal.h \
     network_global.h \
     win32net/tcpserver.h \
-    tcpclient.h \
     win32net/SharedIocpData.h \
     head.h \
     win32net/workthread.h \
@@ -50,11 +49,12 @@ HEADERS += \
     wraprule/tcp495datapacketrule.h \
     wraprule/tcpdatapacketrule.h \
     dataprocess/handler.h \
-    dataprocess/sockdatahandler.h
+    dataprocess/sockdatahandler.h \
+    connection/seriesconnection.h \
+    connection/tcpclient.h
 
 SOURCES += \
     netglobal.cpp \
-    tcpclient.cpp \
     win32net/SharedIocpData.cpp \
     win32net/workthread.cpp \
     win32net/netutils.cpp \
@@ -69,7 +69,9 @@ SOURCES += \
     wraprule/tcp495datapacketrule.cpp \
     wraprule/tcpdatapacketrule.cpp \
     dataprocess/handler.cpp \
-    dataprocess/sockdatahandler.cpp
+    dataprocess/sockdatahandler.cpp \
+    connection/seriesconnection.cpp \
+    connection/tcpclient.cpp
 
 INCLUDEPATH += $$PWD/../../RimClient/
 

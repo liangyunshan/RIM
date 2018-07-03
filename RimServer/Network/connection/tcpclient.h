@@ -21,7 +21,8 @@
 #include <QHash>
 #include <QFile>
 #include <QDataStream>
-#include "network_global.h"
+#include "../network_global.h"
+#include "../head.h"
 
 namespace ServerNetwork {
 
@@ -175,8 +176,13 @@ class NETWORKSHARED_EXPORT TcpClient
 {
 public:
     static TcpClient * create();
+
     int socket() const {return cSocket;}
+
+    void setIp(const char * destIp);
     QString ip() const {return QString(cIp);}
+
+    void setPort(unsigned short cPort);
     unsigned short port() const {return cPort;}
 
     QHash<int,PacketBuff*> & getPacketBuffs(){return packetBuffs;}

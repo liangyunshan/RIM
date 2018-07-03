@@ -50,7 +50,7 @@ void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recv
     }
 }
 
-bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ContextSender sendFunc)
+bool TCP495DataPacketRule::wrap(const SendUnit &dunit, IocpContextSender sendFunc)
 {
     TcpClient * client = TcpClientManager::instance()->getClient(dunit.sockId);
     if(client != NULL)
@@ -96,6 +96,50 @@ bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ContextSender sendFunc)
         if(sendLen == packet.dwPackAllLen){
             return true;
         }
+    }
+
+    return false;
+}
+
+bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ByteSender sendFunc)
+{
+    QDB495_SendPackage packet;
+    memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+    packet.bVersion = 1;
+    packet.bPackType = dunit.dataUnit.bPackType;
+    packet.bPriority = 0;
+    packet.bPeserve = 0;
+    packet.wSerialNo = ++SendPackId;
+    packet.wCheckout = 0;
+    packet.dwPackAllLen = dunit.dataUnit.data.size();
+    packet.wDestAddr = dunit.dataUnit.wDestAddr;
+    packet.wSourceAddr = dunit.dataUnit.wSourceAddr;
+
+    int totalIndex = countTotoalIndex(dunit.dataUnit.data.length());
+
+    int sendLen = 0;
+    for(int i = 0; i < totalIndex; i++)
+    {
+        memset(sendBuff,0,MAX_495SEND_BUFF);
+        packet.wOffset = i;
+        int leftLen = dunit.dataUnit.data.length() - sendLen;
+        packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+
+        memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+        memcpy(sendBuff + sizeof(QDB495_SendPackage),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
+
+        int dataLen = sizeof(QDB495_SendPackage)+packet.wPackLen;
+        int realSendLen = sendFunc(dunit.sockId,sendBuff,dataLen);
+
+        if(realSendLen == dataLen){
+            sendLen += packet.wPackLen;
+        }else{
+            break;
+        }
+    }
+
+    if(sendLen == packet.dwPackAllLen){
+        return true;
     }
 
     return false;

@@ -20,7 +20,7 @@
 #include "protocol/protocoldata.h"
 using namespace ProtocolType;
 
-#include "Network/tcpclient.h"
+#include "Network/connection/tcpclient.h"
 
 namespace Datastruct
 {
