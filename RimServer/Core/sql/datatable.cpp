@@ -86,7 +86,8 @@ RChatGroupRoom::RChatGroupRoom():table("rchatgrouproom"),id("ID"),chatroomId("CH
 
 #ifdef __LOCAL_CONTACT__
 RChat716Cache::RChat716Cache():table("rchat716cache"),sourceAddr("SOURCEADDR"),destAddr("DESTADDR"),
-    packType("PACKTYPE"),reserve("RESERVE"),fileType("FILETYPE"),fileName("FILENAME"),data("DATA")
+    packType("PACKTYPE"),reserve("RESERVE"),fileType("FILETYPE"),fileName("FILENAME"),data("DATA"),
+    serialNo("SERIALNO"),orderNo("ORDERNO"),date("CDATE"),time("CTIME")
 {
 
 }

@@ -1,5 +1,5 @@
 ﻿#include "qdb21_wraprule.h"
-#include <QTime>
+
 #include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
@@ -22,6 +22,9 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     qdb21_Head.usOrderNo = data.usOrderNo;
     qdb21_Head.usSerialNo = data.usSerialNo;
 
+    wrapTime(qdb21_Head.cDate,data.cDate,4);
+    wrapTime(qdb21_Head.cTime,data.cTime,3);
+
     data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));
 }
 
@@ -40,7 +43,43 @@ bool QDB21_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
     result.usSerialNo = qdb21_Head.usSerialNo;
     result.usOrderNo = qdb21_Head.usOrderNo;
 
+    unwrapTime(result.cDate,qdb21_Head.cDate,4);
+    unwrapTime(result.cTime,qdb21_Head.cTime,3);
+
     return true;
+}
+
+/*!
+ * @brief 对时间进行转换
+ * @note 利用对整型的移位操作，实现类似socket中inet_addr()的转换
+ * @param[in] start 起始的地址
+ * @param[in] value 值
+ * @param[in] length 数据长度(字节数)
+ */
+void QDB21_WrapRule::wrapTime(char *output, int intput, int length)
+{
+    if(output == NULL)
+        return;
+
+    int loopTime = 0;
+    while(loopTime++ < length)
+        *output++ = (char)intput>>8;
+}
+
+/*!
+ * @brief 对时间进行进行解压
+ * @note 利用对整型的移位操作，实现类似socket中inet_addr()的转换
+ * @param[in] start 起始的地址
+ * @param[in] value 值
+ * @param[in] length 数据长度(字节数)
+ */
+void QDB21_WrapRule::unwrapTime(int &output, char *input, int length)
+{
+    if(input == NULL)
+        return;
+
+    memset((char *)&output,0,sizeof(int));
+    memcpy((char *)&output,input,length);
 }
 
 #endif

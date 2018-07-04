@@ -21,11 +21,7 @@ class RBuffer_MsgParse : public DataParse
 public:
     RBuffer_MsgParse();
 
-#ifdef __LOCAL_CONTACT__
-    void processData(const RecvUnit & unit);
-#else
     void processData(const ProtocolPackage & recvData);
-#endif
 
 private:
     void handleFileMsg(MsgCommand commandType, RBuffer &obj);

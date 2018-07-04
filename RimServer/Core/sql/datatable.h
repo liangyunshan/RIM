@@ -253,6 +253,10 @@ public:
     const QString fileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
     const QString fileName;                 /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
     const QString data;                     /*!< 正文内容 */
+    const QString serialNo;                 /*!< 流水号 */
+    const QString orderNo;                  /*!< 协议号 */
+    const QString date;                     /*!< 日期 */
+    const QString time;                     /*!< 时间 */
 };
 
 #endif
