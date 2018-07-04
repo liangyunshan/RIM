@@ -22,8 +22,6 @@ DEFINES += __LOCAL_CONTACT__
 TARGET = RimClient
 TEMPLATE = app
 
-CONFIG += console
-
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
   contains(TEMPLATE, "lib") {

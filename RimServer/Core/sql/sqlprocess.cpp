@@ -1997,6 +1997,31 @@ QStringList SQLProcess::getGroupListByUserAccountId(Database *db, const QString 
     return result;
 }
 
+#ifdef __LOCAL_CONTACT__
+
+bool SQLProcess::saveChat716Cache(Database *db, ProtocolPackage &packageData)
+{
+    DataTable::RChat716Cache chatCache;
+
+    RPersistence rpc(chatCache.table);
+    rpc.insert({{chatCache.sourceAddr,QString::number(packageData.wSourceAddr)},
+                {chatCache.destAddr,QString::number(packageData.wDestAddr)},
+                {chatCache.packType,packageData.bPackType},
+                {chatCache.reserve,packageData.bPeserve},
+                {chatCache.fileType,packageData.cFileType},
+                {chatCache.fileName,packageData.cFilename},
+                {chatCache.data,packageData.data}});
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rpc.sql())){
+        return true;
+    }
+
+    return false;
+}
+
+#endif
+
 /*!
  * @brief 根据ID获取用户所有的分组
  * @param[in] db 数据库

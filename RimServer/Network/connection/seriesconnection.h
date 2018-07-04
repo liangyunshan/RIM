@@ -18,6 +18,8 @@
 #include <mutex>
 #include <memory>
 
+#include <QDebug>
+
 #include "../network_global.h"
 #include "../head.h"
 
@@ -29,8 +31,11 @@ class NETWORKSHARED_EXPORT SeriesConnection
 {
 public:
     SeriesConnection();
-    ~SeriesConnection(){}
+    ~SeriesConnection(){
+qDebug()<<"delete seriesConnection~~";
+    }
 
+    void setSocket(int sockId){cSocket = sockId;}
     int socket() const {return cSocket;}
 
     void setIp(const char * destIp);
@@ -62,6 +67,7 @@ public:
 
     void remove(std::shared_ptr<SeriesConnection> conn);
     void remove(QString nodeId);
+    void remove(int sockdId);
     void removeAll();
 
     std::shared_ptr<SeriesConnection>  getConnection(int sock);

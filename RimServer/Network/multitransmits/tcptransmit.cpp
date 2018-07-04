@@ -22,6 +22,7 @@ TcpTransmit::TcpTransmit():
 //    tcpSocket = new RSocket();
 
     sendFunc = std::bind(&TcpTransmit::sendIocpData,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
+    byteSendFunc = std::bind(&TcpTransmit::sendByteData,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
 }
 
 TcpTransmit::~TcpTransmit()

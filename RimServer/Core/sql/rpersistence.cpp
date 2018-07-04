@@ -275,6 +275,9 @@ QString RPersistence::sql()
             case QVariant::String:
                                     stream<<spacer<<"'"<<val.toString()<<"'"<<spacer;
                                     break;
+            case QVariant::Char:
+                                    stream<<val.toChar();
+                                    break;
             default:
                                     stream<<val.toString();
                                     break;

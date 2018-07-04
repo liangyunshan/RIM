@@ -65,9 +65,29 @@ void SeriesConnectionManager::remove(std::shared_ptr<SeriesConnection> conn)
 void SeriesConnectionManager::remove(QString nodeId)
 {
     std::unique_lock<std::mutex> ul(mutex);
-    std::remove_if(connList.begin(),connList.end(),[&nodeId](std::shared_ptr<SeriesConnection> conn){
+
+    auto index = std::find_if(connList.begin(),connList.end(),[&nodeId](std::shared_ptr<SeriesConnection> conn){
         return conn->getNodeId() == nodeId;
     });
+
+    if(index != connList.end()){
+        (*index).reset();
+        connList.erase(index);
+    }
+}
+
+void SeriesConnectionManager::remove(int sockdId)
+{
+    std::unique_lock<std::mutex> ul(mutex);
+
+    auto index = std::find_if(connList.begin(),connList.end(),[&sockdId](std::shared_ptr<SeriesConnection> conn){
+        return conn->socket() == sockdId;
+    });
+
+    if(index != connList.end()){
+        (*index).reset();
+        connList.erase(index);
+    }
 }
 
 void SeriesConnectionManager::removeAll()

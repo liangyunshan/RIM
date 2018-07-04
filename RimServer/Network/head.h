@@ -94,6 +94,7 @@ enum OrderNoType{
 
 /*!
  *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
+ *  @warning 【若此结构发生变动，同步修改SQL/Datatable/RChat716Cache类】
  *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
  *  @author shangchao
  */
