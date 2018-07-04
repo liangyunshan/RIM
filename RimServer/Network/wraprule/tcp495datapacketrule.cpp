@@ -186,6 +186,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                 RecvUnit socketData;
                 socketData.extendData.sockId = ioContext->getClient()->socket();
                 socketData.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                socketData.extendData.bPeserve = packet.bPeserve;
 
                 //[1.1]至少存在多余一个完整数据包
                 if(packet.wPackLen <= recvLen - processLen)

@@ -70,8 +70,5 @@ bool SendTextProcessThread::handleDataSend(SendUnit &unit)
     if( selectedTrans == transmits.end())
         return false;
 
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"unit.dataUnit.data:"<<unit.dataUnit.data
-          <<"\n";
     return (*selectedTrans).second->startTransmit(unit);
 }

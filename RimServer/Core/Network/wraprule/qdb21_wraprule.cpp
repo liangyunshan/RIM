@@ -19,18 +19,15 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     qdb21_Head.usSourceAddr = data.wSourceAddr;
     qdb21_Head.cTypeNum =1;
     qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
-    qdb21_Head.usOrderNo = 2051;
+    qdb21_Head.usOrderNo = data.usOrderNo;
     qdb21_Head.usSerialNo = data.usSerialNo;
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"qdb21_Head.usSerialNo:"<<qdb21_Head.usSerialNo
-          <<"\n";
 
     data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));
 }
 
 bool QDB21_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
 {
-    if(data.size() < sizeof(QDB21_Head))
+    if(data.size() < QDB21_Head_Length)
         return false;
 
     QDB21_Head qdb21_Head;

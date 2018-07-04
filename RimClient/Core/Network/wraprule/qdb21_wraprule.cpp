@@ -19,7 +19,7 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     qdb21_Head.usSourceAddr = data.wSourceAddr;
     qdb21_Head.cTypeNum =1;
     qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
-    qdb21_Head.usOrderNo = 2051;
+    qdb21_Head.usOrderNo = data.usOrderNo;
     qdb21_Head.usSerialNo = data.usSerialNo;
 
     data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));

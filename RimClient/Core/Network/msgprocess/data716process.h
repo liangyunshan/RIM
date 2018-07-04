@@ -16,7 +16,7 @@ public:
 
 private:
     void processText(ProtocolPackage &data);
-    void ApplyTextStatus();
+    void ApplyTextStatus(ProtocolPackage &data);
 };
 
 #endif  //__LOCAL_CONTACT__

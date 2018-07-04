@@ -59,6 +59,7 @@ private slots:
 
     //716
     void procRecvText(TextRequest response);
+    void procRecvServerTextReply(TextReply);
 
 private:
     void initWidget();

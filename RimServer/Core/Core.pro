@@ -75,7 +75,8 @@ SOURCES += main.cpp\
     Network/msgwrap/localmsgwrap.cpp \
     Network/msgwrap/binary716_wrapfromat.cpp \
     Network/msgparse/binary716_msgparse.cpp \
-    Network/msgprocess/data716process.cpp
+    Network/msgprocess/data716process.cpp \
+    Network/wraprule/qdb2048_wraprule.cpp
 HEADERS  += widget.h \
     rsingleton.h \
     constants.h \
@@ -113,7 +114,8 @@ HEADERS  += widget.h \
     Network/msgwrap/localmsgwrap.h \
     Network/msgwrap/binary716_wrapfromat.h \
     Network/msgparse/binary716_msgparse.h \
-    Network/msgprocess/data716process.h
+    Network/msgprocess/data716process.h \
+    Network/wraprule/qdb2048_wraprule.h
 
 FORMS    += widget.ui
 

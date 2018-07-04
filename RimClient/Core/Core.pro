@@ -22,6 +22,8 @@ DEFINES += __LOCAL_CONTACT__
 TARGET = RimClient
 TEMPLATE = app
 
+CONFIG += console
+
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
   contains(TEMPLATE, "lib") {
@@ -182,7 +184,8 @@ SOURCES += \
     protocol/protocoldata.cpp \
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/json_dataprocess.cpp \
-    Network/msgprocess/data716process.cpp
+    Network/msgprocess/data716process.cpp \
+    Network/wraprule/qdb2048_wraprule.cpp
 
 
 HEADERS  += \
@@ -305,7 +308,8 @@ HEADERS  += \
     protocol/protocoldata.h \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/json_dataprocess.h \
-    Network/msgprocess/data716process.h
+    Network/msgprocess/data716process.h \
+    Network/wraprule/qdb2048_wraprule.h
 
 DISTFILES += \
     Widgets/Widgets.pri

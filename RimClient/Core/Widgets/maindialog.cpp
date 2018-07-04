@@ -37,6 +37,7 @@
 #include "thread/taskmanager.h"
 #include "media/audioinput.h"
 #include "media/audiooutput.h"
+#include "others/msgqueuemanager.h"
 
 #include "itemhoverinfo.h"
 
@@ -112,6 +113,8 @@ MainDialog::MainDialog(QWidget *parent) :
 
     //716
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
+    connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
+
 }
 
 MainDialog::~MainDialog()
@@ -497,6 +500,29 @@ void MainDialog::procRecvText(TextRequest response)
     UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
     if(client)
         client->procRecvContent(response);
+}
+
+/*!
+ * @brief 接收系统消息反馈
+ * @param[in] reply 消息回复
+ * @return 无
+ * @note 接收系统推送的消息反馈后，根据反馈的类型不同，执行相应的操作: @n
+ *      1.APPLY_SYSTEM:将聊天信息存入对应用户的db; @n
+ *      2.APPLY_CONFIRM:显示接收提示(弹窗或其它方式显示); @n
+ *      3.APPLY_RECEIPT:更新回执状态(已读/未读);
+ */
+void MainDialog::procRecvServerTextReply(TextReply reply)
+{
+    TextRequest * msgDesc = RSingleton<MsgQueueManager>::instance()->dequeue(reply.textId);
+    if(msgDesc != NULL)
+    {
+         UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
+         if(client && client->chatPersonWidget != NULL)
+         {
+             client->procRecvServerTextReply(reply);
+         }
+         delete msgDesc;
+    }
 }
 
 /*!

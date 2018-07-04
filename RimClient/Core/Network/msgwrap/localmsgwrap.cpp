@@ -45,7 +45,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.bPackType = T_DATA_AFFIRM;
                 package.bPeserve = 0;
                 package.usSerialNo = textRequest->textId.toInt();
-                package.usOrderNo = 2051;
+                package.usOrderNo = O_2051;
 
                 method = C_TongKong ;
                 format = M_495 ;
@@ -72,9 +72,11 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             DataPackType *dataPackType = dynamic_cast<DataPackType *>(packet);
             if(dataPackType)
             {
-                package.wSourceAddr = dataPackType->accountId.toInt();
-                package.wDestAddr = dataPackType->accountId.toInt();
-                package.bPackType = T_DATA_REG;
+                package.wSourceAddr = dataPackType->sourceId.toInt();
+                package.wDestAddr = dataPackType->destId.toInt();
+                package.bPackType = dataPackType->extendData.type495;
+                package.usOrderNo = dataPackType->extendData.usOrderNo;
+                package.usSerialNo = dataPackType->extendData.usSerialNo;
                 package.bPeserve = 0X80;
 
                 method = C_TongKong ;
@@ -93,9 +95,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         commMethod = C_TCP;
         RSingleton<TCP_WrapRule>::instance()->wrap(package);
     }
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"package.usSerialNo:"<<package.usSerialNo
-          <<"\n";
     if(commMethod != C_NONE){
         SendUnit unit;
         unit.method = commMethod;

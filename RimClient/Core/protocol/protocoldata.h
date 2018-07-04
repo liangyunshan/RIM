@@ -1137,7 +1137,8 @@ class DataPackType : public MsgPacket
 public:
     DataPackType();
     ExtendData extendData;          /*!< 可扩充数据信息，包含网络层相关信息 */
-    QString accountId;              /*!< 用户账号 */
+    QString sourceId;              /*!< 用户账号 */
+    QString destId;                 /*!< 目标账号 */
 };
 
 }

@@ -16,6 +16,8 @@ DEFINES += NETWORK_LIBRARY
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
 DEFINES += __LOCAL_CONTACT__
 
+CONFIG += console
+
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
 

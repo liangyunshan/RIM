@@ -98,6 +98,15 @@ struct QDB495_SendPackage{
 }
 
 /*!
+ *  @brief 正文描述类型
+ *  @details 5148等等
+ */
+enum OrderNoType{
+    O_2051 = 2051,     /*!<  */
+    O_2048 = 2048     /*!<  */
+};
+
+/*!
  *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
  *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
  *  @author shangchao
@@ -123,7 +132,7 @@ struct ProtocolPackage
         cFileType = 0;
         bPeserve = 0;
         usSerialNo = 0;
-        usOrderNo = 0;
+        usOrderNo = 2;
     }
 
     ProtocolPackage(QByteArray dataArray){
@@ -136,8 +145,10 @@ struct ProtocolPackage
         this->wDestAddr = package.wDestAddr;
         this->bPackType = package.bPackType;
         this->cFileType = package.cFileType;
-        this->bPeserve = package.bPeserve;
         this->cFilename = package.cFilename;
+        this->bPeserve = package.bPeserve;
+        this->usSerialNo = package.usSerialNo;
+        this->usOrderNo = package.usOrderNo;
         this->data = package.data;
         return *this;
     }
@@ -182,7 +193,8 @@ struct ExtendData
     CommMethod method;          /*!< 数据接收链路 */
     PacketType_495 type495;     /*!< 95信息类型 */
     unsigned char bPeserve;     /*!< 95保留字 */
-    unsigned char usSerialNo;   /*!< 流水号 */
+    unsigned short usSerialNo;   /*!< 流水号 */
+    unsigned short usOrderNo;    /*!< 编码代号 */
 };
 
 /*!

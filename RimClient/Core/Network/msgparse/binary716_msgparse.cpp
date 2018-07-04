@@ -22,10 +22,8 @@ void Binary716_MsgParse::processData(const RecvUnit &unit)
 {
     ProtocolPackage packData;
     if(RSingleton<TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
-
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"packData.data:"<<packData.data<<unit.extendData.type495
-              <<"\n";
+        packData.bPackType = unit.extendData.type495;
+        packData.bPeserve = unit.extendData.bPeserve;
         switch(unit.extendData.type495){
             case T_DATA_AFFIRM:
                 {
