@@ -105,6 +105,7 @@ struct ProtocolPackage
         wDestAddr = 0;
         bPackType = 0;
         cFileType = 0;
+        bPeserve = 0;
     }
 
     ProtocolPackage(QByteArray dataArray){
