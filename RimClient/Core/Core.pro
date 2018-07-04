@@ -158,7 +158,7 @@ SOURCES += \
     Widgets/widget/rcomboboxitem.cpp \
     thread/chatmsgprocess.cpp \
     Widgets/abstractchatmainwidget.cpp \
-    Widgets/setfontwidget.cpp \
+    Widgets/chat/setfontwidget.cpp \
     thread/historyrecordtask.cpp \
     file/xmlparse.cpp \
     Widgets/splashlogindialog.cpp \
@@ -176,7 +176,10 @@ SOURCES += \
     Network/msgwrap/wrapformat.cpp \
     Network/msgwrap/binary_wrapformat.cpp \
     Network/msgwrap/json_wrapformat.cpp \
-    Widgets/chatpersonwidget.cpp
+    Widgets/chatpersonwidget.cpp \
+    Widgets/chat/customfontcombobox.cpp \
+    Widgets/chat/customfontfamilydelegate.cpp \
+    Widgets/chat/historymsgrecord.cpp
 
 
 HEADERS  += \
@@ -272,7 +275,7 @@ HEADERS  += \
     Widgets/widget/rcomboboxitem.h \
     thread/chatmsgprocess.h \
     Widgets/abstractchatmainwidget.h \
-    Widgets/setfontwidget.h \
+    Widgets/chat/setfontwidget.h \
     thread/historyrecordtask.h \
     file/xmlparse.h \
     Widgets/splashlogindialog.h \
@@ -290,7 +293,10 @@ HEADERS  += \
     Network/msgwrap/wrapformat.h \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/binary_wrapformat.h \
-    Widgets/chatpersonwidget.h
+    Widgets/chatpersonwidget.h \
+    Widgets/chat/customfontcombobox.h \
+    Widgets/chat/customfontfamilydelegate.h \
+    Widgets/chat/historymsgrecord.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -169,8 +169,7 @@ void UserClient::procDownOverFile(FileDesc *fileDesc)
         if(itemKind == FILE_FILE){
 
         }else if(itemKind == FILE_AUDIO){
-            //TODO LYS-20180608 显示接收到的语音消息
-//            chatPersonWidget->appendVoiceMsg(RECV,fileDesc->fileName);
+            chatPersonWidget->recvChatAudio(fileDesc->fileName);
         }else if(itemKind == FILE_IMAGE){
 
         }

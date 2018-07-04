@@ -86,6 +86,7 @@
         <file>resource/icon/Font-system-gray.png</file>
         <file>resource/icon/Font-system-white.png</file>
         <file>resource/icon/Font-underline.png</file>
+        <file>resource/icon/History-record.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

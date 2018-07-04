@@ -15,6 +15,8 @@
 #include "head.h"
 #include "datastruct.h"
 
+#include "customfontcombobox.h"
+
 #define CHAT_Font_MAX_HEIGHT 30
 
 class SetFontWidgetPrivate : public GlobalData<SetFontWidget>
@@ -38,16 +40,17 @@ private:
 
     QPushButton * bubbleMode;               //气泡模式
     QPushButton * textMode;                 //文本模式
+
     QStackedWidget * fontModeWidget;        //字体设置框
-    QComboBox * bubbleFont;                 //气泡模式字体选择框
+    CustomFontComboBox * bubbleFont;        //气泡模式字体选择框
     QLabel * sizeLabel;                     //气泡模式字体大小label
     QComboBox * bubbleSize;                 //气泡模式字号选择框
     QPushButton * chooseBubble;             //气泡模式字选择气泡按钮
 
     QPushButton * systemMode;               //系统字体
     QPushButton * personalMode;             //个性字体
-    QFontComboBox * systemFont;                 //系统字体选择框
-    QComboBox * personalFont;               //个性字体选择框
+    QFontComboBox * systemFont;             //系统字体选择框
+    CustomFontComboBox * personalFont;      //个性字体选择框
     QComboBox * textFontSize;               //文本模式字号选择框
     QPushButton * bold;                     //加粗按钮
     QPushButton * italic;                   //斜体按钮
@@ -156,9 +159,8 @@ void SetFontWidgetPrivate::initWidget()
     bubbleLayout->setContentsMargins(0,0,0,0);
     bubbleLayout->setSpacing(2);
 
-    bubbleFont = new QComboBox(bubbleWidget);
-    bubbleFont->addItem(QObject::tr("default font"));
-    QObject::connect(bubbleFont,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(chooseBubbleFont(int)));
+    bubbleFont = new CustomFontComboBox(bubbleWidget);
+    QObject::connect(bubbleFont,SIGNAL(currentFontChanged(QFont)),q_ptr,SLOT(chooseBubbleFont(QFont)));
     sizeLabel = new QLabel(bubbleWidget);
     sizeLabel->setText(QObject::tr("font size"));
     bubbleSize = new QComboBox(bubbleWidget);
@@ -166,7 +168,7 @@ void SetFontWidgetPrivate::initWidget()
     {
         bubbleSize->addItem(QString::number(t_bsize));
     }
-    QObject::connect(bubbleSize,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(chooseBubbleFont(int)));
+    QObject::connect(bubbleSize,SIGNAL(currentIndexChanged(int)),q_ptr,SLOT(chooseBubbleFontSize(int)));
     chooseBubble = new QPushButton(bubbleWidget);
     chooseBubble->setText(QObject::tr("choose bubble"));
     chooseBubble->setStyleSheet("QPushButton{"
@@ -230,8 +232,7 @@ void SetFontWidgetPrivate::initWidget()
     fontModeLayout->addWidget(systemMode);
     fontModeLayout->addWidget(personalMode);
     systemFont = new QFontComboBox(textWidget);
-    personalFont = new QComboBox(textWidget);
-    personalFont->addItem(QObject::tr("default font"));
+    personalFont = new CustomFontComboBox(textWidget);
     textFontSize = new QComboBox(textWidget);
     for(int t_tsize=9;t_tsize<23;t_tsize++)
     {
@@ -296,15 +297,17 @@ SetFontWidget::~SetFontWidget()
 int SetFontWidget::currentFontMode() const
 {
     MQ_D(SetFontWidget);
+
     return d->m_curMode;
 }
 
 /*!
- * \brief SetFontWidget::setDefault 加载默认字体设置
+ * @brief SetFontWidget::setDefault 加载默认字体设置
  */
 void SetFontWidget::setDefault()
 {
     MQ_D(SetFontWidget);
+
     d->bubbleMode->setChecked(true);
     d->textMode->setChecked(false);
     d->fontModeWidget->setCurrentIndex(0);
@@ -312,8 +315,8 @@ void SetFontWidget::setDefault()
     d->personalMode->setChecked(false);
     d->systemFont->setVisible(true);
     d->personalFont->setVisible(false);
-    QFont defaultFont;
-    defaultFont.setPixelSize(9);
+    QFont defaultFont = font();
+    defaultFont.setPointSize(9);
     emit fontChanged(defaultFont);
 
 }
@@ -324,6 +327,7 @@ void SetFontWidget::setDefault()
 void SetFontWidget::setCurFontMode(FontMode mode)
 {
     MQ_D(SetFontWidget);
+
     switch (mode) {
     case BUBBLEMODE:
 
@@ -345,6 +349,7 @@ void SetFontWidget::setCurFontMode(FontMode mode)
 void SetFontWidget::chooseMode(bool)
 {
     MQ_D(SetFontWidget);
+
     FontMode t_mode = BUBBLEMODE;
     QString t_modeName = QObject::sender()->objectName();
     if(t_modeName == d->bubbleMode->objectName())
@@ -382,6 +387,7 @@ void SetFontWidget::chooseMode(bool)
 void SetFontWidget::chooseTextFont(bool)
 {
     MQ_D(SetFontWidget);
+
     QString m_typeName = QObject::sender()->objectName();
     if(m_typeName == d->systemMode->objectName())
     {
@@ -421,6 +427,7 @@ void SetFontWidget::chooseTextFont(bool)
 void SetFontWidget::chooseTextColor(bool)
 {
     MQ_D(SetFontWidget);
+
     d->fontColorDialog->show();
 }
 
@@ -440,14 +447,47 @@ void SetFontWidget::setTextColorTure(const QColor &result)
  * @brief SetFontWidget::chooseBubbleFont 设置气泡字体类型、字体大小
  * @param index
  */
-void SetFontWidget::chooseBubbleFont(int)
+void SetFontWidget::chooseBubbleFont(const QFont &font)
 {
     MQ_D(SetFontWidget);
 
-    int curbubbleFontType = d->bubbleFont->currentIndex();
-    int curbubbleFontSize = d->bubbleSize->currentText().toInt();
-    Q_UNUSED(curbubbleFontType);
-    QFont bubbleFont;
-    bubbleFont.setPixelSize(curbubbleFontSize);
-    emit fontChanged(bubbleFont);
+    switch (d->m_curMode) {
+    case BUBBLEMODE:
+    {
+        int curbubbleFontSize = d->bubbleSize->currentText().toInt();
+        QFont bubbleFont = font;
+        bubbleFont.setPointSize(curbubbleFontSize);
+        emit fontChanged(bubbleFont);
+    }
+        break;
+    case TEXTMODE:
+
+        break;
+    default:
+        break;
+    }
+}
+
+/*!
+ * @brief SetFontWidget::chooseBubbleFontSize 切换字体大小
+ */
+void SetFontWidget::chooseBubbleFontSize(int)
+{
+    MQ_D(SetFontWidget);
+
+    switch (d->m_curMode) {
+    case BUBBLEMODE:
+    {
+        int curbubbleFontSize = d->bubbleSize->currentText().toInt();
+        QFont bubbleFont = d->bubbleFont->currentFont();
+        bubbleFont.setPointSize(curbubbleFontSize);
+        emit fontChanged(bubbleFont);
+    }
+        break;
+    case TEXTMODE:
+
+        break;
+    default:
+        break;
+    }
 }

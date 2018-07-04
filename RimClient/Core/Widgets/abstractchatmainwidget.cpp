@@ -30,7 +30,7 @@
 #include "rsingleton.h"
 #include "previewpage.h"
 #include "messdiapatch.h"
-#include "setfontwidget.h"
+#include "chat/setfontwidget.h"
 #include "chataudioarea.h"
 #include "widget/rlabel.h"
 #include "widget/rbutton.h"
@@ -69,7 +69,7 @@ protected:
 
     QWidget * chatRecordWidget;             //聊天信息记录窗口
     QWidget * inputWidget;                  //聊天信息输入窗口
-    QWidget * rightSideWidget;              //右侧边栏窗口
+    QTabWidget * rightSideWidget;           //右侧边栏窗口
 
     QWebEngineView * view;                  //嵌入html页视图
     PreviewPage *page;                      //嵌入html页page
@@ -79,6 +79,7 @@ protected:
     ChatAudioArea * chatAudioArea;          //录音工具栏
     RToolButton * shakeButt;                //窗口抖动按钮
     RToolButton * msgNoticeButt;            //消息提醒设置按钮
+    RToolButton *recordButt;                //消息记录按钮
     ToolBar * chatToolBar;                  //信息输入窗口工具栏
     SimpleTextEdit * chatInputArea;         //信息输入窗口输入框
     QTabWidget *historyRecord;              //历史聊天记录窗口
@@ -103,11 +104,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     leftLayout->setContentsMargins(0,0,0,0);
     leftLayout->setSpacing(0);
 
-    //右窗口垂直布局
-    QHBoxLayout *rightLayout = new QHBoxLayout;
-    rightLayout->setContentsMargins(0,0,0,0);
-    rightLayout->setSpacing(0);
-
     //聊天信息记录窗口
     chatRecordWidget = new QWidget(q_ptr);
     chatRecordWidget->setAttribute(Qt::WA_DeleteOnClose);
@@ -124,8 +120,8 @@ void AbstractChatMainWidgetPrivate::initWidget()
     fontWidget = new SetFontWidget(q_ptr);
     fontWidget->setVisible(false);
     QObject::connect(fontWidget,SIGNAL(fontModeChanged(int)),q_ptr,SLOT(setMsgShowMode(int)));
-    QObject::connect(fontWidget,SIGNAL(fontChanged(const QFont &)),q_ptr,SLOT(setInputAreaFont(const QFont &)));
-    QObject::connect(fontWidget,SIGNAL(fontColorChanged(const QColor &)),q_ptr,SLOT(setInputAreaColor(const QColor &)));
+    QObject::connect(fontWidget,SIGNAL(fontChanged(QFont)),q_ptr,SLOT(setInputAreaFont(QFont)));
+    QObject::connect(fontWidget,SIGNAL(fontColorChanged(QColor)),q_ptr,SLOT(setInputAreaColor(QColor)));
 
     chatAudioArea = new ChatAudioArea(q_ptr);
     chatAudioArea->setVisible(false);
@@ -199,11 +195,12 @@ void AbstractChatMainWidgetPrivate::initWidget()
     audioButt->setToolTip(QObject::tr("Audio"));
     QObject::connect(audioButt,SIGNAL(clicked(bool)),q_ptr,SLOT(respShowAudioArea(bool)));
 
-    RToolButton *recordButt = new RToolButton();
+    recordButt = new RToolButton();
     recordButt->setObjectName(Constant::Tool_Chat_Record);
     recordButt->setToolTip(QObject::tr("Record data"));
+    recordButt->setStyleSheet("border-image: url(:/icon/resource/icon/History-record.png)");
     recordButt->setCheckable(true);
-    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(setSideVisible(bool)));
+    QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(respHistoryRecord(bool)));
 
     chatToolBar->appendToolButton(faceButt);
     chatToolBar->appendToolButton(screenShotButt);
@@ -232,7 +229,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     closeButton->setObjectName(Constant::Button_Chat_Close_Window);
     closeButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Close_Window,QKeySequence("Alt+C")));
     closeButton->setText(QObject::tr("Close window"));
-    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SLOT(close()));
+    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SIGNAL(closeWindow()));
 
     RToolButton * extralButton = new RToolButton(buttonWidget);
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -266,15 +263,12 @@ void AbstractChatMainWidgetPrivate::initWidget()
 
     leftLayout->addWidget(chatSplitter);
 
-    //历史聊天记录窗口
-    rightSideWidget = new QWidget(q_ptr);
-    historyRecord = new QTabWidget(rightSideWidget);
-    historyRecord->setTabsClosable(true);
-    historyRecord->addTab(new QWidget,QObject::tr("message record"));
-    //TODO LYS-20180606 历史记录Tab可关闭
-
-    rightLayout->addWidget(historyRecord);
-    rightSideWidget->setLayout(rightLayout);
+    //聊天窗口右边栏（显示消息记录、发送文件子窗口）
+    rightSideWidget = new QTabWidget(q_ptr);
+    rightSideWidget->setMinimumWidth(300);
+    rightSideWidget->setVisible(false);
+    rightSideWidget->setTabsClosable(true);
+    QObject::connect(rightSideWidget,SIGNAL(tabCloseRequested(int)),q_ptr,SLOT(respCloseRightSideTab(int)));
 
     mainLayout->addLayout(leftLayout);
     mainLayout->addWidget(rightSideWidget);
@@ -383,7 +377,6 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
  */
 void AbstractChatMainWidget::finishLoadHTML(bool)
 {
-    //TODO LYS-20180510 初始化html中必要信息
     setFontIconFilePath();
 }
 
@@ -542,14 +535,9 @@ void AbstractChatMainWidget::sendMsg(bool flag)
  */
 void AbstractChatMainWidget::setSideVisible(bool flag)
 {
-    if(flag)
-    {
-        //TODO LYS-20180606 显示历史聊天记录窗口
-    }
-    else
-    {
-        //TODO LYS-20180606 隐藏历史聊天记录窗口
-    }
+    MQ_D(AbstractChatMainWidget);
+
+    d->rightSideWidget->setVisible(flag);
 }
 
 /*!
@@ -688,6 +676,48 @@ void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
 }
 
 /*!
+ * @brief AbstractChatMainWidget::recvVoiceChatMsg 显示收到的语音消息
+ * @param msg 收到的语音消息
+ */
+void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)
+{
+    appendVoiceMsg(msg);
+}
+
+/*!
+ * @brief AbstractChatMainWidget::closeRightSideTab 响应右侧边栏窗口tab页关闭请求
+ * @param index tab页索引值
+ */
+void AbstractChatMainWidget::respCloseRightSideTab(int index)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->rightSideWidget->removeTab(index);
+    if(d->rightSideWidget->count() == 0)
+    {
+        setSideVisible(false);
+        d->recordButt->setChecked(false);
+    }
+}
+
+/*!
+ * @brief AbstractChatMainWidget::respHistoryRecord 响应消息记录按钮操作
+ * @param flag 操作标识
+ */
+void AbstractChatMainWidget::respHistoryRecord(bool flag)
+{
+    setSideVisible(flag);
+    if(flag)
+    {
+        showRightSideTab(MsgRecord);
+    }
+    else
+    {
+        closeRightSideTab(MsgRecord);
+    }
+}
+
+/*!
  * @brief AbstractChatMainWidget::setFontIconFilePath 设置html中使用的字体图标文件所在路径
  */
 void AbstractChatMainWidget::setFontIconFilePath()
@@ -697,6 +727,57 @@ void AbstractChatMainWidget::setFontIconFilePath()
     t_currentPath = QDir::fromNativeSeparators(t_currentPath);
     QString t_setLinkFontHerfScript = QString("setAbsoulteFontIconHerf('%1')").arg(t_currentPath);
     d->view->page()->runJavaScript(t_setLinkFontHerfScript);
+}
+
+/*!
+ * @brief AbstractChatMainWidget::closeRightSideTab 根据需要关闭右边栏子窗口
+ * @param tabType 子窗口类型
+ */
+void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
+{
+    MQ_D(AbstractChatMainWidget);
+    Q_UNUSED(d);
+    switch (tabType) {
+    case MsgRecord:
+        //TODO LYS-20180620移除消息记录子窗口
+        if(d->historyRecord)
+        {
+            d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->historyRecord));
+        }
+
+        break;
+    case SendFile:
+        //TODO LYS-20180620移除发送文件子窗口
+        break;
+    default:
+        break;
+    }
+}
+
+/*!
+ * @brief AbstractChatMainWidget::showRightSideTab 根据需要显示右边栏子窗口
+ * @param tabType 子窗口类型
+ */
+void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->rightSideWidget->setVisible(true);
+    switch (tabType) {
+    case MsgRecord:
+        //TODO LYS-20180620显示消息记录子窗口
+        d->historyRecord = new QTabWidget;
+        d->historyRecord->addTab(new QWidget,tr("All"));
+        d->historyRecord->addTab(new QWidget,tr("Image"));
+        d->historyRecord->addTab(new QWidget,tr("File"));
+        d->rightSideWidget->addTab(d->historyRecord,tr("message record"));
+        break;
+    case SendFile:
+        //TODO LYS-20180620显示发送文件子窗口
+        break;
+    default:
+        break;
+    }
 }
 
 /*!
