@@ -19,7 +19,7 @@ class Binary716_MsgParse : public DataParse
 public:
     explicit Binary716_MsgParse();
 
-    void processData(const RecvUnit & unit);
+    void processData(const ProtocolPackage &recvData);
 };
 
 #endif

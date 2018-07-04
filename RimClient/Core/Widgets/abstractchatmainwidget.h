@@ -66,6 +66,7 @@ public:
 
 signals:
     void shakeWindow();
+    void closeWindow();
 
 public slots:
 

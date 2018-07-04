@@ -236,7 +236,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     closeButton->setObjectName(Constant::Button_Chat_Close_Window);
     closeButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Close_Window,QKeySequence("Alt+C")));
     closeButton->setText(QObject::tr("Close window"));
-    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SLOT(close()));
+    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SIGNAL(closeWindow()));
 
     RToolButton * extralButton = new RToolButton(buttonWidget);
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -820,14 +820,15 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     if(source == RECV)
     {
         User tmpUser(d->m_userInfo.accountId);
-        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
+//        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
     else
     {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(SEND).arg(t_localHtml).arg(t_headPath);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 

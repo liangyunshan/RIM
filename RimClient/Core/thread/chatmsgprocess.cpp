@@ -209,7 +209,8 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
                           {rcr.data}})
             .createCriteria()
             .add(Restrictions::eq(rcr.table,rcr.accountId,otherID));
-    rst.limit(start,count);
+    rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
+    rst.limit(0,count);
 
     QSqlQuery query(G_User->database()->sqlDatabase());
     if(query.exec(rst.sql()))

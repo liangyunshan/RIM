@@ -63,32 +63,26 @@ void MsgReceiveProcTask::run()
     }
 }
 
-/*!
- * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
- * @param[in] toolButton 待插入的工具按钮
- * @return 是否插入成功
- */
 void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
-    RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+    bool result = false;
+    switch(data.extendData.method){
+        case C_TCP:
+        {
+            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+            packData.bPackType = data.extendData.type495;
+            packData.bPeserve = data.extendData.bPeserve;;
+        }break;
+        default:
+            break;
+    }
 
-//    bool result = false;
-//    switch(data.extendData.method){
-//        case C_TCP:
-//            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-//            break;
-
-//        default:
-//            break;
-//    }
-
-//    if(result)
-//    {
-//        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
-//    }
+    if(result)
+    {
+        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
+    }
 #else
     packData.data = data.data;
     RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);

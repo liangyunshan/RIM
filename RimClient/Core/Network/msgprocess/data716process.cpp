@@ -10,7 +10,7 @@ Data716Process::Data716Process()
 
 }
 
-void Data716Process::processTextNoAffirm(ProtocolPackage &data)
+void Data716Process::processTextNoAffirm(const ProtocolPackage &data)
 {
     if(data.usOrderNo == O_2048)
     {
@@ -26,13 +26,13 @@ void Data716Process::processTextNoAffirm(ProtocolPackage &data)
     }
 }
 
-void Data716Process::processTextAffirm(ProtocolPackage &data)
+void Data716Process::processTextAffirm(const ProtocolPackage &data)
 {
     processText(data);
     ApplyTextStatus(data);
 }
 
-void Data716Process::processText(ProtocolPackage &data)
+void Data716Process::processText(const ProtocolPackage &data)
 {
     TextRequest response;
 
@@ -50,7 +50,7 @@ void Data716Process::processText(ProtocolPackage &data)
     MessDiapatch::instance()->onRecvText(response);
 }
 
-void Data716Process::ApplyTextStatus(ProtocolPackage &data)
+void Data716Process::ApplyTextStatus(const ProtocolPackage &data)
 {
     //2048回复
     DataPackType request;
@@ -64,7 +64,7 @@ void Data716Process::ApplyTextStatus(ProtocolPackage &data)
 
 }
 
-void Data716Process::processTextApply(ProtocolPackage &data)
+void Data716Process::processTextApply(const ProtocolPackage &data)
 {
 
 }

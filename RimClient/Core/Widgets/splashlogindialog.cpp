@@ -262,7 +262,6 @@ void SplashLoginDialog::initResource()
 void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(SplashLoginDialog);
-    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -294,8 +293,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
                 client->chatPersonWidget->initChatRecord();
             }
-
-//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             client->chatPersonWidget->show();
         }
     }

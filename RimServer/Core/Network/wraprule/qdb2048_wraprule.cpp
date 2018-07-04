@@ -18,9 +18,9 @@ void QDB2048_WrapRule::wrap(ProtocolPackage &data)
     header.usDestSiteNo = data.wDestAddr;
     header.usSerialNo = data.usSerialNo;
     header.usOrderNo = 2048;
-    header.ulPackageLen = QDB2048_Head_Length;
+    header.ulPackageLen = QDB2048_Head_Length + data.data.size();
 
-    data.data.prepend((char*)&header,header.ulPackageLen);
+    data.data.prepend((char*)&header,QDB2048_Head_Length);
 }
 
 bool QDB2048_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
@@ -32,7 +32,7 @@ bool QDB2048_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
     memset(&header,0,QDB2048_Head_Length);
     memcpy(&header,data.data(),QDB2048_Head_Length);
 
-    result.data = data.right(QDB2048_Head_Length);
+    result.data = data.right(header.ulPackageLen - QDB2048_Head_Length);
     return true;
 }
 
