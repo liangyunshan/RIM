@@ -120,6 +120,7 @@ struct ProtocolPackage
         usSerialNo = 0;
         usOrderNo = 3;
         cFileType = 0;
+        bPeserve = 0;
     }
 
     ProtocolPackage(QByteArray dataArray){

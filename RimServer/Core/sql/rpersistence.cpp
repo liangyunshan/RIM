@@ -218,6 +218,7 @@ QString Restrictions::toSql(QString tableAlais,bool isSupportAlias) const
          case QVariant::Date:
          case QVariant::DateTime:
          case QVariant::String:
+         case QVariant::ByteArray:
                                  stream<<spacer<<"'"<<value.toString()<<"'"<<spacer;
                                  break;
          default:
@@ -242,6 +243,10 @@ RPersistence & RPersistence::insert(const QString key, QVariant value)
     return *this;
 }
 
+/*!
+    @warning 此种方式会造成QByteArray在申请空间时申请到之前未释放的空间，导致程序出错. \n
+             可使用其它重载方法代替。
+ */
 RPersistence &RPersistence::insert(std::vector<std::pair<QString, QVariant> > list)
 {
     std::for_each(list.begin(),list.end(),[&](const std::pair<QString,QVariant> & pair){
@@ -273,6 +278,7 @@ QString RPersistence::sql()
             case QVariant::Date:
             case QVariant::DateTime:
             case QVariant::String:
+            case QVariant::ByteArray:
                                     stream<<spacer<<"'"<<val.toString()<<"'"<<spacer;
                                     break;
             case QVariant::Char:
@@ -388,6 +394,7 @@ QString RUpdate::sql()
              case QVariant::Date:
              case QVariant::DateTime:
              case QVariant::String:
+             case QVariant::ByteArray:
                                      stream<<spacer<<"'"<<key.value.toString()<<"'"<<spacer;
                                      break;
              default:

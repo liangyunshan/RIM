@@ -100,6 +100,8 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
 /*!
  * @brief 处理用户注册
  * @note 接收用户消息后，若当前列表中无此客户端信息，则认为是注册信息 \n
+ *          [1]:用户登陆后，自动拉取当前用户的离线消息，推送至客户端。
+ *
  *       若当前用户列表中已经存在此客户端信息，则认为是注销信息.
  * @param[in] db 数据库连接
  * @param[in] sockId 网络连接
@@ -112,6 +114,13 @@ void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage
         if((OnlineStatus)tmpClient->getOnLineState() == STATUS_OFFLINE){
             tmpClient->setAccount(QString::number(data.wSourceAddr));
             tmpClient->setOnLineState(STATUS_ONLINE);
+
+            QList<ProtocolPackage> historyMsg;
+            if(RSingleton<SQLProcess>::instance()->loadChat716Cache(db,data.wSourceAddr,historyMsg)){
+                std::for_each(historyMsg.begin(),historyMsg.end(),[&](ProtocolPackage & data){
+                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(sockId,data);
+                });
+            }
         }else{
             tmpClient->setOnLineState(STATUS_OFFLINE);
         }

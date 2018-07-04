@@ -161,6 +161,7 @@ void LocalMsgWrap::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &pack
     auto index = serverCache.find(serverInfo.nodeId);
     if(index != serverCache.end()){
         (*index).second.msgCache.push_back(package);
+        //TODO 20180704 若第一次未连接成功，会造成之后数据就不会主动发起连接请求
     }else{
         ServerCacheInfo cacheInfo;
         cacheInfo.serverInfo = serverInfo;
