@@ -8,6 +8,7 @@
 #include "Network/msgparse/msgparsefactory.h"
 
 #include "../Network/wraprule/tcp_wraprule.h"
+#include "network/wraprule/wraprule.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
@@ -71,17 +72,23 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
-    bool result = false;
-    switch(data.extendData.method){
-        case C_TCP:
-            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-        break;
+    RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
 
-        default:
-            break;
-    }
-    if(result)
-        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
+//    bool result = false;
+//    switch(data.extendData.method){
+//        case C_TCP:
+//            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+//            break;
+
+//        default:
+//            break;
+//    }
+
+//    if(result)
+//    {
+//        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+//    }
 #else
     packData.data = data.data;
     RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);

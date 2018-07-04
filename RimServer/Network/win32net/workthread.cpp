@@ -135,7 +135,7 @@ void WorkThread::handleClose(IocpContext *ioData)
 {
     if(ioData->getClient() != NULL)
     {
-        qDebug()<<"11111111___delete client";
+        qDebug()<<"___delete client___";
         serverSharedData->m_clientManager->remove(ioData->getClient());
         IocpContext::destory(ioData);
     }

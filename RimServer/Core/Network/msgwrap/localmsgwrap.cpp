@@ -12,6 +12,7 @@
 #include "../../thread/netconnector.h"
 #include "rsingleton.h"
 #include "global.h"
+#include <QDebug>
 
 #include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
@@ -101,6 +102,7 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
     SendUnit sUnit;
     sUnit.sockId = sockId;
     sUnit.method = C_NONE;
+    sUnit.dataUnit = package;
     sUnit.localServer = inServer;
 
     //[1]数据内容封装

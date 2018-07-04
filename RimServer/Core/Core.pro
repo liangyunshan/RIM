@@ -59,6 +59,7 @@ SOURCES += main.cpp\
     Network/wraprule/qdb61a_wraprule.cpp \
     Network/wraprule/qdb495_wraprule.cpp \
     Network/wraprule/qdb2051_wraprule.cpp \
+    Network/wraprule/qdb2048_wraprule.cpp \
     Network/wraprule/tcp_wraprule.cpp \
     Network/wraprule/TK205_WrapRule.cpp \
     Network/wraprule/udp_wraprule.cpp \
@@ -77,6 +78,7 @@ SOURCES += main.cpp\
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/data716process.cpp \
     thread/netconnector.cpp
+
 HEADERS  += widget.h \
     rsingleton.h \
     constants.h \
@@ -98,6 +100,7 @@ HEADERS  += widget.h \
     Network/wraprule/qdb61a_wraprule.h \
     Network/wraprule/qdb495_wraprule.h \
     Network/wraprule/qdb2051_wraprule.h \
+    Network/wraprule/qdb2048_wraprule.h \
     Network/wraprule/tcp_wraprule.h \
     Network/wraprule/tk205_wraprule.h \
     Network/wraprule/udp_wraprule.h \

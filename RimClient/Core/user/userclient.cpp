@@ -147,13 +147,23 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
 {
     switch(reply.applyType)
     {
-        case APPLY_SYSTEM:
-             {
+    case APPLY_SYSTEM:
+        {
 
-             }
-             break;
-        default:
-            break;
+        }
+        break;
+    case APPLY_CONFIRM:
+        {
+
+        }
+        break;
+    case APPLY_RECEIPT:
+        {
+
+        }
+        break;
+    default:
+        break;
     }
 }
 

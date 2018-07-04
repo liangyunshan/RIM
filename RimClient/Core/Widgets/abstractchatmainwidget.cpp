@@ -486,7 +486,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;
     request->type = OperatePerson;
-    request->textId = RUtil::UUID();
 
     if(G_User->systemSettings()->encryptionCheck){
         //TODO 数据加密
@@ -508,6 +507,19 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->sendData = t_sendHtml;     //FIXME LYS-20180608
     request->sendData = d->chatInputArea->toPlainText();
     request->timeStamp = RUtil::timeStamp();
+
+#ifdef __LOCAL_CONTACT__
+    QDateTime datetime = QDateTime::currentDateTime();
+    unsigned short uid = datetime.date().year()+datetime.date().month()+datetime.date().day();
+    uid += datetime.time().hour() + datetime.time().minute() +datetime.time().second();
+    uid += datetime.time().msec();
+    uid += request->accountId.toUInt();
+    uid += request->otherSideId.toUInt();
+    request->textId = QString::number(uid);
+#else
+    request->textId = RUtil::UUID();
+#endif
+
 #ifdef __LOCAL_CONTACT__
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else
@@ -696,7 +708,6 @@ void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
 //716-TK收到UDP
 void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 {
-//    appendMsgRecord(msgUnit,RECV);
     MQ_D(AbstractChatMainWidget);
     QString recvdata(data);
 
@@ -816,6 +827,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(SEND).arg(t_localHtml).arg(t_headPath);
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 

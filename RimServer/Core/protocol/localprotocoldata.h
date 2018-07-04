@@ -40,6 +40,18 @@ struct QDB2051_Head{
 };//信息类别号为2051的文本信息
 }
 
+namespace QDB2048{
+struct QDB2048_Head{
+    unsigned long ulPackageLen;
+    unsigned short usDestSiteNo;
+    unsigned long ulDestDeviceNo;
+    unsigned short usSerialNo;
+    unsigned short usOrderNo;
+                                    //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
+};//信息类别号为2048的文本信息
+#define QDB2048_Head_Length sizeof(QDB2048_Head)
+}
+
 namespace QDB205{
 
 struct TK205_SendPackage{

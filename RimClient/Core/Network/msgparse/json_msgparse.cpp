@@ -1,5 +1,7 @@
 ﻿#include "json_msgparse.h"
 
+#ifndef __LOCAL_CONTACT__
+
 #include <QJsonDocument>
 #include <memory>
 
@@ -121,3 +123,5 @@ void Json_MsgParse::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
             break;
     }
 }
+
+#endif

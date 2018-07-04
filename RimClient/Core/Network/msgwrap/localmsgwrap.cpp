@@ -42,7 +42,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wSourceAddr = textRequest->accountId.toInt();
                 package.wDestAddr = textRequest->otherSideId.toInt();
                 package.data = textRequest->sendData.toLocal8Bit();
-                package.bPackType = T_DATA_NOAFFIRM;
+                package.bPackType = T_DATA_AFFIRM;
+                package.bPeserve = 0;
+                package.usSerialNo = textRequest->textId.toInt();
+                package.usOrderNo = O_2051;
 
                 method = C_TongKong ;
                 format = M_495 ;
@@ -57,6 +60,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 package.wSourceAddr = textRequest->accountId.toInt();
                 package.wDestAddr = textRequest->accountId.toInt();
                 package.bPackType = T_DATA_NOAFFIRM;
+                package.bPeserve = 0X80;
 
                 method = C_TongKong ;
                 format = M_495 ;
@@ -68,9 +72,12 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             DataPackType *dataPackType = dynamic_cast<DataPackType *>(packet);
             if(dataPackType)
             {
-                package.wSourceAddr = dataPackType->accountId.toInt();
-                package.wDestAddr = dataPackType->accountId.toInt();
-                package.bPackType = T_DATA_REG;
+                package.wSourceAddr = dataPackType->sourceId.toInt();
+                package.wDestAddr = dataPackType->destId.toInt();
+                package.bPackType = dataPackType->extendData.type495;
+                package.usOrderNo = dataPackType->extendData.usOrderNo;
+                package.usSerialNo = dataPackType->extendData.usSerialNo;
+                package.bPeserve = 0X80;
 
                 method = C_TongKong ;
                 format = M_495 ;
