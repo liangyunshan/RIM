@@ -1,13 +1,15 @@
 ﻿#include "data716process.h"
 
+#include <QDebug>
+
 #include "../msgwrap/localmsgwrap.h"
 #include "rsingleton.h"
 #include "Network/connection/tcpclient.h"
 #include "Network/connection/seriesconnection.h"
 #include "../../protocol/datastruct.h"
+#include "../../sql/sqlprocess.h"
 #include "global.h"
 using namespace ParameterSettings;
-
 using namespace ServerNetwork;
 
 #ifdef __LOCAL_CONTACT__
@@ -58,7 +60,7 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
                     RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
                 });
             }else{
-                //TODO 20180628 存储至离线数据库
+                RSingleton<SQLProcess>::instance()->saveChat716Cache(db,data);
             }
         }
     }else{
@@ -74,10 +76,11 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
                     if(destClient && ((OnlineStatus)destClient->getOnLineState() == STATUS_ONLINE)){
                         RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
                     }else{
-                        //TODO 20180628 存储离线数据库
+                        RSingleton<SQLProcess>::instance()->saveChat716Cache(db,data);
                     }
                 }else{
                     std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+
                     if(conn.get() != nullptr){
                         RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
                     }else{

@@ -240,6 +240,23 @@ public:
     const QString filePath;                 /*!< 文件存储的路径，后期可动态调整 */
 };
 
+#ifdef __LOCAL_CONTACT__
+class RChat716Cache
+{
+public:
+    RChat716Cache();
+    const QString table;
+    const QString sourceAddr;               /*!< 源节点号 */
+    const QString destAddr;                 /*!< 目的节点号 */
+    const QString packType;                 /*!< 报文类型 */
+    const QString reserve;                  /*!< 495保留字，用于扩展内部状态控制 */
+    const QString fileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
+    const QString fileName;                 /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
+    const QString data;                     /*!< 正文内容 */
+};
+
+#endif
+
 }
 
 /*!

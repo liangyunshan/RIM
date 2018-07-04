@@ -127,7 +127,6 @@ void WorkThread::handleSend(IocpContext *ioData)
 {
     if(ioData->getClient() != NULL)
     {
-//        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"delete:"<<ioData->getClient()->socket();
         IocpContext::destory(ioData);
     }
 }

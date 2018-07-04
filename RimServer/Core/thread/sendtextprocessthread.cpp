@@ -8,6 +8,7 @@
 #include "Network/connection/tcpclient.h"
 #include "Network/win32net/iocpcontext.h"
 #include "Network/win32net/tcpserver.h"
+#include "../Network/connection/seriesconnection.h"
 #include "Util/rlog.h"
 
 #include "Network/multitransmits/tcptransmit.h"
@@ -58,7 +59,12 @@ void SendTextProcessThread::run()
             G_SendMutex.unlock();
 
             if(!handleDataSend(sockData)){
-                //TODO 20180702 对错误处理,若为服务器连接，则需要从SeriesConnectionManager移除对应的连接
+                if(sockData.localServer){
+
+                }else{
+                    //20180702 对错误处理,若为服务器连接，则需要从SeriesConnectionManager移除对应的连接
+                    SeriesConnectionManager::instance()->remove(sockData.sockId);
+                }
             }
         }
     }

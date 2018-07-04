@@ -89,6 +89,10 @@ public:
     QStringList getGroupListByUserId(Database * db,const QString id);
     QStringList getGroupListByUserAccountId(Database * db,const QString id);
 
+#ifdef __LOCAL_CONTACT__
+    bool saveChat716Cache(Database * db,ProtocolPackage & packageData);
+#endif
+
 private:
     QStringList getGroupsById(Database * db,const QString id);
 };
