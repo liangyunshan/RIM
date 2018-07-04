@@ -2012,6 +2012,11 @@ bool SQLProcess::saveChat716Cache(Database *db, ProtocolPackage &packageData)
     rpc.insert(chatCache.fileName,packageData.cFilename);
     rpc.insert(chatCache.data,packageData.data);
 
+    rpc.insert(chatCache.serialNo,packageData.usSerialNo);
+    rpc.insert(chatCache.orderNo,packageData.usOrderNo);
+    rpc.insert(chatCache.date,packageData.cDate);
+    rpc.insert(chatCache.time,packageData.cTime);
+
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rpc.sql())){
         return true;
@@ -2046,13 +2051,18 @@ bool SQLProcess::loadChat716Cache(Database *db, unsigned short nodeId, QList<Pro
             package.cFileType = query.value(chatCache.fileType).toInt();
             package.cFilename = query.value(chatCache.fileName).toByteArray();
             package.data = query.value(chatCache.data).toByteArray();
+            package.usSerialNo = query.value(chatCache.serialNo).toString().toUShort();
+            package.usOrderNo = query.value(chatCache.orderNo).toString().toUShort();
+            package.cDate = query.value(chatCache.date).toInt();
+            package.cTime = query.value(chatCache.time).toInt();
             historyResult.push_back(package);
         }
 
         if(historyResult.size() > 0){
             RDelete rdl(chatCache.table);
             rdl.createCriteria()
-                    .add(Restrictions(chatCache.table,chatCache.destAddr,nodeId));
+                    .add(Restrictions::eq(chatCache.table,chatCache.destAddr,nodeId));
+            qDebug()<<rdl.sql();
             if(query.exec(rdl.sql())){
                 return true;
             }

@@ -60,7 +60,10 @@ void FileReceiveProcTask::run()
 
             if(array.data.size() > 0)
             {
-                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(array);
+                //TODO 20180704 未加入对716协议的解析
+                ProtocolPackage package;
+                package.data = array.data;
+                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(package);
             }
         }
     }

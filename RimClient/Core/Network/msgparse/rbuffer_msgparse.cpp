@@ -8,23 +8,6 @@ RBuffer_MsgParse::RBuffer_MsgParse()
 
 }
 
-#ifdef __LOCAL_CONTACT__
-void RBuffer_MsgParse::processData(const RecvUnit &unit)
-{
-    RBuffer buffer(unit.data);
-    int type;
-    if(!buffer.read(type))
-        return;
-    if((int)type == MSG_FILE)
-    {
-        int msgCommand;
-        if(!buffer.read(msgCommand))
-            return;
-        handleFileMsg((MsgCommand)msgCommand,buffer);
-    }
-}
-
-#else
 void RBuffer_MsgParse::processData(const ProtocolPackage &recvData)
 {
     RBuffer buffer(recvData.data);
@@ -39,7 +22,6 @@ void RBuffer_MsgParse::processData(const ProtocolPackage &recvData)
         handleFileMsg((MsgCommand)msgCommand,buffer);
     }
 }
-#endif
 
 void RBuffer_MsgParse::handleFileMsg(MsgCommand commandType, RBuffer &obj)
 {
