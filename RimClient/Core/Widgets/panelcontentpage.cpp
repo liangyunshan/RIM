@@ -3,7 +3,7 @@
 #include <QHBoxLayout>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "constants.h"
 
 class PanelContentPagePrivate : public GlobalData<PanelContentPage>

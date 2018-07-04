@@ -5,7 +5,7 @@
 #include <QTimer>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 #include "Util/rutil.h"
 
 RTextLabel::RTextLabel(QWidget * parent):QLabel(parent)

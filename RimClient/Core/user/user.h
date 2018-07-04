@@ -19,10 +19,10 @@
 class QSettings;
 class Database;
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class User
 {

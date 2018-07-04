@@ -1,7 +1,5 @@
 ﻿#include "application.h"
 
-#include <QDebug>
-
 #include "messdiapatch.h"
 
 Application::Application(int &argc, char **argv):

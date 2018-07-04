@@ -14,7 +14,7 @@
 #include <QString>
 
 #include "database.h"
-#include "datastruct.h"
+#include "protocol/datastruct.h"
 
 class DatabaseManager
 {

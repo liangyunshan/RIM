@@ -22,7 +22,7 @@
 
 #include "widget.h"
 #include "observer.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class LoginDialogPrivate;
@@ -90,6 +90,9 @@ private:
     void resetDefaultInput();
     void resetDefaultPixmap();
     void enableInput(bool flag);
+
+    //95
+    //
 
 private:
     LoginDialogPrivate * d_ptr;

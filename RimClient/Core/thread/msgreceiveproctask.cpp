@@ -1,12 +1,14 @@
 ﻿#include "msgreceiveproctask.h"
 
-#include <QJsonDocument>
-
 #include "network/netglobal.h"
-#include "dataprocess.h"
 #include "rsingleton.h"
 #include "head.h"
 #include "jsonkey.h"
+#include "messdiapatch.h"
+#include "Network/msgparse/msgparsefactory.h"
+
+#include "../Network/wraprule/tcp_wraprule.h"
+#include "network/wraprule/wraprule.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
@@ -32,7 +34,7 @@ void MsgReceiveProcTask::startMe()
     }
     else
     {
-        G_TextRecvCondition.wakeOne();
+        G_TextRecvCondition.notify_one();
     }
 }
 
@@ -40,20 +42,20 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(runningFlag && G_TextRecvBuffs.isEmpty())
+        while(runningFlag && G_TextRecvBuffs.empty())
         {
-            G_TextRecvMutex.lock();
-            G_TextRecvCondition.wait(&G_TextRecvMutex);
-            G_TextRecvMutex.unlock();
+            std::unique_lock<std::mutex> ul(G_TextRecvMutex);
+            G_TextRecvCondition.wait(ul);
         }
 
         if(runningFlag && G_TextRecvBuffs.size() > 0)
         {
             G_TextRecvMutex.lock();
-            QByteArray array = G_TextRecvBuffs.dequeue();
+            RecvUnit array = G_TextRecvBuffs.front();
+            G_TextRecvBuffs.pop();
             G_TextRecvMutex.unlock();
 
-            if(array.size() > 0)
+            if(array.data.size() > 0)
             {
                 validateRecvData(array);
             }
@@ -61,112 +63,42 @@ void MsgReceiveProcTask::run()
     }
 }
 
-void MsgReceiveProcTask::validateRecvData(const QByteArray &data)
-{
-    QJsonDocument document = QJsonDocument::fromJson(data,&jsonParseError);
-    if(jsonParseError.error == QJsonParseError::NoError)
-    {
-        QJsonObject root = document.object();
-#ifndef __NO_SQL_PRINT__
-        qDebug()<<document.toJson(QJsonDocument::Indented);
-#endif
-        switch(root.value(JsonKey::key(JsonKey::Type)).toInt())
-        {
-            case MSG_CONTROL:
-                handleCommandMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
-                break;
-            case MSG_TEXT:
-                handleTextMsg((MsgCommand)root.value(JsonKey::key(JsonKey::Command)).toInt(),root);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 /*!
-     * @brief 处理命令消息
-     * @param[in] commandType 命令类型
-     * @param[in] obj 数据主体
-     * @return 无
-     */
-void MsgReceiveProcTask::handleCommandMsg(MsgCommand commandType, QJsonObject &obj)
+ * @brief 向窗口的工具栏中插入工具按钮，默认是自左向右排列
+ * @param[in] toolButton 待插入的工具按钮
+ * @return 是否插入成功
+ */
+void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
-    switch(commandType)
-    {
-        case MSG_USER_REGISTER:
-                RSingleton<DataProcess>::instance()->proRegistResponse(obj);
-                break;
-        case MSG_USER_LOGIN:
-                RSingleton<DataProcess>::instance()->proLoginResponse(obj);
-                break;
-        case MSG_USER_UPDATE_INFO:
-                RSingleton<DataProcess>::instance()->proUpdateBaseInfoResponse(obj);
-                break;
-        case MSG_USER_STATE:
-                RSingleton<DataProcess>::instance()->proUserStateChanged(obj);
-                break;
-        case MSG_RELATION_SEARCH:
-                RSingleton<DataProcess>::instance()->proSearchFriendResponse(obj);
-                break;
-        case MSG_REALTION_ADD:
-                RSingleton<DataProcess>::instance()->proAddFriendResponse(obj);
-                break;
-        case MSG_RELATION_OPERATE:
-                RSingleton<DataProcess>::instance()->proOperateFriendResponse(obj);
-                break;
-        case MSG_RELATION_LIST:
-                RSingleton<DataProcess>::instance()->proFriendListResponse(obj);
-                break;
-        case MSG_GROUPING_OPERATE:
-                RSingleton<DataProcess>::instance()->proGroupingOperateResponse(obj);
-                break;
-        case MSG_RELATION_GROUPING_FRIEND:
-                RSingleton<DataProcess>::instance()->proGroupingFriendResponse(obj);
-                break;
-        case MSG_GROUP_LIST:
-                RSingleton<DataProcess>::instance()->proGroupListResponse(obj);
-                break;
-        case MSG_GROUP_CREATE:
-                RSingleton<DataProcess>::instance()->proRegistGroupResponse(obj);
-                break;
-        case MSG_GROUP_SEARCH:
-                RSingleton<DataProcess>::instance()->proSearchGroupResponse(obj);
-                break;
-        case MSG_GROUP_OPERATE:
-                RSingleton<DataProcess>::instance()->proOpreateGroupResponse(obj);
-                break;
-        case MSG_GROUP_COMMAND:
-                RSingleton<DataProcess>::instance()->proGroupCommandResponse(obj);
-                break;
-        default:break;
-    };
-}
+    ProtocolPackage packData;
+#ifdef __LOCAL_CONTACT__
+    RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
 
-void MsgReceiveProcTask::handleTextMsg(MsgCommand commandType, QJsonObject &obj)
-{
-    switch(commandType)
-    {
-        case MSG_TEXT_TEXT:
-        case MSG_TEXT_SHAKE:
-        case MSG_TEXT_AUDIO:
-        case MSG_TEXT_FILE:
-        case MSG_TEXT_IMAGE:
-            RSingleton<DataProcess>::instance()->proText(obj);
-            break;
+//    bool result = false;
+//    switch(data.extendData.method){
+//        case C_TCP:
+//            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+//            break;
 
-        case MSG_TEXT_APPLY:
-            RSingleton<DataProcess>::instance()->proTextApply(obj);
-            break;
+//        default:
+//            break;
+//    }
 
-        default:
-            break;
-    }
+//    if(result)
+//    {
+//        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(data);
+//    }
+#else
+    packData.data = data.data;
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
+#endif
+
 }
 
 void MsgReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_TextRecvCondition.wakeOne();
+    G_TextRecvCondition.notify_one();
 }

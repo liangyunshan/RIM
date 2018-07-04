@@ -1,13 +1,7 @@
-﻿///////////////////////////////
-// http://mingcn.cnblogs.com //
-//  xelz CopyRight (c) 2010  //
-///////////////////////////////
-
-#include "string.h"
+﻿#include "string.h"
 #include "AES.h"
-#include <QDebug>
 
-qint64 num = 0;
+int num = 0;
 
 AES::AES(unsigned char* key)
 {

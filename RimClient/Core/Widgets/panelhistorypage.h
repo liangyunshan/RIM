@@ -19,7 +19,7 @@
 
 #include <QWidget>
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class PanelHistoryPagePrivate;
 class ToolItem;

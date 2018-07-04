@@ -3,11 +3,11 @@
 #include <QtGlobal>
 #include <QDebug>
 
-#ifdef Q_OS_WIN
-#include <winsock2.h>
+#ifdef WIN32
+#include <WinSock2.h>
 #include <windows.h>
 typedef  int socklen_t;
-#elif defined(Q_OS_UNIX)
+#elif defined(LINUX)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -32,9 +32,20 @@ RSocket::RSocket()
     memset(socketIp,0,sizeof(socketIp));
 }
 
-bool RSocket::createSocket()
+RSocket::~RSocket()
 {
-#ifdef Q_OS_WIN
+    qDebug()<<"delete socket";
+}
+
+/*!
+ * @brief 创建socket
+ * @note  参数的取值为SOCK_STREAM(1)、SOCK_DGRAM(2)、SOCK_RAW(3)
+ * @param[in] int socket创建类型，默认为SOCK_STREAM
+ * @return 是否创建成功
+ */
+bool RSocket::createSocket(int type)
+{
+#ifdef WIN32
     static bool isInit = false;
     if(!isInit)
     {
@@ -48,7 +59,7 @@ bool RSocket::createSocket()
     }
 #endif
 
-    tcpSocket = socket(AF_INET,SOCK_STREAM,0);
+    tcpSocket = socket(AF_INET,type,0);
     if(tcpSocket == INVALID_SOCKET)
     {
         errorCode = WSAGetLastError();
@@ -126,10 +137,10 @@ bool RSocket::closeSocket()
 }
 
 /*!
-     * @brief 作为server端接收客户端连接
-     * @param[in] 无
-     * @return 返回接收的socket描述信息
-     */
+ * @brief 作为server端接收客户端连接
+ * @param[in] 无
+ * @return 返回接收的socket描述信息
+ */
 RSocket RSocket::accept()
 {
     RSocket tmpSocket;
@@ -157,11 +168,11 @@ RSocket RSocket::accept()
 }
 
 /*!
-     * @brief 接收数据，并将结果保存至缓冲区
-     * @param[out] buff 保存并返回接收的数据
-     * @param[in] length 缓冲区数据长度
-     * @return 实际接收数据的长度
-     */
+ * @brief 接收数据，并将结果保存至缓冲区
+ * @param[out] buff 保存并返回接收的数据
+ * @param[in] length 缓冲区数据长度
+ * @return 实际接收数据的长度
+ */
 int RSocket::recv(char *buff, int length)
 {
     if(!isValid() || buff == NULL){
@@ -177,11 +188,11 @@ int RSocket::recv(char *buff, int length)
 }
 
 /*!
-     * @brief 发送一定长度多少护具
-     * @param[in] buff 待发送数据的缓冲区
-     * @param[in] length 待发送的长度
-     * @return 是否发送成功
-     */
+ * @brief 发送一定长度多少护具
+ * @param[in] buff 待发送数据的缓冲区
+ * @param[in] length 待发送的长度
+ * @return 是否发送成功
+ */
 int RSocket::send(const char *buff, const int length)
 {
     if(!isValid() || buff == NULL)

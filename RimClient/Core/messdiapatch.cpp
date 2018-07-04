@@ -144,6 +144,11 @@ void MessDiapatch::onAddHistoryItem(HistoryChatRecord &record)
     emit createHisotryItem(record);
 }
 
+void MessDiapatch::onTransmitsInitialError(QString errorMsg)
+{
+    emit transmitsInitialError(errorMsg);
+}
+
 void MessDiapatch::onTextConnected(bool flag)
 {
     emit textConnected(flag);

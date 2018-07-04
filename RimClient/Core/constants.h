@@ -76,8 +76,13 @@ const char SETTING_TRAYICON[] = "TrayIcon";
 const char SYSTEM_NETWORK[] = "network";
 const char SYSTEM_NETWORK_TEXT_IP[] = "textip";
 const char SYSTEM_NETWORK_TEXT_PORT[] = "textport";
+#ifdef __LOCAL_CONTACT__
+const char SYSTEM_NETWORK_TANDEM_IP1[] = "tandemip1";
+const char SYSTEM_NETWORK_TANDEM_PORT1[] = "tandemport1";
+#else
 const char SYSTEM_NETWORK_FILE_IP[] = "fileip";
 const char SYSTEM_NETWORK_FILE_PORT[] = "fileport";
+#endif
 
 const char SYSTEM_DB[] = "database";
 const char SYSTEM_DB_TYPE[] = "type";
@@ -176,6 +181,8 @@ const char TOOL_PANEL_ADDPERSON[] = "Tool_Panel_AddPerson";
 const char TOOL_PANEL_NOTIFY[] = "Tool_Panel_Notify";
 const char TOOL_PANEL_FILESERVER[] = "Tool_Panel_FILE_SERVER_OK";
 const char TOOL_PANEL_FILESERVER_ERROR[] = "Tool_Panel_FILE_SERVER_ERROR";
+const char TOOL_PANEL_NETWORK[] = "Tool_Panel_Network_OK";
+const char TOOL_PANEL_NETWORK_ERROR[] = "Tool_Panel_Network_ERROR";
 
 const char Tool_Chat_Call[] = "Tool_Chat_Call";
 const char Tool_Chat_Min[] = "Tool_Chat_Min";
@@ -244,6 +251,12 @@ const char MENU_CHAT_SCREEN_SHOT[] = "Menu.Chat.Screen.Shot";                   
 
 const char ACTION_CHAT_SCREEN_SHOT[] = "Action_Chat_Screen_Shot";                               //截图
 const char ACTION_CHAT_SCREEN_HIDEWIDOW[] = "Action_Chat_Screen_HideWindow";                    //截图隐藏当前窗口
+
+const char MENU_PANEL_BOTTOM_SETTING[] = "Menu.Panel.Bottom.Setting";                           //主面板底部菜单栏
+const char ACTION_PANEL_BOTTOM_GENERAL[] = "Action.Panel.Bottom.GeneralSetting";                //通用设置
+const char ACTION_PANEL_BOTTOM_NETSETTING[] = "Action.Panel.Bottom.NetSetting";                 //网络设置
+
+const char MENU_PANEL_BOTTOM_NETCONNECTOR[] = "Menu.Panel.Bottom.NetConnector";                 //网络连接器
 
 }
 

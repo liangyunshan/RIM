@@ -13,7 +13,7 @@
 #include <QDebug>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 #define CHAT_Font_MAX_HEIGHT 30
 
@@ -313,7 +313,7 @@ void SetFontWidget::setDefault()
     d->systemFont->setVisible(true);
     d->personalFont->setVisible(false);
     QFont defaultFont;
-    defaultFont.setPixelSize(9);
+    defaultFont.setPixelSize(14);
     emit fontChanged(defaultFont);
 
 }

@@ -21,8 +21,9 @@ class NETWORKSHARED_EXPORT  RSocket
 {
 public:
     RSocket();
+    ~RSocket();
 
-    bool createSocket();
+    bool createSocket(int type = 1);
     bool closeSocket();
     bool bind(const char * ip,unsigned short port);
     bool listen();

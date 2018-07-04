@@ -37,6 +37,8 @@ public:
     bool setBlock(bool flag);
     bool isBock(){return blockAble;}
 
+    int setSockopt(int optname,const char * optval,int optlen);
+
     bool isValid(){return socketValid;}
 
     int getLastError();

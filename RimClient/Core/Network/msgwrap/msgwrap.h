@@ -2,10 +2,10 @@
 #define MSGWRAP_H
 
 #ifdef __LOCAL_CONTACT__
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
 #else
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 #endif
 

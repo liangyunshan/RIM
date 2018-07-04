@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += sql
+QT       += xml
 
 CONFIG+= console
 
@@ -13,6 +14,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = RimServer
 TEMPLATE = app
+
+#读取本地联系人列表，为了解决并需求变动带来的冲突问题
+DEFINES += __LOCAL_CONTACT__
 
 RC_ICONS += $${TARGET}.ico
 
@@ -42,16 +46,38 @@ SOURCES += main.cpp\
     sql/database.cpp \
     sql/datatable.cpp \
     thread/recvtextprocessthread.cpp \
-    protocoldata.cpp \
-    thread/dataparse.cpp \
-    thread/dataprocess.cpp \
-    Network/msgwrap.cpp \
     thread/sendtextprocessthread.cpp \
     jsonkey.cpp \
     sql/rpersistence.cpp \
-    datastruct.cpp \
     global.cpp \
-    sql/autotransaction.cpp
+    sql/autotransaction.cpp \
+    file/xmlparse.cpp \
+    Network/msgwrap/binary_wrapformat.cpp \
+    Network/msgwrap/json_wrapformat.cpp \
+    Network/msgwrap/msgwrap.cpp \
+    Network/wraprule/qdb21_wraprule.cpp \
+    Network/wraprule/qdb61a_wraprule.cpp \
+    Network/wraprule/qdb495_wraprule.cpp \
+    Network/wraprule/qdb2051_wraprule.cpp \
+    Network/wraprule/qdb2048_wraprule.cpp \
+    Network/wraprule/tcp_wraprule.cpp \
+    Network/wraprule/TK205_WrapRule.cpp \
+    Network/wraprule/udp_wraprule.cpp \
+    Network/msgparse/dataparse.cpp \
+    Network/msgparse/json_msgparse.cpp \
+    Network/msgparse/msgparsefactory.cpp \
+    protocol/datastruct.cpp \
+    protocol/localprotocoldata.cpp \
+    protocol/protocoldata.cpp \
+    Network/msgprocess/dataprocess.cpp \
+    Network/msgwrap/wrapformat.cpp \
+    Network/msgwrap/basemsgwrap.cpp \
+    Network/msgwrap/wrapfactory.cpp \
+    Network/msgwrap/localmsgwrap.cpp \
+    Network/msgwrap/binary716_wrapfromat.cpp \
+    Network/msgparse/binary716_msgparse.cpp \
+    Network/msgprocess/data716process.cpp \
+    thread/netconnector.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -61,16 +87,38 @@ HEADERS  += widget.h \
     sql/database.h \
     sql/datatable.h \
     thread/recvtextprocessthread.h \
-    protocoldata.h \
-    thread/dataparse.h \
-    thread/dataprocess.h \
-    Network/msgwrap.h \
     thread/sendtextprocessthread.h \
     jsonkey.h \
     sql/rpersistence.h \
-    datastruct.h \
     global.h \
-    sql/autotransaction.h
+    sql/autotransaction.h \
+    file/xmlparse.h \
+    Network/msgwrap/binary_wrapformat.h \
+    Network/msgwrap/json_wrapformat.h \
+    Network/msgwrap/msgwrap.h \
+    Network/wraprule/qdb21_wraprule.h \
+    Network/wraprule/qdb61a_wraprule.h \
+    Network/wraprule/qdb495_wraprule.h \
+    Network/wraprule/qdb2051_wraprule.h \
+    Network/wraprule/qdb2048_wraprule.h \
+    Network/wraprule/tcp_wraprule.h \
+    Network/wraprule/tk205_wraprule.h \
+    Network/wraprule/udp_wraprule.h \
+    Network/msgparse/dataparse.h \
+    Network/msgparse/json_msgparse.h \
+    Network/msgparse/msgparsefactory.h \
+    protocol/datastruct.h \
+    protocol/localprotocoldata.h \
+    protocol/protocoldata.h \
+    Network/msgprocess/dataprocess.h \
+    Network/msgwrap/wrapformat.h \
+    Network/msgwrap/basemsgwrap.h \
+    Network/msgwrap/wrapfactory.h \
+    Network/msgwrap/localmsgwrap.h \
+    Network/msgwrap/binary716_wrapfromat.h \
+    Network/msgparse/binary716_msgparse.h \
+    Network/msgprocess/data716process.h \
+    thread/netconnector.h
 
 FORMS    += widget.ui
 

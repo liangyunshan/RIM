@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 
 #include "jsonkey.h"
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 
 Json_WrapFormat::Json_WrapFormat():WrapFormat()
 {
@@ -298,6 +298,8 @@ void Json_WrapFormat::wrappedPack(MsgPacket *packet,QJsonObject & data,QByteArra
     document.setObject(obj);
     result = document.toJson(QJsonDocument::Compact);
 
-    if(packet->isAutoDelete)
-        delete packet;
+    if(packet->isAutoDelete){
+
+    }
+//        delete packet;
 }

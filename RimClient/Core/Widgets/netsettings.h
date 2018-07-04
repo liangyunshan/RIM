@@ -16,7 +16,7 @@
 class QSettings;
 class NetSettingsPrivate;
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class NetSettings : public Widget
@@ -28,6 +28,10 @@ public:
     ~NetSettings();
 
     void initLocalSettings();
+    void enableMoveable(bool flag);
+
+signals:
+    void ipInfoUpdated();
 
 private slots:
     void updateSettings();

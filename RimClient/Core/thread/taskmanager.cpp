@@ -17,11 +17,12 @@ void TaskManager::initTask()
 {
     if(tasks.size() > 0 )
         removeAll();
-#ifndef __LOCAL_CONTACT__
-    addTask(TEXT_NET_CONC,shared_ptr<ClientNetwork::RTask>(new TextNetConnector()));
-    addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
 
+    addTask(TEXT_NET_CONC,shared_ptr<ClientNetwork::RTask>(new TextNetConnector()));
     addTask(MSG_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new MsgReceiveProcTask()));
+
+#ifndef __LOCAL_CONTACT__
+    addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
     addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
     addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
 #endif

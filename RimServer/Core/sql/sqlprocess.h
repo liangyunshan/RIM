@@ -17,10 +17,10 @@
 #ifndef SQLPROCESS_H
 #define SQLPROCESS_H
 
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 using namespace ProtocolType;
 
-#include "Network/tcpclient.h"
+#include "Network/connection/tcpclient.h"
 
 namespace Datastruct
 {
@@ -88,6 +88,11 @@ public:
     QString getDefaultGroupByUserAccountId(Database * db,OperateType type,const QString id);
     QStringList getGroupListByUserId(Database * db,const QString id);
     QStringList getGroupListByUserAccountId(Database * db,const QString id);
+
+#ifdef __LOCAL_CONTACT__
+    bool saveChat716Cache(Database * db,ProtocolPackage & packageData);
+    bool loadChat716Cache(Database * db,unsigned short nodeId,QList<ProtocolPackage> & historyResult);
+#endif
 
 private:
     QStringList getGroupsById(Database * db,const QString id);

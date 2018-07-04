@@ -16,7 +16,7 @@
 #include <QWidget>
 
 #include "observer.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 struct ChatInfoUnit;
 class RToolButton;
@@ -90,6 +90,7 @@ private slots:
 
     void showQueryRecord(const ChatInfoUnit &);
     void recvTextChatMsg(const TextRequest &msg);
+    void slot_RecvRUDpData(QByteArray data);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;

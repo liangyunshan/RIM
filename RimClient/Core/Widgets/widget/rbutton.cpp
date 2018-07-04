@@ -3,8 +3,8 @@
 #include <QFontMetrics>
 
 #include "head.h"
-#include "datastruct.h"
-#include "constants.h"
+#include "../../protocol/datastruct.h"
+#include "../../constants.h"
 
 #define BUTTON_TEXT_EXTRA_WIDTH     10          //宽度扩展像素
 #define BUTTON_HEIGHT_SCALE_FACTOR  2           //高度倍数因子

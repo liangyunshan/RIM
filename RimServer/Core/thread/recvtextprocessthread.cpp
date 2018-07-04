@@ -1,20 +1,16 @@
 ﻿#include "recvtextprocessthread.h"
 
 #include "Network/netglobal.h"
-#include "Network/win32net/netutils.h"
-#include "Network/tcpclient.h"
-#include "Util/rlog.h"
-#include "dataparse.h"
+#include "Network/msgparse/msgparsefactory.h"
+#include "Network/head.h"
 #include "rsingleton.h"
+#include "Network/connection/tcpclient.h"
 
 #include <QDebug>
 
-
-using namespace ServerNetwork;
-
 RecvTextProcessThread::RecvTextProcessThread()
 {
-
+    runningFlag = true;
 }
 
 void RecvTextProcessThread::setDatabase(Database *db)
@@ -24,27 +20,31 @@ void RecvTextProcessThread::setDatabase(Database *db)
 
 void RecvTextProcessThread::run()
 {
-    while(true)
+    while(runningFlag)
     {
         while(G_RecvButts.size() == 0)
         {
+            G_RecvCondition.wait(std::unique_lock<std::mutex>(G_RecvMutex));
+        }
+
+        if(runningFlag){
+            bool existed = false;
+            RecvUnit sockData;
+
             G_RecvMutex.lock();
-            G_RecvCondition.wait(&G_RecvMutex);
+
+            if(G_RecvButts.size() > 0)
+            {
+               sockData =  G_RecvButts.front();
+               existed = true;
+               G_RecvButts.pop();
+            }
+
             G_RecvMutex.unlock();
+
+            if(existed)
+                RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
+
         }
-
-        SocketInData sockData;
-        int count = 0;
-
-        G_RecvMutex.lock();
-
-        if(G_RecvButts.size() > 0)
-        {
-           sockData =  G_RecvButts.dequeue();
-           count = G_RecvButts.size();
-        }
-
-        G_RecvMutex.unlock();
-        RSingleton<DataParse>::instance()->processData(database,sockData);
     }
 }

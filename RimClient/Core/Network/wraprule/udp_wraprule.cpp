@@ -5,20 +5,23 @@
 #include "qdb61a_wraprule.h"
 #include "tk205_wraprule.h"
 #include "rsingleton.h"
+#include <QByteArray>
 
 UDP_WrapRule::UDP_WrapRule():WrapRule()
 {
 
 }
 
-QByteArray UDP_WrapRule::wrap(const QByteArray &data)
+void UDP_WrapRule::wrap(ProtocolPackage &data)
 {
-    return RSingleton<QDB61A_WrapRule>::instance()->wrap(RSingleton<TK205_WrapRule>::instance()->wrap(data));
+
 }
 
-QByteArray UDP_WrapRule::unwrap(const QByteArray &data)
+bool UDP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    return QByteArray();
+
+    return false;
 }
+
 
 #endif
