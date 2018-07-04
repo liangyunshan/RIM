@@ -62,34 +62,11 @@ void FileReceiveProcTask::run()
 
             if(array.data.size() > 0)
             {
-                validateRecvData(array);
+                //TODO 20180704 未加入对716协议的解析
+                ProtocolPackage package;
+                package.data = array.data;
+                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(package);
             }
         }
     }
-}
-
-void FileReceiveProcTask::validateRecvData(const RecvUnit &data)
-{
-    ProtocolPackage packData;
-#ifdef __LOCAL_CONTACT__
-    bool result = false;
-    switch(data.extendData.method){
-        case C_TCP:
-        {
-            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-            packData.bPackType = data.extendData.type495;
-            packData.bPeserve = data.extendData.bPeserve;;
-        }break;
-        default:
-            break;
-    }
-
-    if(result)
-    {
-        RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(packData);
-    }
-#else
-    packData.data = data.data;
-    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
-#endif
 }

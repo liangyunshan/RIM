@@ -3,7 +3,6 @@
 #include "rsingleton.h"
 #include "../wraprule/tcp_wraprule.h"
 #include "../msgprocess/data716process.h"
-#include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
 
@@ -13,21 +12,17 @@ Binary716_MsgParse::Binary716_MsgParse():
 
 }
 
-/*!
- * @brief 处理网络层接收的数据信息
- * @param[in] data 待处理的是数据单元
- */
-void Binary716_MsgParse::processData(const ProtocolPackage &recvData)
+void Binary716_MsgParse::processData(const ProtocolPackage &packData)
 {
-    switch(recvData.bPackType){
+    switch(packData.bPackType){
         case T_DATA_AFFIRM:
             {
-                RSingleton<Data716Process>::instance()->processTextAffirm(recvData);
+                RSingleton<Data716Process>::instance()->processTextAffirm(packData);
             }
             break;
         case T_DATA_NOAFFIRM:
             {
-                RSingleton<Data716Process>::instance()->processTextNoAffirm(recvData);
+                RSingleton<Data716Process>::instance()->processTextNoAffirm(packData);
             }
             break;
         case T_DATA_REG:

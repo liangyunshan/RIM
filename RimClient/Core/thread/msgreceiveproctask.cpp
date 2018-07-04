@@ -67,14 +67,14 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
+    RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+    packData.bPackType = (unsigned char)data.extendData.type495;
+
     bool result = false;
     switch(data.extendData.method){
         case C_TCP:
-        {
             result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
-            packData.bPackType = data.extendData.type495;
-            packData.bPeserve = data.extendData.bPeserve;;
-        }break;
+            break;
         default:
             break;
     }

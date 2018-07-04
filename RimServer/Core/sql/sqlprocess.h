@@ -91,6 +91,7 @@ public:
 
 #ifdef __LOCAL_CONTACT__
     bool saveChat716Cache(Database * db,ProtocolPackage & packageData);
+    bool loadChat716Cache(Database * db,unsigned short nodeId,QList<ProtocolPackage> & historyResult);
 #endif
 
 private:

@@ -25,9 +25,6 @@ public:
 
 protected:
     void run();
-
-private:
-    void validateRecvData(const RecvUnit &data);
 };
 
 #endif // FILERECEIVEPROCTASK_H

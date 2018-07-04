@@ -12,11 +12,11 @@ public:
     Data716Process();
     void processTextNoAffirm(const ProtocolPackage &data);
     void processTextAffirm(const ProtocolPackage &data);
-    void processTextApply(const ProtocolPackage &data);
+    void processTextApply(ProtocolPackage &data);
 
 private:
     void processText(const ProtocolPackage &data);
-    void ApplyTextStatus(const ProtocolPackage &data);
+    void applyTextStatus(const ProtocolPackage &data);
 };
 
 #endif  //__LOCAL_CONTACT__

@@ -2004,17 +2004,69 @@ bool SQLProcess::saveChat716Cache(Database *db, ProtocolPackage &packageData)
     DataTable::RChat716Cache chatCache;
 
     RPersistence rpc(chatCache.table);
-    rpc.insert({{chatCache.sourceAddr,QString::number(packageData.wSourceAddr)},
-                {chatCache.destAddr,QString::number(packageData.wDestAddr)},
-                {chatCache.packType,packageData.bPackType},
-                {chatCache.reserve,packageData.bPeserve},
-                {chatCache.fileType,packageData.cFileType},
-                {chatCache.fileName,packageData.cFilename},
-                {chatCache.data,packageData.data}});
+    rpc.insert(chatCache.sourceAddr,QString::number(packageData.wSourceAddr));
+    rpc.insert(chatCache.destAddr,QString::number(packageData.wDestAddr));
+    rpc.insert(chatCache.packType,packageData.bPackType);
+    rpc.insert(chatCache.reserve,packageData.bPeserve);
+    rpc.insert(chatCache.fileType,packageData.cFileType);
+    rpc.insert(chatCache.fileName,packageData.cFilename);
+    rpc.insert(chatCache.data,packageData.data);
+
+    rpc.insert(chatCache.serialNo,packageData.usSerialNo);
+    rpc.insert(chatCache.orderNo,packageData.usOrderNo);
+    rpc.insert(chatCache.date,packageData.cDate);
+    rpc.insert(chatCache.time,packageData.cTime);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rpc.sql())){
         return true;
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 加载对应节点的历史信息，加载成功后，【删除对应的历史信息】。
+ * @note 若删除失败，即时加载加载成功，也会返回false，避免数据多次通知客户端。
+ * @param[in] db 数据库连接
+ * @param[in] nodeId 待查询节点号
+ * @param[in] historyResult 加载的历史信息
+ * @return 是否加载成功
+ */
+bool SQLProcess::loadChat716Cache(Database *db, unsigned short nodeId, QList<ProtocolPackage> &historyResult)
+{
+    DataTable::RChat716Cache chatCache;
+    RSelect rst(chatCache.table);
+    rst.createCriteria()
+            .add(Restrictions::eq(chatCache.table,chatCache.destAddr,nodeId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql())){
+        while(query.next()){
+            ProtocolPackage package;
+            package.wSourceAddr = query.value(chatCache.sourceAddr).toString().toUShort();
+            package.wDestAddr = query.value(chatCache.destAddr).toString().toUShort();
+            package.bPackType = query.value(chatCache.packType).toInt();
+            package.bPeserve = query.value(chatCache.reserve).toInt();
+            package.cFileType = query.value(chatCache.fileType).toInt();
+            package.cFilename = query.value(chatCache.fileName).toByteArray();
+            package.data = query.value(chatCache.data).toByteArray();
+            package.usSerialNo = query.value(chatCache.serialNo).toString().toUShort();
+            package.usOrderNo = query.value(chatCache.orderNo).toString().toUShort();
+            package.cDate = query.value(chatCache.date).toInt();
+            package.cTime = query.value(chatCache.time).toInt();
+            historyResult.push_back(package);
+        }
+
+        if(historyResult.size() > 0){
+            RDelete rdl(chatCache.table);
+            rdl.createCriteria()
+                    .add(Restrictions::eq(chatCache.table,chatCache.destAddr,nodeId));
+            qDebug()<<rdl.sql();
+            if(query.exec(rdl.sql())){
+                return true;
+            }
+        }
     }
 
     return false;
