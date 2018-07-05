@@ -2062,7 +2062,6 @@ bool SQLProcess::loadChat716Cache(Database *db, unsigned short nodeId, QList<Pro
             RDelete rdl(chatCache.table);
             rdl.createCriteria()
                     .add(Restrictions::eq(chatCache.table,chatCache.destAddr,nodeId));
-            qDebug()<<rdl.sql();
             if(query.exec(rdl.sql())){
                 return true;
             }
