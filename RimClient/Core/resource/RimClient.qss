@@ -1,4 +1,4 @@
-QWidget#loginBar
+﻿QWidget#loginBar
 {
 	border-image:url(":/background/resource/background/login.png");
 }
@@ -16,5 +16,5 @@ QToolButton
 
 QToolButton:hover
 {  
-	background-color:rgba(119,200,247,150);
-}  
+        background-color:rgba(119,200,247,150);
+}

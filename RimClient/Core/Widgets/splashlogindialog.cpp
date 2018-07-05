@@ -262,7 +262,6 @@ void SplashLoginDialog::initResource()
 void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(SplashLoginDialog);
-    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -294,8 +293,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
                 client->chatPersonWidget->initChatRecord();
             }
-
-//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             client->chatPersonWidget->show();
         }
     }
@@ -389,14 +387,14 @@ void SplashLoginDialog::respTextConnect(bool flag)
         hide();
         d->mainDialog->show();
 
-        DataPackType * request = new DataPackType();
-        request->msgType = MSG_CONTROL;
-        request->msgCommand = MSG_TCP_TRANS;
-        request->extendData.type495 = T_DATA_REG;
-        request->extendData.usOrderNo = O_2051;
-        request->sourceId = G_User->BaseInfo().accountId;
-        request->destId = request->sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,C_TongKong,M_495);
+        DataPackType request;
+        request.msgType = MSG_CONTROL;
+        request.msgCommand = MSG_TCP_TRANS;
+        request.extendData.type495 = T_DATA_REG;
+        request.extendData.usOrderNo = O_2051;
+        request.sourceId = G_User->BaseInfo().accountId;
+        request.destId = request.sourceId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
     }
 
     if(G_User){

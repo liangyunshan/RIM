@@ -6,6 +6,8 @@
 #include "rsingleton.h"
 #include "Network/msgparse/binaryparsefactory.h"
 
+#include "../Network/wraprule/tcp_wraprule.h"
+
 FileReceiveProcTask::FileReceiveProcTask(QObject *parent):
     RTask(parent)
 {

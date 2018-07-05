@@ -59,8 +59,8 @@ protected:
     bool runningFlag;
 
 signals:
-    void C2CResultReady(ChatInfoUnitList &);
-    void GroupResultReady(ChatInfoUnitList &);
+    void C2CResultReady(ChatInfoUnitList);
+    void GroupResultReady(ChatInfoUnitList);
 
 private:
     bool saveC2CTaskMsg(ChatInfoUnit &msgUnit);

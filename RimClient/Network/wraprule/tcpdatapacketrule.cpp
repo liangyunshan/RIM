@@ -71,9 +71,8 @@ bool TCPDataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<int 
  */
 bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler handler)
 {
-    RecvUnit result;
-    result.extendData.method = C_TCP;
-
+    dHandler = handler;
+    bool unwrapResult = false;
     if(lastRecvBuff.size() > 0)
     {
         int tmpBuffLen = lastRecvBuff.size() + length + 1;
@@ -84,24 +83,19 @@ bool TCPDataPacketRule::unwrap(const char *data, const int length, DataHandler h
         memcpy(dataBuff + lastRecvBuff.size(),data,length);
 
         lastRecvBuff.clear();
-        recvData(dataBuff,tmpBuffLen - 1,result);
+        unwrapResult = recvData(dataBuff,tmpBuffLen - 1);
 
         delete[] dataBuff;
     }
     else
     {
-        recvData(data,length,result);
+        unwrapResult = recvData(data,length);
     }
 
-    if(result.data.size() > 0){
-        handler(result);
-        return true;
-    }
-
-    return false;
+    return unwrapResult;
 }
 
-void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & result)
+bool TCPDataPacketRule::recvData(const char * recvData,int recvLen)
 {
     DataPacket packet;
     memset((char *)&packet,0,sizeof(DataPacket));
@@ -122,8 +116,13 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                     //[1.1.1]一包数据
                     if(packet.totalIndex == 1)
                     {
+                        RecvUnit result;
+                        result.extendData.method = C_TCP;
                         result.data.resize(packet.currentLen);
                         memcpy(result.data.data(),recvData + processLen,packet.currentLen);
+                        if(result.data.size() > 0){
+                            dHandler(result);
+                        }
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
@@ -154,8 +153,12 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
                                 {
                                     buff->isCompleted = true;
 
+                                    RecvUnit result;
+                                    result.extendData.method = C_TCP;
                                     result.data.append(buff->getFullData());
-
+                                    if(result.data.size() > 0){
+                                        dHandler(result);
+                                    }
                                     packetBuffs.remove(packet.packId);
                                     delete buff;
                                 }
@@ -203,6 +206,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
             else
             {
                 qDebug()<<"Recv Error Packet";
+                return false;
             }
         }while(processLen <= recvLen);
     }
@@ -211,6 +215,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen,RecvUnit & re
         lastRecvBuff.clear();
         lastRecvBuff.append(recvData,recvLen);
     }
+    return true;
 }
 
 
