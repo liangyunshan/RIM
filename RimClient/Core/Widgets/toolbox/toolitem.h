@@ -21,7 +21,7 @@
 #include <QWidget>
 #include <QEvent>
 
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 
 class QMenu;
 class QLabel;

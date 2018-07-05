@@ -14,7 +14,7 @@
 #include "rsingleton.h"
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
-#include "protocoldata.h"
+#include "protocol/protocoldata.h"
 #include "global.h"
 #include "application.h"
 using namespace ProtocolType;
@@ -25,8 +25,8 @@ using namespace ProtocolType;
 #include "thread/taskmanager.h"
 
 #include "Network/rsocket.h"
-#include "Network/win32net/tcpmsgsender.h"
-#include "Network/win32net/tcpmsgreceive.h"
+#include "Network/win32net/msgsender.h"
+#include "Network/win32net/msgreceive.h"
 
 #include "Widgets/splashlogindialog.h"
 
@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<SearchGroupResponse>("SearchGroupResponse");
     qRegisterMetaType<GroupingChatResponse>("GroupingChatResponse");
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
+    qRegisterMetaType<CommMethod>("CommMethod");
 
     RSingleton<TaskManager>::instance()->initTask();
 #ifndef __LOCAL_CONTACT__

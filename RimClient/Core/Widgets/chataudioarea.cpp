@@ -1,14 +1,13 @@
 ﻿#include "chataudioarea.h"
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QEvent>
 #include <QTimer>
-#include <QDebug>
 
 #include "widget/rbutton.h"
 #include "constants.h"

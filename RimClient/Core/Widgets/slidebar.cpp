@@ -7,7 +7,7 @@
 
 #include "head.h"
 #include "constants.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class SlideBarPrivate : public GlobalData<SlideBar>
 {

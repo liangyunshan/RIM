@@ -20,7 +20,7 @@
 #include <QListWidget>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "toolbar.h"
 #include "constants.h"
 #include "onlinestate.h"
@@ -286,11 +286,11 @@ LoginDialog::LoginDialog(QWidget *parent) :
     d_ptr(new LoginDialogPrivate(this))
 {
     RSingleton<Subject>::instance()->attach(this);
-    //在多屏状态下，默认选择第一个屏幕
-    QSize size = qApp->desktop()->screen()->size();
 
     G_User = nullptr;
 
+    //在多屏状态下，默认选择第一个屏幕
+    QSize size = qApp->desktop()->screen()->size();
     setFixedSize(Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setGeometry((size.width() - Constant::LOGIN_FIX_WIDTH)/2,(size.height() - Constant::LOGIN_FIX_HEIGHT)/2,Constant::LOGIN_FIX_WIDTH,Constant::LOGIN_FIX_HEIGHT);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
@@ -310,6 +310,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(MessDiapatch::instance(),SIGNAL(recvFileControl(SimpleFileItemRequest)),this,SLOT(procUploadFileRequest(SimpleFileItemRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileRequest(FileItemRequest)),this,SLOT(procDownloadFileRequest(FileItemRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvFileData(QString,QString)),this,SLOT(procDownloadFileOver(QString,QString)));
+
     QTimer::singleShot(0, this, SLOT(readLocalUser()));
 }
 
@@ -329,7 +330,7 @@ void LoginDialog::respTextConnect(bool flag)
 
     if(!flag)
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
         LoginRequest * request = new LoginRequest();
@@ -355,7 +356,7 @@ void LoginDialog::respTextSocketError()
         G_User->setTextOnline(false);
     }
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
@@ -366,14 +367,13 @@ void LoginDialog::respFileConnect(bool flag)
     }
     if(flag)
     {
-#ifndef __NO_SERVER__
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"FileServer Connected!!!!";
-#endif
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
     }else{
-        RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+#ifndef __LOCAL_CONTACT__
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.port);
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
+#endif
     }
 }
 
@@ -381,16 +381,19 @@ void LoginDialog::respFileSocketError()
 {
     G_User->setFileOnline(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_FileServerIp.toLocal8Bit().data(),G_FileServerPort);
+#ifndef __LOCAL_CONTACT__
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
+#endif
 }
 
 void LoginDialog::login()
 {
-    MQ_D(LoginDialog);
 #ifndef __NO_SERVER__
+    G_NetSettings.connectedIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
+
 #else
     LoginResponse response;
     recvLoginResponse(LOGIN_SUCCESS, response);
@@ -440,12 +443,12 @@ void LoginDialog::createTrayMenu()
 void LoginDialog::loadLocalSettings()
 {
     RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_TextServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_TextServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
-
-    G_FileServerIp = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_FileServerPort = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
-
+    G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
+    G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
+#ifndef __LOCAL_CONTACT__
+    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
+#endif
     RUtil::globalSettings()->endGroup();
 }
 
@@ -510,6 +513,7 @@ void LoginDialog::readLocalUser()
 
             QListWidgetItem* widgetItem = new QListWidgetItem;
             //需要向Item设置当前基本信息，否则会出现空字符串
+            widgetItem->setText(user->accountId);
             d->userListWidget->addItem(widgetItem);
             d->userListWidget->setItemWidget(widgetItem,item);
         }
@@ -518,6 +522,9 @@ void LoginDialog::readLocalUser()
     {
         resetDefaultInput();
     }
+
+    //初始化传输链路!!!
+    TextNetConnector::instance()->initialize();
 }
 
 /*!
@@ -771,20 +778,21 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         }
 
         //TODO 对文件服务器进行重连、状态显示等操作
+        FileNetConnector::instance()->initialize();
         FileNetConnector::instance()->connect();
 
         G_User->setTextOnline(true);
         G_User->setLogin(true);
 
         if(!baseInfo.isSystemIcon && !QFile(G_User->getFilePath(baseInfo.iconId)).exists() && baseInfo.iconId.size() > 0)
-         {
+        {
              SimpleFileItemRequest * request = new SimpleFileItemRequest;
              request->control = T_REQUEST;
              request->itemType = FILE_ITEM_USER_DOWN;
              request->itemKind = FILE_IMAGE;
              request->fileId = QFileInfo(baseInfo.iconId).baseName();
              FileRecvTask::instance()->addRecvItem(request);
-         }
+        }
 
         if(response.loginType == FIRST_LOGIN){
             setVisible(false);
@@ -865,8 +873,6 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
  */
 void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 {
-    MQ_D(LoginDialog);
-
     if(G_User->systemSettings()->soundAvailable)
         RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaSystem);
 
@@ -889,8 +895,8 @@ void LoginDialog::recvFriendResponse(OperateFriendResponse resp)
 
 void LoginDialog::procRecvText(TextRequest response)
 {
-    MQ_D(LoginDialog);
     UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
+
     if(client)
         client->procRecvContent(response);
 }

@@ -10,16 +10,16 @@ TK205_WrapRule::TK205_WrapRule():
 
 }
 
-QByteArray TK205_WrapRule::wrap(const QByteArray &data)
+void TK205_WrapRule::wrap(ProtocolPackage &data)
 {
 
-    return QByteArray();
 }
 
-QByteArray TK205_WrapRule::unwrap(const QByteArray &data)
+bool TK205_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
 {
-    return QByteArray();
+    return false;
 }
+
 
 #endif
 

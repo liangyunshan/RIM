@@ -17,7 +17,7 @@
 
 #include "Network/rtask.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class FileRecvTask : public ClientNetwork::RTask

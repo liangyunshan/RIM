@@ -13,6 +13,14 @@
 
 #include <QThread>
 
+#include <map>
+#include <memory>
+
+#include "Network/head.h"
+#include "Network/multitransmits/basetransmit.h"
+
+typedef std::shared_ptr<ServerNetwork::BaseTransmit> BaseTransmit_Ptr;
+
 class SendTextProcessThread : public QThread
 {
     Q_OBJECT
@@ -24,8 +32,13 @@ protected:
     void run();
 
 private:
+    void initTransmits();
+    bool handleDataSend(SendUnit &unit);
+
+private:
     bool runningFlag;
 
+    std::map<CommMethod,BaseTransmit_Ptr> transmits;
 };
 
 #endif // SENDTEXTPROCESSTHREAD_H

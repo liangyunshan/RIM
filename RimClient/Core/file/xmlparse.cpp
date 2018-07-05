@@ -5,10 +5,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDomDocument>
-#include <QDebug>
 
 #include "Util/rlog.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 XMLParse::XMLParse(QObject *parent):QObject(parent)
 {
@@ -69,6 +68,104 @@ bool XMLParse::parse(const QString &fileName,ParameterSettings::ParaSettings * p
                     paraSettings->outerNetConfig.push_back(conf);
                 }
            }
+        }else if(childEle.nodeName() == QStringLiteral("通信控制器")){
+           QDomNodeList ips = childEle.elementsByTagName(QStringLiteral("通控器IP"));
+           if(ips.size() == 1)
+               paraSettings->commControl.ip = ips.at(0).toElement().text();
+
+           QDomNodeList ports = childEle.elementsByTagName(QStringLiteral("通控器端口"));
+           if(ports.size() == 1)
+               paraSettings->commControl.port = ports.at(0).toElement().text().toUShort();
+
+           QDomNodeList emulateIps = childEle.elementsByTagName(QStringLiteral("模拟器IP"));
+           if(emulateIps.size() == 1)
+               paraSettings->commControl.emualteIp = emulateIps.at(0).toElement().text();
+
+           QDomNodeList emulatePorts = childEle.elementsByTagName(QStringLiteral("模拟器端口"));
+           if(emulatePorts.size() == 1)
+               paraSettings->commControl.emulatePort = emulatePorts.at(0).toElement().text().toUShort();
+
+           QDomNodeList transmitSettings = childEle.elementsByTagName(QStringLiteral("传输配置"));
+           if(transmitSettings.size() == 1){
+                QDomNodeList childNodes = transmitSettings.at(0).toElement().childNodes();
+                for(int i = 0 ; i < childNodes.size();i++){
+                    QDomElement node = childNodes.at(i).toElement();
+                    if(!node.isNull()){
+                        ParameterSettings::TrasmitSetting settigs;
+                        settigs.nodeId = node.attribute(QStringLiteral("节点号"));
+                        settigs.protocol = node.attribute(QStringLiteral("传输协议"));
+                        settigs.messageFormat = static_cast<ParameterSettings::MessageFormat>(node.attribute(QStringLiteral("报文格式")).toInt());
+                        paraSettings->commControl.transmitSettings.append(settigs);
+                    }
+                }
+           }
+        }else if(childEle.nodeName() == QStringLiteral("网络收发配置")){
+            QDomNodeList netParamSettings = childEle.elementsByTagName(QStringLiteral("网络参数"));
+            if(netParamSettings.size() == 1){
+                QDomElement netParamEle = netParamSettings.at(0).toElement();
+
+                QDomNodeList ports = netParamEle.elementsByTagName(QStringLiteral("收发端口"));
+                if(ports.size() == 1)
+                    paraSettings->netSites.netParamSetting.port = ports.at(0).toElement().text().toUShort();
+
+                QDomNodeList backPorts = netParamEle.elementsByTagName(QStringLiteral("收发辅助端口"));
+                if(backPorts.size() == 1)
+                    paraSettings->netSites.netParamSetting.backPort = backPorts.at(0).toElement().text().toUShort();
+
+                QDomNodeList maxSegments = netParamEle.elementsByTagName(QStringLiteral("发送报文最大长度"));
+                if(maxSegments.size() == 1)
+                    paraSettings->netSites.netParamSetting.maxSegment = maxSegments.at(0).toElement().text().toUShort();
+
+                QDomNodeList delayTimes = netParamEle.elementsByTagName(QStringLiteral("网络发送时延"));
+                if(delayTimes.size() == 1)
+                    paraSettings->netSites.netParamSetting.delayTime = delayTimes.at(0).toElement().text().toUShort();
+            }
+
+            QDomNodeList sites = childEle.elementsByTagName(QStringLiteral("网络信源"));
+            if(sites.size() == 1){
+                QDomElement siteElement = sites.at(0).toElement();
+
+                QDomNodeList siteCollects = siteElement.elementsByTagName(QStringLiteral("信源"));
+                for(int k = 0; k < siteCollects.size();k++){
+                    QDomElement node = siteCollects.at(k).toElement();
+
+                    ParameterSettings::MessSource messSource;
+
+                    QDomNodeList nodes = node.elementsByTagName(QStringLiteral("节点名"));
+                    if(nodes.size() == 1)
+                        messSource.nodeName = nodes.at(0).toElement().text();
+
+                    QDomNodeList nodeIds = node.elementsByTagName(QStringLiteral("节点号"));
+                    if(nodeIds.size() == 1)
+                        messSource.nodeId = nodeIds.at(0).toElement().text();
+
+                    QDomNodeList ips = node.elementsByTagName(QStringLiteral("IP地址"));
+                    if(ips.size() == 1)
+                        messSource.ip = ips.at(0).toElement().text();
+
+                    QDomNodeList encryptions = node.elementsByTagName(QStringLiteral("加密标识"));
+                    if(encryptions.size() == 1)
+                        messSource.encryption = encryptions.at(0).toElement().text().toUShort();
+
+                    QDomNodeList prioritys = node.elementsByTagName(QStringLiteral("发送优先级"));
+                    if(prioritys.size() == 1)
+                        messSource.priority = prioritys.at(0).toElement().text().toUShort();
+
+                    QDomNodeList connectTimeOuts = node.elementsByTagName(QStringLiteral("建链初始时延"));
+                    if(connectTimeOuts.size() == 1)
+                        messSource.connectTimeOut = connectTimeOuts.at(0).toElement().text().toUShort();
+
+                    QDomNodeList protocols = node.elementsByTagName(QStringLiteral("传输协议"));
+                    if(protocols.size() == 1)
+                        messSource.protocol = protocols.at(0).toElement().text();
+
+                    QDomNodeList ports = node.elementsByTagName(QStringLiteral("端口号"));
+                    if(ports.size() == 1)
+                        messSource.port = ports.at(0).toElement().text().toUShort();
+
+                    paraSettings->netSites.sites.append(messSource);
+                }
+            }
         }
     }
     return true;

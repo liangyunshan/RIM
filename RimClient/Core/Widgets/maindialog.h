@@ -18,7 +18,7 @@
 #include "widget.h"
 #include "observer.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class MainDialogPrivate;
@@ -56,6 +56,10 @@ private slots:
 
     void errorGroupingOperate(OperateGrouping type);
     void screenChanged();
+
+    //716
+    void procRecvText(TextRequest response);
+    void procRecvServerTextReply(TextReply);
 
 private:
     void initWidget();

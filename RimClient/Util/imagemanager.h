@@ -17,7 +17,7 @@
 #include <QIcon>
 
 #include "util_global.h"
-#include "Core/datastruct.h"
+#include "Core/protocol/datastruct.h"
 
 class UTILSHARED_EXPORT ImageManager : public QObject
 {

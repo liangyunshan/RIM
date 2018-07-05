@@ -17,7 +17,7 @@
 
 #include "../head.h"
 #include "../netglobal.h"
-#include "../tcpclient.h"
+#include "../connection/tcpclient.h"
 #include "iocpcontext.h"
 #include "../abstractserver.h"
 

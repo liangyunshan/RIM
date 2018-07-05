@@ -20,7 +20,7 @@
 #define SYSTEMNOTIFYVIEW_H
 
 #include "widget.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 
 class SystemNotifyViewPrivate;
 

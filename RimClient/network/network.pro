@@ -13,6 +13,9 @@ TEMPLATE = lib
 
 DEFINES += NETWORK_LIBRARY
 
+#读取本地联系人列表，为了解决并需求变动带来的冲突问题
+DEFINES += __LOCAL_CONTACT__
+
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
 
@@ -32,9 +35,11 @@ CONFIG(debug, debug|release) {
 }
 
 INCLUDEPATH += $$PWD/../
+INCLUDEPATH += $$PWD/multitransmits/
 
 win32-msvc2013{
     LIBS+= ../Lib/Util.lib
+    LIBS+= ../Lib/DDS.lib
 }
 
 win32-g++{
@@ -54,9 +59,14 @@ SOURCES += \
     aes/AES.cpp \
     aes/raes.cpp \
     wraprule/wraprule.cpp \
-    wraprule/datapacketrule.cpp \
-    win32net/tcpmsgreceive.cpp \
-    win32net/tcpmsgsender.cpp
+    win32net/rudpsocket.cpp \
+    multitransmits/basetransmit.cpp \
+    multitransmits/tcptransmit.cpp \
+    win32net/msgsender.cpp \
+    win32net/msgreceive.cpp \
+    multitransmits/ddstransmit.cpp \
+    wraprule/tcpdatapacketrule.cpp \
+    wraprule/tcp495datapacketrule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -66,7 +76,12 @@ HEADERS +=\
     aes/AES.h \
     aes/raes.h \
     wraprule/wraprule.h \
-    wraprule/datapacketrule.h \
-    win32net/tcpmsgreceive.h \
-    win32net/tcpmsgsender.h
-
+    win32net/rudpsocket.h \
+    multitransmits/basetransmit.h \
+    multitransmits/tcptransmit.h \
+    win32net/msgreceive.h \
+    win32net/msgsender.h \
+    multitransmits/ddstransmit.h \
+    3rdhead/DDS.h \
+    wraprule/tcpdatapacketrule.h \
+    wraprule/tcp495datapacketrule.h

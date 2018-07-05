@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     基本数据包装
  *  @details   用于Client-Server之间的信息协议传输
  *  @author    wey
@@ -10,7 +10,7 @@
 #ifndef BASEMSGWRAP_H
 #define BASEMSGWRAP_H
 
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 #include "msgwrap.h"

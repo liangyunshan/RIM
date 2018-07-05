@@ -4,7 +4,7 @@
 #include <QQueue>
 #include <QThread>
 #include "sql/database.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include <QWaitCondition>
 
 class DatabaseThread : public QThread

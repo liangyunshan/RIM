@@ -11,7 +11,7 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "subject.h"
 
 class Observer

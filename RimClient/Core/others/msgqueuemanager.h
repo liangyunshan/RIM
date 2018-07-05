@@ -14,7 +14,7 @@
 #include <QMap>
 #include <QMutex>
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 class MsgQueueManager

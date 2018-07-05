@@ -13,7 +13,7 @@
 
 #include "../head.h"
 #include "../network_global.h"
-#include "../tcpclient.h"
+#include "../connection/tcpclient.h"
 #include "iopacket.h"
 
 namespace ServerNetwork {

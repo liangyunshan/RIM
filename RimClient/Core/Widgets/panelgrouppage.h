@@ -19,7 +19,7 @@
 #include <QWidget>
 #include <QEvent>
 #include "observer.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 class PanelGroupPagePrivate;
 class ToolItem;

@@ -8,7 +8,7 @@
 
 #include "constants.h"
 #include "head.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "rsingleton.h"
 #include "Util/imagemanager.h"
 #include "widget/rbutton.h"
@@ -16,7 +16,7 @@
 #include "Util/rutil.h"
 #include "Network/netconnector.h"
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "Util/rlog.h"
 #include "widget/rmessagebox.h"
@@ -225,7 +225,6 @@ void RegistDialog::respValidInfo(QString)
 
 void RegistDialog::connectToServer()
 {
-    MQ_D(RegistDialog);
     TextNetConnector::instance()->connect();
     enableInput(false);
 }
@@ -245,7 +244,7 @@ void RegistDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_TextServerIp.toLocal8Bit().data(),G_TextServerPort);
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
     }
 }

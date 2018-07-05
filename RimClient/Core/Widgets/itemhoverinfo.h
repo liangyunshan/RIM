@@ -14,8 +14,8 @@
 #define ITEMHOVERINFO_H
 
 #include "widget.h"
-#include "datastruct.h"
-#include "protocoldata.h"
+#include "../protocol/datastruct.h"
+#include "../protocol/protocoldata.h"
 
 class ItemHoverInfoPrivate;
 

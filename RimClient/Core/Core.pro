@@ -16,9 +16,6 @@ QMAKE_LFLAGS_RELEASE += /MAP
 QMAKE_CFLAGS_RELEASE += /Zi
 QMAKE_LFLAGS_RELEASE += /debug /opt:ref
 
-#是否开启Server:DEFINES += __NO_SERVER__
-DEFINES += __NO_SQL_PRINT__
-
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
 DEFINES += __LOCAL_CONTACT__
 
@@ -106,18 +103,15 @@ SOURCES += \
     Widgets/widget/rbutton.cpp \
     Widgets/widget/rmessagebox.cpp \
     Widgets/widget/rtoolbutton.cpp \
-    datastruct.cpp \
     global.cpp \
     main.cpp \
     thread/msgreceiveproctask.cpp \
     thread/taskmanager.cpp \
     rsingleton.cpp \
     user/userinfofile.cpp \
-    protocoldata.cpp \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
     Widgets/netsettings.cpp \
-    thread/dataprocess.cpp \
     messdiapatch.cpp \
     sql/database.cpp \
     sql/databasemanager.cpp \
@@ -163,10 +157,8 @@ SOURCES += \
     file/xmlparse.cpp \
     Widgets/splashlogindialog.cpp \
     Network/msgwrap/localmsgwrap.cpp \
-    localprotocoldata.cpp \
     Network/wraprule/qdb61a_wraprule.cpp \
     Network/wraprule/qdb21_wraprule.cpp \
-    Network/wraprule/qdb495_wraprule.cpp \
     Network/wraprule/udp_wraprule.cpp \
     Network/wraprule/tcp_wraprule.cpp \
     Network/wraprule/tk205_wraprule.cpp \
@@ -179,7 +171,22 @@ SOURCES += \
     Widgets/chatpersonwidget.cpp \
     Widgets/chat/customfontcombobox.cpp \
     Widgets/chat/customfontfamilydelegate.cpp \
-    Widgets/chat/historymsgrecord.cpp
+    Widgets/chat/historymsgrecord.cpp\
+    Network/wraprule/qdb2051_wraprule.cpp \
+    Network/msgparse/dataparse.cpp \
+    Network/msgparse/json_msgparse.cpp \
+    Network/msgparse/msgparsefactory.cpp \
+    Network/msgprocess/json_dataprocess.cpp \
+    Network/msgparse/rbuffer_msgparse.cpp \
+    Network/msgparse/binaryparsefactory.cpp \
+    Network/msgprocess/binary_dataprocess.cpp \
+    protocol/datastruct.cpp \
+    protocol/localprotocoldata.cpp \
+    protocol/protocoldata.cpp \
+    Network/msgparse/binary716_msgparse.cpp \
+    Network/msgprocess/json_dataprocess.cpp \
+    Network/msgprocess/data716process.cpp \
+    Network/wraprule/qdb2048_wraprule.cpp
 
 
 HEADERS  += \
@@ -222,18 +229,15 @@ HEADERS  += \
     Widgets/widget/rmessagebox.h \
     Widgets/widget/rtoolbutton.h \
     constants.h \
-    datastruct.h \
     global.h \
     head.h \
     thread/msgreceiveproctask.h \
     thread/taskmanager.h \
     rsingleton.h \
     user/userinfofile.h \
-    protocoldata.h \
     Network/netconnector.h \
     Widgets/registdialog.h \
     Widgets/netsettings.h \
-    thread/dataprocess.h \
     messdiapatch.h \
     sql/database.h \
     sql/databasemanager.h \
@@ -280,10 +284,8 @@ HEADERS  += \
     file/xmlparse.h \
     Widgets/splashlogindialog.h \
     Network/msgwrap/localmsgwrap.h \
-    localprotocoldata.h \
     Network/wraprule/qdb61a_wraprule.h \
     Network/wraprule/qdb21_wraprule.h \
-    Network/wraprule/qdb495_wraprule.h \
     Network/wraprule/udp_wraprule.h \
     Network/wraprule/tcp_wraprule.h \
     Network/wraprule/tk205_wraprule.h \
@@ -296,7 +298,22 @@ HEADERS  += \
     Widgets/chatpersonwidget.h \
     Widgets/chat/customfontcombobox.h \
     Widgets/chat/customfontfamilydelegate.h \
-    Widgets/chat/historymsgrecord.h
+    Widgets/chat/historymsgrecord.h\
+    Network/wraprule/qdb2051_wraprule.h \
+    Network/msgparse/dataparse.h \
+    Network/msgparse/json_msgparse.h \
+    Network/msgparse/msgparsefactory.h \
+    Network/msgprocess/json_dataprocess.h \
+    Network/msgparse/rbuffer_msgparse.h \
+    Network/msgparse/binaryparsefactory.h \
+    Network/msgprocess/binary_dataprocess.h \
+    protocol/datastruct.h \
+    protocol/localprotocoldata.h \
+    protocol/protocoldata.h \
+    Network/msgparse/binary716_msgparse.h \
+    Network/msgprocess/json_dataprocess.h \
+    Network/msgprocess/data716process.h \
+    Network/wraprule/qdb2048_wraprule.h
 
 DISTFILES += \
     Widgets/Widgets.pri

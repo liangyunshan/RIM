@@ -12,7 +12,7 @@
 #define COMPLEXTEXTEDIT_H
 
 #include "basetextedit.h"
-#include "protocoldata.h"
+#include "../../protocol/protocoldata.h"
 
 class ComplexTextEdit : public BaseTextEdit
 {

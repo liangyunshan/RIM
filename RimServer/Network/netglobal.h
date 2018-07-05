@@ -4,17 +4,16 @@
 #include "network_global.h"
 #include "head.h"
 
-#include <QQueue>
-#include <QByteArray>
-#include <QMutex>
-#include <QWaitCondition>
+#include <queue>
+#include <condition_variable>
+#include <mutex>
 
-NETWORKSHARED_EXPORT  extern QQueue<SocketInData> G_RecvButts;
-NETWORKSHARED_EXPORT  extern QMutex G_RecvMutex;
-NETWORKSHARED_EXPORT  extern QWaitCondition  G_RecvCondition;
+NETWORKSHARED_EXPORT  extern std::queue<RecvUnit> G_RecvButts;
+NETWORKSHARED_EXPORT  extern std::mutex G_RecvMutex;
+NETWORKSHARED_EXPORT  extern std::condition_variable  G_RecvCondition;
 
-NETWORKSHARED_EXPORT  extern QQueue<SocketOutData> G_SendButts;
-NETWORKSHARED_EXPORT  extern QMutex G_SendMutex;
-NETWORKSHARED_EXPORT  extern QWaitCondition  G_SendCondition;
+NETWORKSHARED_EXPORT  extern std::queue<SendUnit> G_SendButts;
+NETWORKSHARED_EXPORT  extern std::mutex G_SendMutex;
+NETWORKSHARED_EXPORT  extern std::condition_variable  G_SendCondition;
 
 #endif // NETGLOBAL_H

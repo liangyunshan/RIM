@@ -13,7 +13,8 @@
 
 #include <QString>
 #include <QSqlDatabase>
-#include "datastruct.h"
+
+#include "protocol/datastruct.h"
 
 class Database
 {

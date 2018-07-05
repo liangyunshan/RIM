@@ -4,10 +4,15 @@
 
 #include "../wraprule/udp_wraprule.h"
 #include "../wraprule/tcp_wraprule.h"
+#include "../wraprule/qdb21_wraprule.h"
+#include "../wraprule/qdb2051_wraprule.h"
 #include "rsingleton.h"
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
+#include "global.h"
+#include "user/user.h"
+#include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
 {
@@ -16,50 +21,89 @@ LocalMsgWrap::LocalMsgWrap()
 
 /*!
  * @brief 根据不同的通信方式与报文格式将数据进行格式装配，装配结束后压入发送栈
+ * @param[in] packet 待发送的数据信息
  * @param[in] method 通信方式
  * @param[in] format 报文格式
- * @param[in] packet 待发送的数据信息
  */
 void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, MessageFormat format)
 {
     if(packet == nullptr)
         return;
 
-    QByteArray result;
-    switch(packet->msgType){
-        case MSG_CONTROL:
-        case MSG_TEXT:
+    ProtocolPackage package;
+    CommMethod commMethod = C_NONE;
+    switch (packet->msgCommand)
+    {
+    case MsgCommand::MSG_TEXT_TEXT:
+        {
+            TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
+            if(textRequest)
             {
-                RSingleton<Json_WrapFormat>::instance()->handleMsg(packet,result);
+                package.wSourceAddr = textRequest->accountId.toInt();
+                package.wDestAddr = textRequest->otherSideId.toInt();
+                package.data = textRequest->sendData.toLocal8Bit();
+                package.bPackType = T_DATA_AFFIRM;
+                package.bPeserve = 0;
+                package.usSerialNo = textRequest->textId.toInt();
+                package.usOrderNo = O_2051;
+
+                method = C_TongKong ;
+                format = M_495 ;
             }
-            break;
-        case MSG_FILE:
+        }
+        break;
+    case MsgCommand::MSG_USER_HISTORY_MSG:
+        {
+            HistoryMessRequest *textRequest = dynamic_cast<HistoryMessRequest *>(packet);
+            if(textRequest)
             {
-                RSingleton<Binary_WrapFormat>::instance()->handleMsg(packet,result);
+                package.wSourceAddr = textRequest->accountId.toInt();
+                package.wDestAddr = textRequest->accountId.toInt();
+                package.bPackType = T_DATA_NOAFFIRM;
+                package.bPeserve = 0X80;
+
+                method = C_TongKong ;
+                format = M_495 ;
             }
-            break;
-        default:
-            break;
+        }
+        break;
+    case MsgCommand::MSG_TCP_TRANS:
+        {
+            DataPackType *dataPackType = dynamic_cast<DataPackType *>(packet);
+            if(dataPackType)
+            {
+                package.wSourceAddr = dataPackType->sourceId.toInt();
+                package.wDestAddr = dataPackType->destId.toInt();
+                package.bPackType = dataPackType->extendData.type495;
+                package.usOrderNo = dataPackType->extendData.usOrderNo;
+                package.usSerialNo = dataPackType->extendData.usSerialNo;
+                package.bPeserve = 0X80;
+
+                method = C_TongKong ;
+                format = M_495 ;
+            }
+        }
+        break;
+    default:
+        break;
     }
 
-    if(result.length() > 0){
-        QByteArray sendResult;
-        CommMethod commMethod = C_NONE;
-        if(method == C_NetWork && format == M_205){
-            commMethod = C_UDP;
-            sendResult = RSingleton<UDP_WrapRule>::instance()->wrap(result);
-        }else if(method == C_TongKong && format == M_495){
-            commMethod = C_TCP;
-            sendResult = RSingleton<TCP_WrapRule>::instance()->wrap(result);
-        }
+    if(method == C_NetWork && format == M_205){
+        commMethod = C_UDP;
+        RSingleton<UDP_WrapRule>::instance()->wrap(package);
+    }else if(method == C_TongKong && format == M_495){
+        commMethod = C_TCP;
+        RSingleton<TCP_WrapRule>::instance()->wrap(package);
+    }
+    if(commMethod != C_NONE){
+        SendUnit unit;
+        unit.method = commMethod;
+        unit.dataUnit = package;
 
-        if(commMethod != C_NONE){
-            G_TextSendMutex.lock();
-            G_TextSendBuffs.enqueue({commMethod,sendResult});
-            G_TextSendMutex.unlock();
-
-            G_TextSendWaitCondition.wakeOne();
-        }
+        G_TextSendMutex.lock();
+        G_TextSendBuffs.push(unit);
+        G_TextSendMutex.unlock();
+        G_TextSendWaitCondition.notify_one();
     }
 }
 

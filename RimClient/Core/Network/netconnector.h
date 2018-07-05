@@ -12,11 +12,13 @@
 #ifndef NETCONNECTOR_H
 #define NETCONNECTOR_H
 
-#include <QMutex>
-#include <QWaitCondition>
-
 #include "Network/rtask.h"
 #include "Network/rsocket.h"
+#include <mutex>
+#include <condition_variable>
+#include <memory>
+#include <map>
+#include <vector>
 
 namespace ClientNetwork
 {
@@ -28,6 +30,9 @@ class FileReceive;
 
 namespace ClientNetwork {
 class RTask;
+class TcpTransmit;
+class DDSTransmit;
+class BaseTransmit;
 }
 
 class SuperConnector : public ClientNetwork::RTask
@@ -45,12 +50,10 @@ public:
         Net_Heart
     };
 
+    virtual bool initialize() = 0;
     void connect(int delaySecTime = 3);            //延迟秒
     void reconnect(int delaySecTime = 3);
     void disConnect();
-
-    bool setBlock(bool flag);
-    bool isBock(){return rsocket->isBock();}
 
     bool isSockValid(){return rsocket->isValid();}
     bool isConnected()const {return netConnected;}
@@ -68,7 +71,7 @@ protected:
     void run();
 
 protected slots:
-    virtual void respSocketError(int errorCode)=0;
+    virtual void respSocketError(CommMethod method)=0;
 
 protected:
     ClientNetwork::RSocket * rsocket;
@@ -81,8 +84,9 @@ protected:
 
     int delayTime;
 
-    QMutex mutex;
-    QWaitCondition condition;
+    std::mutex mutex;
+    std::condition_variable condition;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> transmits;
 };
 
 class TextNetConnector : public SuperConnector
@@ -94,19 +98,21 @@ public:
 
     static TextNetConnector * instance();
 
+    bool initialize();
+
 private:
     void doConnect();
     void doReconnect();
     void doDisconnect();
 
 protected slots:
-    void respSocketError(int errorCode);
+    void respSocketError(CommMethod method);
 
 private:
     static TextNetConnector * netConnector;
 
-    ClientNetwork::TextSender * msgSender;
-    ClientNetwork::TextReceive * msgReceive;
+    std::shared_ptr<ClientNetwork::TextSender> msgSender;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> msgReceives;
 };
 
 class FileNetConnector : public SuperConnector
@@ -118,8 +124,10 @@ public:
 
     static FileNetConnector * instance();
 
+    bool initialize();
+
 private slots:
-    void respSocketError(int errorCode);
+    void respSocketError(CommMethod method);
 
 private:
     void doConnect();
@@ -128,8 +136,8 @@ private:
 private:
     static FileNetConnector * netConnector;
 
-    ClientNetwork::FileSender * msgSender;
-    ClientNetwork::FileReceive * msgReceive;
+    std::shared_ptr<ClientNetwork::FileSender> msgSender;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> msgReceives;
 };
 
 #endif // NETCONNECTOR_H

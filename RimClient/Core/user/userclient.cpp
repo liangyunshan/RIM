@@ -13,7 +13,7 @@
 #include "thread/filerecvtask.h"
 #include "file/filedesc.h"
 #include "Widgets/toolbox/toolitem.h"
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 #include "thread/chatmsgprocess.h"
 #include "../Widgets/chatpersonwidget.h"
 
@@ -147,13 +147,23 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
 {
     switch(reply.applyType)
     {
-        case APPLY_SYSTEM:
-             {
+    case APPLY_SYSTEM:
+        {
 
-             }
-             break;
-        default:
-            break;
+        }
+        break;
+    case APPLY_CONFIRM:
+        {
+
+        }
+        break;
+    case APPLY_RECEIPT:
+        {
+
+        }
+        break;
+    default:
+        break;
     }
 }
 

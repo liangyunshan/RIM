@@ -16,7 +16,7 @@
 #include <QWidget>
 
 #include "observer.h"
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 
 struct ChatInfoUnit;
 class RToolButton;
@@ -100,6 +100,7 @@ private slots:
     void respCloseRightSideTab(int);
     void respHistoryRecord(bool flag);
 
+    void slot_RecvRUDpData(QByteArray data);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;

@@ -12,7 +12,7 @@
 #define BASETEXTEDIT_H
 
 #include <QTextEdit>
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 
 class QTextStream;
 class QXmlStreamReader;

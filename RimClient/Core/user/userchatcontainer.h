@@ -19,7 +19,7 @@
 #include <mutex>
 using namespace std;
 
-#include "protocoldata.h"
+#include "../protocol/protocoldata.h"
 using namespace ProtocolType;
 
 

@@ -11,7 +11,7 @@
 #define JSONRESOLVER_H
 
 #include <QObject>
-#include "datastruct.h"
+#include "../protocol/datastruct.h"
 class QXmlStreamReader;
 
 class JsonResolver : public QObject

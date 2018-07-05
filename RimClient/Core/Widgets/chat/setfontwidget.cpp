@@ -13,7 +13,7 @@
 #include <QDebug>
 
 #include "head.h"
-#include "datastruct.h"
+#include "../../protocol/datastruct.h"
 
 #include "customfontcombobox.h"
 

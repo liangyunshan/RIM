@@ -2,7 +2,7 @@
 
 #include "../../head.h"
 #include "../../constants.h"
-#include "../../datastruct.h"
+#include "../../protocol/datastruct.h"
 #include "../../../Util/rutil.h"
 #include "customfontfamilydelegate.h"
 
