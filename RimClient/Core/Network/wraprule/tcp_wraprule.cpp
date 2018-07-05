@@ -48,7 +48,6 @@ bool TCP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
         return false;
     }
 
-
     return true;
 }
 

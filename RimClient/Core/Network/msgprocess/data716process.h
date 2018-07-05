@@ -10,13 +10,13 @@ class Data716Process
 {
 public:
     Data716Process();
-    void processTextNoAffirm(ProtocolPackage &data);
-    void processTextAffirm(ProtocolPackage &data);
+    void processTextNoAffirm(const ProtocolPackage &data);
+    void processTextAffirm(const ProtocolPackage &data);
     void processTextApply(ProtocolPackage &data);
 
 private:
-    void processText(ProtocolPackage &data);
-    void ApplyTextStatus(ProtocolPackage &data);
+    void processText(const ProtocolPackage &data);
+    void applyTextStatus(const ProtocolPackage &data);
 };
 
 #endif  //__LOCAL_CONTACT__

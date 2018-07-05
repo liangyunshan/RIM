@@ -396,7 +396,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
         request->extendData.usOrderNo = O_2051;
         request->sourceId = G_User->BaseInfo().accountId;
         request->destId = request->sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,C_TongKong,M_495);
     }
 
     if(G_User){
