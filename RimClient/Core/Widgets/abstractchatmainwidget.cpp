@@ -16,6 +16,7 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QHostAddress>
+#include <QKeyEvent>
 
 #include "head.h"
 #include "global.h"
@@ -152,6 +153,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
 
     /**********聊天工具栏***************/
     chatToolBar = new ToolBar(inputWidget);
+    chatToolBar->setObjectName("AbstractChatMainWidget_ChatToolBar");
     chatToolBar->setContentsMargins(5,0,5,0);
     chatToolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
     chatToolBar->setSpacing(5);
@@ -295,6 +297,7 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
     d_ptr->view->load(QUrl("qrc:/html/resource/html/chatRecord.html"));
     d_ptr->view->show();
     d_ptr->fontWidget->setDefault();
+    this->setFocusPolicy(Qt::StrongFocus);
 }
 
 AbstractChatMainWidget::~AbstractChatMainWidget()
@@ -380,6 +383,16 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
     MQ_D(AbstractChatMainWidget);
 
     d->page->setWebChannel(channel);
+}
+
+void AbstractChatMainWidget::keyPressEvent(QKeyEvent *e)
+{
+    MQ_D(AbstractChatMainWidget);
+    if(this->focusWidget() != d->chatInputArea)
+    {
+        d->chatInputArea->setFocus();
+    }
+    return QWidget::keyPressEvent(e);
 }
 
 /*!
@@ -552,6 +565,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 //    }
 
     d->chatInputArea->clear();
+    d->chatInputArea->setFocus();
 }
 
 /*!

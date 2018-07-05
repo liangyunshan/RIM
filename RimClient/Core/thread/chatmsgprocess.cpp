@@ -226,7 +226,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
                 unitMsg.nickName = query.value(rcr.nickName).toString();
                 unitMsg.dtime = query.value(rcr.time).toLongLong();
                 unitMsg.contents = query.value(rcr.data).toString();
-                chatMsgs.append(unitMsg);
+                chatMsgs.prepend(unitMsg);
             }
             emit C2CResultReady(chatMsgs);
         }

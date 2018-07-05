@@ -72,6 +72,7 @@ void ChatPersonWidgetPrivate::initWidget()
 
     /**********用户信息***************/
     userInfoWidget = new QWidget(contentWidget);
+    userInfoWidget->setObjectName("ChatC2CWidget_TopItem");
     userInfoWidget->setFixedHeight(50);
 
     QHBoxLayout * userLayout = new QHBoxLayout;
@@ -93,6 +94,7 @@ void ChatPersonWidgetPrivate::initWidget()
 
     /**********工具栏***************/
     toolBar = new ToolBar(contentWidget);
+    toolBar->setObjectName("ChatC2CWidget_TopToolbar");
     toolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
 
     RToolButton * callButton = new RToolButton(toolBar);
@@ -121,7 +123,7 @@ void ChatPersonWidgetPrivate::initWidget()
     channel->registerObject(QStringLiteral("bridge"),m_bridge);
     mainWidget->setChatChannel(channel);
 
-    /**********窗口控制区***************/
+    /**********窗口控制区_顶部***************/
     windowToolBar = new ToolBar(contentWidget);
     windowToolBar->setContentsMargins(5,0,0,0);
 

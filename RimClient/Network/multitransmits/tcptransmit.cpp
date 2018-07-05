@@ -2,7 +2,6 @@
 
 #include "Util/rlog.h"
 #include "../rsocket.h"
-#include <QDebug>
 
 #ifdef Q_OS_WIN
 #include <WinSock2.h>
