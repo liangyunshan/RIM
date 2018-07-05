@@ -32,7 +32,7 @@ bool QDB2048_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
     memset(&header,0,QDB2048_Head_Length);
     memcpy(&header,data.data(),QDB2048_Head_Length);
 
-    result.data = data.right(QDB2048_Head_Length);
+    result.data = data.right(header.ulPackageLen - QDB2048_Head_Length);
     return true;
 }
 

@@ -84,8 +84,8 @@ struct QDB495_SendPackage{
 }
 
 /*!
- *  @brief 正文描述类型
- *  @details 5148等等
+ *  @brief 协议类型
+ *  @details 使用TCP传输时，因需要确认机制，因此发送的协议采用2051，确认协议采用2048.
  */
 enum OrderNoType{
     O_2051 = 2051,      /*!<  */
@@ -107,6 +107,8 @@ struct ProtocolPackage
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
     unsigned short usSerialNo;      /*!< 流水号*/
     unsigned short usOrderNo;       /*!< 协议号*/
+    int cDate;                      /*!< 日期，4字节 */
+    int cTime;                      /*!< 时间 低3字节 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
     QByteArray cFilename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
     QByteArray data;                /*!< 正文内容 */
@@ -121,6 +123,8 @@ struct ProtocolPackage
         usOrderNo = 3;
         cFileType = 0;
         bPeserve = 0;
+        cDate = 0;
+        cTime = 0;
     }
 
     ProtocolPackage(QByteArray dataArray){
@@ -144,7 +148,7 @@ struct ProtocolPackage
 
 /*!
  *  @brief 传输方式
- *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
+ *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，再转发。
  */
 enum CommMethod{
     C_NONE,     /*!< 错误方式*/

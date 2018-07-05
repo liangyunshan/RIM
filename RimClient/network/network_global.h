@@ -107,6 +107,17 @@ enum OrderNoType{
 };
 
 /*!
+ *  @brief 传输方式
+ *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
+ */
+enum CommMethod{
+    C_NONE,     /*!< 错误方式*/
+    C_UDP,      /*!< UDP方式 */
+    C_TCP,      /*!< TCP方式 */
+    C_BUS       /*!< 总线方式 */
+};
+
+/*!
  *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
  *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
  *  @author shangchao
@@ -120,6 +131,8 @@ struct ProtocolPackage
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
     unsigned short usSerialNo;      /*!< 流水号*/
     unsigned short usOrderNo;       /*!< 协议号*/
+    int cDate;                      /*!< 日期，4字节 */
+    int cTime;                      /*!< 时间 低3字节 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
     QByteArray cFilename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
     QByteArray data;                /*!< 正文内容 */
@@ -133,6 +146,8 @@ struct ProtocolPackage
         bPeserve = 0;
         usSerialNo = 0;
         usOrderNo = 2;
+        cDate = 0;
+        cTime = 0;
     }
 
     ProtocolPackage(QByteArray dataArray){
@@ -152,17 +167,6 @@ struct ProtocolPackage
         this->data = package.data;
         return *this;
     }
-};
-
-/*!
- *  @brief 传输方式
- *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，在转发。
- */
-enum CommMethod{
-    C_NONE,     /*!< 错误方式*/
-    C_UDP,      /*!< UDP方式 */
-    C_TCP,      /*!< TCP方式 */
-    C_BUS       /*!< 总线方式 */
 };
 
 /*!

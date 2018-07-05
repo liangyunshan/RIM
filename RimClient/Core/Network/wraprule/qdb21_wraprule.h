@@ -13,6 +13,10 @@ public:
 
     void wrap(ProtocolPackage & data);
     bool unwrap(const QByteArray & data,ProtocolPackage & result);
+
+private:
+    void wrapTime(char *output, int intput, int length);
+    void unwrapTime(int &output, char *input, int length);
 };
 
 #endif
