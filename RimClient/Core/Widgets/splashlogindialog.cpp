@@ -387,14 +387,14 @@ void SplashLoginDialog::respTextConnect(bool flag)
         hide();
         d->mainDialog->show();
 
-        DataPackType * request = new DataPackType();
-        request->msgType = MSG_CONTROL;
-        request->msgCommand = MSG_TCP_TRANS;
-        request->extendData.type495 = T_DATA_REG;
-        request->extendData.usOrderNo = O_2051;
-        request->sourceId = G_User->BaseInfo().accountId;
-        request->destId = request->sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,C_TongKong,M_495);
+        DataPackType request;
+        request.msgType = MSG_CONTROL;
+        request.msgCommand = MSG_TCP_TRANS;
+        request.extendData.type495 = T_DATA_REG;
+        request.extendData.usOrderNo = O_2051;
+        request.sourceId = G_User->BaseInfo().accountId;
+        request.destId = request.sourceId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
     }
 
     if(G_User){
