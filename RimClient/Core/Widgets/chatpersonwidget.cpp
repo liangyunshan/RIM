@@ -72,6 +72,7 @@ void ChatPersonWidgetPrivate::initWidget()
 
     /**********用户信息***************/
     userInfoWidget = new QWidget(contentWidget);
+    userInfoWidget->setObjectName("ChatC2CWidget_TopItem");
     userInfoWidget->setFixedHeight(50);
 
     QHBoxLayout * userLayout = new QHBoxLayout;
@@ -93,6 +94,7 @@ void ChatPersonWidgetPrivate::initWidget()
 
     /**********工具栏***************/
     toolBar = new ToolBar(contentWidget);
+    toolBar->setObjectName("ChatC2CWidget_TopToolbar");
     toolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
 
     RToolButton * callButton = new RToolButton(toolBar);
@@ -105,6 +107,7 @@ void ChatPersonWidgetPrivate::initWidget()
     mainWidget = new AbstractChatMainWidget(contentWidget);
     mainWidget->setChatType(AbstractChatMainWidget::C2C);
     QObject::connect(mainWidget,SIGNAL(shakeWindow()),q_ptr,SLOT(shakeWindow()));
+    QObject::connect(mainWidget,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
     QObject::connect(q_ptr,SIGNAL(sendQueryRecord(const ChatInfoUnit &)),mainWidget,SLOT(showQueryRecord(const ChatInfoUnit &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedMsg(const TextRequest &)),mainWidget,SLOT(recvTextChatMsg(const TextRequest &)));
 
@@ -120,7 +123,7 @@ void ChatPersonWidgetPrivate::initWidget()
     channel->registerObject(QStringLiteral("bridge"),m_bridge);
     mainWidget->setChatChannel(channel);
 
-    /**********窗口控制区***************/
+    /**********窗口控制区_顶部***************/
     windowToolBar = new ToolBar(contentWidget);
     windowToolBar->setContentsMargins(5,0,0,0);
 
@@ -167,8 +170,8 @@ void ChatPersonWidget::onMessage(MessageType type)
 void ChatPersonWidget::initChatRecord()
 {
     ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
-    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList &)),
-            this,SLOT(queryRecordReady(ChatInfoUnitList &)));
+    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList)),
+            this,SLOT(queryRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
 //    showRecentlyChatMsg(3);
@@ -282,7 +285,7 @@ void ChatPersonWidget::shakeWindow()
 /*!
  * @brief ChatPersonWidget::queryRecordReady 响应查询聊天记录结果
  */
-void ChatPersonWidget::queryRecordReady(ChatInfoUnitList &historyMsgs)
+void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
 {
     foreach(ChatInfoUnit unit,historyMsgs)
     {

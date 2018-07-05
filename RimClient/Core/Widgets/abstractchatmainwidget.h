@@ -64,8 +64,12 @@ public:
     void playVoiceMessage(QString audioName);
     void setChatChannel(QWebChannel *channel);
 
+protected:
+    void keyPressEvent(QKeyEvent *e);
+
 signals:
     void shakeWindow();
+    void closeWindow();
 
 public slots:
 

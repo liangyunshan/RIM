@@ -209,7 +209,8 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
                           {rcr.data}})
             .createCriteria()
             .add(Restrictions::eq(rcr.table,rcr.accountId,otherID));
-    rst.limit(start,count);
+    rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
+    rst.limit(0,count);
 
     QSqlQuery query(G_User->database()->sqlDatabase());
     if(query.exec(rst.sql()))
@@ -225,7 +226,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
                 unitMsg.nickName = query.value(rcr.nickName).toString();
                 unitMsg.dtime = query.value(rcr.time).toLongLong();
                 unitMsg.contents = query.value(rcr.data).toString();
-                chatMsgs.append(unitMsg);
+                chatMsgs.prepend(unitMsg);
             }
             emit C2CResultReady(chatMsgs);
         }

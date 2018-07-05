@@ -499,7 +499,9 @@ void MainDialog::procRecvText(TextRequest response)
 {
     UserClient * client = RSingleton<UserManager>::instance()->client(response.otherSideId);
     if(client)
+    {
         client->procRecvContent(response);
+    }
 }
 
 /*!

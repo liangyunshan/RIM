@@ -222,15 +222,22 @@ void SetKeySequenceDialog::loadSetting()
     updateSenMsgRadioButton(key_Button_Chat_Send.toString());
 }
 
-void SetKeySequenceDialog::slot_RadioButton_Enter(bool)
+void SetKeySequenceDialog::slot_RadioButton_Enter(bool ret)
 {
-    setSendMsgShortCut(Qt::Key_Return);
+    if(ret)
+    {
+        setSendMsgShortCut(Qt::Key_Return);
+    }
 }
 
-void SetKeySequenceDialog::slot_RadioButton_CtrlEnter(bool)
+void SetKeySequenceDialog::slot_RadioButton_CtrlEnter(bool ret)
 {
-    setSendMsgShortCut(Qt::Key_Control+Qt::Key_Return);
+    if(ret)
+    {
+        setSendMsgShortCut(Qt::Key_Control+Qt::Key_Return);
+    }
 }
+
 
 void SetKeySequenceDialog::keyPressEvent(QKeyEvent *event)
 {

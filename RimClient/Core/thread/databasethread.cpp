@@ -52,7 +52,6 @@ void DatabaseThread::run()
             m_Pause.unlock();
         }
 
-
         while (!m_TaskQueue.isEmpty())
         {
             TaskQueue task = m_TaskQueue.head();

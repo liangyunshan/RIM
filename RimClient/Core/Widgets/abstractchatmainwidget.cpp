@@ -16,6 +16,7 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QHostAddress>
+#include <QKeyEvent>
 
 #include "head.h"
 #include "global.h"
@@ -152,6 +153,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
 
     /**********聊天工具栏***************/
     chatToolBar = new ToolBar(inputWidget);
+    chatToolBar->setObjectName("AbstractChatMainWidget_ChatToolBar");
     chatToolBar->setContentsMargins(5,0,5,0);
     chatToolBar->setFixedHeight(CHAT_TOOL_HEIGHT);
     chatToolBar->setSpacing(5);
@@ -236,7 +238,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     closeButton->setObjectName(Constant::Button_Chat_Close_Window);
     closeButton->setShortcut(ActionManager::instance()->shortcut(Constant::Button_Chat_Close_Window,QKeySequence("Alt+C")));
     closeButton->setText(QObject::tr("Close window"));
-    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SLOT(close()));
+    QObject::connect(closeButton,SIGNAL(clicked()),q_ptr,SIGNAL(closeWindow()));
 
     RToolButton * extralButton = new RToolButton(buttonWidget);
     extralButton->setObjectName(Constant::Tool_Chat_SendMess);
@@ -295,6 +297,7 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
     d_ptr->view->load(QUrl("qrc:/html/resource/html/chatRecord.html"));
     d_ptr->view->show();
     d_ptr->fontWidget->setDefault();
+    this->setFocusPolicy(Qt::StrongFocus);
 }
 
 AbstractChatMainWidget::~AbstractChatMainWidget()
@@ -380,6 +383,16 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
     MQ_D(AbstractChatMainWidget);
 
     d->page->setWebChannel(channel);
+}
+
+void AbstractChatMainWidget::keyPressEvent(QKeyEvent *e)
+{
+    MQ_D(AbstractChatMainWidget);
+    if(this->focusWidget() != d->chatInputArea)
+    {
+        d->chatInputArea->setFocus();
+    }
+    return QWidget::keyPressEvent(e);
 }
 
 /*!
@@ -552,6 +565,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 //    }
 
     d->chatInputArea->clear();
+    d->chatInputArea->setFocus();
 }
 
 /*!
@@ -820,14 +834,15 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     if(source == RECV)
     {
         User tmpUser(d->m_userInfo.accountId);
-        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
+//        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
     else
     {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(SEND).arg(t_localHtml).arg(t_headPath);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
