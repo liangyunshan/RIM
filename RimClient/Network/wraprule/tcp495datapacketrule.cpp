@@ -71,9 +71,8 @@ bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<i
 
 bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandler recvDataFunc)
 {
-    RecvUnit result;
-    result.extendData.method = C_TCP;
-
+    dhandler = recvDataFunc;
+    bool unWrapResult = false;
     if(lastRecvBuff.size() > 0)
     {
         int tmpBuffLen = lastRecvBuff.size() + length + 1;
@@ -84,24 +83,19 @@ bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandle
         memcpy(dataBuff + lastRecvBuff.size(),data,length);
 
         lastRecvBuff.clear();
-        recvData(dataBuff,tmpBuffLen - 1,result);
+        unWrapResult = recvData(dataBuff,tmpBuffLen - 1);
 
         delete[] dataBuff;
     }
     else
     {
-        recvData(data,length,result);
+        unWrapResult = recvData(data,length);
     }
 
-    if(result.data.size() > 0){
-        recvDataFunc(result);
-        return true;
-    }
-
-    return false;
+    return unWrapResult;
 }
 
-void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit &result)
+bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
     QDB495_SendPackage packet;
     memset((char *)&packet,0,sizeof(QDB495_SendPackage));
@@ -123,10 +117,15 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
                     //[1.1.1]一包数据
                     if(totalIndex == 1)
                     {
+                        RecvUnit result;
+                        result.extendData.method = C_TCP;
                         result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                         result.extendData.bPeserve = packet.bPeserve;
                         result.data.resize(packet.wPackLen);
                         memcpy(result.data.data(),recvData + processLen,packet.wPackLen);
+                        if(result.data.size() > 0){
+                            dhandler(result);
+                        }
                     }
                     //[1.1.2]多包数据(只保存数据部分)
                     else
@@ -157,9 +156,14 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
                                 {
                                     buff->isCompleted = true;
 
+                                    RecvUnit result;
+                                    result.extendData.method = C_TCP;
                                     result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                                     result.extendData.bPeserve = packet.bPeserve;
                                     result.data.append(buff->getFullData());
+                                    if(result.data.size() > 0){
+                                        dhandler(result);
+                                    }
 
                                     packetBuffs.remove(packet.wSerialNo);
                                     delete buff;
@@ -208,6 +212,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
             else
             {
                 qDebug()<<"Recv Error Packet";
+                return false;
             }
         }while(processLen <= recvLen);
     }
@@ -216,6 +221,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen, RecvUnit 
         lastRecvBuff.clear();
         lastRecvBuff.append(recvData,recvLen);
     }
+    return true;
 }
 
 /*!

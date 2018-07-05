@@ -28,7 +28,7 @@ public:
     bool unwrap(const char * data,const int length,DataHandler recvDataFunc);
 
 private:
-    void recvData(const char *recvData, int recvLen, RecvUnit &result);
+    bool recvData(const char *recvData, int recvLen);
     int countTotoalIndex(const int totalLength);
 
 private:
@@ -37,6 +37,8 @@ private:
 
     QByteArray lastRecvBuff;              //断包接收缓冲区
     QHash<int,PacketBuff*> packetBuffs;   //多包缓冲区
+
+    DataHandler dhandler;
 };
 
 }
