@@ -54,6 +54,7 @@ const char PATH_ConfigPath[] = "/../config";
 const char CONFIG_LocalePath[] = "/translations";
 const char CONFIG_StylePath[] = "/style";
 const char CONFIG_SountPath[] = "/sound";
+const char CONFIG_FontsPath[] = "/fonts";
 
 const char PATH_UserPath[] = "../users";
 const char PATH_UserDirName[] = "users";
