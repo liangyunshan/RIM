@@ -110,6 +110,7 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(mainWidget,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
     QObject::connect(q_ptr,SIGNAL(sendQueryRecord(const ChatInfoUnit &)),mainWidget,SLOT(showQueryRecord(const ChatInfoUnit &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedMsg(const TextRequest &)),mainWidget,SLOT(recvTextChatMsg(const TextRequest &)));
+    QObject::connect(q_ptr,SIGNAL(sendRecvedAudio(QString)),mainWidget,SLOT(recvVoiceChatMsg(QString)));
 
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
@@ -213,6 +214,15 @@ void ChatPersonWidget::setOuterNetConfig(const ParameterSettings::OuterNetConfig
 void ChatPersonWidget::recvChatMsg(const TextRequest &msg)
 {
     emit sendRecvedMsg(msg);
+}
+
+/*!
+ * @brief ChatPersonWidget::recvChatAudio 转发收到的语音消息
+ * @param fileName 语音文件名称
+ */
+void ChatPersonWidget::recvChatAudio(QString fileName)
+{
+    emit sendRecvedAudio(fileName);
 }
 
 /*!

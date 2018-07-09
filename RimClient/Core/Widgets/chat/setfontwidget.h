@@ -54,7 +54,8 @@ private slots:
     void chooseTextFont(bool);
     void chooseTextColor(bool);
     void setTextColorTure(const QColor&);
-    void chooseBubbleFont(int);
+    void chooseBubbleFont(const QFont &font);
+    void chooseBubbleFontSize(int);
 
 private:
     SetFontWidgetPrivate *d_ptr;

@@ -52,6 +52,11 @@ public:
         C2C,        //单聊模式
         GROUP       //群聊模式
     };
+    enum RightTabType
+    {
+        MsgRecord,  //消息记录
+        SendFile    //发送文件
+    };
     explicit AbstractChatMainWidget(QWidget *parent = 0);
     ~AbstractChatMainWidget();
     void onMessage(MessageType type);
@@ -94,11 +99,17 @@ private slots:
 
     void showQueryRecord(const ChatInfoUnit &);
     void recvTextChatMsg(const TextRequest &msg);
+    void recvVoiceChatMsg(const QString &msg);
+    void respCloseRightSideTab(int);
+    void respHistoryRecord(bool flag);
+
     void slot_RecvRUDpData(QByteArray data);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;
     void setFontIconFilePath();
+    void closeRightSideTab(RightTabType);
+    void showRightSideTab(RightTabType);
     void appendMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
     void appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void appendVoiceMsg(QString recordFileName,MsgTarget source = RECV);

@@ -28,6 +28,7 @@ public:
     void initChatRecord();
     void setUserInfo(const SimpleUserInfo &info);
     void recvChatMsg(const TextRequest &msg);
+    void recvChatAudio(QString fileName);
     void showRecentlyChatMsg(uint count=1);
 #ifdef __LOCAL_CONTACT__
     void setOuterNetConfig(const ParameterSettings::OuterNetConfig &config);
@@ -40,6 +41,7 @@ protected:
 signals:
     void sendQueryRecord(const ChatInfoUnit &);
     void sendRecvedMsg(const TextRequest &msg);
+    void sendRecvedAudio(const QString &file);
 
 public slots:
     void shakeWindow();
