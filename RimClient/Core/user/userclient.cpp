@@ -53,8 +53,10 @@ void UserClient::procRecvContent(TextRequest & response)
         t_unit.accountId = simpleUserInfo.accountId;
         t_unit.nickName = simpleUserInfo.nickName;
         t_unit.dtime = RUtil::currentMSecsSinceEpoch();
+        t_unit.dateTime = RUtil::addMSecsToEpoch(response.timeStamp).toString("yyyyMMdd hh:mm:ss");
+        t_unit.serialNo = 123;
         t_unit.contents = response.sendData;
-        RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
+        RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
 
         //TODO 20180423【2】将信息添加至历史会话列表
         HistoryChatRecord record;

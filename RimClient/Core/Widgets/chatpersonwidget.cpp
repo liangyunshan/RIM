@@ -302,20 +302,9 @@ void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
 {
     MQ_D(ChatPersonWidget);
 
-    if(d->isLoadFinished)
+    foreach(ChatInfoUnit unit,historyMsgs)
     {
-        foreach(ChatInfoUnit unit,historyMsgs)
-        {
-            emit sendQueryRecord(unit);
-        }
-    }
-    else
-    {
-        foreach(ChatInfoUnit unit,historyMsgs)
-        {
-            d->tempData.append(unit);
-        }
-
+        emit sendQueryRecord(unit);
     }
 
 }

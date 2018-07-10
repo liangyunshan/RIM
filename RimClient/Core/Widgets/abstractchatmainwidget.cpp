@@ -474,11 +474,13 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     QString t_localHtml = t_simpleHtml;
     ChatInfoUnit t_unit;
     t_unit.contentType = MSG_TEXT_TEXT;
-    t_unit.accountId = d->m_userInfo.accountId;
+    t_unit.accountId = G_User->BaseInfo().accountId;
     t_unit.nickName = d->m_userInfo.nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
+    t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
+    t_unit.serialNo = 123;
     t_unit.contents = t_localHtml;
-    t_unit.contents = d->chatInputArea->toPlainText();;
+    t_unit.contents = d->chatInputArea->toPlainText();
     appendMsgRecord(t_unit,SEND);
 
     //转义原始Html
@@ -487,8 +489,8 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     RUtil::escapeDoubleQuote(t_sendHtml);
 
     //存储发送信息到数据库
-    t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
-    RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
+    t_unit.contents = d->chatInputArea->toPlainText();   //将转义处理后的内容存储到数据库中
+    RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(d->m_userInfo.accountId,t_unit);
 
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;

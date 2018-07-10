@@ -52,11 +52,12 @@ void ChatMsgProcess::stopMe()
  * @param[in] targetID 联系人账户id
  * @param[in] msgUnit 需要存储的消息数据
  */
-void ChatMsgProcess::appendC2CStoreTask(ChatInfoUnit &msgUnit)
+void ChatMsgProcess::appendC2CStoreTask(QString otherID,ChatInfoUnit &msgUnit)
 {
     TaskQueue t_newStoreTask;
     t_newStoreTask.tskType = C2C_TASK;
     t_newStoreTask.actType = SAVE_MSG;
+    t_newStoreTask.otherID = otherID;
     t_newStoreTask.msg = msgUnit;
     t_newStoreTask.count = 0;
     m_TaskQueue.enqueue(t_newStoreTask);
@@ -74,7 +75,8 @@ void ChatMsgProcess::appendC2CQueryTask(QString otherID, uint begin, uint count)
 {
     TaskQueue t_newQueryTask;
     ChatInfoUnit t_unit;
-    t_unit.accountId = otherID;
+    t_unit.accountId = G_User->BaseInfo().accountId;
+    t_newQueryTask.otherID = otherID;
     t_newQueryTask.tskType = C2C_TASK;
     t_newQueryTask.actType = QUERY_MSG;
     t_newQueryTask.msg = t_unit;
@@ -143,7 +145,7 @@ void ChatMsgProcess::run()
             case SAVE_MSG:
                 if(m_task.tskType == C2C_TASK)
                 {
-                    saveC2CTaskMsg(m_task.msg);
+                    saveC2CTaskMsg(m_task.otherID,m_task.msg);
                 }
                 else
                 {
@@ -154,7 +156,7 @@ void ChatMsgProcess::run()
             case QUERY_MSG:
                 if(m_task.tskType == C2C_TASK)
                 {
-                    queryC2CTaskMsg(m_task.msg.accountId,m_task.start,m_task.count);
+                    queryC2CTaskMsg(m_task.otherID,m_task.start,m_task.count);
                 }
                 else
                 {
@@ -174,14 +176,17 @@ void ChatMsgProcess::run()
  * @param[in] msgUnit 任务中的单聊消息数据
  * @return 保存单聊信息操作结果
  */
-bool ChatMsgProcess::saveC2CTaskMsg(ChatInfoUnit &msgUnit)
+bool ChatMsgProcess::saveC2CTaskMsg(QString otherID, ChatInfoUnit &msgUnit)
 {
     DataTable::RChatRecord rcr;
+    rcr.initTable("rchatrecord_"+otherID);
     RPersistence rps(rcr.table);
     rps.insert({{rcr.type,msgUnit.contentType}
                ,{rcr.accountId,msgUnit.accountId}
                ,{rcr.nickName,msgUnit.nickName}
                ,{rcr.time,msgUnit.dtime}
+               ,{rcr.dateTime,msgUnit.dateTime}
+               ,{rcr.serialNo,msgUnit.serialNo}
                ,{rcr.data,msgUnit.contents}
                });
 
@@ -204,15 +209,17 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
     chatMsgs.clear();
 
     DataTable::RChatRecord rcr;
+    rcr.initTable("rchatrecord_"+otherID);
     RSelect rst(rcr.table);
     rst.select(rcr.table,{{rcr.id},
                           {rcr.type},
                           {rcr.accountId},
                           {rcr.nickName},
                           {rcr.time},
+                          {rcr.dateTime},
+                          {rcr.serialNo},
                           {rcr.data}})
-            .createCriteria()
-            .add(Restrictions::eq(rcr.table,rcr.accountId,otherID));
+            .createCriteria();
     rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
     rst.limit(0,count);
 
@@ -227,6 +234,8 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
             unitMsg.accountId = query.value(rcr.accountId).toString();
             unitMsg.nickName = query.value(rcr.nickName).toString();
             unitMsg.dtime = query.value(rcr.time).toLongLong();
+            unitMsg.dateTime = query.value(rcr.dateTime).toString();
+            unitMsg.serialNo = query.value(rcr.serialNo).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
             chatMsgs.prepend(unitMsg);
         }
