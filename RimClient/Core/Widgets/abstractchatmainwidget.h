@@ -104,6 +104,7 @@ private slots:
     void respHistoryRecord(bool flag);
 
     void slot_RecvRUDpData(QByteArray data);
+    void slot_FileTrans(bool);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;

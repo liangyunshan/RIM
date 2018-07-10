@@ -498,7 +498,9 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
     if(client->chatPersonWidget)
     {
         client->chatPersonWidget->show();
-    }else{
+    }
+    else
+    {
         ChatPersonWidget * widget = new ChatPersonWidget();
         widget->setUserInfo(client->simpleUserInfo);
 #ifdef __LOCAL_CONTACT__

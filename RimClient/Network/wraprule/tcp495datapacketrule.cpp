@@ -33,7 +33,7 @@ bool TCP495DataPacketRule::wrap(const ProtocolPackage &dataUnit, std::function<i
     packet.bPackType = dataUnit.bPackType;
     packet.bPriority = 0;
     packet.bPeserve = dataUnit.bPeserve;
-    packet.wSerialNo = ++SendPackId;
+    packet.wSerialNo = ++SendPackId;    //TODO:
     packet.wCheckout = 0;
     packet.dwPackAllLen = dataUnit.data.size();
     packet.wDestAddr = dataUnit.wDestAddr;
