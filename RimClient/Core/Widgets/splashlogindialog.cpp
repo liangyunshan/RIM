@@ -291,6 +291,9 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget = new ChatPersonWidget();
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+                client->chatPersonWidget->setOuterNetConfig(client->netConfig);
+#endif
                 client->chatPersonWidget->initChatRecord();
             }
             client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
