@@ -291,7 +291,7 @@ SetFontWidget::~SetFontWidget()
 }
 
 /*!
- * @brief SetFontWidget::currentFontMode 获取当前显示模式（气泡/文本）
+ * @brief 获取当前显示模式（气泡/文本）
  * @return 当前显示模式（气泡/文本）
  */
 int SetFontWidget::currentFontMode() const
@@ -302,7 +302,7 @@ int SetFontWidget::currentFontMode() const
 }
 
 /*!
- * @brief SetFontWidget::setDefault 加载默认字体设置
+ * @brief 加载默认字体设置
  */
 void SetFontWidget::setDefault()
 {
@@ -322,7 +322,7 @@ void SetFontWidget::setDefault()
 }
 
 /*!
- * @brief SetFontWidget::setCurFontMode 根据设置模式切换窗口并保存设置结果
+ * @brief 根据设置模式切换窗口并保存设置结果
  */
 void SetFontWidget::setCurFontMode(FontMode mode)
 {
@@ -344,7 +344,7 @@ void SetFontWidget::setCurFontMode(FontMode mode)
 }
 
 /*!
- * @brief SetFontWidget::chooseMode 选择显示模式
+ * @brief 选择显示模式
  */
 void SetFontWidget::chooseMode(bool)
 {
@@ -382,7 +382,7 @@ void SetFontWidget::chooseMode(bool)
 }
 
 /*!
- * @brief SetFontWidget::chooseTextFont 文本模式下选择系统/个性化字体
+ * @brief 文本模式下选择系统/个性化字体
  */
 void SetFontWidget::chooseTextFont(bool)
 {
@@ -422,7 +422,7 @@ void SetFontWidget::chooseTextFont(bool)
 }
 
 /*!
- * @brief SetFontWidget::chooseTextColor 文本模式下选择字体颜色
+ * @brief 文本模式下选择字体颜色
  */
 void SetFontWidget::chooseTextColor(bool)
 {
@@ -432,7 +432,7 @@ void SetFontWidget::chooseTextColor(bool)
 }
 
 /*!
- * @brief SetFontWidget::setTextColorTure 设置文本模式下字体颜色
+ * @brief 设置文本模式下字体颜色
  * @param result 颜色设置结果
  */
 void SetFontWidget::setTextColorTure(const QColor &result)
@@ -444,7 +444,7 @@ void SetFontWidget::setTextColorTure(const QColor &result)
 }
 
 /*!
- * @brief SetFontWidget::chooseBubbleFont 设置气泡字体类型、字体大小
+ * @brief 设置气泡字体类型、字体大小
  * @param index
  */
 void SetFontWidget::chooseBubbleFont(const QFont &font)
@@ -469,7 +469,7 @@ void SetFontWidget::chooseBubbleFont(const QFont &font)
 }
 
 /*!
- * @brief SetFontWidget::chooseBubbleFontSize 切换字体大小
+ * @brief 切换字体大小
  */
 void SetFontWidget::chooseBubbleFontSize(int)
 {

@@ -299,7 +299,7 @@ AbstractChatMainWidget::~AbstractChatMainWidget()
 }
 
 /*!
- * @brief AbstractChatMainWidget::onMessage 系统通知消息
+ * @brief 系统通知消息
  * @param type 系统通知消息的类型
  */
 void AbstractChatMainWidget::onMessage(MessageType type)
@@ -308,7 +308,7 @@ void AbstractChatMainWidget::onMessage(MessageType type)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setUserInfo 设置联系人基本信息
+ * @brief 设置联系人基本信息
  * @param info 联系人基本信息
  */
 void AbstractChatMainWidget::setUserInfo(const SimpleUserInfo &info)
@@ -342,8 +342,8 @@ void AbstractChatMainWidget::inserHtml(QUrl &htmlUrl)
 }
 
 /*!
- * \brief AbstractChatMainWidget::setChatType 设置窗口模式（单聊/群聊）
- * \param type 窗口模式（单聊/群聊）
+ * @brief 设置窗口模式（单聊/群聊）
+ * @param type 窗口模式（单聊/群聊）
  */
 void AbstractChatMainWidget::setChatType(ChatType type)
 {
@@ -363,7 +363,7 @@ void AbstractChatMainWidget::setChatType(ChatType type)
 }
 
 /*!
- * @brief AbstractChatMainWidget::playVoiceMessage 播放语音消息
+ * @brief 播放语音消息
  * @param audioName 语音文件名称
  */
 void AbstractChatMainWidget::playVoiceMessage(QString audioName)
@@ -390,15 +390,16 @@ void AbstractChatMainWidget::keyPressEvent(QKeyEvent *e)
 }
 
 /*!
- * @brief AbstractChatMainWidget::finishLoadHTML 加载完成html后对html进行初始化处理
+ * @brief 加载完成html后对html进行初始化处理
  */
 void AbstractChatMainWidget::finishLoadHTML(bool)
 {
     setFontIconFilePath();
+    emit initFinished();
 }
 
 /*!
- * @brief AbstractChatMainWidget::sendShakeWindow 窗口抖动
+ * @brief 窗口抖动
  * @param flag 抖动按钮标志
  */
 void AbstractChatMainWidget::sendShakeWindow(bool flag)
@@ -417,7 +418,7 @@ void AbstractChatMainWidget::sendShakeWindow(bool flag)
 }
 
 /*!
- * @brief AbstractChatMainWidget::screenShotReady 截图完成
+ * @brief 截图完成
  */
 void AbstractChatMainWidget::screenShotReady(bool)
 {
@@ -441,7 +442,7 @@ void AbstractChatMainWidget::screenShotReady(bool)
 }
 
 /*!
- * @brief AbstractChatMainWidget::enterSend 按下Enter键发送信息
+ * @brief 按下Enter键发送信息
  */
 void AbstractChatMainWidget::enterSend()
 {
@@ -449,7 +450,7 @@ void AbstractChatMainWidget::enterSend()
 }
 
 /*!
- * @brief AbstractChatMainWidget::sendMsg 发送信息
+ * @brief 发送信息
  */
 void AbstractChatMainWidget::sendMsg(bool flag)
 {
@@ -562,7 +563,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setSideVisible 控制历史聊天记录窗口
+ * @brief 控制历史聊天记录窗口
  * @param flag
  */
 void AbstractChatMainWidget::setSideVisible(bool flag)
@@ -573,7 +574,7 @@ void AbstractChatMainWidget::setSideVisible(bool flag)
 }
 
 /*!
- * @brief AbstractChatMainWidget::respFontArea 显示/隐藏字体设置区域
+ * @brief 显示/隐藏字体设置区域
  * @param status 字体设置窗口状态（显示/隐藏）
  */
 void AbstractChatMainWidget::respFontArea(bool status)
@@ -584,7 +585,7 @@ void AbstractChatMainWidget::respFontArea(bool status)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setMsgShowMode 设置聊天信息记录窗口显示模式（气泡/文本）
+ * @brief 设置聊天信息记录窗口显示模式（气泡/文本）
  * @param mode
  */
 void AbstractChatMainWidget::setMsgShowMode(int mode)
@@ -601,7 +602,7 @@ void AbstractChatMainWidget::setMsgShowMode(int mode)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setInputAreaFont 设置输入框中字体
+ * @brief 设置输入框中字体
  * @param font 需要设置的字体
  */
 void AbstractChatMainWidget::setInputAreaFont(const QFont &font)
@@ -612,7 +613,7 @@ void AbstractChatMainWidget::setInputAreaFont(const QFont &font)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setInputAreaColor 设置输入框中的字体颜色
+ * @brief 设置输入框中的字体颜色
  * @param color 需要设置的颜色
  */
 void AbstractChatMainWidget::setInputAreaColor(const QColor &color)
@@ -690,7 +691,7 @@ void AbstractChatMainWidget::preapreCancelAudio()
 }
 
 /*!
- * @brief AbstractChatMainWidget::showQueryRecord 显示聊天记录查询结果
+ * @brief 显示聊天记录查询结果
  */
 void AbstractChatMainWidget::showQueryRecord(const ChatInfoUnit & msgUnit)
 {
@@ -699,7 +700,7 @@ void AbstractChatMainWidget::showQueryRecord(const ChatInfoUnit & msgUnit)
 }
 
 /*!
- * @brief AbstractChatMainWidget::recvTextChatMsg 显示收到的消息
+ * @brief 显示收到的消息
  * @param msg 收到的消息
  */
 void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
@@ -718,7 +719,7 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 }
 
 /*!
- * @brief AbstractChatMainWidget::recvVoiceChatMsg 显示收到的语音消息
+ * @brief 显示收到的语音消息
  * @param msg 收到的语音消息
  */
 void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)
@@ -727,7 +728,7 @@ void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)
 }
 
 /*!
- * @brief AbstractChatMainWidget::closeRightSideTab 响应右侧边栏窗口tab页关闭请求
+ * @brief 响应右侧边栏窗口tab页关闭请求
  * @param index tab页索引值
  */
 void AbstractChatMainWidget::respCloseRightSideTab(int index)
@@ -743,7 +744,7 @@ void AbstractChatMainWidget::respCloseRightSideTab(int index)
 }
 
 /*!
- * @brief AbstractChatMainWidget::respHistoryRecord 响应消息记录按钮操作
+ * @brief 响应消息记录按钮操作
  * @param flag 操作标识
  */
 void AbstractChatMainWidget::respHistoryRecord(bool flag)
@@ -760,7 +761,7 @@ void AbstractChatMainWidget::respHistoryRecord(bool flag)
 }
 
 /*!
- * @brief AbstractChatMainWidget::setFontIconFilePath 设置html中使用的字体图标文件所在路径
+ * @brief 设置html中使用的字体图标文件所在路径
  */
 void AbstractChatMainWidget::setFontIconFilePath()
 {
@@ -772,7 +773,7 @@ void AbstractChatMainWidget::setFontIconFilePath()
 }
 
 /*!
- * @brief AbstractChatMainWidget::closeRightSideTab 根据需要关闭右边栏子窗口
+ * @brief 根据需要关闭右边栏子窗口
  * @param tabType 子窗口类型
  */
 void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
@@ -797,7 +798,7 @@ void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
 }
 
 /*!
- * @brief AbstractChatMainWidget::showRightSideTab 根据需要显示右边栏子窗口
+ * @brief 根据需要显示右边栏子窗口
  * @param tabType 子窗口类型
  */
 void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
@@ -809,6 +810,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
     case MsgRecord:
         //TODO LYS-20180620显示消息记录子窗口
         d->historyRecord = new QTabWidget;
+        d->historyRecord->setAttribute(Qt::WA_DeleteOnClose);
         d->historyRecord->addTab(new QWidget,tr("All"));
         d->historyRecord->addTab(new QWidget,tr("Image"));
         d->historyRecord->addTab(new QWidget,tr("File"));
@@ -823,7 +825,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
 }
 
 /*!
- * @brief AbstractChatMainWidget::appendMsgRecord 将收到的信息追加显示在聊天信息记录界面上
+ * @brief 将收到的信息追加显示在聊天信息记录界面上
  * @param recvMsg 收到的信息
  * @param source 信息来源（接收）
  */
@@ -872,7 +874,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
 }
 
 /*!
- * @brief AbstractChatMainWidget::appendMsgRecord 将收/发信息追加显示在聊天信息记录界面上
+ * @brief 将收/发信息追加显示在聊天信息记录界面上
  * @param unitMsg 收发的信息
  * @param source 信息来源（接收/发送）
  */
@@ -928,7 +930,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
 }
 
 /*!
- * @brief AbstractChatMainWidget::appendVoiceMsg 将收发的语音信息追加显示在聊天信息记录界面上
+ * @brief 将收发的语音信息追加显示在聊天信息记录界面上
  * @param recordFileName 语音文件路径
  * @param source 信息来源（接收/发送）
  */
@@ -950,7 +952,7 @@ void AbstractChatMainWidget::appendVoiceMsg(QString recordFileName, MsgTarget so
 }
 
 /*!
- * @brief AbstractChatMainWidget::appendChatNotice 显示操作提示信息
+ * @brief 显示操作提示信息
  * @param content 信息内容
  * @param type 信息类型
  */
@@ -966,7 +968,7 @@ void AbstractChatMainWidget::appendChatNotice(QString content, NoticeType type)
 }
 
 /*!
- * @brief AbstractChatMainWidget::appendChatTimeNote 显示时间提示信息
+ * @brief 显示时间提示信息
  * @param content 时间显示格式
  * @param format 显示内容
  */

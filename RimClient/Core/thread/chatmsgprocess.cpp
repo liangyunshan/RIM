@@ -8,7 +8,10 @@
 
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlDriver>
 #include <QVariant>
+
+#include <QDebug>
 
 ChatMsgProcess::ChatMsgProcess(QObject *obj):
     RTask(obj)
@@ -197,6 +200,7 @@ bool ChatMsgProcess::saveC2CTaskMsg(ChatInfoUnit &msgUnit)
  */
 bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
 {
+    Q_UNUSED(start);
     chatMsgs.clear();
 
     DataTable::RChatRecord rcr;
@@ -215,21 +219,19 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
     QSqlQuery query(G_User->database()->sqlDatabase());
     if(query.exec(rst.sql()))
     {
-        if(query.numRowsAffected() > 0)
+        while(query.next())
         {
-            while(query.next())
-            {
-                ChatInfoUnit unitMsg;
-                unitMsg.id = query.value(rcr.id).toString();
-                unitMsg.contentType = static_cast<MsgCommand>(query.value(rcr.type).toInt());
-                unitMsg.accountId = query.value(rcr.accountId).toString();
-                unitMsg.nickName = query.value(rcr.nickName).toString();
-                unitMsg.dtime = query.value(rcr.time).toLongLong();
-                unitMsg.contents = query.value(rcr.data).toString();
-                chatMsgs.prepend(unitMsg);
-            }
-            emit C2CResultReady(chatMsgs);
+            ChatInfoUnit unitMsg;
+            unitMsg.id = query.value(rcr.id).toString();
+            unitMsg.contentType = static_cast<MsgCommand>(query.value(rcr.type).toInt());
+            unitMsg.accountId = query.value(rcr.accountId).toString();
+            unitMsg.nickName = query.value(rcr.nickName).toString();
+            unitMsg.dtime = query.value(rcr.time).toLongLong();
+            unitMsg.contents = query.value(rcr.data).toString();
+            chatMsgs.prepend(unitMsg);
         }
+        if(chatMsgs.size())
+            emit C2CResultReady(chatMsgs);
         return true;
     }
 
