@@ -10,6 +10,7 @@
 #include <QSqlError>
 #include <QSqlDriver>
 #include <QVariant>
+#include <QDebug>
 
 #include <QDebug>
 
@@ -191,9 +192,10 @@ bool ChatMsgProcess::saveC2CTaskMsg(QString otherID, ChatInfoUnit &msgUnit)
                });
 
     QSqlQuery query(G_User->database()->sqlDatabase());
-
     if(query.exec(rps.sql()))
+    {
         return true;
+    }
 
     return false;
 }

@@ -17,6 +17,7 @@
 #include <QWebEnginePage>
 #include <QHostAddress>
 #include <QKeyEvent>
+#include <QFileDialog>
 
 #include "head.h"
 #include "global.h"
@@ -185,6 +186,12 @@ void AbstractChatMainWidgetPrivate::initWidget()
     screenShotButt->setPopupMode(QToolButton::MenuButtonPopup);
     QObject::connect(screenShotButt,SIGNAL(clicked(bool)),G_pScreenShotAction,SIGNAL(triggered(bool)));
 
+    //文件传输按钮
+    RToolButton * fileTransButt = new RToolButton();
+    fileTransButt->setObjectName(Constant::Tool_Chat_FileTrans);
+    fileTransButt->setToolTip(QObject::tr("FileTrans"));
+    QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_FileTrans(bool)));
+
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
     screenShotMenu->addAction(G_pScreenShotAction);
@@ -196,6 +203,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     msgNoticeButt->setObjectName(Constant::Tool_Chat_MsgNotice);
     msgNoticeButt->setToolTip(QObject::tr("NoticeSet"));
 
+    //语音按钮
     RToolButton * audioButt = new RToolButton();
     audioButt->setObjectName(Constant::Tool_Chat_Audio);
     audioButt->setToolTip(QObject::tr("Audio"));
@@ -215,6 +223,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     chatToolBar->appendToolButton(fontButt);
     chatToolBar->appendToolButton(msgNoticeButt);
     chatToolBar->appendToolButton(audioButt);
+    chatToolBar->appendToolButton(fileTransButt);
     chatToolBar->addStretch(1);
     chatToolBar->appendToolButton(recordButt);
 
@@ -471,7 +480,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     QString t_simpleHtml = QString("");
     d->chatInputArea->extractPureHtml(t_simpleHtml);
 
-    QString t_localHtml = t_simpleHtml;
     ChatInfoUnit t_unit;
     t_unit.contentType = MSG_TEXT_TEXT;
     t_unit.accountId = G_User->BaseInfo().accountId;
@@ -479,9 +487,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
     t_unit.serialNo = 123;
-    t_unit.contents = t_localHtml;
-    t_unit.contents = d->chatInputArea->toPlainText();
-    appendMsgRecord(t_unit,SEND);
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
@@ -489,8 +494,13 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     RUtil::escapeDoubleQuote(t_sendHtml);
 
     //存储发送信息到数据库
-    t_unit.contents = d->chatInputArea->toPlainText();   //将转义处理后的内容存储到数据库中
+#ifdef __LOCAL_CONTACT__
+    t_unit.contents = d->chatInputArea->toPlainText();
+#else
+    t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
+#endif
     RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(d->m_userInfo.accountId,t_unit);
+    appendMsgRecord(t_unit,SEND);
 
     //发送Html内容给联系人
     TextRequest * request = new TextRequest;
@@ -507,31 +517,18 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->isCompress = G_User->systemSettings()->compressCheck;
 
     request->textType = TEXT_NORAML;
+    request->accountId = G_User->BaseInfo().accountId;
+    request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     request->otherSideId = d->netconfig.nodeId;
-#else
-    request->otherSideId = d->m_userInfo.accountId;
-#endif
-    request->accountId = G_User->BaseInfo().accountId;
-    request->sendData = t_sendHtml;     //FIXME LYS-20180608
+    SERIALNO_STATIC>=65535?(SERIALNO_STATIC=1) : (SERIALNO_STATIC++);
+    request->textId = QString::number(SERIALNO_STATIC);
     request->sendData = d->chatInputArea->toPlainText();
-    request->timeStamp = RUtil::timeStamp();
-
-#ifdef __LOCAL_CONTACT__
-    QDateTime datetime = QDateTime::currentDateTime();
-    unsigned short uid = datetime.date().year()+datetime.date().month()+datetime.date().day();
-    uid += datetime.time().hour() + datetime.time().minute() +datetime.time().second();
-    uid += datetime.time().msec();
-    uid += request->accountId.toUInt();
-    uid += request->otherSideId.toUInt();
-    request->textId = QString::number(uid);
-#else
-    request->textId = RUtil::UUID();
-#endif
-
-#ifdef __LOCAL_CONTACT__
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else
+    request->otherSideId = d->m_userInfo.accountId;
+    request->textId = RUtil::UUID();
+    request->sendData = t_sendHtml;     //FIXME LYS-20180608
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
 
@@ -710,7 +707,10 @@ void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
     appendMsgRecord(msg);
 }
 
-//716-TK收到UDP
+/*!
+ * @brief 聊天界面收到UDP信息
+ * @details 显示接收到的UDP文字信息
+ */
 void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 {
     MQ_D(AbstractChatMainWidget);
@@ -721,7 +721,29 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 }
 
 /*!
+<<<<<<< HEAD
  * @brief 显示收到的语音消息
+=======
+ * @brief 显示文件传输窗口
+ * @details 选择需要发送的文件，支持多选
+ */
+void AbstractChatMainWidget::slot_FileTrans(bool)
+{
+    MQ_D(AbstractChatMainWidget);
+    QStringList files = QFileDialog::getOpenFileNames(
+                              this,
+                              tr("Select one or more files to open"),
+                              tr("./"),
+                              tr("All (*.*)"));
+    if(files.isEmpty())
+    {
+        return ;
+    }
+}
+
+/*!
+ * @brief AbstractChatMainWidget::recvVoiceChatMsg 显示收到的语音消息
+>>>>>>> 138de44a40a659fbb0a9958e8ec5b425bce9e126
  * @param msg 收到的语音消息
  */
 void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)
@@ -836,7 +858,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(source);
     QString t_showMsgScript = QString("");
-    QDateTime t_epochTime(QDate(1970,1,1),QTime(0,0,0));
+    QDateTime t_epochTime(QDate(1970,1,1),QTime(8,0,0));
     QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
     QString t_localHtml = recvMsg.sendData;
     QString t_headPath = QString("");

@@ -142,6 +142,8 @@ struct ProtocolPackage
         this->usSerialNo = package.usSerialNo;
         this->usOrderNo = package.usOrderNo;
         this->data = package.data;
+        this->cDate = package.cDate;
+        this->cTime = package.cTime;
         return *this;
     }
 };

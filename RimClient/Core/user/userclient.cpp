@@ -52,9 +52,13 @@ void UserClient::procRecvContent(TextRequest & response)
         t_unit.contentType = MSG_TEXT_TEXT;
         t_unit.accountId = simpleUserInfo.accountId;
         t_unit.nickName = simpleUserInfo.nickName;
-        t_unit.dtime = RUtil::currentMSecsSinceEpoch();
+#ifdef __LOCAL_CONTACT__
+        t_unit.dtime = response.timeStamp;
         t_unit.dateTime = RUtil::addMSecsToEpoch(response.timeStamp).toString("yyyyMMdd hh:mm:ss");
         t_unit.serialNo = 123;
+#else
+        t_unit.dtime = RUtil::currentMSecsSinceEpoch(); //FIXME LYS-20180710
+#endif
         t_unit.contents = response.sendData;
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
 
@@ -62,7 +66,12 @@ void UserClient::procRecvContent(TextRequest & response)
         HistoryChatRecord record;
         record.accountId = simpleUserInfo.accountId;
         record.nickName = simpleUserInfo.nickName;
+
+#ifdef __LOCAL_CONTACT__
+        record.dtime = response.timeStamp;
+#else
         record.dtime = RUtil::currentMSecsSinceEpoch();
+#endif
         record.lastRecord = RUtil::getTimeStamp();
         record.systemIon = simpleUserInfo.isSystemIcon;
         record.iconId = simpleUserInfo.iconId;

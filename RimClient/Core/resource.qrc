@@ -89,6 +89,7 @@
         <file>resource/icon/History-record.png</file>
         <file>resource/icon/Tool_Panel_Network_Error.png</file>
         <file>resource/icon/Tool_Panel_Network_OK.png</file>
+        <file>resource/icon/Tool_Chat_FileTrans.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

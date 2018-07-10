@@ -70,7 +70,13 @@ void Data716Process::processText(const ProtocolPackage &data)
     response.textId = QString::number(data.usSerialNo);
     response.otherSideId = QString::number(data.wSourceAddr);
     response.type = OperatePerson;
-    response.timeStamp = data.usSerialNo;
+
+    QDate t_date = QDate::fromString(QString::number(data.cDate),QString("yyyyMMdd"));
+    QTime t_time = QTime::fromString(QString::number(data.cTime),QString("hhmmss"));
+    QDateTime t_curMsgTime = QDateTime(t_date,t_time);
+    qint64 t_Time = t_curMsgTime.toMSecsSinceEpoch();
+
+    response.timeStamp = t_Time;
     response.isEncryption = 0;
     response.isCompress = 0;
     response.textType = TEXT_NORAML;

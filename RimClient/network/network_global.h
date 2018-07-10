@@ -21,6 +21,8 @@
 
 typedef int(*Func)(const char *,const int);
 
+static unsigned int SERIALNO_STATIC = 1;
+
 struct DataPacket
 {
     unsigned int magicNum;                   //魔数
@@ -165,6 +167,8 @@ struct ProtocolPackage
         this->usSerialNo = package.usSerialNo;
         this->usOrderNo = package.usOrderNo;
         this->data = package.data;
+        this->cDate = package.cDate;
+        this->cTime = package.cTime;
         return *this;
     }
 };
