@@ -1,5 +1,6 @@
 ﻿#include "qdb21_wraprule.h"
 #include <QTime>
+#include <QDate>
 #include <QDebug>
 
 #ifdef __LOCAL_CONTACT__
@@ -17,7 +18,7 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     memset(&qdb21_Head,0,sizeof(QDB21_Head));
     qdb21_Head.usDestAddr = data.wDestAddr;
     qdb21_Head.usSourceAddr = data.wSourceAddr;
-    qdb21_Head.cTypeNum =1;
+    qdb21_Head.cTypeNum = 1;
     qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
     qdb21_Head.usOrderNo = data.usOrderNo;
     qdb21_Head.usSerialNo = data.usSerialNo;
@@ -62,8 +63,13 @@ void QDB21_WrapRule::wrapTime(char *output, int intput, int length)
         return;
 
     int loopTime = 0;
-    while(loopTime++ < length)
-        *output++ = (char)intput>>8;
+    int ptrInt = intput;
+    while(loopTime < length)
+    {
+        output[loopTime] =(char) ptrInt;
+        ptrInt = ptrInt >> 8;
+        loopTime++;
+    }
 }
 
 /*!

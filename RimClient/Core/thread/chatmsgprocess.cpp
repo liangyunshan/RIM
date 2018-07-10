@@ -9,6 +9,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
+#include <QDebug>
 
 ChatMsgProcess::ChatMsgProcess(QObject *obj):
     RTask(obj)
@@ -183,9 +184,10 @@ bool ChatMsgProcess::saveC2CTaskMsg(ChatInfoUnit &msgUnit)
                });
 
     QSqlQuery query(G_User->database()->sqlDatabase());
-
     if(query.exec(rps.sql()))
+    {
         return true;
+    }
 
     return false;
 }
