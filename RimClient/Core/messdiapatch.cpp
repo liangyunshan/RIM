@@ -1,4 +1,4 @@
-#include "messdiapatch.h"
+﻿#include "messdiapatch.h"
 
 MessDiapatch * MessDiapatch::dispatch = NULL;
 

@@ -1,5 +1,11 @@
 ﻿#include "datatable.h"
 
+#include "../global.h"
+#include "../user/user.h"
+#include "../sql/database.h"
+
+#include <QSqlQuery>
+
 namespace DataTable {
 
 // SQLite中主键自增不能使用int类型，需要使用integer类型
@@ -43,9 +49,29 @@ RChatList::RChatList():table("rchatlist"),id("ID"),accountId("ACCOUNTID"),firstC
 }
 
 RChatRecord::RChatRecord():table("rchatrecord"),id("ID"),accountId("ACCOUNTID"),nickName("NICKNAME"),time("TTIME"),type("TYPE"),
-    data("DATA")
+    dateTime("DATETIME"),serialNo("SERIALNO"),data("DATA")
 {
 
+}
+
+bool RChatRecord::initTable(const QString &name)
+{
+   table = name;
+   QString SQLPersonalChatRecord = QString("CREATE TABLE  IF NOT EXISTS `%1`("
+                                           "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                                           "`ACCOUNTID`  varchar(50) NOT NULL ,"
+                                           "`NICKNAME`  varchar(50) NULL ,"
+                                           "`TTIME`  int(10) NULL ,"
+                                           "`TYPE`  tinyint(2) NULL ,"
+                                           "`DATETIME`  varchar(7) NOT NULL,"
+                                           "`SERIALNO`  tinyint(2) NOT NULL,"
+                                           "`DATA`  varchar(255) NULL"
+                                           ")").arg(table);
+   QSqlQuery query(G_User->database()->sqlDatabase());
+   if(!query.exec(SQLPersonalChatRecord))
+       return false;
+
+   return true;
 }
 
 }

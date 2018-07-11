@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "util/rsingleton.h"
 #include "Util/rutil.h"
+#include "notifywindow.h"
 #include "widget/rlabel.h"
 #include "widget/rbutton.h"
 #include "Util/imagemanager.h"
@@ -41,7 +42,7 @@ protected:
     {
         initWidget();
         windowId = RUtil::UUID();
-
+        isLoadFinished = false;
     }
 
     void initWidget();
@@ -60,6 +61,8 @@ protected:
     QString windowId;
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
     bool isMaxSize;
+    bool isLoadFinished;                    //标记当前内置的html是否加载完成
+    ChatInfoUnitList tempData;              //临时缓存信息
 };
 
 void ChatPersonWidgetPrivate::initWidget()
@@ -108,6 +111,7 @@ void ChatPersonWidgetPrivate::initWidget()
     mainWidget->setChatType(AbstractChatMainWidget::C2C);
     QObject::connect(mainWidget,SIGNAL(shakeWindow()),q_ptr,SLOT(shakeWindow()));
     QObject::connect(mainWidget,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
+    QObject::connect(mainWidget,SIGNAL(initFinished()),q_ptr,SLOT(autoQueryRecord()));
     QObject::connect(q_ptr,SIGNAL(sendQueryRecord(const ChatInfoUnit &)),mainWidget,SLOT(showQueryRecord(const ChatInfoUnit &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedMsg(const TextRequest &)),mainWidget,SLOT(recvTextChatMsg(const TextRequest &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedAudio(QString)),mainWidget,SLOT(recvVoiceChatMsg(QString)));
@@ -166,7 +170,7 @@ void ChatPersonWidget::onMessage(MessageType type)
 }
 
 /*!
- * @brief ChatPersonWidget::initChatRecord 初始化聊天记录
+ * @brief 初始化聊天记录
  */
 void ChatPersonWidget::initChatRecord()
 {
@@ -175,11 +179,10 @@ void ChatPersonWidget::initChatRecord()
             this,SLOT(queryRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
-//    showRecentlyChatMsg(3);
 }
 
 /*!
- * @brief ChatPersonWidget::setUserInfo 显示联系人基本信息
+ * @brief 显示联系人基本信息
  * @param info 联系人基本信息
  */
 void ChatPersonWidget::setUserInfo(const SimpleUserInfo &info)
@@ -208,7 +211,7 @@ void ChatPersonWidget::setOuterNetConfig(const ParameterSettings::OuterNetConfig
 #endif
 
 /*!
- * @brief ChatPersonWidget::recvChatMsg 转发收到的聊天信息
+ * @brief 转发收到的聊天信息
  * @param msg 收到的聊天信息
  */
 void ChatPersonWidget::recvChatMsg(const TextRequest &msg)
@@ -217,7 +220,7 @@ void ChatPersonWidget::recvChatMsg(const TextRequest &msg)
 }
 
 /*!
- * @brief ChatPersonWidget::recvChatAudio 转发收到的语音消息
+ * @brief 转发收到的语音消息
  * @param fileName 语音文件名称
  */
 void ChatPersonWidget::recvChatAudio(QString fileName)
@@ -226,7 +229,7 @@ void ChatPersonWidget::recvChatAudio(QString fileName)
 }
 
 /*!
- * @brief ChatPersonWidget::showRecentlyChatMsg 查询显示最近的几条信息
+ * @brief 查询显示最近的几条信息
  * @param count 信息数目
  */
 void ChatPersonWidget::showRecentlyChatMsg(uint count)
@@ -270,7 +273,7 @@ void ChatPersonWidget::resizeEvent(QResizeEvent *)
 }
 
 /*!
- * @brief ChatPersonWidget::shakeWindow 抖动窗口
+ * @brief 抖动窗口
  */
 void ChatPersonWidget::shakeWindow()
 {
@@ -293,18 +296,49 @@ void ChatPersonWidget::shakeWindow()
 }
 
 /*!
- * @brief ChatPersonWidget::queryRecordReady 响应查询聊天记录结果
+ * @brief 响应查询聊天记录结果
  */
 void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
 {
+    MQ_D(ChatPersonWidget);
+
     foreach(ChatInfoUnit unit,historyMsgs)
     {
         emit sendQueryRecord(unit);
     }
+
 }
 
 /*!
- * @brief ChatPersonWidget::switchWindowSize 切换窗口尺寸
+ * @brief html加载完成后加载待显示消息（推送消息/历史记录消息）
+ */
+void ChatPersonWidget::autoQueryRecord()
+{
+    MQ_D(ChatPersonWidget);
+
+    d->isLoadFinished = true;
+
+    int t_notifyCount = RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
+
+    if(t_notifyCount)
+    {
+        if(t_notifyCount > 20)
+        {
+            showRecentlyChatMsg(20);
+        }
+        else
+        {
+            showRecentlyChatMsg(t_notifyCount);
+        }
+    }
+    else
+    {
+        showRecentlyChatMsg(3);
+    }
+}
+
+/*!
+ * @brief 切换窗口尺寸
  */
 void ChatPersonWidget::switchWindowSize()
 {
