@@ -262,6 +262,8 @@ void SplashLoginDialog::initResource()
 void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(SplashLoginDialog);
+
+    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -296,7 +298,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 #endif
                 client->chatPersonWidget->initChatRecord();
             }
-            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             client->chatPersonWidget->show();
         }
     }
@@ -348,6 +350,8 @@ void SplashLoginDialog::closeWindow()
 void SplashLoginDialog::prepareNetConnect()
 {
     MQ_D(SplashLoginDialog);
+
+    Q_UNUSED(d);
     G_NetSettings.connectedIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);

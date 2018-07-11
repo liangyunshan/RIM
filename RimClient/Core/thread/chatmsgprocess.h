@@ -38,6 +38,7 @@ public:
         }
         taskType tskType;   //任务类型
         actionType actType; //操作类型
+        QString otherID;    //联系人ID
         ChatInfoUnit msg;   //消息数据（操作类型为存储消息时有效）
         uint start;         //起始查询位置（操作类型为查询消息时有效）
         uint count;         //查询条数（操作类型为查询消息时有效）
@@ -48,7 +49,7 @@ public:
     void startMe();
     void stopMe();
 
-    void appendC2CStoreTask(ChatInfoUnit &msgUnit);
+    void appendC2CStoreTask(QString otherID, ChatInfoUnit &msgUnit);
     void appendC2CQueryTask(QString otherID, uint begin, uint count);
 
     void appendGroupStoreTask(ChatInfoUnit &msgUnit);
@@ -63,7 +64,7 @@ signals:
     void GroupResultReady(ChatInfoUnitList);
 
 private:
-    bool saveC2CTaskMsg(ChatInfoUnit &msgUnit);
+    bool saveC2CTaskMsg(QString otherID,ChatInfoUnit &msgUnit);
     bool queryC2CTaskMsg(QString otherID,uint start, uint count);
 
     bool saveGroupTaskMsg(ChatInfoUnit &msgUnit);

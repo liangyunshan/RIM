@@ -46,6 +46,7 @@ signals:
 public slots:
     void shakeWindow();
     void queryRecordReady(ChatInfoUnitList);
+    void autoQueryRecord();
 
 private:
     void switchWindowSize();

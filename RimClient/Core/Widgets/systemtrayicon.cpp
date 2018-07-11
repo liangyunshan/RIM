@@ -109,11 +109,6 @@ SystemTrayIcon::~SystemTrayIcon()
             delete d->blinkingTimer;
         }
     }
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"delete icon"
-          <<"\n";
-
 }
 
 /*!

@@ -49,7 +49,7 @@ public:
 };
 
 /*!
- * @brief CustomFontComboBoxPrivate::setFontsPath 设置自定义字体文件检索路径
+ * @brief 设置自定义字体文件检索路径
  * @param path 自定义字体文件检索路径
  */
 void CustomFontComboBoxPrivate::setFontsPath(const QString &path)
@@ -64,7 +64,7 @@ void CustomFontComboBoxPrivate::setFontsPath(const QString &path)
 }
 
 /*!
- * @brief CustomFontComboBoxPrivate::updateModel 更新下拉框内容
+ * @brief 更新下拉框内容
  */
 void CustomFontComboBoxPrivate::updateModel()
 {
@@ -146,7 +146,7 @@ void CustomFontComboBoxPrivate::updateModel()
 }
 
 /*!
- * @brief CustomFontComboBoxPrivate::currentChanged 选择字体变化
+ * @brief 选择字体变化
  * @param text 字体的family
  */
 void CustomFontComboBoxPrivate::currentChanged(const QString &text)
@@ -159,7 +159,7 @@ void CustomFontComboBoxPrivate::currentChanged(const QString &text)
 }
 
 /*!
- * @brief CustomFontComboBoxPrivate::defaultFontPath 返回默认自定义字体文件检索路径
+ * @brief 返回默认自定义字体文件检索路径
  * @return 默认自定义字体文件检索路径
  */
 QString CustomFontComboBoxPrivate::defaultFontPath() const
@@ -232,7 +232,7 @@ CustomFontComboBox::FontFilters CustomFontComboBox::fontFilters() const
 }
 
 /*!
- * @brief CustomFontComboBox::currentFont 返回当前字体
+ * @brief 返回当前字体
  * @return  当前选择的字体
  */
 QFont CustomFontComboBox::currentFont() const
@@ -272,7 +272,7 @@ void CustomFontComboBox::fontDirChanged(const QString &)
 }
 
 /*!
- * @brief CustomFontComboBox::sizeHint 获取窗口尺寸
+ * @brief 获取窗口尺寸
  * @return 窗口尺寸
  */
 QSize CustomFontComboBox::sizeHint() const
@@ -284,7 +284,7 @@ QSize CustomFontComboBox::sizeHint() const
 }
 
 /*!
- * @brief CustomFontComboBox::setFontsFilePath 设置自定义字体文件检索路径
+ * @brief 设置自定义字体文件检索路径
  * @param path 自定义字体文件检索路径
  */
 void CustomFontComboBox::setFontsFilePath(const QString &path)
@@ -296,7 +296,7 @@ void CustomFontComboBox::setFontsFilePath(const QString &path)
 }
 
 /*!
- * @brief CustomFontComboBox::fontsFilePath 返回当前自定义字体文件检索路径
+ * @brief 返回当前自定义字体文件检索路径
  * @return 自定义字体文件检索路径
  */
 QString CustomFontComboBox::fontsFilePath() const
