@@ -64,8 +64,13 @@ void QDB21_WrapRule::wrapTime(char *output, int intput, int length)
         return;
 
     int loopTime = 0;
-    while(loopTime++ < length)
-        *output++ = (char)intput>>8;
+    int ptrInt = intput;
+    while(loopTime < length)
+    {
+        output[loopTime] =(char) ptrInt;
+        ptrInt = ptrInt >> 8;
+        loopTime++;
+    }
 }
 
 /*!

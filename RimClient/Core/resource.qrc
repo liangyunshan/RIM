@@ -1,4 +1,4 @@
-<RCC>
+﻿<RCC>
     <qresource prefix="/background">
         <file>resource/background/login.png</file>
         <file>resource/background/slide_hide.png</file>
@@ -86,8 +86,10 @@
         <file>resource/icon/Font-system-gray.png</file>
         <file>resource/icon/Font-system-white.png</file>
         <file>resource/icon/Font-underline.png</file>
+        <file>resource/icon/History-record.png</file>
         <file>resource/icon/Tool_Panel_Network_Error.png</file>
         <file>resource/icon/Tool_Panel_Network_OK.png</file>
+        <file>resource/icon/Tool_Chat_FileTrans.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

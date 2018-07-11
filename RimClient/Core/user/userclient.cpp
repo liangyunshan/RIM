@@ -52,7 +52,11 @@ void UserClient::procRecvContent(TextRequest & response)
         t_unit.contentType = MSG_TEXT_TEXT;
         t_unit.accountId = simpleUserInfo.accountId;
         t_unit.nickName = simpleUserInfo.nickName;
+#ifdef __LOCAL_CONTACT__
+        t_unit.dtime = response.timeStamp;
+#else
         t_unit.dtime = RUtil::currentMSecsSinceEpoch();
+#endif
         t_unit.contents = response.sendData;
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(t_unit);
 
@@ -60,7 +64,12 @@ void UserClient::procRecvContent(TextRequest & response)
         HistoryChatRecord record;
         record.accountId = simpleUserInfo.accountId;
         record.nickName = simpleUserInfo.nickName;
+
+#ifdef __LOCAL_CONTACT__
+        record.dtime = response.timeStamp;
+#else
         record.dtime = RUtil::currentMSecsSinceEpoch();
+#endif
         record.lastRecord = RUtil::getTimeStamp();
         record.systemIon = simpleUserInfo.isSystemIcon;
         record.iconId = simpleUserInfo.iconId;
@@ -179,8 +188,7 @@ void UserClient::procDownOverFile(FileDesc *fileDesc)
         if(itemKind == FILE_FILE){
 
         }else if(itemKind == FILE_AUDIO){
-            //TODO LYS-20180608 显示接收到的语音消息
-//            chatPersonWidget->appendVoiceMsg(RECV,fileDesc->fileName);
+            chatPersonWidget->recvChatAudio(fileDesc->fileName);
         }else if(itemKind == FILE_IMAGE){
 
         }

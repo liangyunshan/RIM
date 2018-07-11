@@ -193,6 +193,8 @@ void FileRecvTask::handleItem()
     fileRequest->md5 = RUtil::MD5File(currTransFile->fullPath);
     fileRequest->accountId = G_User->BaseInfo().accountId;
     fileRequest->otherId = currTransFile->otherSideId;
+    fileRequest->msgType = MSG_FILE;
+    fileRequest->msgCommand = MSG_TEXT_FILE ;
 
     FileDesc * fileDesc = new FileDesc;
     fileDesc->itemType = static_cast<int>(fileRequest->itemType);
@@ -228,7 +230,6 @@ void FileRecvTask::transferFile()
         int currIndex = 0;
         while(!file.atEnd())
         {
-//            qDebug()<<"SendLen:"<<sendLen<<"_"<<currTransFile->fileSize;
             FileDataRequest * request = new FileDataRequest;
             request->fileId = currTransFileId;
             request->index = currIndex++;

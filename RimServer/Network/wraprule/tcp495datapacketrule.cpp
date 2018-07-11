@@ -84,7 +84,7 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, IocpContextSender sendFunc)
 
         }else if(dunit.dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dunit.dataUnit.cFileType == QDB2051::F_TEXT){
             QByteArray originalData = dunit.dataUnit.data;
-qDebug()<<originalData.length();
+
             //多个协议头长度
             int protocolDataLen = 0;
             if(dunit.dataUnit.usOrderNo == O_2051){

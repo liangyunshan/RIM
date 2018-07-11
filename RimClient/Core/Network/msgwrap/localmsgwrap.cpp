@@ -27,6 +27,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         return;
 
     SendUnit unit;
+    {
+        unit.dataUnit.cDate = QDate::currentDate().toString("yyyyMMdd").toInt();
+        unit.dataUnit.cTime = QTime::currentTime().toString("hhmmss").toUInt();
+    }
 
     switch (packet->msgCommand)
     {
@@ -69,6 +73,10 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
                 unit.dataUnit.bPeserve = 0X80;
             }
+        }
+        break;
+    case MsgCommand::MSG_TEXT_FILE:
+        {
         }
         break;
     default:
