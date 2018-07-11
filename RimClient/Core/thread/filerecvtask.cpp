@@ -10,7 +10,7 @@
 #include "../protocol/datastruct.h"
 #include "Util/rutil.h"
 #include "Util/rbuffer.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "file/filedesc.h"
 #include "file/filemanager.h"

@@ -58,15 +58,23 @@ SOURCES += \
     rtask.cpp \
     aes/AES.cpp \
     aes/raes.cpp \
-    wraprule/wraprule.cpp \
     win32net/rudpsocket.cpp \
     multitransmits/basetransmit.cpp \
     multitransmits/tcptransmit.cpp \
     win32net/msgsender.cpp \
     win32net/msgreceive.cpp \
     multitransmits/ddstransmit.cpp \
+    wraprule/dds_wraprule.cpp \
+    wraprule/qdb21_wraprule.cpp \
+    wraprule/qdb61a_wraprule.cpp \
+    wraprule/qdb2048_wraprule.cpp \
+    wraprule/qdb2051_wraprule.cpp \
+    wraprule/tcp_wraprule.cpp \
+    wraprule/tcp495datapacketrule.cpp \
     wraprule/tcpdatapacketrule.cpp \
-    wraprule/tcp495datapacketrule.cpp
+    wraprule/TK205_WrapRule.cpp \
+    wraprule/udp_wraprule.cpp \
+    wraprule/wraprule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -75,7 +83,6 @@ HEADERS +=\
     rtask.h \
     aes/AES.h \
     aes/raes.h \
-    wraprule/wraprule.h \
     win32net/rudpsocket.h \
     multitransmits/basetransmit.h \
     multitransmits/tcptransmit.h \
@@ -83,5 +90,14 @@ HEADERS +=\
     win32net/msgsender.h \
     multitransmits/ddstransmit.h \
     3rdhead/DDS.h \
+    wraprule/dds_wraprule.h \
+    wraprule/qdb21_wraprule.h \
+    wraprule/qdb61a_wraprule.h \
+    wraprule/qdb2048_wraprule.h \
+    wraprule/qdb2051_wraprule.h \
+    wraprule/tcp_wraprule.h \
+    wraprule/tcp495datapacketrule.h \
     wraprule/tcpdatapacketrule.h \
-    wraprule/tcp495datapacketrule.h
+    wraprule/tk205_wraprule.h \
+    wraprule/udp_wraprule.h \
+    wraprule/wraprule.h

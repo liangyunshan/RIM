@@ -47,7 +47,7 @@ QString TcpTransmit::name()
  * @note 1.根据发送的目的服务器是否与当前服务器一致，若一致则走IOCP链路；若不一致，则走普通链路。
  *       2.若传输失败，则直接关闭socket，并将错误信息交由上层处理。
  */
-bool TcpTransmit::startTransmit(const SendUnit &unit)
+bool TcpTransmit::startTransmit(SendUnit &unit)
 {
     if(unit.localServer){
         if(dataPacketRule->wrap(unit,sendFunc))

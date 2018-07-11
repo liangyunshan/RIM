@@ -21,7 +21,7 @@
 #include "widget/rlabel.h"
 #include "widget/rmessagebox.h"
 #include "Util/imagemanager.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "messdiapatch.h"
 #include "toolbox/listbox.h"

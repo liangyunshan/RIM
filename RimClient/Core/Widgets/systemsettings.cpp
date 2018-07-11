@@ -19,7 +19,7 @@
 #include "constants.h"
 #include "toolbar.h"
 #include "Util/rutil.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "widget/rbutton.h"
 #include "panelcontentarea.h"

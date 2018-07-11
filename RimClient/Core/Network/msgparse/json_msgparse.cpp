@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "Util/rlog.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "jsonkey.h"
 #include "global.h"
 #include "../msgprocess/json_dataprocess.h"

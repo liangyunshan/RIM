@@ -51,6 +51,9 @@ private slots:
     void respTextSocketError();
     void respTransmitError(QString errorMsg);
 
+    void respFileConnect(bool flag);
+    void respFileSocketError();
+
 private:
     void enableInput(bool flag);
 

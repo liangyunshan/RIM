@@ -2,11 +2,7 @@
 
 #ifdef __LOCAL_CONTACT__
 
-#include "../wraprule/udp_wraprule.h"
-#include "../wraprule/tcp_wraprule.h"
-#include "../wraprule/qdb21_wraprule.h"
-#include "../wraprule/qdb2051_wraprule.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/netglobal.h"
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
@@ -81,10 +77,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
 
     if(method == C_NetWork && format == M_205){
         unit.method = C_UDP;
-        RSingleton<UDP_WrapRule>::instance()->wrap(unit.dataUnit);
     }else if(method == C_TongKong && format == M_495){
         unit.method = C_TCP;
-        RSingleton<TCP_WrapRule>::instance()->wrap(unit.dataUnit);
     }
 
     if(unit.method != C_NONE){

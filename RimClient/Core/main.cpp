@@ -11,7 +11,7 @@
 #include "Widgets/logindialog.h"
 #include "constants.h"
 #include "Util/rlog.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/rlog.h"
 #include "Util/imagemanager.h"
 #include "protocol/protocoldata.h"

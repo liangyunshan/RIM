@@ -1,6 +1,6 @@
 ﻿#include "binary_dataprocess.h"
 
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "file/filedesc.h"
 #include "file/filemanager.h"
 #include "messdiapatch.h"

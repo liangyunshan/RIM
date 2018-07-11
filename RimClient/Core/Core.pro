@@ -107,7 +107,6 @@ SOURCES += \
     main.cpp \
     thread/msgreceiveproctask.cpp \
     thread/taskmanager.cpp \
-    rsingleton.cpp \
     user/userinfofile.cpp \
     Network/netconnector.cpp \
     Widgets/registdialog.cpp \
@@ -157,11 +156,6 @@ SOURCES += \
     file/xmlparse.cpp \
     Widgets/splashlogindialog.cpp \
     Network/msgwrap/localmsgwrap.cpp \
-    Network/wraprule/qdb61a_wraprule.cpp \
-    Network/wraprule/qdb21_wraprule.cpp \
-    Network/wraprule/udp_wraprule.cpp \
-    Network/wraprule/tcp_wraprule.cpp \
-    Network/wraprule/tk205_wraprule.cpp \
     Network/msgwrap/msgwrap.cpp \
     Network/msgwrap/wrapfactory.cpp \
     Network/msgwrap/basemsgwrap.cpp \
@@ -169,7 +163,6 @@ SOURCES += \
     Network/msgwrap/binary_wrapformat.cpp \
     Network/msgwrap/json_wrapformat.cpp \
     Widgets/chatpersonwidget.cpp \
-    Network/wraprule/qdb2051_wraprule.cpp \
     Network/msgparse/dataparse.cpp \
     Network/msgparse/json_msgparse.cpp \
     Network/msgparse/msgparsefactory.cpp \
@@ -183,7 +176,7 @@ SOURCES += \
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/json_dataprocess.cpp \
     Network/msgprocess/data716process.cpp \
-    Network/wraprule/qdb2048_wraprule.cpp
+    thread/file716sendtask.cpp
 
 
 HEADERS  += \
@@ -230,7 +223,6 @@ HEADERS  += \
     head.h \
     thread/msgreceiveproctask.h \
     thread/taskmanager.h \
-    rsingleton.h \
     user/userinfofile.h \
     Network/netconnector.h \
     Widgets/registdialog.h \
@@ -281,11 +273,6 @@ HEADERS  += \
     file/xmlparse.h \
     Widgets/splashlogindialog.h \
     Network/msgwrap/localmsgwrap.h \
-    Network/wraprule/qdb61a_wraprule.h \
-    Network/wraprule/qdb21_wraprule.h \
-    Network/wraprule/udp_wraprule.h \
-    Network/wraprule/tcp_wraprule.h \
-    Network/wraprule/tk205_wraprule.h \
     Network/msgwrap/msgwrap.h \
     Network/msgwrap/wrapfactory.h \
     Network/msgwrap/basemsgwrap.h \
@@ -293,7 +280,6 @@ HEADERS  += \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/binary_wrapformat.h \
     Widgets/chatpersonwidget.h \
-    Network/wraprule/qdb2051_wraprule.h \
     Network/msgparse/dataparse.h \
     Network/msgparse/json_msgparse.h \
     Network/msgparse/msgparsefactory.h \
@@ -307,7 +293,7 @@ HEADERS  += \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/json_dataprocess.h \
     Network/msgprocess/data716process.h \
-    Network/wraprule/qdb2048_wraprule.h
+    thread/file716sendtask.h
 
 DISTFILES += \
     Widgets/Widgets.pri

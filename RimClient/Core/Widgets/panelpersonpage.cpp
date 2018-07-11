@@ -16,7 +16,7 @@
 #include "maindialog.h"
 #include "global.h"
 #include "actionmanager/actionmanager.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "user/userclient.h"
 #include "messdiapatch.h"

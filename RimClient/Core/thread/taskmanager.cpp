@@ -6,6 +6,7 @@
 #include "thread/filereceiveproctask.h"
 #include "thread/filerecvtask.h"
 #include "thread/historyrecordtask.h"
+#include "thread/file716sendtask.h"
 #include "Network/netconnector.h"
 
 TaskManager::TaskManager(QObject *parent) : QObject(parent)
@@ -18,11 +19,14 @@ void TaskManager::initTask()
     if(tasks.size() > 0 )
         removeAll();
 
+    //文本线程
     addTask(TEXT_NET_CONC,shared_ptr<ClientNetwork::RTask>(new TextNetConnector()));
     addTask(MSG_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new MsgReceiveProcTask()));
 
-#ifndef __LOCAL_CONTACT__
+    //文件线程
     addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
+    addTask(FILE_SEND_PROC,shared_ptr<ClientNetwork::RTask>(new File716SendTask()));
+#ifndef __LOCAL_CONTACT__
     addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
     addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
 #endif

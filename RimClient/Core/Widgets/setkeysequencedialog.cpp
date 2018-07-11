@@ -2,7 +2,7 @@
 #include "global.h"
 #include "constants.h"
 #include "actionmanager/shortcutsettings.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "screenshot.h"
 
 #include <QtCore/QVariant>

@@ -2,11 +2,12 @@
 
 #ifdef __LOCAL_CONTACT__
 
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "messdiapatch.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "global.h"
+#include <QDebug>
 
 /*!
  * @brief 查询指定节点的通信配置方式

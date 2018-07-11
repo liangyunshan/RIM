@@ -41,7 +41,7 @@ QString TcpTransmit::name()
  * @return 是否传输成功
  * @note 若传输失败，则直接关闭socket，并将错误信息交由上层处理。
  */
-bool TcpTransmit::startTransmit(const SendUnit &unit)
+bool TcpTransmit::startTransmit(SendUnit &unit)
 {
     if(tcpSocket && tcpSocket->isValid()){
         auto func = [&](const char * buff,const int length)->int{

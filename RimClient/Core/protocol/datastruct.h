@@ -12,6 +12,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QDateTime>
 #include <QDataStream>
 #include <QVector>
 
@@ -244,6 +245,30 @@ struct NetworkSettings{
 
     IpPort connectedIpPort;         //保存正在连接的网络地址信息(要么为textServer，要么为tandemServer)
 };
+
+/*!
+ *  @brief 待发送至服务器的文件描述
+ */
+struct SenderFileDesc
+{
+    SenderFileDesc(){}
+    SenderFileDesc(QString sid,QString did,QString fpath,QDateTime dtime):srcNodeId(sid),destNodeId(did)
+      ,fullFilePath(fpath),createDatetime(dtime){}
+    bool operator==(const SenderFileDesc & info){
+        if(this == &info)
+            return true;
+
+        return (srcNodeId == info.srcNodeId && destNodeId == info.destNodeId && fullFilePath == info.fullFilePath);
+    }
+    bool isValid(){
+        return (srcNodeId.size() > 0 && destNodeId.size() >= 0 && fullFilePath.size() > 0);
+    }
+    QString srcNodeId;          /*!< 源节点号 */
+    QString destNodeId;         /*!< 目的节点 */
+    QString fullFilePath;       /*!< 文件全路径 */
+    QDateTime createDatetime;   /*!< 文件产生时间 */
+};
+
 
 #ifdef __LOCAL_CONTACT__
 /*************************参数配置文件*********************************/
