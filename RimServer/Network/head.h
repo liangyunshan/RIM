@@ -33,6 +33,9 @@
 #define RECV_MAGIC_NUM 0x7DBCD6AC
 #define SEND_MAGIC_NUM 0xD7CB6DCA
 
+#pragma pack(push)
+#pragma pack(1)
+
 /*!
  *  @brief 网络层数据传输控制头
  *  @details 在传输时网络层包裹了应用层的数据内容，用于即时通讯软件网络层交互时对大数据的包的分包传输以及组包，同时可对数据的正确性进行校验。
@@ -67,20 +70,70 @@ namespace QDB495{
 struct QDB495_SendPackage{
     unsigned char bVersion;
     unsigned char bPackType;
-    unsigned short wPackLen;
+    unsigned short wPackLen;            /*!< sizeof(495)+数据体 */
     unsigned char bPriority;
     unsigned char bPeserve;
     unsigned short wSerialNo;
     unsigned short wCheckout;
-    unsigned short wOffset;
-    unsigned long dwPackAllLen;
+    unsigned short wOffset;             /*!< 分片序号 */
+    unsigned long dwPackAllLen;         /*!< 分片数量*(sizeof(495)+sizeof(21)+sizeof(2051)+文件名长度)+数据体，此处无法直接获得文件的长度!! */
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
 };
 
 #define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
 #define MAX_495SEND_BUFF (MAX_PACKET+QDB495_SendPackage_Length)     /*!< 网络层最大发送长度 */
+}
 
+namespace QDB21{
+struct QDB21_Head{
+    unsigned short usDestAddr;
+    unsigned short usSourceAddr;
+    unsigned long ulPackageLen;
+    char cDate[4];
+    char cTime[3];
+    char cTypeNum;
+    unsigned short usSerialNo;
+    unsigned short usOrderNo;
+};//20字节长度
+
+#define QDB21_Head_Length sizeof(QDB21_Head)
+}
+
+namespace QDB2051{
+
+struct QDB2051_Head{
+    unsigned long ulPackageLen;
+    unsigned short usDestSiteNo;
+    unsigned long ulDestDeviceNo;
+    char cFileType;
+    char cFilenameLen;      //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
+};
+
+/*!
+ *  @brief  2051协议中文件类型
+ */
+enum FileType{
+    F_NO_SUFFIX = 0,    /*!< 无文件后缀 */
+    F_TEXT = 1,         /*!< 文本文件 */
+    F_BINARY = 2        /*!< 二进制文件*/
+};
+
+#define QDB2051_Head_Length sizeof(QDB2051_Head)
+}
+
+namespace QDB2048
+{
+struct QDB2048_Head{
+    unsigned long ulPackageLen;
+    unsigned short usDestSiteNo;
+    unsigned long ulDestDeviceNo;
+    unsigned short usSerialNo;
+    unsigned short usOrderNo;
+    unsigned short usErrorType;
+};
+
+#define QDB2048_Head_Length sizeof(QDB2048_Head)
 }
 
 /*!
@@ -107,6 +160,8 @@ struct ProtocolPackage
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
     unsigned short usSerialNo;      /*!< 流水号*/
     unsigned short usOrderNo;       /*!< 协议号*/
+    unsigned short wOffset;         /*!< 文件数据偏移量 */
+    unsigned long dwPackAllLen;     /*!< 数据总长度 */
     int cDate;                      /*!< 日期，4字节 */
     int cTime;                      /*!< 时间 低3字节 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
@@ -207,12 +262,14 @@ enum PacketType_495{
  */
 struct ExtendData
 {
-    SocketOperateType type;     /*!< 请求类型 */
-    SOCKET sockId;              /*!< 客户端Socket标识Id */
-    PacketType_495 type495;     /*!< 495信息类型 */
-    unsigned char bPeserve;     /*!< 95保留字 */
-    unsigned short usSerialNo;   /*!< 流水号 */
-    unsigned short usOrderNo;    /*!< 编码代号 */
+    SocketOperateType type;         /*!< 请求类型 */
+    SOCKET sockId;                  /*!< 客户端Socket标识Id */
+    PacketType_495 type495;         /*!< 495信息类型 */
+    unsigned char bPeserve;         /*!< 495保留字 */
+    unsigned short usSerialNo;      /*!< 流水号 */
+    unsigned short usOrderNo;       /*!< 编码代号 */
+    unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
+    unsigned short sliceNum;        /*!< 分片数量 */
 };
 
 /*!
@@ -224,5 +281,7 @@ struct RecvUnit
     ExtendData extendData;      /*!< 可扩充数据信息，包含网络层相关信息 */
     QByteArray data;            /*!< 请求数据内容，已经去除网络层( @link DataPacket @endlink )数据头，但其它应用层的数据格式头没有去除 */
 };
+
+#pragma pack(pop)
 
 #endif // HEAD_H

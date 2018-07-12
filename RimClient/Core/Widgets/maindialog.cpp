@@ -24,7 +24,7 @@
 #include "actionmanager/actionmanager.h"
 #include "Util/imagemanager.h"
 #include "toolbox/toolitem.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "actionmanager/shortcutsettings.h"
 #include "editpersoninfowindow.h"
 #include "messdiapatch.h"

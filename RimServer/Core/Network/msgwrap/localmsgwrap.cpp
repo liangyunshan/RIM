@@ -7,18 +7,11 @@
 #include "Network/head.h"
 #include "Network/netglobal.h"
 #include "binary716_wrapfromat.h"
-#include "../wraprule/udp_wraprule.h"
-#include "../wraprule/tcp_wraprule.h"
-#include "../../thread/netconnector.h"
 #include "rsingleton.h"
 #include "global.h"
-#include <QDebug>
 
 #include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
-
-#include <chrono>
-#include <thread>
 
 std::mutex QueryNodeMutex;
 
@@ -118,10 +111,8 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
         if(flag){
             if(destConfig.communicationMethod == C_NetWork && destConfig.messageFormat == M_205){
                 sUnit.method = C_UDP;
-                RSingleton<UDP_WrapRule>::instance()->wrap(package);
             }else if(destConfig.communicationMethod == C_TongKong && destConfig.messageFormat == M_495){
                 sUnit.method = C_TCP;
-                RSingleton<TCP_WrapRule>::instance()->wrap(sUnit.dataUnit);
             }
         }
     }else{
@@ -130,10 +121,8 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
         if(findServer){
             if(serverInfo.communicationMethod == C_NetWork && serverInfo.messageFormat == M_205){
                 sUnit.method = C_UDP;
-                RSingleton<UDP_WrapRule>::instance()->wrap(package);
             }else if(serverInfo.communicationMethod == C_TongKong && serverInfo.messageFormat == M_495){
                 sUnit.method = C_TCP;
-                RSingleton<TCP_WrapRule>::instance()->wrap(sUnit.dataUnit);
             }
         }
     }
@@ -143,62 +132,6 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
         std::unique_lock<std::mutex> ul(G_SendMutex);
         G_SendButts.push(sUnit);
         G_SendCondition.notify_one();
-    }
-}
-
-/*!
- * @brief 缓存数据信息请求，执行网络连接请求操作。
- * @details 若未与对方服务器建立连接，则先将发往对方的数据信息进行缓存，然后发起连接请求。 \n
- *          若建立连接，则将缓存的数据信息通过网络发送至对方; \n
- *          若未建立连接，则将缓存的数据移动至数据库。
- * @param[in] NodeServer 服务器信息
- * @param[in] ProtocolPackage & 请求数据信息
- */
-void LocalMsgWrap::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &package)
-{
-    std::unique_lock<std::mutex> ul(cacheMutex);
-
-    auto index = serverCache.find(serverInfo.nodeId);
-    if(index != serverCache.end()){
-        (*index).second.msgCache.push_back(package);
-        //TODO 20180704 若第一次未连接成功，会造成之后数据就不会主动发起连接请求
-    }else{
-        ServerCacheInfo cacheInfo;
-        cacheInfo.serverInfo = serverInfo;
-        cacheInfo.msgCache.push_back(package);
-
-        cacheInfo.connStats = SCS_IN;
-        serverCache.insert(std::pair<QString,ServerCacheInfo>(serverInfo.nodeId,cacheInfo));
-
-        NetFunc func = std::bind(&LocalMsgWrap::respNetConnectResult,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
-        std::thread connector(RunNetConnetor,func,serverInfo);
-        connector.detach();
-    }
-}
-
-/*!
- * @brief 响应网络连接结果
- * @param[in] nodeId 远端服务器节点
- * @param[in] connected 是否建立连接
- */
-void LocalMsgWrap::respNetConnectResult(QString nodeId,bool connected,int socketId)
-{
-    std::unique_lock<std::mutex> ul(cacheMutex);
-
-    auto index = serverCache.find(nodeId);
-    if(index != serverCache.end()){
-        if(connected){
-            (*index).second.connStats = SCS_OK;
-
-            std::for_each((*index).second.msgCache.begin(),(*index).second.msgCache.end(),[&](ProtocolPackage & package){
-                hanldeMsgProtcol(socketId,package,false);
-            });
-
-            (*index).second.msgCache.clear();
-            serverCache.erase(index);
-        }else{
-            (*index).second.connStats = SCS_ERR;
-        }
     }
 }
 

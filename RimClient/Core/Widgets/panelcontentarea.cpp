@@ -16,7 +16,7 @@
 #include "panelpersonpage.h"
 #include "panelgrouppage.h"
 #include "panelhistorypage.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 
 #define PANEL_ITEM_WIDTH 24
 

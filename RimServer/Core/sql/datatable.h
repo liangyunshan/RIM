@@ -241,6 +241,10 @@ public:
 };
 
 #ifdef __LOCAL_CONTACT__
+
+/*!
+ *  @brief  716离线信息记录结构
+ */
 class RChat716Cache
 {
 public:
@@ -257,6 +261,46 @@ public:
     const QString orderNo;                  /*!< 协议号 */
     const QString date;                     /*!< 日期 */
     const QString time;                     /*!< 时间 */
+};
+
+/*!
+ *  @brief 用户传输文件记录
+ *  @note 用户上传的文件均保存在服务器中，不主动删除记录。
+ */
+class RFile716
+{
+public:
+    RFile716();
+    const QString table;
+    const QString id;                       /*!< 消息ID */
+    const QString sourceAddr;               /*!< 源节点号 */
+    const QString destAddr;                 /*!< 目的节点号 */
+    const QString packType;                 /*!< 报文类型 */
+    const QString md5;                      /*!< MD5 */
+    const QString fileType;                 /*!< 文件类型，1为文本，2为二进制文件 */
+    const QString fileName;                 /*!< 文件名 */
+    const QString createTime;               /*!< 记录创建日期 */
+    const QString serialNo;                 /*!< 流水号 */
+    const QString orderNo;                  /*!< 协议号 */
+    const QString date;                     /*!< 日期 */
+    const QString time;                     /*!< 时间 */
+    const QString fileSize;                 /*!< 文件大小 */
+    const QString filePath;                 /*!< 文件存储的路径，后期可动态调整 */
+};
+
+/*!
+ *  @brief 离线用户文件传输记录
+ *  @note 若接收方用户不在线，则将信息记录在此表中，默认transfered字段为false，当用户上线拉取信息后，将此字段改为true。
+ */
+class RFile716Cache
+{
+public:
+    RFile716Cache();
+    const QString table;
+    const QString id;                       /*!< 消息ID */
+    const QString destAddr;                 /*!< 目的节点号 */
+    const QString fileId;                   /*!< RFile716中数据id */
+    const QString transfered;               /*!< 文件是否已经传输(若未) */
 };
 
 #endif

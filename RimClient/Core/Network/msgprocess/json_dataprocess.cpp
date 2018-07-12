@@ -5,12 +5,9 @@
 #include <QVariant>
 
 #include "Util/rlog.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "messdiapatch.h"
 #include "jsonkey.h"
-
-#include "../wraprule/qdb21_wraprule.h"
-#include "../wraprule/qdb2051_wraprule.h"
 
 #include "../../protocol/protocoldata.h"
 using namespace ProtocolType;

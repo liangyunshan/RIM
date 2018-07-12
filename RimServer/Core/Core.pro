@@ -55,14 +55,6 @@ SOURCES += main.cpp\
     Network/msgwrap/binary_wrapformat.cpp \
     Network/msgwrap/json_wrapformat.cpp \
     Network/msgwrap/msgwrap.cpp \
-    Network/wraprule/qdb21_wraprule.cpp \
-    Network/wraprule/qdb61a_wraprule.cpp \
-    Network/wraprule/qdb495_wraprule.cpp \
-    Network/wraprule/qdb2051_wraprule.cpp \
-    Network/wraprule/qdb2048_wraprule.cpp \
-    Network/wraprule/tcp_wraprule.cpp \
-    Network/wraprule/TK205_WrapRule.cpp \
-    Network/wraprule/udp_wraprule.cpp \
     Network/msgparse/dataparse.cpp \
     Network/msgparse/json_msgparse.cpp \
     Network/msgparse/msgparsefactory.cpp \
@@ -77,7 +69,8 @@ SOURCES += main.cpp\
     Network/msgwrap/binary716_wrapfromat.cpp \
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/data716process.cpp \
-    thread/netconnector.cpp
+    thread/netconnector.cpp \
+    thread/filesendqueuethread.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -96,14 +89,6 @@ HEADERS  += widget.h \
     Network/msgwrap/binary_wrapformat.h \
     Network/msgwrap/json_wrapformat.h \
     Network/msgwrap/msgwrap.h \
-    Network/wraprule/qdb21_wraprule.h \
-    Network/wraprule/qdb61a_wraprule.h \
-    Network/wraprule/qdb495_wraprule.h \
-    Network/wraprule/qdb2051_wraprule.h \
-    Network/wraprule/qdb2048_wraprule.h \
-    Network/wraprule/tcp_wraprule.h \
-    Network/wraprule/tk205_wraprule.h \
-    Network/wraprule/udp_wraprule.h \
     Network/msgparse/dataparse.h \
     Network/msgparse/json_msgparse.h \
     Network/msgparse/msgparsefactory.h \
@@ -118,7 +103,8 @@ HEADERS  += widget.h \
     Network/msgwrap/binary716_wrapfromat.h \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/data716process.h \
-    thread/netconnector.h
+    thread/netconnector.h \
+    thread/filesendqueuethread.h
 
 FORMS    += widget.ui
 

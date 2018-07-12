@@ -9,9 +9,11 @@
 #include <QSqlRecord>
 
 #include <mutex>
+#include <memory>
 
 #include "datatable.h"
 #include "sql/database.h"
+#include "sql/databasemanager.h"
 #include "Util/rutil.h"
 #include "constants.h"
 #include "rpersistence.h"
@@ -19,6 +21,7 @@
 #include "Util/rlog.h"
 #include "global.h"
 #include "autotransaction.h"
+#include "../rsingleton.h"
 
 std::mutex ACCOUNT_LOCK;
 std::mutex GROUP_ACCOUNT_LOCK;
@@ -2062,12 +2065,122 @@ bool SQLProcess::loadChat716Cache(Database *db, unsigned short nodeId, QList<Pro
             RDelete rdl(chatCache.table);
             rdl.createCriteria()
                     .add(Restrictions::eq(chatCache.table,chatCache.destAddr,nodeId));
-            if(query.exec(rdl.sql())){
+//            if(query.exec(rdl.sql())){
                 return true;
-            }
+//            }
         }
     }
 
+    return false;
+}
+
+/*!
+ * @brief 存储716接收文件
+ * @param[in] db 数据库
+ * @param[in] desc 文件描述信息
+ * @return 是否插入成功
+ */
+bool SQLProcess::add716File(Database *db, ServerNetwork::FileRecvDesc *desc,int & dataId)
+{
+    dataId = -1;
+    DataTable::RFile716 rfile;
+    RPersistence rpc(rfile.table);
+    rpc.insert(rfile.fileName,desc->fileName);
+    rpc.insert(rfile.md5,desc->md5);
+    rpc.insert(rfile.sourceAddr,desc->accountId);
+    rpc.insert(rfile.destAddr,desc->otherId);
+    rpc.insert(rfile.packType,desc->bPackType);
+    rpc.insert(rfile.serialNo,desc->usSerialNo);
+    rpc.insert(rfile.orderNo,desc->usOrderNo);
+    rpc.insert(rfile.date,desc->cdate);
+    rpc.insert(rfile.time,desc->ctime);
+    rpc.insert(rfile.fileSize,desc->size);
+    rpc.insert(rfile.filePath,RGlobal::G_FILE_UPLOAD_PATH);
+    rpc.insert(rfile.fileType,desc->itemKind);
+    rpc.insert(rfile.createTime,QDateTime::currentDateTime());
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rpc.sql())){
+        if(RGlobal::G_DB_FEATURE.lastInsertId && !query.lastInsertId().isNull()){
+            dataId = query.lastInsertId().toInt();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 存储离线文件记录
+ * @param[in] db 数据库
+ * @param[in] destNodeId 目的节点标识
+ * @param[in] fileId 文件记录ID
+ * @return 是否插入成功
+ */
+bool SQLProcess::add716FileCache(Database *db,QString destNodeId, int fileId)
+{
+    DataTable::RFile716Cache rfilecache;
+    RPersistence rpc(rfilecache.table);
+    rpc.insert(rfilecache.destAddr,destNodeId);
+    rpc.insert(rfilecache.fileId,fileId);
+    rpc.insert(rfilecache.transfered,0);
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rpc.sql())){
+        return true;
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 存储离线文件记录
+ * @note 此方法为重载方法，针对非处理线程的回调，临时打开数据库连接，用完后即关闭。
+ * @param[in] destNodeId 目的节点标识
+ * @param[in] fileId 文件记录ID
+ * @return 是否插入成功
+ */
+bool SQLProcess::add716FileCache(QString destNodeId, int fileId)
+{
+    Database tmpDb = RSingleton<DatabaseManager>::instance()->database();
+
+    return add716FileCache(&tmpDb,destNodeId,fileId);
+}
+
+/*!
+ * @brief 获取指定文件的详细信息
+ * @param[in] db 数据库连接
+ * @param[in] fileId 文件数据ID
+ * @param[in/out] desc 保存查询文件结果信息
+ * @return 是否执行成功
+ */
+bool SQLProcess::get716File(Database *db, int fileId, std::shared_ptr<ServerNetwork::FileSendDesc> desc)
+{
+    if(desc.get() == nullptr)
+        return false;
+
+    DataTable::RFile716 rfile;
+    RSelect rst(rfile.table);
+    rst.createCriteria().
+            add(Restrictions::eq(rfile.table,rfile.id,fileId));
+
+    QSqlQuery query(db->sqlDatabase());
+    if(query.exec(rst.sql()) && query.next())
+    {
+        desc->md5 = query.value(rfile.md5).toString();
+        desc->accountId = query.value(rfile.sourceAddr).toString();
+        desc->otherId = query.value(rfile.destAddr).toString();
+        desc->bPackType = query.value(rfile.packType).toInt();
+        desc->usSerialNo = query.value(rfile.serialNo).toString().toUShort();
+        desc->usOrderNo = query.value(rfile.orderNo).toString().toUShort();
+        desc->cdate = query.value(rfile.date).toInt();
+        desc->ctime = query.value(rfile.time).toInt();
+        desc->size = query.value(rfile.fileSize).toLongLong();
+        desc->fileName = query.value(rfile.fileName).toString();
+        desc->filePath = query.value(rfile.filePath).toString();
+        desc->itemKind = query.value(rfile.fileType).toInt();
+        return true;
+    }
     return false;
 }
 

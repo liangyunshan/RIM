@@ -24,7 +24,7 @@
 #include "toolbar.h"
 #include "constants.h"
 #include "onlinestate.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "user/userinfofile.h"
 #include "Util/rutil.h"
 #include "Util/rlog.h"

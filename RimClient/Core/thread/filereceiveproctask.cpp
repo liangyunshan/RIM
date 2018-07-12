@@ -3,7 +3,7 @@
 #include "Network/netglobal.h"
 #include "global.h"
 
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgparse/binaryparsefactory.h"
 
 #include "../Network/wraprule/tcp_wraprule.h"

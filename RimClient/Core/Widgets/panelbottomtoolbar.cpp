@@ -9,7 +9,7 @@
 #include "actionmanager/actionmanager.h"
 #include "addfriend.h"
 #include "maindialog.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "systemsettings.h"
 #include "Network/netconnector.h"
 #include "user/user.h"
@@ -257,6 +257,7 @@ void PanelBottomToolBar::respChangeConnector(bool)
                 G_NetSettings.connectedIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
                 TextNetConnector::instance()->connect();
 
+#ifdef __LOCAL_CONTACT__
                 //重新注册
                 DataPackType request;
                 request.msgType = MSG_CONTROL;
@@ -266,6 +267,7 @@ void PanelBottomToolBar::respChangeConnector(bool)
                 request.sourceId = G_User->BaseInfo().accountId;
                 request.destId = request.sourceId;
                 RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+#endif
             }
        }
     }

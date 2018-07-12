@@ -10,7 +10,7 @@
 #include "head.h"
 #include "constants.h"
 #include "../protocol/datastruct.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 
 SystemTrayIcon * SystemTrayIcon::systemIcon = NULL;
@@ -109,11 +109,6 @@ SystemTrayIcon::~SystemTrayIcon()
             delete d->blinkingTimer;
         }
     }
-
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"delete icon"
-          <<"\n";
-
 }
 
 /*!
