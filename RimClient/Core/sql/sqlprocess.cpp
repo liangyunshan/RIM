@@ -273,8 +273,8 @@ bool SQLProcess::createTableIfNotExists(Database * db)
     if(!query.exec(DataTable::SQLChatList))
         return false;
 
-    if(!query.exec(DataTable::SQLChatRecord))
-        return false;
+//    if(!query.exec(DataTable::SQLChatRecord))
+//        return false;
 
     return true;
 }
