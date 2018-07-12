@@ -10,64 +10,8 @@
 #ifndef LOCALPROTOCOLDATA_H
 #define LOCALPROTOCOLDATA_H
 
+#pragma pack(push)
 #pragma pack(1)
-
-namespace QDB21{
-struct QDB21_Head{
-    unsigned short usDestAddr;
-    unsigned short usSourceAddr;
-    unsigned long ulPackageLen;
-    char cDate[4];
-    char cTime[3];
-    char cTypeNum;
-    unsigned short usSerialNo;
-    unsigned short usOrderNo;
-                                    //后面是可变长数据
-};//20字节长度
-
-#define QDB21_Head_Length sizeof(QDB21_Head)
-}
-
-namespace QDB2051{
-struct QDB2051_Head{
-    unsigned long ulPackageLen;
-    unsigned short usDestSiteNo;
-    unsigned long ulDestDeviceNo;
-    char cFileType;
-    char cFilenameLen;
-    char cFileNameData[0];
-                                    //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
-};//信息类别号为2051的文本信息
-}
-
-namespace QDB2048{
-struct QDB2048_Head{
-    unsigned long ulPackageLen;
-    unsigned short usDestSiteNo;
-    unsigned long ulDestDeviceNo;
-    unsigned short usSerialNo;
-    unsigned short usOrderNo;
-    unsigned short usErrorType;
-};//信息类别号为2048的文本信息
-#define QDB2048_Head_Length sizeof(QDB2048_Head)
-}
-
-namespace QDB205{
-
-struct TK205_SendPackage{
-    unsigned char bVersion;
-    unsigned char source[4];
-    unsigned short dest[4];
-    unsigned char index[3];
-    unsigned char time[6];
-    unsigned char length[3];
-
-    char cPackDataBuf[1];                //报文内容
-
-    char endof;
-};
-
-}
 
 namespace QDB61A {
 
@@ -177,6 +121,6 @@ struct GJB4908_UDP_FollowGroup{
 //[~3]完整4908头报文
 }
 
-#pragma pack()
+#pragma pack(pop)
 
 #endif // LOCALPROTOCOLDATA_H

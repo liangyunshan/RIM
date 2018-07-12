@@ -47,7 +47,8 @@ SOURCES += \
     rlog.cpp \
     rutil.cpp \
     regexp.cpp \
-    rbuffer.cpp
+    rbuffer.cpp \
+    rsingleton.cpp
 
 HEADERS +=\
         util_global.h \
@@ -56,4 +57,5 @@ HEADERS +=\
     rlog.h \
     rutil.h \
     regexp.h \
-    rbuffer.h
+    rbuffer.h \
+    rsingleton.h

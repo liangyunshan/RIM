@@ -20,7 +20,7 @@
 #include "toolbar.h"
 #include "toolbox/listbox.h"
 #include "toolbox/toolitem.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"

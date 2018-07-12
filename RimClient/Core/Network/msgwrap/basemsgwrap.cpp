@@ -3,7 +3,7 @@
 #include "json_wrapformat.h"
 #include "binary_wrapformat.h"
 #include "Network/netglobal.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 
 BaseMsgWrap::BaseMsgWrap()
 {

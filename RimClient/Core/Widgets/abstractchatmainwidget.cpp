@@ -28,7 +28,7 @@
 #include "../protocol/datastruct.h"
 #include "Util/rutil.h"
 #include "screenshot.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "previewpage.h"
 #include "messdiapatch.h"
 #include "chat/setfontwidget.h"
@@ -45,6 +45,7 @@
 #include "others/msgqueuemanager.h"
 #include "actionmanager/actionmanager.h"
 #include "Widgets/textedit/simpletextedit.h"
+#include "../thread/file716sendtask.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -465,6 +466,15 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 {
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
+
+//    SenderFileDesc fileDesc;
+//    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+//    fileDesc.destNodeId = d->netconfig.nodeId;
+//    fileDesc.fullFilePath = "d:/1.pdf";
+//    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+
+//    return;
+
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;

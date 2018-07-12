@@ -7,7 +7,7 @@
 #include "head.h"
 #include "../protocol/datastruct.h"
 #include "constants.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rlabel.h"

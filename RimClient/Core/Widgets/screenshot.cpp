@@ -1,6 +1,6 @@
 ﻿#include "screenshot.h"
 #include "global.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "constants.h"
 #include "actionmanager/shortcutsettings.h"
 

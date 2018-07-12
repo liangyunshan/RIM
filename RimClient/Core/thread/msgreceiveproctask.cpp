@@ -1,7 +1,7 @@
 ﻿#include "msgreceiveproctask.h"
 
 #include "network/netglobal.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "head.h"
 #include "jsonkey.h"
 #include "messdiapatch.h"
@@ -67,13 +67,13 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
-    RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+    RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,packData);
     packData.bPackType = (unsigned char)data.extendData.type495;
 
     bool result = false;
     switch(data.extendData.method){
         case C_TCP:
-            result = RSingleton<TCP_WrapRule>::instance()->unwrap(data.data,packData);
+            result = RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,packData);
             break;
         default:
             break;
