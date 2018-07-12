@@ -25,7 +25,7 @@ public:
     CommMethod type();
     QString name();
 
-    bool startTransmit(const SendUnit &unit);
+    bool startTransmit(SendUnit &unit);
     bool startRecv(char *recvBuff, int recvBuffLen,DataHandler recvDataFunc);
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);

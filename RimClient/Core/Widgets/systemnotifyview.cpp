@@ -10,7 +10,7 @@
 #include "constants.h"
 #include "global.h"
 #include "toolbar.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"

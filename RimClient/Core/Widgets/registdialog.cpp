@@ -9,10 +9,10 @@
 #include "constants.h"
 #include "head.h"
 #include "../protocol/datastruct.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "widget/rbutton.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/rutil.h"
 #include "Network/netconnector.h"
 

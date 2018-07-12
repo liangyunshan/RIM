@@ -19,7 +19,7 @@ typedef  int socklen_t;
 #include "Network/multitransmits/ddstransmit.h"
 #include "Util/rlog.h"
 #include "global.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "messdiapatch.h"
 
 SuperConnector::SuperConnector(QObject *parent):ClientNetwork::RTask(parent),
@@ -298,19 +298,23 @@ void FileNetConnector::doConnect()
     std::shared_ptr<ClientNetwork::BaseTransmit> tcpTrans = transmits.at(C_TCP);
     if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
-#ifndef __LOCAL_CONTACT__
-        memcpy(ip,G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.ip.toLocal8Bit().size());
-        bool connected = tcpTrans->connect(ip,G_NetSettings.fileServer.port,delayTime);
+#ifdef __LOCAL_CONTACT__
+        IpPort connectInfo = G_NetSettings.textServer;
+#else
+        IpPort connectInfo = G_NetSettings.fileServer;
+#endif
+
+        memcpy(ip,connectInfo.ip.toLocal8Bit().data(),connectInfo.ip.toLocal8Bit().size());
+        bool connected = tcpTrans->connect(ip,connectInfo.port,delayTime);
         MessDiapatch::instance()->onFileConnected(connected);
         if(connected){
-            if(msgSender.get() != nullptr && !msgSender->running())
-                msgSender->startMe();
-
             if(msgReceives.at(C_TCP).get() != nullptr && !msgReceives.at(C_TCP)->running())
                 msgReceives.at(C_TCP)->startMe();
         }
-#endif
     }
+
+    if(msgSender.get() != nullptr && !msgSender->running())
+        msgSender->startMe();
 }
 
 void FileNetConnector::doReconnect()
@@ -323,8 +327,6 @@ void FileNetConnector::doDisconnect()
     std::for_each(transmits.begin(),transmits.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
         item.second->close();
     });
-
-//    MessDiapatch::instance()->onFileSocketError();
 
     msgSender->stopMe();
 

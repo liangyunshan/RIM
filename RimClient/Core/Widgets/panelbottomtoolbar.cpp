@@ -9,7 +9,7 @@
 #include "actionmanager/actionmanager.h"
 #include "addfriend.h"
 #include "maindialog.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "systemsettings.h"
 #include "Network/netconnector.h"
 #include "user/user.h"

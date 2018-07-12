@@ -22,7 +22,7 @@ class HistoryRecordTask : public ClientNetwork::RTask
 {
     Q_OBJECT
 public:
-    HistoryRecordTask(QObject *parent = Q_NULLPTR);
+    explicit HistoryRecordTask(QObject *parent = Q_NULLPTR);
     ~HistoryRecordTask();
 
     static HistoryRecordTask * instance();

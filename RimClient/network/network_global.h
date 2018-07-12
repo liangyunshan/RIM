@@ -19,6 +19,9 @@
 
 #include <functional>
 
+#pragma pack(push)
+#pragma pack(1)
+
 typedef int(*Func)(const char *,const int);
 
 static unsigned int SERIALNO_STATIC = 1;
@@ -44,6 +47,26 @@ struct PacketBuff
         isCompleted = false;
     }
 
+    /*!
+     * @brief 获取缓存接收的分段数据
+     * @note 将缓存接收的数据重新组装，拼接成新的数据；并在拼接后的数据头部插入协议头(21+2051) \n
+     * @param[in] container 数据容器
+     * @param[in] perPacketOffset 截取每个分段的起始点
+     */
+    void packDataWidthPrtocol(QByteArray & container,int perPacketOffset){
+        if(isCompleted && recvSize > 0)
+        {
+            if(buff.size() > 0){
+                container.append(buff.takeFirst());
+            }
+
+            while(!buff.isEmpty())
+            {
+                container.append(buff.takeFirst().mid(perPacketOffset));
+            }
+        }
+    }
+
     QByteArray getFullData()
     {
         QByteArray data;
@@ -61,6 +84,9 @@ struct PacketBuff
     unsigned int recvSize;                      //接收数据的长度
     unsigned short totalPackIndex;              //总数据包分包大小
     unsigned short recvPackIndex;               //已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包
+
+    qint64 totalPackLen;                        /*!< 总数据长度(分片数量*495+数据部分) */
+
     QLinkedList<QByteArray> buff;               //存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1
 };
 
@@ -94,8 +120,75 @@ struct QDB495_SendPackage{
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
 };
-
 #define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
+}
+
+namespace QDB21{
+struct QDB21_Head{
+    unsigned short usDestAddr;
+    unsigned short usSourceAddr;
+    unsigned long ulPackageLen;
+    char cDate[4];
+    char cTime[3];
+    char cTypeNum;
+    unsigned short usSerialNo;
+    unsigned short usOrderNo;
+                                    //后面是可变长数据
+};//20字节长度
+
+#define QDB21_Head_Length sizeof(QDB21_Head)
+
+}
+
+namespace QDB2051{
+
+struct QDB2051_Head{
+    unsigned long ulPackageLen;
+    unsigned short usDestSiteNo;
+    unsigned long ulDestDeviceNo;
+    char cFileType;
+    char cFilenameLen;    //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
+};
+
+#define QDB2051_Head_Length sizeof(QDB2051_Head)
+
+/*!
+ *  @brief  2051协议中文件类型
+ */
+enum FileType{
+    F_NO_SUFFIX = 0,    /*!< 无文件后缀 */
+    F_TEXT = 1,         /*!< 文本文件 */
+    F_BINARY = 2        /*!< 二进制文件*/
+};
+}
+
+namespace QDB2048{
+
+struct QDB2048_Head{
+    unsigned long ulPackageLen;
+    unsigned short usDestSiteNo;
+    unsigned long ulDestDeviceNo;
+    unsigned short usSerialNo;
+    unsigned short usOrderNo;
+    unsigned short usErrorType;
+};
+#define QDB2048_Head_Length sizeof(QDB2048_Head)
+}
+
+namespace QDB205{
+
+struct TK205_SendPackage{
+    unsigned char bVersion;
+    unsigned char source[4];
+    unsigned short dest[4];
+    unsigned char index[3];
+    unsigned char time[6];
+    unsigned char length[3];
+
+    char cPackDataBuf[1];                //报文内容
+
+    char endof;
+};
 
 }
 
@@ -131,8 +224,10 @@ struct ProtocolPackage
     unsigned char bPackType;        /*!< 报文类型 */
     unsigned char bPeserve;         /*!< 495保留字，用于扩展内部状态控制 */
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
-    unsigned short usSerialNo;      /*!< 流水号*/
-    unsigned short usOrderNo;       /*!< 协议号*/
+    unsigned short usSerialNo;      /*!< 流水号495*/
+    unsigned short usOrderNo;       /*!< 协议号2051/2048*/
+    unsigned short wOffset;         /*!< 数据帧偏移量 */
+    unsigned long dwPackAllLen;     /*!< 总数据包大小(每一片数据*分片数量) */
     int cDate;                      /*!< 日期，4字节 */
     int cTime;                      /*!< 时间 低3字节 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
@@ -150,6 +245,8 @@ struct ProtocolPackage
         usOrderNo = 2;
         cDate = 0;
         cTime = 0;
+        wOffset = 0;
+        dwPackAllLen = 0;
     }
 
     ProtocolPackage(QByteArray dataArray){
@@ -166,6 +263,10 @@ struct ProtocolPackage
         this->bPeserve = package.bPeserve;
         this->usSerialNo = package.usSerialNo;
         this->usOrderNo = package.usOrderNo;
+        this->wOffset = package.wOffset;
+        this->dwPackAllLen = package.dwPackAllLen;
+        this->cDate = package.cDate;
+        this->cTime = package.cTime;
         this->data = package.data;
         this->cDate = package.cDate;
         this->cTime = package.cTime;
@@ -198,11 +299,13 @@ enum PacketType_495{
  */
 struct ExtendData
 {
-    CommMethod method;          /*!< 数据接收链路 */
-    PacketType_495 type495;     /*!< 95信息类型 */
-    unsigned char bPeserve;     /*!< 95保留字 */
-    unsigned short usSerialNo;   /*!< 流水号 */
-    unsigned short usOrderNo;    /*!< 编码代号 */
+    CommMethod method;              /*!< 数据接收链路 */
+    PacketType_495 type495;         /*!< 95信息类型 */
+    unsigned char bPeserve;         /*!< 95保留字 */
+    unsigned short usSerialNo;      /*!< 流水号 */
+    unsigned short usOrderNo;       /*!< 编码代号 */
+    unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
+    unsigned short sliceNum;        /*!< 分片数量 */
 };
 
 /*!
@@ -228,5 +331,7 @@ struct SendUnit
     CommMethod method;              /*!< 发送方式 */
     ProtocolPackage dataUnit;       /*!< 待发送数据包及描述 */
 };
+
+#pragma pack(pop)
 
 #endif // NETWORK_GLOBAL_H

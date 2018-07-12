@@ -15,7 +15,7 @@
 #include "constants.h"
 #include "toolbox/listbox.h"
 #include "sql/sqlprocess.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "global.h"
 #include "Util/imagemanager.h"
 #include "user/user.h"

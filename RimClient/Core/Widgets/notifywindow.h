@@ -10,6 +10,8 @@
  *  @copyright NanJing RenGu.
  *  @note      20180127:wey:添加状态机显示，并支持双击查看通知信息；
  *             20180426:wey:修复添加显示系统信息时未考虑群请求特殊情况
+ *             20180710:lys:添加接口函数用于检测与目标id是否存在推送消息
+ *             20180710:lys:在成功获取推送信息(checkNotifyExist)后移除相应的item
  */
 #ifndef NOTIFYWINDOW_H
 #define NOTIFYWINDOW_H
@@ -37,6 +39,7 @@ public:
     void hideMe();
 
     void onMessage(MessageType type);
+    int checkNotifyExist(const QString accountId);
 
 signals:
     void showWindow();

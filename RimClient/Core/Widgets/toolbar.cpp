@@ -12,7 +12,7 @@
 #include "constants.h"
 #include "actionmanager/actionmanager.h"
 #include "widget/rtoolbutton.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 
 #define WINDOW_ICON_SIZE 16

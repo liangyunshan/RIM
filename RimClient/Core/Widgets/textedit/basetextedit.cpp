@@ -21,7 +21,7 @@
 #include <QCryptographicHash>
 
 #include "Util/rutil.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "json/jsonresolver.h"
 #include "global.h"
 #include "user/user.h"

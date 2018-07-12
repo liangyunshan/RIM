@@ -21,6 +21,7 @@
 using namespace ProtocolType;
 
 #include "Network/connection/tcpclient.h"
+#include <memory>
 
 namespace Datastruct
 {
@@ -92,6 +93,12 @@ public:
 #ifdef __LOCAL_CONTACT__
     bool saveChat716Cache(Database * db,ProtocolPackage & packageData);
     bool loadChat716Cache(Database * db,unsigned short nodeId,QList<ProtocolPackage> & historyResult);
+
+    bool add716File(Database * db, ServerNetwork::FileRecvDesc * desc, int &dataId);
+    bool add716FileCache(Database * db,QString destNodeId,int fileId);
+    bool add716FileCache(QString destNodeId,int fileId);
+
+    bool get716File(Database * db,int fileId,std::shared_ptr<ServerNetwork::FileSendDesc> desc);
 #endif
 
 private:

@@ -1,7 +1,6 @@
 ﻿#include "binary716_msgparse.h"
 
-#include "rsingleton.h"
-#include "../wraprule/tcp_wraprule.h"
+#include "util/rsingleton.h"
 #include "../msgprocess/data716process.h"
 
 #ifdef __LOCAL_CONTACT__

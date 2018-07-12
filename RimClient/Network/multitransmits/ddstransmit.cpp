@@ -41,7 +41,7 @@ QString DDSTransmit::name()
     return "DDS";
 }
 
-bool DDSTransmit::startTransmit(const SendUnit &unit)
+bool DDSTransmit::startTransmit(SendUnit &unit)
 {
     QByteArray ddsdata = unit.dataUnit.data;
     int iRet = DDSSend(ddsdata.data(),ddsdata.size(),3);

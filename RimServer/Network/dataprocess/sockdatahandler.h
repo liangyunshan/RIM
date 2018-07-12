@@ -14,13 +14,12 @@
 
 namespace ServerNetwork{
 
-class SockDataHandler : public Handler
+class SockTextDataHandler : public Handler
 {
 public:
-    SockDataHandler();
+    SockTextDataHandler();
 
     void handle(const RecvUnit &recvData);
-
 };
 
 }

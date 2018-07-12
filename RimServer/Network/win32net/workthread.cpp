@@ -22,8 +22,8 @@ WorkThread::WorkThread(SharedIocpData *data):
 #else
     dataPacketRule = std::make_shared<TCPDataPacketRule>();
 #endif
-    Handler * handler = new SockDataHandler();
-    dataPacketRule->registHandler(handler);
+    Handler * handler = new SockTextDataHandler();
+    dataPacketRule->registTextHandler(handler);
 }
 
 unsigned  __stdcall iocpProc(LPVOID v)
@@ -127,6 +127,11 @@ void WorkThread::handleSend(IocpContext *ioData)
 {
     if(ioData->getClient() != NULL)
     {
+        static int senNum = 0;
+        senNum++;
+        static int totalLen = 0;
+        totalLen+=ioData->getWSABUF().len;
+        qDebug()<<"Send:"<<ioData->getWSABUF().len<<"__"<<totalLen<<"__+_"<<senNum;
         IocpContext::destory(ioData);
     }
 }

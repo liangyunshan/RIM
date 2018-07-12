@@ -1,14 +1,20 @@
 ﻿#include "data716process.h"
 
 #include <QDebug>
+#include <thread>
 
 #include "../msgwrap/localmsgwrap.h"
 #include "rsingleton.h"
 #include "Network/connection/tcpclient.h"
 #include "Network/connection/seriesconnection.h"
+#include "../../thread/netconnector.h"
+#include "../../thread/filesendqueuethread.h"
 #include "../../protocol/datastruct.h"
 #include "../../sql/sqlprocess.h"
 #include "global.h"
+#include "Util/rutil.h"
+#include "Util/rlog.h"
+
 using namespace ParameterSettings;
 using namespace ServerNetwork;
 
@@ -85,14 +91,14 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
                     if(conn.get() != nullptr){
                         RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
                     }else{
-                        RSingleton<LocalMsgWrap>::instance()->cacheMsgProtocol(serverInfo,data);
+                        cacheMsgProtocol(serverInfo,data);
                     }
                 }
             }else{
-                //TODO 20180702 目的节点不在当前通信列表，通信丢弃？？
+                RLOG_ERROR("can't find destination node parent node!");
             }
         }else{
-            //TODO 20180702 目的节点不在当前通信列表，通信丢弃？？
+            RLOG_ERROR("destination node isn't in paraseting file!");
         }
     }
 }
@@ -125,8 +131,252 @@ void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage
             tmpClient->setOnLineState(STATUS_OFFLINE);
         }
     }
+}
 
-//    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtol(sockId,nullptr,data);
+/*!
+ * @brief 处理文件数据接收
+ * @note 文件数据发送目前采用端-端传输方式，若A-S-B，那么文件传输为：A-S、S-B \n
+ *       [1]文件接收由专门的文件管理器负责，提供对文件的查询、创建、保存等功能； \n
+ *       [2]文件接收完成后，检查接收端是否在线，不在线则缓存记录，在线则直接传输。 \n
+ * @param[in] db 数据库连接
+ * @param[in] sockId 网络连接
+ * @param[in] data 数据信息描述
+ */
+void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &data)
+{
+    TcpClient * client = TcpClientManager::instance()->getClient(sockId);
+    if(client)
+    {
+        FileRecvDesc * desc = client->getFile(QString::fromLocal8Bit(data.cFilename));
+        if(desc == nullptr){
+            desc = new FileRecvDesc();
+            desc->md5 = RUtil::UUID();
+            desc->itemKind = (int)data.cFileType;
+            desc->bPackType = data.bPackType;
+            desc->fileName = QString::fromLocal8Bit(data.cFilename);
+            desc->accountId = QString::number(data.wSourceAddr);
+            desc->otherId = QString::number(data.wDestAddr);
+            desc->usOrderNo = data.usOrderNo;
+            desc->usSerialNo = data.usSerialNo;
+            desc->size = data.dwPackAllLen;
+            desc->writeLen = 0;
+            if(!client->addFile(QString::fromLocal8Bit(data.cFilename),desc))
+                return;
+        }
+
+        std::unique_lock<std::mutex> ul(desc->RWMutex());
+        if(desc->state() == FILE_CANCEL)
+            return;
+
+        if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
+            return;
+
+        if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
+            //TODO 20180708在ProtocolPackage中加入2051报文头中有关偏移量和数据总长度的标识
+            if(desc->seek(0) && desc->write(data.data) > 0)
+            {
+                if(desc->flush() && desc->isRecvOver())
+                {
+                    desc->close();
+                }
+            }
+        }
+
+        if(desc->isRecvOver())
+        {
+            int saveFileId = -1;
+            if(RSingleton<SQLProcess>::instance()->add716File(db,desc,saveFileId))
+            {
+                if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+                    ClientList clist = TcpClientManager::instance()->getClients(QString::number(data.wDestAddr));
+                    TcpClient * sourceClient = TcpClientManager::instance()->getClient(sockId);
+
+                    if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+                        std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
+                            if(sourceClient && destClient->ip() != sourceClient->ip() && destClient->port() != sourceClient->port()){
+                                ParameterSettings::Simple716FileInfo fileInfo(destClient->socket(),QString::number(data.wDestAddr),saveFileId);
+                                RSingleton<FileSendManager>::instance()->addFile(fileInfo);
+                            }
+                        });
+                    }
+                    else{
+                        if(clist.size() > 0){
+                            std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
+                                ParameterSettings::Simple716FileInfo fileInfo(destClient->socket(),QString::number(data.wDestAddr),saveFileId);
+                                RSingleton<FileSendManager>::instance()->addFile(fileInfo);
+                            });
+                        }else{
+                            RSingleton<SQLProcess>::instance()->add716FileCache(db,desc->otherId,saveFileId);
+                        }
+                    }
+                }else{
+                    bool findNode = false;
+                    QueryNodeDescInfo(QString::number(data.wDestAddr),findNode);
+
+                    if(findNode){
+                        bool findServer = false;
+                        NodeServer serverInfo = QueryServerDescInfo(QString::number(data.wDestAddr),findServer);
+                        if(findServer){
+                            if(serverInfo.nodeId == RGlobal::G_ParaSettings->baseInfo.nodeId){
+                                TcpClient * destClient = TcpClientManager::instance()->getClient(QString::number(data.wDestAddr));
+                                if(destClient && ((OnlineStatus)destClient->getOnLineState() == STATUS_ONLINE)){
+                                    ParameterSettings::Simple716FileInfo fileInfo(destClient->socket(),QString::number(data.wDestAddr),saveFileId);
+                                    RSingleton<FileSendManager>::instance()->addFile(fileInfo);
+                                }else{
+                                    RSingleton<SQLProcess>::instance()->add716FileCache(db,desc->otherId,saveFileId);
+                                }
+                            }else{
+                                std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+
+                                if(conn.get() != nullptr){
+                                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
+                                }else{
+                                    ParameterSettings::Simple716FileInfo fileInfo = {-1,desc->otherId,saveFileId};
+                                    cacheFileProtocol(db,serverInfo,fileInfo);
+                                }
+                            }
+                        }else{
+                            RLOG_ERROR("can't find destination node parent node!");
+                        }
+                    }else{
+                        RLOG_ERROR("destination node isn't in paraseting file!");
+                    }
+                }
+            }else{
+                RLOG_ERROR("Save transfered failed!");
+            }
+            client->removeFile(QString::fromLocal8Bit(data.cFilename));
+        }
+    }
+}
+
+/*!
+ * @brief 缓存数据信息请求，执行网络连接请求操作。
+ * @details 若未与对方服务器建立连接，则先将发往对方的数据信息进行缓存，然后发起连接请求。 \n
+ *          若建立连接，则将缓存的数据信息通过网络发送至对方; \n
+ *          若未建立连接，则将缓存的数据移动至数据库。
+ * @param[in] NodeServer 服务器信息
+ * @param[in] ProtocolPackage & 请求数据信息
+ */
+void Data716Process::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &package)
+{
+    std::unique_lock<std::mutex> ul(textCacheMutex);
+
+    auto index = textServerCache.find(serverInfo.nodeId);
+    if(index != textServerCache.end()){
+        (*index).second.msgCache.push_back(package);
+        //TODO 20180704 若第一次未连接成功，会造成之后数据就不会主动发起连接请求
+    }else{
+        TextServerCacheInfo cacheInfo;
+        cacheInfo.serverInfo = serverInfo;
+        cacheInfo.msgCache.push_back(package);
+
+        cacheInfo.connStats = SCS_IN;
+        textServerCache.insert(std::pair<QString,TextServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+
+        NetFunc func = std::bind(&Data716Process::respTextNetConnectResult,this,
+                                 std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
+        std::thread connector(RunNetConnetor,func,serverInfo);
+        connector.detach();
+    }
+}
+
+/*!
+ * @brief 响应文本网络连接结果
+ * @param[in] nodeId 远端服务器节点
+ * @param[in] connected 是否建立连接
+ * @param[in] socketId 建立连接的socket访问标识
+ */
+void Data716Process::respTextNetConnectResult(QString nodeId,bool connected,int socketId)
+{
+    std::unique_lock<std::mutex> ul(textCacheMutex);
+
+    auto index = textServerCache.find(nodeId);
+    if(index != textServerCache.end()){
+        if(connected){
+            (*index).second.connStats = SCS_OK;
+
+            std::for_each((*index).second.msgCache.begin(),(*index).second.msgCache.end(),[&](ProtocolPackage & package){
+                RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(socketId,package,false);
+            });
+
+            (*index).second.msgCache.clear();
+            textServerCache.erase(index);
+        }else{
+            (*index).second.connStats = SCS_ERR;
+        }
+    }
+}
+
+/*!
+ * @brief 缓存文件数据信息请求，执行网络连接请求操作。
+ * @details 若未与对方服务器建立连接，则先将发往对方的数据信息进行缓存，然后发起连接请求。 \n
+ *          若建立连接，则将文件发送至对方; \n
+ *          若未建立连接，则缓存发文件信息。
+ * @param[in] NodeServer 服务器信息
+ * @param[in] ProtocolPackage & 请求数据信息
+ */
+void Data716Process::cacheFileProtocol(Database * db,NodeServer serverInfo, Simple716FileInfo &fileIndo)
+{
+    std::unique_lock<std::mutex> ul(fileCacheMutex);
+
+    auto index = fileServerCache.find(serverInfo.nodeId);
+    if(index != fileServerCache.end()){
+        (*index).second.fileCache.push_back(fileIndo);
+        RSingleton<SQLProcess>::instance()->add716FileCache(db,fileIndo.nodeId,fileIndo.fileId);
+    }else{
+        FileServerCacheInfo cacheInfo;
+        cacheInfo.serverInfo = serverInfo;
+        cacheInfo.fileCache.push_back(fileIndo);
+        cacheInfo.connStats = SCS_IN;
+        fileServerCache.insert(std::pair<QString,FileServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+
+        NetFunc func = std::bind(&Data716Process::respFileNetConnectResult,this
+                                 ,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
+        std::thread connector(RunNetConnetor,func,serverInfo);
+        connector.detach();
+    }
+}
+
+/*!
+ * @brief 响应文件网络连接结果
+ * @param[in] nodeId 远端服务器节点
+ * @param[in] connected 是否建立连接
+ * @param[in] socketId 建立连接的socket访问标识
+ */
+void Data716Process::respFileNetConnectResult(QString nodeId, bool connected, int socketId)
+{
+    std::unique_lock<std::mutex> ul(fileCacheMutex);
+
+    auto index = fileServerCache.find(nodeId);
+    if(index != fileServerCache.end()){
+        if(connected){
+            (*index).second.connStats = SCS_OK;
+
+            std::for_each((*index).second.fileCache.begin(),(*index).second.fileCache.end(),[&](Simple716FileInfo & fileInfo){
+                ParameterSettings::Simple716FileInfo finfo(socketId,fileInfo.nodeId,fileInfo.fileId);
+                RSingleton<FileSendManager>::instance()->addFile(finfo);
+            });
+
+            (*index).second.fileCache.clear();
+            fileServerCache.erase(index);
+        }else{
+            (*index).second.connStats = SCS_ERR;
+            saveFile2Database((*index).second.fileCache);
+        }
+    }
+}
+
+/*!
+ * @brief 在主动连接对方服务器失败后，将文件请求的记录保存至数据库
+ * @note 此方法是由单独的线程进行回调，因此数据库的连接需要打开一个临时的。
+ * @param[in] recvFileCache 连接失败返回时刻数据库中已经存在的文件数据信息
+ */
+void Data716Process::saveFile2Database(std::vector<ParameterSettings::Simple716FileInfo> & recvFileCache)
+{
+    std::for_each(recvFileCache.begin(),recvFileCache.end(),[&](ParameterSettings::Simple716FileInfo & perFileInfo){
+        RSingleton<SQLProcess>::instance()->add716FileCache(perFileInfo.nodeId,perFileInfo.fileId);
+    });
 }
 
 #endif

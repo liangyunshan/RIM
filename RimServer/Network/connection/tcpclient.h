@@ -20,9 +20,13 @@
 #include <condition_variable>
 #include <QHash>
 #include <QFile>
+#include <QDir>
+#include <QFileInfo>
 #include <QDataStream>
 #include "../network_global.h"
 #include "../head.h"
+
+#include <QDebug>
 
 namespace ServerNetwork {
 
@@ -32,13 +36,34 @@ struct PacketBuff
     PacketBuff()
     {
         totalPackIndex = 0;
+        totalPackLen = 0;
         recvPackIndex = 0;
         recvSize = 0;
         isCompleted = false;
     }
 
-    ~PacketBuff()
-    {
+    ~PacketBuff(){
+
+    }
+
+    /*!
+     * @brief 获取缓存接收的分段数据
+     * @note 将缓存接收的数据重新组装，拼接成新的数据；并在拼接后的数据头部插入协议头(21+2051) \n
+     * @param[in] container 数据容器
+     * @param[in] perPacketOffset 截取每个分段的起始点
+     */
+    void packDataWidthPrtocol(QByteArray & container,int perPacketOffset){
+        if(isCompleted && recvSize > 0)
+        {
+            if(buff.size() > 0){
+                container.append(buff.takeFirst());
+            }
+
+            while(!buff.isEmpty())
+            {
+                container.append(buff.takeFirst().mid(perPacketOffset));
+            }
+        }
     }
 
     QByteArray getFullData()
@@ -55,9 +80,13 @@ struct PacketBuff
     }
 
     bool isCompleted;                           /*!< 该缓冲数据是否完整 */
-    unsigned int recvSize;                      /*!< 接收数据的长度 */
+    qint64 recvSize;                            /*!< 接收数据的长度 */
+
     unsigned short totalPackIndex;              /*!< 总数据包分包大小 */
     unsigned short recvPackIndex;               /*!< 已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包 */
+
+    qint64 totalPackLen;                        /*!< 总数据长度(分片数量*495+数据部分) */
+
     QLinkedList<QByteArray> buff;               /*!< 存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1 */
 };
 
@@ -92,6 +121,7 @@ struct FileRecvDesc
     {
         if(!file.isOpen()){
             file.setFileName(filePath + "/" +md5);
+            qDebug()<<"++++:"<<(filePath + "/" +md5);
             if(file.open(QFile::WriteOnly) )
             {
                 if(file.resize(size))
@@ -141,8 +171,7 @@ struct FileRecvDesc
             file.close();
     }
 
-    void lock(){mutex.lock();}
-    void unlock(){mutex.unlock();}
+    std::mutex & RWMutex(){return mutex;}
 
     void destory()
     {
@@ -168,7 +197,113 @@ struct FileRecvDesc
     QString accountId;                   /*!< 自己ID */
     QString otherId;                     /*!< 接收方ID */
     QFile   file;                        /*!< 文件缓冲 */
-    QMutex mutex;                        /*!< 文件读写锁 */
+    std::mutex mutex;                    /*!< 文件读写锁 */
+
+#ifdef __LOCAL_CONTACT__
+    int cdate;                           /*!< 日期 */
+    int ctime;                           /*!< 时间 */
+    unsigned short usSerialNo;           /*!< 流水号*/
+    unsigned short usOrderNo;            /*!< 协议号*/
+    unsigned char bPackType;             /*!< 报文类型 */
+#endif
+};
+
+/*!
+ *  @brief  单个发送文本描述
+ *  @attention
+ *
+ */
+struct FileSendDesc
+{
+    FileSendDesc():fileTransState(FILE_ERROR){}
+
+    ~FileSendDesc(){
+        destory();
+    }
+
+    bool open(){
+        QString fullPath = filePath + QDir::separator() + fileName;
+        if(QFileInfo(fullPath).exists()){
+            file.setFileName(fullPath);
+            return file.open(QFile::ReadOnly);
+        }
+        return false;
+    }
+
+    bool isNull(){return !file.isOpen();}
+
+    bool seek(size_t pos)
+    {
+        if(!file.isOpen())
+            return false;
+
+        return file.seek(pos);
+    }
+
+    qint64 read(const QByteArray &data)
+    {
+        if(!file.isOpen())
+            return -1;
+//        qint64 realWriteLen = file.write(data);
+//        writeLen += realWriteLen;
+//        return realWriteLen;
+        return -1;
+    }
+
+    bool flush()
+    {
+        if(file.isOpen())
+            return file.flush();
+        return false;
+    }
+
+    bool isRecvOver()
+    {
+        return writeLen == file.size();
+    }
+
+    void close()
+    {
+        if(file.isOpen())
+            file.close();
+    }
+
+    std::mutex & RWMutex(){return mutex;}
+
+    void destory()
+    {
+        if(file.isOpen())
+        {
+            fileTransState = FILE_OVER;
+            file.close();
+        }
+    }
+
+
+    FileTransState state(){return fileTransState;}
+    void setState(FileTransState state){fileTransState = state;}
+
+    int itemType;                        /*!< 文件操作类型 @link FileItemType @endlink */
+    int itemKind;                        /*!< 文件类型 @link FileItemKind @endlink */
+    FileTransState fileTransState;       /*!< 文件传输状态，用于控制文件的状态 */
+    qint64 size;                         /*!< 文件大小 */
+    qint64 writeLen;                     /*!< 文件已经写入的大小 */
+    QString filePath;                    /*!< 文件保存的路径 */
+    QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
+    QString md5;                         /*!< 文件MD5 */
+    QString fileId;                      /*!< 文件唯一标识，有客户端指定，与数据库中保持一致 */
+    QString accountId;                   /*!< 自己ID */
+    QString otherId;                     /*!< 接收方ID */
+    QFile   file;                        /*!< 文件缓冲 */
+    std::mutex mutex;                    /*!< 文件读写锁 */
+
+#ifdef __LOCAL_CONTACT__
+    int cdate;                           /*!< 日期 */
+    int ctime;                           /*!< 时间 */
+    unsigned short usSerialNo;           /*!< 流水号*/
+    unsigned short usOrderNo;            /*!< 协议号*/
+    unsigned char bPackType;             /*!< 报文类型 */
+#endif
 };
 
 

@@ -15,7 +15,6 @@
 
 #include "sql/database.h"
 
-
 class RecvTextProcessThread : public QThread
 {
     Q_OBJECT

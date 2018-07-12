@@ -11,7 +11,7 @@
 #include "global.h"
 #include "head.h"
 #include "Util/imagemanager.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "maindialog.h"
 #include "widget/rlineedit.h"
 #include "../protocol/protocoldata.h"

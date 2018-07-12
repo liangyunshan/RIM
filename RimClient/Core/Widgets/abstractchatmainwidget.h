@@ -75,6 +75,7 @@ protected:
 signals:
     void shakeWindow();
     void closeWindow();
+    void initFinished();
 
 public slots:
 

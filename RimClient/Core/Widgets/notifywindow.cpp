@@ -20,7 +20,7 @@
 #include "toolbar.h"
 #include "toolbox/listbox.h"
 #include "toolbox/toolitem.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Util/rutil.h"
 #include "widget/rbutton.h"
@@ -275,6 +275,28 @@ void NotifyWindow::onMessage(MessageType type)
     }
 }
 
+/*!
+ * @brief  检测目标id是否存在推送消息
+ * @param accountId 目标id
+ * @return 与目标id存在的待推送消息条数
+ */
+int NotifyWindow::checkNotifyExist(const QString accountId)
+{
+    MQ_D(NotifyWindow);
+
+    int t_count = 0;
+    foreach (ToolItem * curItem, d->infoList->items())
+    {
+        if(curItem->getName() == accountId)
+        {
+            t_count = curItem->getNotifyCount();
+            d->infoList->removeItem(curItem);
+            break;
+        }
+    }
+    return t_count;
+}
+
 void NotifyWindow::viewAll()
 {
     MQ_D(NotifyWindow);
@@ -316,7 +338,7 @@ void NotifyWindow::viewNotify(ToolItem *item)
         if(iter != d->systemNotifyInfos.end()){
             d->systemNotifyInfos.erase(iter);
         }
-        d->infoList->removeItem(item);
+//        d->infoList->removeItem(item);    //FIXME lys-20180710当推送消息完成显示后移除item
 
         if(d->infoList->count() <= 0){
             ignoreAll();

@@ -5,7 +5,7 @@
 #include <QGridLayout>
 
 #include "rlabel.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 
 RComboBoxItem::RComboBoxItem(QWidget *parent):QWidget(parent)
