@@ -6,18 +6,18 @@
 #include <QMimeData>
 #include <QDateTime>
 #include <QSplitter>
+#include <QKeyEvent>
 #include <QClipboard>
 #include <QTabWidget>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWebChannel>
 #include <QWebChannel>
 #include <QApplication>
+#include <QHostAddress>
 #include <QWebEngineView>
 #include <QWebEnginePage>
-#include <QHostAddress>
-#include <QKeyEvent>
-#include <QFileDialog>
 
 #include "head.h"
 #include "global.h"
@@ -25,24 +25,26 @@
 #include "document.h"
 #include "constants.h"
 #include "user/user.h"
-#include "../protocol/datastruct.h"
 #include "Util/rutil.h"
 #include "screenshot.h"
 #include "rsingleton.h"
 #include "previewpage.h"
 #include "messdiapatch.h"
-#include "chat/setfontwidget.h"
 #include "chataudioarea.h"
 #include "widget/rlabel.h"
 #include "widget/rbutton.h"
-#include "Network/msgwrap/wrapfactory.h"
 #include "media/audioinput.h"
 #include "media/audiooutput.h"
+#include "chat/setfontwidget.h"
 #include "widget/rtoolbutton.h"
 #include "widget/rmessagebox.h"
 #include "thread/filerecvtask.h"
+#include "chat/transferfileitem.h"
 #include "thread/chatmsgprocess.h"
 #include "others/msgqueuemanager.h"
+#include "../protocol/datastruct.h"
+#include "chat/transferfilelistbox.h"
+#include "Network/msgwrap/wrapfactory.h"
 #include "actionmanager/actionmanager.h"
 #include "Widgets/textedit/simpletextedit.h"
 
@@ -66,6 +68,7 @@ protected:
     {
 //        m_content.setUi(q);
         initWidget();
+        fileList = NULL;
     }
 
     void initWidget();
@@ -88,6 +91,7 @@ protected:
     ToolBar * chatToolBar;                  //信息输入窗口工具栏
     SimpleTextEdit * chatInputArea;         //信息输入窗口输入框
     QTabWidget *historyRecord;              //历史聊天记录窗口
+    TransferFileListBox *fileList;          //文件传输列表
 
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
     QString windowId;                       //窗口身份ID，只在创建时指定，可用于身份判断
@@ -777,10 +781,12 @@ void AbstractChatMainWidget::respHistoryRecord(bool flag)
     if(flag)
     {
         showRightSideTab(MsgRecord);
+        showRightSideTab(SendFile);
     }
     else
     {
         closeRightSideTab(MsgRecord);
+        closeRightSideTab(SendFile);
     }
 }
 
@@ -815,6 +821,11 @@ void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
         break;
     case SendFile:
         //TODO LYS-20180620移除发送文件子窗口
+        if(d->fileList)
+        {
+            d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->fileList));
+            d->rightSideWidget->clear();
+        }
         break;
     default:
         break;
@@ -842,6 +853,11 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
         break;
     case SendFile:
         //TODO LYS-20180620显示发送文件子窗口
+        if(!d->fileList)
+        {
+            d->fileList = new TransferFileListBox;
+        }
+        d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
         break;
     default:
         break;

@@ -186,7 +186,9 @@ SOURCES += \
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/json_dataprocess.cpp \
     Network/msgprocess/data716process.cpp \
-    Network/wraprule/qdb2048_wraprule.cpp
+    Network/wraprule/qdb2048_wraprule.cpp \
+    Widgets/chat/transferfileitem.cpp \
+    Widgets/chat/transferfilelistbox.cpp
 
 
 HEADERS  += \
@@ -313,7 +315,9 @@ HEADERS  += \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/json_dataprocess.h \
     Network/msgprocess/data716process.h \
-    Network/wraprule/qdb2048_wraprule.h
+    Network/wraprule/qdb2048_wraprule.h \
+    Widgets/chat/transferfileitem.h \
+    Widgets/chat/transferfilelistbox.h
 
 DISTFILES += \
     Widgets/Widgets.pri

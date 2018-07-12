@@ -90,6 +90,11 @@
         <file>resource/icon/Tool_Panel_Network_Error.png</file>
         <file>resource/icon/Tool_Panel_Network_OK.png</file>
         <file>resource/icon/Tool_Chat_FileTrans.png</file>
+        <file>resource/icon/Common_File.png</file>
+        <file>resource/icon/Compress_File.png</file>
+        <file>resource/icon/Folder_File.png</file>
+        <file>resource/icon/File_Recv.png</file>
+        <file>resource/icon/File_Send.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>
