@@ -179,6 +179,8 @@ SOURCES += \
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/json_dataprocess.cpp \
     Network/msgprocess/data716process.cpp \
+    Widgets/chat/transferfileitem.cpp \
+    Widgets/chat/transferfilelistbox.cpp\
     thread/file716sendtask.cpp
 
 
@@ -299,6 +301,8 @@ HEADERS  += \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/json_dataprocess.h \
     Network/msgprocess/data716process.h \
+    Widgets/chat/transferfileitem.h \
+    Widgets/chat/transferfilelistbox.h\
     thread/file716sendtask.h
 
 DISTFILES += \
