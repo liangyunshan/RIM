@@ -822,7 +822,7 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
             FileRecvDesc * desc = tmpClient->getFile(request->fileId);
             if(desc)
             {
-                desc->lock();
+                std::unique_lock<std::mutex> ul(desc->RWMutex());
                 if(request->control == T_PAUSE)
                 {
                     desc->setState(FILE_PAUSE);
@@ -843,8 +843,6 @@ void DataProcess::processFileControl(Database *db, int socketId, QSharedPointer<
                 response->itemType = request->itemType;
                 response->md5 = request->md5;
                 RSingleton<WrapFactory>::instance()->getWrap()->handleMsg(socketId,response);
-
-                desc->unlock();
             }
         }
     }
@@ -903,20 +901,14 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
         FileRecvDesc * desc = tmpClient->getFile(request->fileId);
         if(desc)
         {
-            desc->lock();
+            std::unique_lock<std::mutex> ul(desc->RWMutex());
             if(desc->state() == FILE_CANCEL)
-            {
-                desc->unlock();
                 return;
-            }
 
             if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
-            {
-                desc->unlock();
                 return;
-            }
 
-            if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE)
+            if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
                 if(desc->seek(request->index * FILE_MAX_PACK_SIZE) && desc->write(request->array) > 0)
                 {
                     if(desc->flush() && desc->isRecvOver())
@@ -924,8 +916,7 @@ void DataProcess::processFileData(Database *db, int socketId, QSharedPointer<Fil
                         desc->close();
                     }
                 }
-
-            desc->unlock();
+            }
 
             if(desc->isRecvOver())
             {

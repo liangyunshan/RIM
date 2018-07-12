@@ -22,7 +22,7 @@ public:
     explicit BaseTransmit();
     virtual ~BaseTransmit();
 
-    virtual bool startTransmit(const SendUnit & unit) = 0;
+    virtual bool startTransmit(SendUnit & unit) = 0;
     virtual bool startRecv(char * recvBuff,int recvBuffLen,DataHandler recvDataFunc) = 0;
 
     virtual CommMethod type() = 0;

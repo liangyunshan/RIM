@@ -18,7 +18,7 @@
 #include "global.h"
 #include "widget/rmessagebox.h"
 #include "file/xmlparse.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "constants.h"
 #include "systemtrayicon.h"
 #include "head.h"
@@ -171,6 +171,9 @@ SplashLoginDialog::SplashLoginDialog(QWidget *parent):
     connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
     connect(MessDiapatch::instance(),SIGNAL(transmitsInitialError(QString)),this,SLOT(respTransmitError(QString)));
+
+    connect(MessDiapatch::instance(),SIGNAL(fileConnected(bool)),this,SLOT(respFileConnect(bool)));
+    connect(MessDiapatch::instance(),SIGNAL(fileSocketError()),this,SLOT(respFileSocketError()));
 
     QTimer::singleShot(0,this,SLOT(initResource()));
 }
@@ -389,7 +392,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
         connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
         connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
 
-//        d->mainDialog->setLogInState(STATUS_ONLINE);
+        d->mainDialog->setLogInState(STATUS_ONLINE);
+
+        FileNetConnector::instance()->initialize();
+        FileNetConnector::instance()->connect();
 
         hide();
         d->mainDialog->show();
@@ -426,6 +432,30 @@ void SplashLoginDialog::respTextSocketError()
 void SplashLoginDialog::respTransmitError(QString errorMsg)
 {
     RMessageBox::warning(this,QObject::tr("Warning"),errorMsg,RMessageBox::Yes);
+}
+
+void SplashLoginDialog::respFileConnect(bool flag)
+{
+    if(G_User){
+        G_User->setFileOnline(flag);
+    }
+
+    if(flag)
+    {
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
+    }else{
+        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
+        RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
+    }
+}
+
+void SplashLoginDialog::respFileSocketError()
+{
+    G_User->setFileOnline(false);
+    RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
+    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+    RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
 }
 
 void SplashLoginDialog::enableInput(bool flag)

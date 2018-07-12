@@ -1,6 +1,6 @@
 ﻿#include "rbuffer_msgparse.h"
 
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "../msgprocess/binary_dataprocess.h"
 
 RBuffer_MsgParse::RBuffer_MsgParse()

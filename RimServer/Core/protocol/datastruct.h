@@ -81,6 +81,16 @@ struct FileItemInfo
     QString otherId;                /*!< 接收方ID */
 };
 
+/*!
+ *  @brief 数据库特征信息
+ *  @note 保存当前使用的数据库中的功能特点
+ */
+struct DBFeature
+{
+    bool lastInsertId;          /*!< 是否支持查询最后插入数据的id */
+    bool transactions;          /*!< 是否支持事务 */
+};
+
 } //namespace Datastruct
 
 #ifdef __LOCAL_CONTACT__
@@ -226,6 +236,28 @@ struct NodeClient
 struct RouteSettings{
     QVector<NodeServer> servers;     /*!< 服务器节点配置 */
     QVector<NodeClient> clients;     /*!< 客户端节点配置 */
+};
+
+/*!
+ *  @brief 文件信息记录描述
+ *  @note 用于跨服务器传输时，主动连接对端服务器，用于记录待传输的文件信息
+ */
+struct Simple716FileInfo
+{
+    Simple716FileInfo():sockId(-1),fileId(-1){}
+    Simple716FileInfo(int sid,QString nid,int fid):sockId(sid),nodeId(nid),fileId(fid){}
+    bool operator==(const Simple716FileInfo & info){
+        if(this == &info)
+            return true;
+
+        return (sockId == info.sockId && nodeId == info.nodeId && fileId == info.fileId);
+    }
+    bool isValid(){
+        return (sockId > 0 && fileId >= 0 && nodeId.size() > 0);
+    }
+    int sockId;                 /*!< 网络连接句柄 */
+    QString nodeId;             /*!< 目的节点 */
+    int fileId;                 /*!< 文件记录ID */
 };
 
 }

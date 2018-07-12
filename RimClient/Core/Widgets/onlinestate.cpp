@@ -8,7 +8,7 @@
 
 #include "../protocol/datastruct.h"
 #include "head.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "constants.h"
 

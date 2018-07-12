@@ -7,7 +7,7 @@
 #include "global.h"
 #include "../protocol/datastruct.h"
 #include "constants.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "actionmanager/actionmanager.h"
 #include "messdiapatch.h"

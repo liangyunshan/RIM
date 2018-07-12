@@ -391,12 +391,21 @@ int main(int argc, char *argv[])
                 RLOG_ERROR("create file path error ! %s",settingConfig.uploadFilePath.toLocal8Bit().data());
                 return -1;
             }
-            RGlobal::G_FILE_UPLOAD_PATH = settingConfig.uploadFilePath;
         }
+        RGlobal::G_FILE_UPLOAD_PATH = settingConfig.uploadFilePath;
 
-        DatabaseManager dbManager;
-        dbManager.setConnectInfo("localhost","rimserver","root","rengu123456");
-        dbManager.setDatabaseType(commandResult.dbType);
+        RSingleton<DatabaseManager>::instance()->setConnectInfo("localhost","rimserver","root","rengu123456");
+        RSingleton<DatabaseManager>::instance()->setDatabaseType(commandResult.dbType);
+
+        memset((char *)&RGlobal::G_DB_FEATURE,0,sizeof(Datastruct::DBFeature));
+        RGlobal::G_DB_FEATURE.lastInsertId = RSingleton<DatabaseManager>::instance()->hasFeature(QSqlDriver::LastInsertId);
+
+#ifdef DB_TRANSACTIONS_CHECK
+        RGlobal::G_DB_FEATURE.transactions = RSingleton<DatabaseManager>::instance()->hasFeature(QSqlDriver::Transactions);
+        if(!RGlobal::G_DB_FEATURE.transactions){
+            QMessageBox::warning(nullptr,QObject::tr("warning"),QObject::tr("Current database don't support transactions"));
+        }
+#endif
 
         if(commandResult.serviceType == SERVICE_TEXT)
         {
@@ -414,16 +423,7 @@ int main(int argc, char *argv[])
         for(int i = 0; i < settingConfig.textRecvProcCount;i++)
         {
             RecvTextProcessThread * thread = new RecvTextProcessThread;
-            Database * dbs = dbManager.newDatabase();
-
-#ifdef DB_TRANSACTIONS_CHECK
-            QSqlDriver * driver = dbs->sqlDatabase().driver();
-            static bool infoed = false;
-            if(!infoed && !driver->hasFeature(QSqlDriver::Transactions)){
-                infoed = true;
-                QMessageBox::warning(nullptr,QObject::tr("warning"),QObject::tr("Current database don't support transactions"));
-            }
-#endif
+            Database * dbs = RSingleton<DatabaseManager>::instance()->newDatabase();
             if(!dbs->isError())
             {
                 thread->setDatabase(dbs);

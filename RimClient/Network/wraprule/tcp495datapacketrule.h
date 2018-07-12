@@ -14,6 +14,8 @@
 
 #include <QHash>
 
+#define TCP_SEND_BUFF 4096
+
 namespace ClientNetwork{
 
 class TCP495DataPacketRule  : public WrapRule
@@ -24,7 +26,7 @@ public:
     void wrap(ProtocolPackage & data);
     bool unwrap(const QByteArray & data,ProtocolPackage & result);
 
-    bool wrap(const ProtocolPackage &dataUnit, std::function<int(const char *,const int)> sendDataFunc);
+    bool wrap(ProtocolPackage &dataUnit, std::function<int(const char *,const int)> sendDataFunc);
     bool unwrap(const char * data,const int length,DataHandler recvDataFunc);
 
 private:
@@ -33,7 +35,7 @@ private:
 
 private:
     unsigned short SendPackId;
-    char sendBuff[MAX_SEND_BUFF];
+    char sendBuff[TCP_SEND_BUFF];
 
     QByteArray lastRecvBuff;              //断包接收缓冲区
     QHash<int,PacketBuff*> packetBuffs;   //多包缓冲区

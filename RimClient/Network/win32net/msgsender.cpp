@@ -71,6 +71,7 @@ TextSender::~TextSender()
 
 void TextSender::startMe()
 {
+
     RTask::startMe();
     if(!isRunning())
     {

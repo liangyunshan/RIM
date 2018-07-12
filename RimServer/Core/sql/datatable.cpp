@@ -91,6 +91,18 @@ RChat716Cache::RChat716Cache():table("rchat716cache"),sourceAddr("SOURCEADDR"),d
 {
 
 }
+
+RFile716::RFile716():table("rfile716"),id("ID"),sourceAddr("SOURCEADDR"),destAddr("DESTADDR"),packType("PACKTYPE"),md5("MD5"),fileType("FILETYPE"),fileName("FILENAME"),
+    createTime("CREATETIME"),serialNo("SERIALNO"),orderNo("ORDERNO"),date("CDATE"),time("CTIME"),fileSize("FILESIZE"),filePath("FILEPATH")
+{
+
+}
+
+RFile716Cache::RFile716Cache():table("rfile716cache"),id("ID"),destAddr("DESTADDR"),fileId("FILEID"),transfered("TRANSFERED")
+{
+
+}
+
 #endif
 
 

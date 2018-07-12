@@ -8,7 +8,7 @@
 
 #include "head.h"
 #include "global.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "toolbar.h"
 #include "Util/rutil.h"

@@ -6,20 +6,25 @@
 #include "head.h"
 #include "../win32net/iocpcontext.h"
 #include "../dataprocess/handler.h"
+#include "Util/rsingleton.h"
+#include "tcp_wraprule.h"
 
 namespace ServerNetwork{
 
 using namespace QDB495;
+using namespace QDB21;
+using namespace QDB2051;
+using namespace QDB2048;
 
 TCP495DataPacketRule::TCP495DataPacketRule():
-    WrapRule(),handler(nullptr)
+    WrapRule(),textHandler(nullptr)
 {
     SendPackId = qrand()%1024;
 }
 
-void TCP495DataPacketRule::registHandler(Handler *dataHandler)
+void TCP495DataPacketRule::registTextHandler(Handler *dataHandler)
 {
-    handler = dataHandler;
+    textHandler = dataHandler;
 }
 
 void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recvLen)
@@ -50,7 +55,13 @@ void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recv
     }
 }
 
-bool TCP495DataPacketRule::wrap(const SendUnit &dunit, IocpContextSender sendFunc)
+/*!
+ * @brief 使用iocp方式对原始数据添加协议，并且分片发送
+ * @param[in] dunit 待发送给的数据单元
+ * @param[in] sendFunc 发送回调函数
+ * @return 是否发送成功
+ */
+bool TCP495DataPacketRule::wrap(SendUnit &dunit, IocpContextSender sendFunc)
 {
     TcpClient * client = TcpClientManager::instance()->getClient(dunit.sockId);
     if(client != NULL)
@@ -60,86 +71,129 @@ bool TCP495DataPacketRule::wrap(const SendUnit &dunit, IocpContextSender sendFun
         packet.bVersion = 1;
         packet.bPackType = dunit.dataUnit.bPackType;
         packet.bPriority = 0;
-        packet.bPeserve = 0;
-        packet.wSerialNo = ++SendPackId;
+        packet.bPeserve = dunit.dataUnit.bPeserve;
+        packet.wSerialNo = dunit.dataUnit.usSerialNo;
         packet.wCheckout = 0;
-        packet.dwPackAllLen = dunit.dataUnit.data.size();
         packet.wDestAddr = dunit.dataUnit.wDestAddr;
         packet.wSourceAddr = dunit.dataUnit.wSourceAddr;
 
-        int totalIndex = countTotoalIndex(dunit.dataUnit.data.length());
+        int sendDataLen = 0;
 
-        int sendLen = 0;
-        for(int i = 0; i < totalIndex; i++)
-        {
-            packet.wOffset = i;
-            int leftLen = dunit.dataUnit.data.length() - sendLen;
-            packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+        //文件数据，每一片文件数据均小于最大传输限制
+        if(dunit.dataUnit.cFileType == QDB2051::F_BINARY){
 
-            int dataLen = packet.wPackLen + sizeof(QDB495_SendPackage);
+        }else if(dunit.dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dunit.dataUnit.cFileType == QDB2051::F_TEXT){
+            QByteArray originalData = dunit.dataUnit.data;
 
-            IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
-            memcpy(context->getPakcet(),(char *)&packet,sizeof(QDB495_SendPackage));
-            memcpy(context->getPakcet()+ sizeof(QDB495_SendPackage),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
-
-            context->getWSABUF().len = dataLen;
-
-            DWORD realSendLen = 0;
-            if(!sendFunc(dunit.sockId,context,realSendLen))
-                return false;
-
-            if(realSendLen == dataLen){
-                sendLen += packet.wPackLen;
+            //多个协议头长度
+            int protocolDataLen = 0;
+            if(dunit.dataUnit.usOrderNo == O_2051){
+                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+            }else if(dunit.dataUnit.usOrderNo == O_2048){
+                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2048_Head_Length;
             }
-        }
+            int totalIndex = countTotoalIndex(originalData.length());
+            packet.dwPackAllLen = originalData.length() + totalIndex * protocolDataLen;
 
-        if(sendLen == packet.dwPackAllLen){
-            return true;
+            for(unsigned int i = 0; i < totalIndex; i++)
+            {
+                packet.wOffset = i;
+
+                int leftDataLen = originalData.length() - sendDataLen;
+                int sliceLen = leftDataLen > MAX_PACKET ? MAX_PACKET: leftDataLen;
+
+                dunit.dataUnit.data.clear();
+                dunit.dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
+                RSingleton<TCP_WrapRule>::instance()->wrap(dunit.dataUnit);
+
+                packet.wPackLen = protocolDataLen + sliceLen;
+
+                IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
+                memcpy(context->getPakcet(),(char *)&packet,sizeof(QDB495_SendPackage));
+                memcpy(context->getPakcet()+ sizeof(QDB495_SendPackage),dunit.dataUnit.data.data(),dunit.dataUnit.data.length());
+
+                context->getWSABUF().len = packet.wPackLen;
+
+                DWORD realSendLen = 0;
+                if(!sendFunc(dunit.sockId,context,realSendLen))
+                    return false;
+
+                if(realSendLen == packet.wPackLen){
+                    sendDataLen += (packet.wPackLen - protocolDataLen);
+                }else{
+                    break;
+                }
+            }
+
+            if(sendDataLen == originalData.length()){
+                return true;
+            }
         }
     }
 
     return false;
 }
 
-bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ByteSender sendFunc)
+bool TCP495DataPacketRule::wrap(SendUnit &dunit, ByteSender sendFunc)
 {
     QDB495_SendPackage packet;
     memset((char *)&packet,0,sizeof(QDB495_SendPackage));
     packet.bVersion = 1;
     packet.bPackType = dunit.dataUnit.bPackType;
     packet.bPriority = 0;
-    packet.bPeserve = 0;
-    packet.wSerialNo = ++SendPackId;
+    packet.bPeserve = dunit.dataUnit.bPeserve;
+    packet.wSerialNo = dunit.dataUnit.usSerialNo;
     packet.wCheckout = 0;
-    packet.dwPackAllLen = dunit.dataUnit.data.size();
     packet.wDestAddr = dunit.dataUnit.wDestAddr;
     packet.wSourceAddr = dunit.dataUnit.wSourceAddr;
 
-    int totalIndex = countTotoalIndex(dunit.dataUnit.data.length());
+    int sendDataLen = 0;
 
-    int sendLen = 0;
-    for(int i = 0; i < totalIndex; i++)
-    {
-        memset(sendBuff,0,MAX_495SEND_BUFF);
-        packet.wOffset = i;
-        int leftLen = dunit.dataUnit.data.length() - sendLen;
-        packet.wPackLen = leftLen > MAX_PACKET ? MAX_PACKET: leftLen;
+    //文件数据，每一片文件数据均小于最大传输限制
+    if(dunit.dataUnit.cFileType == QDB2051::F_BINARY){
 
-        memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
-        memcpy(sendBuff + sizeof(QDB495_SendPackage),dunit.dataUnit.data.data() + sendLen,packet.wPackLen);
+    }else if(dunit.dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dunit.dataUnit.cFileType == QDB2051::F_TEXT){
+        QByteArray originalData = dunit.dataUnit.data;
 
-        int dataLen = sizeof(QDB495_SendPackage)+packet.wPackLen;
-        int realSendLen = sendFunc(dunit.sockId,sendBuff,dataLen);
-
-        if(realSendLen == dataLen){
-            sendLen += packet.wPackLen;
-        }else{
-            break;
+        //多个协议头长度
+        int protocolDataLen = 0;
+        if(dunit.dataUnit.usOrderNo == O_2051){
+            protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+        }else if(dunit.dataUnit.usOrderNo == O_2048){
+            protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2048_Head_Length;
         }
-    }
+        int totalIndex = countTotoalIndex(originalData.length());
+        packet.dwPackAllLen = originalData.length() + totalIndex * protocolDataLen;
 
-    if(sendLen == packet.dwPackAllLen){
-        return true;
+        for(unsigned int i = 0; i < totalIndex; i++)
+        {
+            packet.wOffset = i;
+
+            int leftDataLen = originalData.length() - sendDataLen;
+            int sliceLen = leftDataLen > MAX_PACKET ? MAX_PACKET: leftDataLen;
+
+            dunit.dataUnit.data.clear();
+            dunit.dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
+            RSingleton<TCP_WrapRule>::instance()->wrap(dunit.dataUnit);
+
+            packet.wPackLen = protocolDataLen + sliceLen;
+
+            memset(sendBuff,0,MAX_495SEND_BUFF);
+            memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+            memcpy(sendBuff + sizeof(QDB495_SendPackage),dunit.dataUnit.data.data(),dunit.dataUnit.data.length());
+
+            int realSendLen = sendFunc(dunit.sockId,sendBuff,packet.wPackLen);
+
+            if(realSendLen == packet.wPackLen){
+                sendDataLen += (packet.wPackLen - protocolDataLen);
+            }else{
+                break;
+            }
+        }
+
+        if(sendDataLen == originalData.length()){
+            return true;
+        }
     }
 
     return false;
@@ -152,7 +206,7 @@ bool TCP495DataPacketRule::wrap(const SendUnit &dunit, ByteSender sendFunc)
  */
 int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
 {
-    return qCeil(((float) totalLength/ MAX_PACKET));
+    return qCeil(((float) totalLength/ (MAX_PACKET)));
 }
 
 void TCP495DataPacketRule::wrap(ProtocolPackage &data)
@@ -167,7 +221,14 @@ bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &resul
     return false;
 }
 
-
+/*!
+ * @brief 解析并处理数据
+ * @note 根据495传输控制协议，将网络接收到的数据按照协议解析，并根据数据的类型分发处理; \n
+ *       若2051协议中的fileType为0时，表示文本数据，则需要进行断包接收处理，并设立接收缓冲区; \n
+ *       若2051协议中的fileType为1或2时，表示文件数据，则接收一包后直接交由应用层写入磁盘操作. \n
+ * @param[in] recvData 接收到的网络数据
+ * @param[in] recvLen 数据长度
+ */
 void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
     QDB495_SendPackage packet;
@@ -187,63 +248,93 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                 socketData.extendData.sockId = ioContext->getClient()->socket();
                 socketData.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                 socketData.extendData.bPeserve = packet.bPeserve;
+                socketData.extendData.dwPackAllLen = packet.dwPackAllLen;
 
                 //[1.1]至少存在多余一个完整数据包
-                if(packet.wPackLen <= recvLen - processLen)
+                int currentDataPackLen = packet.wPackLen - QDB495_SendPackage_Length;
+                if(currentDataPackLen <= recvLen - processLen)
                 {
-                    //[1.1.1]一包数据
-                    int totalIndex = countTotoalIndex(packet.dwPackAllLen);
-                    if(totalIndex == 1)
-                    {
-                        socketData.data.resize(packet.wPackLen);
-                        memcpy(socketData.data.data(),recvData + processLen,packet.wPackLen);
+                    //对数据包类型进行预判断处理
+                    QDB21::QDB21_Head head21;
+                    memset(&head21,0,sizeof(QDB21::QDB21_Head));
+                    memcpy((char *)&head21,recvData + processLen,sizeof(QDB21::QDB21_Head));
 
-                        if(handler)
-                            handler->handle(socketData);
+                    //若协议为2051需要对文件的类型进行判断，若为2048则直接默认以text形式发送
+                    int ptype = QDB2051::F_NO_SUFFIX;
+                    if(head21.usOrderNo == O_2051){
+                        QDB2051::QDB2051_Head head2051;
+                        memset(&head2051,0,sizeof(QDB2051::QDB2051_Head));
+                        memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
+                        ptype = (int)(head2051.cFileType);
+                    }else if(head21.usOrderNo == O_2048){
+
                     }
-                    //[1.1.2]多包数据(只保存数据部分)
-                    else
+
+                    if(ptype == QDB2051::F_TEXT || ptype == QDB2051::F_BINARY)
                     {
-                       QByteArray data;
-                       data.resize(packet.wPackLen);
-                       memcpy(data.data(),ioContext->getPakcet() + processLen,packet.wPackLen);
+                        socketData.data.resize(currentDataPackLen);
+                        memcpy(socketData.data.data(),recvData + processLen,currentDataPackLen);
+                        if(textHandler)
+                            textHandler->handle(socketData);
+                    }
+                    else if(ptype == QDB2051::F_NO_SUFFIX)
+                    {
+                        //[1.1.1]一包数据
+                        if(packet.dwPackAllLen == packet.wPackLen)
+                        {
+                            socketData.extendData.sliceNum = packet.wOffset + 1;
+                            socketData.data.resize(currentDataPackLen);
+                            memcpy(socketData.data.data(),recvData + processLen,currentDataPackLen);
 
-                       std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
-                       if(ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL) == NULL)
-                       {
-                            PacketBuff * buff = new PacketBuff;
-                            buff->totalPackIndex = totalIndex;
-                            buff->recvPackIndex += 1;
-                            buff->recvSize += packet.wPackLen;
-                            buff->buff.append(data);
+                            if(textHandler)
+                                textHandler->handle(socketData);
+                        }
+                        //[1.1.2]多包数据(只保存数据部分)(默认协议为2051)
+                        else
+                        {
+                           QByteArray data;
+                           data.resize(currentDataPackLen);
 
-                            ioContext->getClient()->getPacketBuffs().insert(packet.wSerialNo,buff);
-                       }
-                       else
-                       {
-                            PacketBuff * buff = ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL);
-                            if(buff)
-                            {
-                                buff->buff.append(data);
+                           //currentDataPackLen的长度=sizeof(21)+sizeof(2051)+真实数据长度
+                           memcpy(data.data(),ioContext->getPakcet() + processLen,currentDataPackLen);
+
+                           std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
+                           if(ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL) == NULL)
+                           {
+                                PacketBuff * buff = new PacketBuff;
+                                buff->totalPackLen = packet.dwPackAllLen;
                                 buff->recvSize += packet.wPackLen;
-                                buff->recvPackIndex += 1;
-                                if(buff->recvPackIndex == buff->totalPackIndex)
+                                buff->buff.append(data);
+
+                                ioContext->getClient()->getPacketBuffs().insert(packet.wSerialNo,buff);
+                           }
+                           else
+                           {
+                                PacketBuff * buff = ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL);
+                                if(buff)
                                 {
-                                    buff->isCompleted = true;
+                                    buff->buff.append(data);
+                                    buff->recvSize += packet.wPackLen;
+                                    if(buff->recvSize == buff->totalPackLen)
+                                    {
+                                        buff->isCompleted = true;
+                                        socketData.extendData.sliceNum = packet.wOffset + 1;
 
-                                    socketData.data.append(buff->getFullData());
+                                        int userPrtocolLen = sizeof(QDB21::QDB21_Head) + sizeof(QDB2051::QDB2051_Head);
+                                        buff->packDataWidthPrtocol(socketData.data,userPrtocolLen);
 
-                                    ioContext->getClient()->getPacketBuffs().remove(packet.wSerialNo);
-                                    delete buff;
+                                        ioContext->getClient()->getPacketBuffs().remove(packet.wSerialNo);
+                                        delete buff;
 
-                                    if(handler)
-                                        handler->handle(socketData);
+                                        if(textHandler)
+                                            textHandler->handle(socketData);
+                                    }
                                 }
-                            }
-                       }
+                           }
+                        }
                     }
 
-                    processLen += packet.wPackLen;
+                    processLen += currentDataPackLen;
 
                     //[1.1.3]检验是否满足下次处理需求
                     int leftLen = recvLen - processLen;

@@ -2,7 +2,7 @@
 
 #include "user/user.h"
 #include "global.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Widgets/notifywindow.h"
 #include "Util/imagemanager.h"
 #include "json/jsonresolver.h"

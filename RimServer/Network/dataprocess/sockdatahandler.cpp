@@ -4,12 +4,12 @@
 
 namespace ServerNetwork{
 
-SockDataHandler::SockDataHandler()
+SockTextDataHandler::SockTextDataHandler()
 {
 
 }
 
-void SockDataHandler::handle(const RecvUnit &recvData)
+void SockTextDataHandler::handle(const RecvUnit &recvData)
 {
       std::unique_lock<std::mutex> ul(G_RecvMutex);
       G_RecvButts.push(recvData);

@@ -14,7 +14,7 @@
 
 #include "head.h"
 #include "constants.h"
-#include "rsingleton.h"
+#include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 #include "Widgets/widget/rlabel.h"
 #include "Util/rutil.h"

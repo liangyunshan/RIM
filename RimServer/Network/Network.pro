@@ -43,15 +43,23 @@ HEADERS += \
     win32net/iocpcontext.h \
     socket.h \
     abstractserver.h \
-    wraprule/wraprule.h \
     multitransmits/basetransmit.h \
     multitransmits/tcptransmit.h \
-    wraprule/tcp495datapacketrule.h \
-    wraprule/tcpdatapacketrule.h \
     dataprocess/handler.h \
     dataprocess/sockdatahandler.h \
     connection/seriesconnection.h \
-    connection/tcpclient.h
+    connection/tcpclient.h \
+    wraprule/qdb21_wraprule.h \
+    wraprule/qdb61a_wraprule.h \
+    wraprule/qdb495_wraprule.h \
+    wraprule/qdb2048_wraprule.h \
+    wraprule/qdb2051_wraprule.h \
+    wraprule/tcp_wraprule.h \
+    wraprule/tcp495datapacketrule.h \
+    wraprule/tcpdatapacketrule.h \
+    wraprule/tk205_wraprule.h \
+    wraprule/udp_wraprule.h \
+    wraprule/wraprule.h
 
 SOURCES += \
     netglobal.cpp \
@@ -63,15 +71,23 @@ SOURCES += \
     win32net/iocpcontext.cpp \
     socket.cpp \
     abstractserver.cpp \
-    wraprule/wraprule.cpp \
     multitransmits/basetransmit.cpp \
     multitransmits/tcptransmit.cpp \
-    wraprule/tcp495datapacketrule.cpp \
-    wraprule/tcpdatapacketrule.cpp \
     dataprocess/handler.cpp \
     dataprocess/sockdatahandler.cpp \
     connection/seriesconnection.cpp \
-    connection/tcpclient.cpp
+    connection/tcpclient.cpp \
+    wraprule/qdb21_wraprule.cpp \
+    wraprule/qdb61a_wraprule.cpp \
+    wraprule/qdb495_wraprule.cpp \
+    wraprule/qdb2048_wraprule.cpp \
+    wraprule/qdb2051_wraprule.cpp \
+    wraprule/tcp_wraprule.cpp \
+    wraprule/tcp495datapacketrule.cpp \
+    wraprule/tcpdatapacketrule.cpp \
+    wraprule/TK205_WrapRule.cpp \
+    wraprule/udp_wraprule.cpp \
+    wraprule/wraprule.cpp
 
 INCLUDEPATH += $$PWD/../../RimClient/
 

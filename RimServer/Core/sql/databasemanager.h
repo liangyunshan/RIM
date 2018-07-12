@@ -12,6 +12,7 @@
 #define DATABASEMANAGER_H
 
 #include <QString>
+#include <QSqlDriver>
 
 #include "database.h"
 #include "protocol/datastruct.h"
@@ -24,7 +25,9 @@ public:
     void setConnectInfo(const QString host,const QString dbName,const QString user,const QString pass,const int port = 0);
 
     Database * newDatabase(QString connectionName = "");
+    Database database(QString connectionName = "");
 
+    bool hasFeature(QSqlDriver::DriverFeature feature);
     QStringList availableDrivers();
 
 private:
