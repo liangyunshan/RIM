@@ -269,6 +269,32 @@ struct SenderFileDesc
     QDateTime createDatetime;   /*!< 文件产生时间 */
 };
 
+/*!
+ *  @brief 文件传输状态
+ */
+enum FileTransStatus{
+    TransOnline     = 0x00,         /*!< 文件在线传输 */
+    TransOffline    = 0x01,         /*!< 文件离线传输 */
+    TransStart      = 0x02,         /*!< 开始文件传输 */
+    TransCancel     = 0x03,         /*!< 取消文件传输 */
+    TransEnd        = 0x04,         /*!< 结束文件传输 */
+    TransError      = 0x05,         /*!< 文件传输错误 */
+    TransSuccess    = 0x07,         /*!< 文件传输成功 */
+    TransProcess    = 0x08          /*!< 文件传输过程中 */
+};
+
+/*!
+ *  @brief 文件传输进度控制信息结构体
+ */
+struct FileTransProgress
+{
+    int currIndex;                  /*!< 当前数据序列 [1~totleIndex]*/
+    int totleIndex;                 /*!< 总数据序列号 [1,]*/
+    unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
+    unsigned int totleBytes;        /*!< 总数据量大小 */
+    FileTransStatus transStatus;    /*!< 文件传输状态 */
+    QString fileFullPath;           /*!< 文件全路径 */
+};
 
 #ifdef __LOCAL_CONTACT__
 /*************************参数配置文件*********************************/

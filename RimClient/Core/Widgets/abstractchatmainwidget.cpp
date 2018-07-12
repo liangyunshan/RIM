@@ -473,8 +473,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 //    fileDesc.fullFilePath = "d:/1.pdf";
 //    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
 
-//    return;
-
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
@@ -749,11 +747,18 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     {
         return ;
     }
+    foreach(QString fileName,files)
+    {
+        SenderFileDesc fileDesc;
+        fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+        fileDesc.destNodeId = d->netconfig.nodeId;
+        fileDesc.fullFilePath = fileName;
+        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    }
 }
 
 /*!
- * @brief AbstractChatMainWidget::recvVoiceChatMsg 显示收到的语音消息
->>>>>>> 138de44a40a659fbb0a9958e8ec5b425bce9e126
+ * @brief 显示收到的语音消息
  * @param msg 收到的语音消息
  */
 void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)

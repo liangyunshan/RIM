@@ -182,12 +182,32 @@ void File716SendTask::processFileData()
 {
     while(true && runningFlag){
         std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
+
+        //TODO:发送实时传输状态给进度控制单元 FileTransProgress progress;
+        int processUnit = 1;
+        if(sendList.size()>=100)
+        {
+            processUnit = sendList.size()/100;
+        }
+        int sendCount = 0;
+        FileTransProgress progress;
+        progress.fileFullPath = (*iter)->fullPath ;
+        progress.totleIndex = sendList.size();
+        progress.totleBytes = (*iter)->dwPackAllLen;
+
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
+
+                progress.currIndex = sendCount;
+                progress.transStatus = TransSuccess;
+                emit sigTransSuccess(progress);
+
                 (*iter).reset();
-                iter = sendList.erase(iter);
+                iter = sendList.erase(iter);      
             }else{
+                sendCount++;
+
                 SendUnit unit;
                 unit.dataUnit.wSourceAddr = (*iter)->accountId.toInt();
                 unit.dataUnit.wDestAddr = (*iter)->otherSideId.toInt();
@@ -202,6 +222,22 @@ void File716SendTask::processFileData()
                 unit.dataUnit.cFilename = (*iter)->fileName.toLocal8Bit();
                 unit.dataUnit.dwPackAllLen = (*iter)->dwPackAllLen;
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
+
+                progress.currIndex = sendCount;
+                progress.readySendBytes = unit.dataUnit.data.size();
+                if(sendCount==1)
+                {
+                    progress.transStatus = TransStart;
+                    emit sigTransStart(progress);
+                }
+                else
+                {
+                    if(sendCount%processUnit == 0)
+                    {
+                        progress.transStatus = TransProcess;
+                        emit sigTransProcess(progress);
+                    }
+                }
 
                 if((*iter)->method == ParameterSettings::C_NetWork && (*iter)->format == ParameterSettings::M_205){
                     unit.method = C_UDP;
