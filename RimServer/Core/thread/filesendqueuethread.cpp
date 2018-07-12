@@ -3,6 +3,7 @@
 #include "../rsingleton.h"
 #include "../sql/databasemanager.h"
 #include "../sql/sqlprocess.h"
+#include <QDebug>
 
 #include <condition_variable>
 
@@ -96,11 +97,18 @@ void FileSendQueueThread::run()
  */
 void FileSendQueueThread::processFileData()
 {
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"Send File"<<runningFlag
+          <<"\n";
+    int count = 0 ;
     while(true && runningFlag){
         std::list<FileSendTask>::iterator iter = sendList.begin();
         while(iter != sendList.end()){
 
             //TODO 20180709 发送文件
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                   <<"ready send file :"<<(count)
+                  <<"\n";
         }
 
         if(sendList.size() < maxTransferClients){

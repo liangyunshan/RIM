@@ -288,8 +288,6 @@ enum FileTransStatus{
  */
 struct FileTransProgress
 {
-    int currIndex;                  /*!< 当前数据序列 [1~totleIndex]*/
-    int totleIndex;                 /*!< 总数据序列号 [1,]*/
     unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
     unsigned int totleBytes;        /*!< 总数据量大小 */
     FileTransStatus transStatus;    /*!< 文件传输状态 */

@@ -189,25 +189,23 @@ void File716SendTask::processFileData()
         {
             processUnit = sendList.size()/100;
         }
-        int sendCount = 0;
-        FileTransProgress progress;
-        progress.fileFullPath = (*iter)->fullPath ;
-        progress.totleIndex = sendList.size();
-        progress.totleBytes = (*iter)->dwPackAllLen;
 
+        FileTransProgress progress;
+        if(sendList.size() >0)
+        {
+            progress.fileFullPath = (*iter)->fullPath ;
+            progress.totleBytes = (*iter)->dwPackAllLen;
+        }
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
-                progress.currIndex = sendCount;
                 progress.transStatus = TransSuccess;
                 emit sigTransSuccess(progress);
 
                 (*iter).reset();
-                iter = sendList.erase(iter);      
+                iter = sendList.erase(iter);
             }else{
-                sendCount++;
-
                 SendUnit unit;
                 unit.dataUnit.wSourceAddr = (*iter)->accountId.toInt();
                 unit.dataUnit.wDestAddr = (*iter)->otherSideId.toInt();
@@ -223,16 +221,15 @@ void File716SendTask::processFileData()
                 unit.dataUnit.dwPackAllLen = (*iter)->dwPackAllLen;
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
 
-                progress.currIndex = sendCount;
-                progress.readySendBytes = unit.dataUnit.data.size();
-                if(sendCount==1)
+                progress.readySendBytes = (*iter)->readLen;
+                if(unit.dataUnit.wOffset==1)
                 {
                     progress.transStatus = TransStart;
                     emit sigTransStart(progress);
                 }
                 else
                 {
-                    if(sendCount%processUnit == 0)
+                    if(unit.dataUnit.wOffset%processUnit == 0)
                     {
                         progress.transStatus = TransProcess;
                         emit sigTransProcess(progress);

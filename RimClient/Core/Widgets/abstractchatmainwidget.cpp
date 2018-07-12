@@ -729,9 +729,6 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 }
 
 /*!
-<<<<<<< HEAD
- * @brief 显示收到的语音消息
-=======
  * @brief 显示文件传输窗口
  * @details 选择需要发送的文件，支持多选
  */
