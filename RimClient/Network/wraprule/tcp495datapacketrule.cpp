@@ -45,23 +45,27 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
 
     int sendDataLen = 0;
 
-    //文件数据，每一片文件数据均小于最大传输限制
+    //文件数据，每一片文件数据均小于最大传输限制(1024byte)，不用继续分片
     if(dataUnit.cFileType == QDB2051::F_BINARY){
-        memset(sendBuff,0,TCP_SEND_BUFF);
-        packet.wOffset = dataUnit.wOffset;
-        packet.wPackLen = QDB495_SendPackage_Length + dataUnit.data.length();
-        packet.dwPackAllLen = dataUnit.dwPackAllLen;
+        int headLen = 0;
+        if(dataUnit.usOrderNo == O_2051){
+            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+            headLen = protocolDataLen + dataUnit.cFilename.size();
+        }
 
+        int totalIndex = countTotoalIndex(dataUnit.dwPackAllLen);
+        packet.dwPackAllLen = dataUnit.dwPackAllLen + totalIndex * headLen;
+        packet.wPackLen = headLen + dataUnit.data.length();
+        packet.wOffset = dataUnit.wOffset;
+        RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+
+        memset(sendBuff,0,TCP_SEND_BUFF);
         memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
         memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data(),dataUnit.data.length());
 
         int realSendLen = sendDataFunc(sendBuff,packet.wPackLen);
 
         if(realSendLen == packet.wPackLen){
-            sendDataLen += packet.wPackLen;
-        }
-
-        if(sendDataLen == packet.wPackLen){
             return true;
         }
     }else if(dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dataUnit.cFileType == QDB2051::F_TEXT){
