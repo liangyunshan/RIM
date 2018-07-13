@@ -1,6 +1,7 @@
 ﻿#include "transferfileitem.h"
 
 #include <QLabel>
+#include <QFileInfo>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -44,6 +45,7 @@ private:
 
     int m_fileType,m_transferType;  //传输的文件类型、文件传输类型
     int m_finishedSize,m_totalSize; //已完成传输大小、传输文件总大小
+    QString m_filePath;                 //文件全路径
 };
 
 void TransferFileItemPrivate::initWidget()
@@ -252,7 +254,7 @@ QString TransferFileItem::fileName() const
 {
     MQ_D(TransferFileItem);
 
-    return d->fileNameLabel->text();
+    return d->m_filePath;
 }
 
 /*!
@@ -262,8 +264,9 @@ QString TransferFileItem::fileName() const
 void TransferFileItem::setFileName(const QString &file)
 {
     MQ_D(TransferFileItem);
-
-    d->fileNameLabel->setText(file);
+    d->m_filePath = file;
+    QFileInfo fileInfo(file);
+    d->fileNameLabel->setText(fileInfo.fileName());
 }
 
 /*!
