@@ -104,7 +104,7 @@ File716SendTask* File716SendTask::recordTask = nullptr;
 File716SendTask::File716SendTask(QObject *parent):
     ClientNetwork::RTask(parent),maxTransferFiles(2)
 {
-
+    recordTask = this;
 }
 
 File716SendTask::~File716SendTask()
@@ -201,7 +201,7 @@ void File716SendTask::processFileData()
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
                 progress.transStatus = TransSuccess;
-                emit sigTransSuccess(progress);
+                emit sigTransStatus(progress);
 
                 (*iter).reset();
                 iter = sendList.erase(iter);
@@ -222,17 +222,17 @@ void File716SendTask::processFileData()
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
 
                 progress.readySendBytes = (*iter)->readLen;
-                if(unit.dataUnit.wOffset==1)
+                if(unit.dataUnit.wOffset==0)
                 {
                     progress.transStatus = TransStart;
-                    emit sigTransStart(progress);
+                    emit sigTransStatus(progress);
                 }
                 else
                 {
                     if(unit.dataUnit.wOffset%processUnit == 0)
                     {
                         progress.transStatus = TransProcess;
-                        emit sigTransProcess(progress);
+                        emit sigTransStatus(progress);
                     }
                 }
 

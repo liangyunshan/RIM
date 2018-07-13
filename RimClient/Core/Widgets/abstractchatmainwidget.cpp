@@ -750,10 +750,26 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     }
     foreach(QString fileName,files)
     {
+        showRightSideTab(SendFile);
+
+        QFileInfo fileInfo(fileName);
+
         SenderFileDesc fileDesc;
         fileDesc.srcNodeId = G_User->BaseInfo().accountId;
         fileDesc.destNodeId = d->netconfig.nodeId;
         fileDesc.fullFilePath = fileName;
+
+        TransferFileItem *t_item = new TransferFileItem;
+        t_item->setFileType(TransferFileItem::COMMONFILE);
+        t_item->setTransferType(TransferFileItem::RECVFile);
+        t_item->setFileName(fileName);
+        t_item->setFileSize(fileInfo.size());
+        t_item->setFinishedSize(0);
+        t_item->setSenderFileDesc(fileDesc);
+        d->fileList->addItem(t_item);
+
+        connect(File716SendTask::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+                t_item,SLOT(slot_SetTransStatus(FileTransProgress)));
         RSingleton<FileSendManager>::instance()->addFile(fileDesc);
     }
 }

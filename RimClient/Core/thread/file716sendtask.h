@@ -142,13 +142,7 @@ public:
     void stopMe();
 
 signals:
-    void sigTransStart(FileTransProgress);
-    void sigTransEnd();
-    void sigTransCancel(QString);
-    void sigTransSuccess(FileTransProgress);
-    void sigTransError();
-    void sigTransOffline();
-    void sigTransProcess(FileTransProgress);
+    void sigTransStatus(FileTransProgress);
 
 protected:
     void run();

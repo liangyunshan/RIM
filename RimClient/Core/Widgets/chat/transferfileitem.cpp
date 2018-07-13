@@ -1,13 +1,17 @@
 ﻿#include "transferfileitem.h"
 
 #include <QLabel>
+#include <QFileInfo>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QProgressBar>
+#include <QDebug>
 
+#include "util/rsingleton.h"
+
+#include "../../thread/file716sendtask.h"
 #include "../../head.h"
-#include "../../protocol/datastruct.h"
 
 #define ITEM_MAX_HEIGHT 56
 
@@ -44,6 +48,8 @@ private:
 
     int m_fileType,m_transferType;  //传输的文件类型、文件传输类型
     int m_finishedSize,m_totalSize; //已完成传输大小、传输文件总大小
+    QString m_filePath;                 //文件全路径
+    SenderFileDesc m_fileDesc;
 };
 
 void TransferFileItemPrivate::initWidget()
@@ -252,7 +258,7 @@ QString TransferFileItem::fileName() const
 {
     MQ_D(TransferFileItem);
 
-    return d->fileNameLabel->text();
+    return d->m_filePath;;
 }
 
 /*!
@@ -262,8 +268,9 @@ QString TransferFileItem::fileName() const
 void TransferFileItem::setFileName(const QString &file)
 {
     MQ_D(TransferFileItem);
-
-    d->fileNameLabel->setText(file);
+    d->m_filePath = file;
+    QFileInfo fileInfo(file);
+    d->fileNameLabel->setText(fileInfo.fileName());
 }
 
 /*!
@@ -359,4 +366,39 @@ void TransferFileItem::setFinishedSize(const int size)
 
     d->m_finishedSize = size;
     d->transferProgress->setValue(size);
+}
+
+/*!
+ * @brief 设置文件传输用户信息
+ * @param desc 文件描述信息
+ */
+void TransferFileItem::setSenderFileDesc(const SenderFileDesc &desc)
+{
+    MQ_D(TransferFileItem);
+    d->m_fileDesc = desc;
+}
+
+/*!
+ * @brief 获取当前文件传输描述信息
+ * @return 文件描述信息
+ */
+SenderFileDesc TransferFileItem::senderFileDesc()
+{
+    MQ_D(TransferFileItem);
+    return d->m_fileDesc;
+}
+
+/*!
+ * @brief 实时更新界面状态
+ * @param progress 文件传输进度控制信息结构体
+ */
+void TransferFileItem::slot_SetTransStatus(FileTransProgress progress)
+{
+    if(progress.fileFullPath != fileName())
+    {
+        return ;
+    }
+
+    setFileSize(progress.totleBytes);
+    setFinishedSize(progress.readySendBytes);
 }
