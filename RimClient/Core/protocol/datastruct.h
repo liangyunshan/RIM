@@ -267,6 +267,7 @@ struct SenderFileDesc
     QString destNodeId;         /*!< 目的节点 */
     QString fullFilePath;       /*!< 文件全路径 */
     QDateTime createDatetime;   /*!< 文件产生时间 */
+    QString uuid;               /*!< 文件唯一识别号 */
 };
 
 /*!
@@ -288,10 +289,14 @@ enum FileTransStatus{
  */
 struct FileTransProgress
 {
+    unsigned int serialNumber;      /*!< 文件传输任务标识 */
     unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
     unsigned int totleBytes;        /*!< 总数据量大小 */
     FileTransStatus transStatus;    /*!< 文件传输状态 */
+    QString fileName;               /*!< 文件名称，有后缀 */
     QString fileFullPath;           /*!< 文件全路径 */
+    QString srcNodeId;              /*!< 源节点号 */
+    QString destNodeId;             /*!< 目的节点 */
 };
 
 #ifdef __LOCAL_CONTACT__

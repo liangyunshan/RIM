@@ -2,7 +2,7 @@
 #define TRANSFERFILELISTBOX_H
 
 #include <QWidget>
-
+#include "protocol/datastruct.h"
 class TransferFileItem;
 class TransferFileListBoxPrivate;
 
@@ -24,6 +24,7 @@ public:
 signals:
 
 public slots:
+    void SetTransStatus(FileTransProgress);
 
 private:
     TransferFileListBoxPrivate * d_ptr;
