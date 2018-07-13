@@ -33,6 +33,7 @@ public:
     explicit FileSendManager();
 
     bool addFile(SenderFileDesc & fileInfo);
+    bool deleteFile(SenderFileDesc & fileInfo);
     SenderFileDesc getFile();
     bool isEmpty();
     int size();
@@ -143,9 +144,6 @@ public:
 
     void startMe();
     void stopMe();
-
-signals:
-    void sigTransStatus(FileTransProgress);
 
 protected:
     void run();
