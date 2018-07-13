@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QDebug>
 
 #include <list>
 #include <mutex>
@@ -60,6 +61,7 @@ struct FileSendDesc
             this->fullPath = fullPath;
             fileName = fileInfo.fileName();
             size = fileInfo.size();
+            dwPackAllLen = fileInfo.size();
             return true;
         }
         return false;
@@ -84,8 +86,9 @@ struct FileSendDesc
 
         if(isSendOver())
             return -1;
-        data.resize(MAX_PACKET);
-        qint64 realReadLen = file.read(data.data(),MAX_PACKET);
+        memset(readBuff,0,MAX_PACKET);
+        qint64 realReadLen = file.read(readBuff,MAX_PACKET);
+        data.append(readBuff,realReadLen);
         sliceNum++;
         return readLen += realReadLen;
     }
@@ -114,6 +117,7 @@ struct FileSendDesc
     QString accountId;                   /*!< 自己ID */
     QString otherSideId;                 /*!< 接收方ID */
     QFile   file;                        /*!< 文件缓冲 */
+    char readBuff[MAX_PACKET];           /*!< 读取缓冲区 */
 
 #ifdef __LOCAL_CONTACT__
     int sliceNum;                        /*!< 记录调用read次数，用于表示数据索引 */
@@ -122,7 +126,7 @@ struct FileSendDesc
     unsigned short usSerialNo;           /*!< 流水号*/
     unsigned short usOrderNo;            /*!< 协议号*/
     unsigned char bPackType;             /*!< 报文类型 */
-    unsigned long dwPackAllLen;          /*!< 数据包总大小 */
+    unsigned long dwPackAllLen;          /*!< 待发送文件总大小 */
     ParameterSettings::CommucationMethod method;    /*!< 通信方式 */
     ParameterSettings::MessageFormat format;        /*!< 报文格式 */
 #endif
@@ -139,6 +143,9 @@ public:
 
     void startMe();
     void stopMe();
+
+signals:
+    void sigTransStatus(FileTransProgress);
 
 protected:
     void run();

@@ -268,6 +268,7 @@ struct ExtendData
     unsigned char bPeserve;         /*!< 495保留字 */
     unsigned short usSerialNo;      /*!< 流水号 */
     unsigned short usOrderNo;       /*!< 编码代号 */
+    unsigned short wOffset;         /*!< 分片序号 */
     unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
     unsigned short sliceNum;        /*!< 分片数量 */
 };
