@@ -168,3 +168,12 @@ void MessDiapatch::onFileSocketError()
 {
     emit fileSocketError();
 }
+
+/*!
+ * @brief 文件传输状态改变
+ * @param progress 文件传输状态
+ */
+void MessDiapatch::onFileTransStatusChanged(FileTransProgress progress)
+{
+    emit sigTransStatus(progress);
+}

@@ -52,7 +52,6 @@ signals:
     void cancelTransfer(TransferFileItem *);
 
 public slots:
-    void slot_SetTransStatus(FileTransProgress);
 
 private slots:
     void operateFile();

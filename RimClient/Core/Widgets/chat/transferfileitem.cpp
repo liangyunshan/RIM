@@ -419,18 +419,3 @@ SenderFileDesc TransferFileItem::senderFileDesc()
     MQ_D(TransferFileItem);
     return d->m_fileDesc;
 }
-
-/*!
- * @brief 实时更新界面状态
- * @param progress 文件传输进度控制信息结构体
- */
-void TransferFileItem::slot_SetTransStatus(FileTransProgress progress)
-{
-    if(progress.fileFullPath != fileName())
-    {
-        return ;
-    }
-
-    setFileSize(progress.totleBytes);
-    setFinishedSize(progress.readySendBytes);
-}
