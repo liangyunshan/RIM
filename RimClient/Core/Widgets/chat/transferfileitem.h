@@ -2,6 +2,7 @@
 #define TRANSFERFILEITEM_H
 
 #include <QWidget>
+#include "protocol/datastruct.h"
 
 class TransferFileItemPrivate;
 
@@ -41,9 +42,13 @@ public:
     int finishedSize() const;
     void setFinishedSize(const int size);
 
+    void setSenderFileDesc(const SenderFileDesc &desc);
+    SenderFileDesc senderFileDesc();
+
 signals:
 
 public slots:
+    void slot_SetTransStatus(FileTransProgress);
 
 private:
     TransferFileItemPrivate * d_ptr;

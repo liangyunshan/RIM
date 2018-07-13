@@ -179,6 +179,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingChatResponse>("GroupingChatResponse");
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
     qRegisterMetaType<CommMethod>("CommMethod");
+    qRegisterMetaType<FileTransProgress>("FileTransProgress");
 
     RSingleton<TaskManager>::instance()->initTask();
 #ifndef __LOCAL_CONTACT__

@@ -477,8 +477,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 //    fileDesc.fullFilePath = "d:/1.pdf";
 //    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
 
-//    return;
-
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
@@ -735,9 +733,6 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
 }
 
 /*!
-<<<<<<< HEAD
- * @brief 显示收到的语音消息
-=======
  * @brief 显示文件传输窗口
  * @details 选择需要发送的文件，支持多选
  */
@@ -753,11 +748,34 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     {
         return ;
     }
+    foreach(QString fileName,files)
+    {
+        showRightSideTab(SendFile);
+
+        QFileInfo fileInfo(fileName);
+
+        SenderFileDesc fileDesc;
+        fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+        fileDesc.destNodeId = d->netconfig.nodeId;
+        fileDesc.fullFilePath = fileName;
+
+        TransferFileItem *t_item = new TransferFileItem;
+        t_item->setFileType(TransferFileItem::COMMONFILE);
+        t_item->setTransferType(TransferFileItem::SENDFile);
+        t_item->setFileName(fileName);
+        t_item->setFileSize(fileInfo.size());
+        t_item->setFinishedSize(0);
+        t_item->setSenderFileDesc(fileDesc);
+        d->fileList->addItem(t_item);
+
+        connect(File716SendTask::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+                t_item,SLOT(slot_SetTransStatus(FileTransProgress)));
+        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    }
 }
 
 /*!
- * @brief AbstractChatMainWidget::recvVoiceChatMsg 显示收到的语音消息
->>>>>>> 138de44a40a659fbb0a9958e8ec5b425bce9e126
+ * @brief 显示收到的语音消息
  * @param msg 收到的语音消息
  */
 void AbstractChatMainWidget::recvVoiceChatMsg(const QString &msg)

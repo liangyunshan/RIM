@@ -547,8 +547,12 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
     MQ_D(MainDialog);
     bool foundScreen = false;
 
+
     //【1】查找上一次的位置是否在当前显示中可用，若可用，则可直接设置
     int screenSize = qApp->desktop()->screenCount();
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"screenSize:"<<screenSize
+          <<"\n";
     for(int i = 0; i < screenSize; i++)
     {
         QRect screenRect = qApp->desktop()->screenGeometry(i);
@@ -559,6 +563,9 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
 
         if(x >= minX && x <= maxX && y >= minY && y <= maxY)
         {
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                   <<"x,y,w,h:"<<x<<y<<w<<h<<screenRect
+                  <<"\n";
             this->setGeometry(x,y,w,h);
             foundScreen = true;
             break;
