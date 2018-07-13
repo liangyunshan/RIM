@@ -8,6 +8,7 @@
 #include "head.h"
 #include "transferfileitem.h"
 #include "../../protocol/datastruct.h"
+#include "../../messdiapatch.h"
 
 class TransferFileListBoxPrivate : public GlobalData<TransferFileListBox>
 {
@@ -56,7 +57,9 @@ TransferFileListBox::TransferFileListBox(QWidget *parent) :
     QWidget(parent),
     d_ptr(new TransferFileListBoxPrivate(this))
 {
-
+    //TODO:信号绑定例子
+    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+            this,SLOT(SetTransStatus(FileTransProgress)));
 }
 
 /*!
@@ -158,4 +161,12 @@ int TransferFileListBox::count() const
     MQ_D(TransferFileListBox);
 
     return d->fileItems.size();
+}
+
+//TODO:接收列子
+void TransferFileListBox::SetTransStatus(FileTransProgress progress)
+{
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"[ File Trans Status Changed ]"<<progress.transStatus
+          <<"\n";
 }
