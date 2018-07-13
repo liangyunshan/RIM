@@ -467,14 +467,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
 
-//    SenderFileDesc fileDesc;
-//    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-//    fileDesc.destNodeId = d->netconfig.nodeId;
-//    fileDesc.fullFilePath = "d:/1.pdf";
-//    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
-
-//    return;
-
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;

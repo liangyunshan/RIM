@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <thread>
+#include <qmath.h>
 
 #include "../msgwrap/localmsgwrap.h"
 #include "rsingleton.h"
@@ -14,9 +15,13 @@
 #include "global.h"
 #include "Util/rutil.h"
 #include "Util/rlog.h"
+#include "Network/head.h"
 
 using namespace ParameterSettings;
 using namespace ServerNetwork;
+using namespace QDB495;
+using namespace QDB21;
+using namespace QDB2051;
 
 #ifdef __LOCAL_CONTACT__
 #include <QDebug>
@@ -158,26 +163,34 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             desc->otherId = QString::number(data.wDestAddr);
             desc->usOrderNo = data.usOrderNo;
             desc->usSerialNo = data.usSerialNo;
-            desc->size = data.dwPackAllLen;
+
+            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+            int fileHeadLen = protocolDataLen + data.cFilename.size();
+            int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+
+            desc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
             desc->writeLen = 0;
+
             if(!client->addFile(QString::fromLocal8Bit(data.cFilename),desc))
                 return;
         }
 
-        std::unique_lock<std::mutex> ul(desc->RWMutex());
-        if(desc->state() == FILE_CANCEL)
-            return;
+        if(true){
+            std::unique_lock<std::mutex> ul(desc->RWMutex());
+            if(desc->state() == FILE_CANCEL)
+                return;
 
-        if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
-            return;
+            if(desc->isNull() && !desc->create(RGlobal::G_FILE_UPLOAD_PATH))
+                return;
 
-        if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
-            //TODO 20180708在ProtocolPackage中加入2051报文头中有关偏移量和数据总长度的标识
-            if(desc->seek(0) && desc->write(data.data) > 0)
-            {
-                if(desc->flush() && desc->isRecvOver())
+            if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
+                //此处的偏移量计算依赖于发送接收方的每片大小一致。
+                if(desc->seek(data.wOffset * MAX_PACKET) && desc->write(data.data) > 0)
                 {
-                    desc->close();
+                    if(desc->flush() && desc->isRecvOver())
+                    {
+                        desc->close();
+                    }
                 }
             }
         }

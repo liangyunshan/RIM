@@ -6,8 +6,6 @@
 
 #include "../Util/rsingleton.h"
 #include "../protocol/localprotocoldata.h"
-#include "../Network/wraprule/tcp_wraprule.h"
-#include "../Network/wraprule/udp_wraprule.h"
 #include "../global.h"
 #include "../Network/netglobal.h"
 
@@ -165,7 +163,6 @@ void File716SendTask::prepareSendTask()
                 ptr->accountId = fileInfo.srcNodeId;
                 ptr->otherSideId = fileInfo.destNodeId;
                 ptr->fileType = QDB2051::F_BINARY;
-                ptr->dwPackAllLen = countPackAllLen(ptr->size,ptr->fileName.toLocal8Bit().size());
                 bool result = false;
                 ParameterSettings::OuterNetConfig config = QueryNodeDescInfo(fileInfo.destNodeId,result);
                 if(result){
@@ -205,10 +202,8 @@ void File716SendTask::processFileData()
 
                 if((*iter)->method == ParameterSettings::C_NetWork && (*iter)->format == ParameterSettings::M_205){
                     unit.method = C_UDP;
-                    RSingleton<ClientNetwork::UDP_WrapRule>::instance()->wrap(unit.dataUnit);
                 }else if((*iter)->method == ParameterSettings::C_TongKong && (*iter)->format == ParameterSettings::M_495){
                     unit.method = C_TCP;
-                    RSingleton<ClientNetwork::TCP_WrapRule>::instance()->wrap(unit.dataUnit);
                 }
 
                 if(unit.method != C_NONE){

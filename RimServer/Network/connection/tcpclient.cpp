@@ -60,11 +60,12 @@ bool TcpClient::addFile(QString fileId, FileRecvDesc *desc)
 bool TcpClient::removeFile(QString &fileId)
 {
     std::lock_guard<std::mutex> lg(fileMutex);
+
     if(fileRecvList.contains(fileId))
     {
         FileRecvDesc * desc = fileRecvList.value(fileId);
-        delete desc;
         fileRecvList.remove(fileId);
+        delete desc;
         return true;
     }
     return false;
