@@ -761,7 +761,7 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
 
         TransferFileItem *t_item = new TransferFileItem;
         t_item->setFileType(TransferFileItem::COMMONFILE);
-        t_item->setTransferType(TransferFileItem::RECVFile);
+        t_item->setTransferType(TransferFileItem::SENDFile);
         t_item->setFileName(fileName);
         t_item->setFileSize(fileInfo.size());
         t_item->setFinishedSize(0);
