@@ -28,12 +28,8 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
     if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
         packData.bPackType = unit.extendData.type495;
         packData.bPeserve = unit.extendData.bPeserve;
-        //dwPackAllLen=分片数量*(sizeof(495)+sizeof(21)+sizeof(2051)+文件名长度)+data;注意不是文件的大小
-        if(packData.usOrderNo == O_2051){
-            packData.dwPackAllLen = unit.extendData.dwPackAllLen - sizeof(QDB21::QDB21_Head) - sizeof(QDB2051::QDB2051_Head);
-        }else if(packData.usOrderNo == O_2048){
-            packData.dwPackAllLen = unit.extendData.dwPackAllLen - sizeof(QDB21::QDB21_Head) - sizeof(QDB2048::QDB2048_Head);
-        }
+        packData.wOffset = unit.extendData.wOffset;
+        packData.dwPackAllLen = unit.extendData.dwPackAllLen;
 
         //文本信息
         if(packData.cFileType == QDB2051::F_NO_SUFFIX){

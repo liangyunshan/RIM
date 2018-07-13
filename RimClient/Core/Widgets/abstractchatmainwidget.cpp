@@ -471,14 +471,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
 
-//    SenderFileDesc fileDesc;
-//    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-//    fileDesc.destNodeId = d->netconfig.nodeId;
-//    fileDesc.fullFilePath = "d:/1.pdf";
-//    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
-
-//    return;
-
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
@@ -759,6 +751,30 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     if(files.isEmpty())
     {
         return ;
+    }
+    foreach(QString fileName,files)
+    {
+        showRightSideTab(SendFile);
+
+        QFileInfo fileInfo(fileName);
+
+        SenderFileDesc fileDesc;
+        fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+        fileDesc.destNodeId = d->netconfig.nodeId;
+        fileDesc.fullFilePath = fileName;
+
+        TransferFileItem *t_item = new TransferFileItem;
+        t_item->setFileType(TransferFileItem::COMMONFILE);
+        t_item->setTransferType(TransferFileItem::SENDFile);
+        t_item->setFileName(fileName);
+        t_item->setFileSize(fileInfo.size());
+        t_item->setFinishedSize(0);
+        t_item->setSenderFileDesc(fileDesc);
+        d->fileList->addItem(t_item);
+
+        connect(File716SendTask::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+                t_item,SLOT(slot_SetTransStatus(FileTransProgress)));
+        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
     }
 }
 

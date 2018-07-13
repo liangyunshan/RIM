@@ -222,7 +222,7 @@ bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &resul
 }
 
 /*!
- * @brief 解析并处理数据
+ * @brief 解析并处理数据，去除495传输控制协议(21、2051、2048等协议待应用层进行解析)
  * @note 根据495传输控制协议，将网络接收到的数据按照协议解析，并根据数据的类型分发处理; \n
  *       若2051协议中的fileType为0时，表示文本数据，则需要进行断包接收处理，并设立接收缓冲区; \n
  *       若2051协议中的fileType为1或2时，表示文件数据，则接收一包后直接交由应用层写入磁盘操作. \n
@@ -248,6 +248,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                 socketData.extendData.sockId = ioContext->getClient()->socket();
                 socketData.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                 socketData.extendData.bPeserve = packet.bPeserve;
+                socketData.extendData.wOffset = packet.wOffset;
                 socketData.extendData.dwPackAllLen = packet.dwPackAllLen;
 
                 //[1.1]至少存在多余一个完整数据包
@@ -267,7 +268,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                         memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
                         ptype = (int)(head2051.cFileType);
                     }else if(head21.usOrderNo == O_2048){
-
+                        //2048中不包含相关协议字段，暂不解析
                     }
 
                     if(ptype == QDB2051::F_TEXT || ptype == QDB2051::F_BINARY)

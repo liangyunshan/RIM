@@ -8,6 +8,8 @@
 
 #include "../Network/wraprule/tcp_wraprule.h"
 
+#include <QDebug>
+
 FileReceiveProcTask::FileReceiveProcTask(QObject *parent):
     RTask(parent)
 {
@@ -65,6 +67,10 @@ void FileReceiveProcTask::run()
                 //TODO 20180704 未加入对716协议的解析
                 ProtocolPackage package;
                 package.data = array.data;
+
+                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                       <<"[********client recv file sucess********]"
+                      <<"\n";
                 RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(package);
             }
         }

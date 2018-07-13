@@ -1,4 +1,4 @@
-#ifndef HISTORYMSGRECORD_H
+﻿#ifndef HISTORYMSGRECORD_H
 #define HISTORYMSGRECORD_H
 
 #include <QWidget>
