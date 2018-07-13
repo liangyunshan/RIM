@@ -102,7 +102,7 @@ File716SendTask* File716SendTask::recordTask = nullptr;
 File716SendTask::File716SendTask(QObject *parent):
     ClientNetwork::RTask(parent),maxTransferFiles(2)
 {
-
+    recordTask = this;
 }
 
 File716SendTask::~File716SendTask()
@@ -179,9 +179,27 @@ void File716SendTask::processFileData()
 {
     while(true && runningFlag){
         std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
+
+        //TODO:发送实时传输状态给进度控制单元 FileTransProgress progress;
+        int processUnit = 1;
+        if(sendList.size()>=100)
+        {
+            processUnit = sendList.size()/100;
+        }
+
+        FileTransProgress progress;
+        if(sendList.size() >0)
+        {
+            progress.fileFullPath = (*iter)->fullPath ;
+            progress.totleBytes = (*iter)->dwPackAllLen;
+        }
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
+
+                progress.transStatus = TransSuccess;
+                emit sigTransStatus(progress);
+
                 (*iter).reset();
                 iter = sendList.erase(iter);
             }else{
@@ -199,6 +217,21 @@ void File716SendTask::processFileData()
                 unit.dataUnit.cFilename = (*iter)->fileName.toLocal8Bit();
                 unit.dataUnit.dwPackAllLen = (*iter)->dwPackAllLen;
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
+
+                progress.readySendBytes = (*iter)->readLen;
+                if(unit.dataUnit.wOffset==0)
+                {
+                    progress.transStatus = TransStart;
+                    emit sigTransStatus(progress);
+                }
+                else
+                {
+                    if(unit.dataUnit.wOffset%processUnit == 0)
+                    {
+                        progress.transStatus = TransProcess;
+                        emit sigTransStatus(progress);
+                    }
+                }
 
                 if((*iter)->method == ParameterSettings::C_NetWork && (*iter)->format == ParameterSettings::M_205){
                     unit.method = C_UDP;

@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QDebug>
 
 #include <list>
 #include <mutex>
@@ -142,6 +143,9 @@ public:
 
     void startMe();
     void stopMe();
+
+signals:
+    void sigTransStatus(FileTransProgress);
 
 protected:
     void run();
