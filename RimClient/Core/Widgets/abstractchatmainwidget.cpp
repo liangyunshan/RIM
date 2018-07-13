@@ -866,6 +866,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
         d->historyRecord->addTab(new QWidget,tr("Image"));
         d->historyRecord->addTab(new QWidget,tr("File"));
         d->rightSideWidget->addTab(d->historyRecord,tr("message record"));
+        d->rightSideWidget->setCurrentWidget(d->historyRecord);
         break;
     case SendFile:
         //TODO LYS-20180620显示发送文件子窗口
@@ -874,6 +875,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
             d->fileList = new TransferFileListBox;
         }
         d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
+        d->rightSideWidget->setCurrentWidget(d->fileList);
 
         break;
     default:

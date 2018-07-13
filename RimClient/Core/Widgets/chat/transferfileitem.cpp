@@ -43,9 +43,8 @@ private:
     QPushButton * saveAsBtn;            //另存为
     QPushButton * cancelBtn;            //取消
 
-    int m_fileType,m_transferType;  //传输的文件类型、文件传输类型
-    int m_finishedSize,m_totalSize; //已完成传输大小、传输文件总大小
-    QString m_filePath;                 //文件全路径
+    int m_fileType,m_transferType;      //传输的文件类型、文件传输类型
+    int m_finishedSize,m_totalSize;     //已完成传输大小、传输文件总大小
 };
 
 void TransferFileItemPrivate::initWidget()
@@ -105,16 +104,24 @@ void TransferFileItemPrivate::initWidget()
                                 );
 
     toOffLineBtn = new QPushButton(contentWidget);
+    toOffLineBtn->setObjectName("OffLineSend");
     toOffLineBtn->setText(QObject::tr("To off-line send"));
+    QObject::connect(toOffLineBtn,SIGNAL(clicked()),q_ptr,SLOT(operateFile()));
 
     receiveBtn = new QPushButton(contentWidget);
+    receiveBtn->setObjectName("RecviveFile");
     receiveBtn->setText(QObject::tr("Recvive"));
+    QObject::connect(receiveBtn,SIGNAL(clicked()),q_ptr,SLOT(operateFile()));
 
     saveAsBtn = new QPushButton(contentWidget);
+    saveAsBtn->setObjectName("SaveAs");
     saveAsBtn->setText(QObject::tr("Save as"));
+    QObject::connect(saveAsBtn,SIGNAL(clicked()),q_ptr,SLOT(operateFile()));
 
     cancelBtn = new QPushButton(contentWidget);
+    cancelBtn->setObjectName("Cancel");
     cancelBtn->setText(QObject::tr("Cancel"));
+    QObject::connect(cancelBtn,SIGNAL(clicked()),q_ptr,SLOT(operateFile()));
 
     QHBoxLayout * operateLayout = new QHBoxLayout;
     operateLayout->setContentsMargins(0,0,0,0);
@@ -254,7 +261,7 @@ QString TransferFileItem::fileName() const
 {
     MQ_D(TransferFileItem);
 
-    return d->m_filePath;
+    return d->fileNameLabel->text();
 }
 
 /*!
@@ -264,9 +271,8 @@ QString TransferFileItem::fileName() const
 void TransferFileItem::setFileName(const QString &file)
 {
     MQ_D(TransferFileItem);
-    d->m_filePath = file;
-    QFileInfo fileInfo(file);
-    d->fileNameLabel->setText(fileInfo.fileName());
+
+    d->fileNameLabel->setText(file);
 }
 
 /*!
@@ -362,4 +368,30 @@ void TransferFileItem::setFinishedSize(const int size)
 
     d->m_finishedSize = size;
     d->transferProgress->setValue(size);
+}
+
+/*!
+ * @brief 响应文件传输操作(离线发送、接收、另存为、取消)
+ */
+void TransferFileItem::operateFile()
+{
+    MQ_D(TransferFileItem);
+
+    QString t_objName = QObject::sender()->objectName();
+    if(t_objName == d->toOffLineBtn->objectName())
+    {
+        emit toOffLineSend(this);
+    }
+    else if(t_objName == d->receiveBtn->objectName())
+    {
+        emit startRecvFile(this);
+    }
+    else if(t_objName == d->saveAsBtn->objectName())
+    {
+        emit saveAsFile(this);
+    }
+    else if(t_objName == d->cancelBtn->objectName())
+    {
+        emit cancelTransfer(this);
+    }
 }

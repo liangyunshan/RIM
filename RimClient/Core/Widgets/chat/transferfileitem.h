@@ -42,8 +42,15 @@ public:
     void setFinishedSize(const int size);
 
 signals:
+    void saveAsFile(TransferFileItem *);
+    void toOffLineSend(TransferFileItem *);
+    void startRecvFile(TransferFileItem *);
+    void cancelTransfer(TransferFileItem *);
 
 public slots:
+
+private slots:
+    void operateFile();
 
 private:
     TransferFileItemPrivate * d_ptr;
