@@ -150,8 +150,7 @@ void MainDialog::onMessage(MessageType type)
             break;
         case MESS_SCREEN_CHANGE:
             {
-                //如果运行这一句，在左右屏幕之间拖动聊天界面的时候，会将已经隐藏到桌边的主面板显示到固定的1屏幕位置
-//                changeGeometry(geometry());
+                changeGeometry(geometry());
             }
             break;
          case MESS_USER_OFF_LINE:
@@ -481,6 +480,7 @@ void MainDialog::readSettings()
     G_User->systemSettings()->compressCheck = settings->value(Constant::USER_SETTING_TEXT_COMPRESSION,false).toBool();
 
     settings->endGroup();
+
     changeGeometry(x,y,w,h);
 }
 
@@ -547,8 +547,12 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
     MQ_D(MainDialog);
     bool foundScreen = false;
 
+
     //【1】查找上一次的位置是否在当前显示中可用，若可用，则可直接设置
     int screenSize = qApp->desktop()->screenCount();
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"screenSize:"<<screenSize
+          <<"\n";
     for(int i = 0; i < screenSize; i++)
     {
         QRect screenRect = qApp->desktop()->screenGeometry(i);
@@ -559,6 +563,9 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
 
         if(x >= minX && x <= maxX && y >= minY && y <= maxY)
         {
+            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                   <<"x,y,w,h:"<<x<<y<<w<<h<<screenRect
+                  <<"\n";
             this->setGeometry(x,y,w,h);
             foundScreen = true;
             break;
