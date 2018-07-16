@@ -56,8 +56,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
             {
                 unit.dataUnit.wSourceAddr = textRequest->accountId.toInt();
                 unit.dataUnit.wDestAddr = textRequest->accountId.toInt();
-                SERIALNO_RUSH_RG;
-                unit.dataUnit.usSerialNo = SERIALNO_FRASH;
                 unit.dataUnit.bPackType = T_DATA_NOAFFIRM;
                 unit.dataUnit.bPeserve = 0X80;
             }
@@ -72,15 +70,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
                 unit.dataUnit.wDestAddr = dataPackType->destId.toInt();
                 unit.dataUnit.bPackType = dataPackType->extendData.type495;
                 unit.dataUnit.usOrderNo = dataPackType->extendData.usOrderNo;
-                if(dataPackType->extendData.usSerialNo == 0)
-                {
-                    SERIALNO_RUSH_RG;
-                    unit.dataUnit.usSerialNo = SERIALNO_FRASH;
-                }
-                else
-                {
-                    unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
-                }
+                unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
                 unit.dataUnit.bPeserve = 0X80;
             }
         }

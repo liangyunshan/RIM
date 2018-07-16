@@ -217,6 +217,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     recordButt = new RToolButton();
     recordButt->setObjectName(Constant::Tool_Chat_Record);
     recordButt->setToolTip(QObject::tr("Record data"));
+    recordButt->setStyleSheet("border-image: url(:/icon/resource/icon/History-record.png)");
     recordButt->setCheckable(true);
     QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(respHistoryRecord(bool)));
 
@@ -470,9 +471,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
 
-#ifdef __LOCAL_CONTACT__
-    SERIALNO_RUSH_RG
-#endif
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
@@ -494,11 +492,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     t_unit.nickName = d->m_userInfo.nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
-#ifdef __LOCAL_CONTACT__
-    t_unit.serialNo = SERIALNO_FRASH;
-#else
-    t_unit.serialNo = record.dtime;
-#endif
+    t_unit.serialNo = 123;
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
@@ -533,7 +527,8 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     request->otherSideId = d->netconfig.nodeId;
-    request->textId = QString::number(SERIALNO_FRASH);
+    SERIALNO_STATIC>=65535?(SERIALNO_STATIC=1) : (SERIALNO_STATIC++);
+    request->textId = QString::number(SERIALNO_STATIC);
     request->sendData = d->chatInputArea->toPlainText();
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else
@@ -749,9 +744,6 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     }
     foreach(QString fileName,files)
     {
-#ifdef __LOCAL_CONTACT__
-    SERIALNO_RUSH_RG
-#endif
         showRightSideTab(SendFile);
 
         QFileInfo fileInfo(fileName);
@@ -760,11 +752,7 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
         fileDesc.srcNodeId = G_User->BaseInfo().accountId;
         fileDesc.destNodeId = d->netconfig.nodeId;
         fileDesc.fullFilePath = fileName;
-#ifdef __LOCAL_CONTACT__
-        fileDesc.uuid = QString::number(SERIALNO_FRASH);
-#else
         fileDesc.uuid = RUtil::UUID();
-#endif
 
         TransferFileItem *t_item = new TransferFileItem;
         t_item->setFileType(TransferFileItem::COMMONFILE);
