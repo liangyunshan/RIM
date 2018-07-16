@@ -12,7 +12,7 @@ BaseMsgWrap::BaseMsgWrap()
 
 void BaseMsgWrap::handleMsg(MsgPacket * packet
 #ifdef __LOCAL_CONTACT__
-                        , CommucationMethod method, MessageFormat format
+                        , CommucationMethod method, MessageFormat format,ServerType stype
 #endif
    )
 {

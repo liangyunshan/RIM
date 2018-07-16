@@ -67,7 +67,6 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
     ProtocolPackage packData;
 #ifdef __LOCAL_CONTACT__
-    RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,packData);
     packData.bPackType = (unsigned char)data.extendData.type495;
 
     bool result = false;
@@ -79,8 +78,11 @@ void MsgReceiveProcTask::validateRecvData(const RecvUnit &data)
             break;
     }
 
-    if(result)
-    {
+    if(result){
+        packData.bPackType = data.extendData.type495;
+        packData.bPeserve = data.extendData.bPeserve;
+        packData.wOffset = data.extendData.wOffset;
+        packData.dwPackAllLen = data.extendData.dwPackAllLen;
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(packData);
     }
 #else

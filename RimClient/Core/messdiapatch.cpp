@@ -134,6 +134,11 @@ void MessDiapatch::onRecvFileData(QString fileId,QString fileName)
     emit recvFileData(fileId,fileName);
 }
 
+void MessDiapatch::onRecvFileData(FileRecvDesc desc)
+{
+    emit recvFileData(desc);
+}
+
 void MessDiapatch::onScreenChanged()
 {
     emit screenChange();

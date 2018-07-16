@@ -445,10 +445,10 @@ void LoginDialog::loadLocalSettings()
     RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
     G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
     G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
-#ifndef __LOCAL_CONTACT__
+
     G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
     G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
-#endif
+
     RUtil::globalSettings()->endGroup();
 }
 
@@ -945,7 +945,7 @@ void LoginDialog::procUploadFileRequest(SimpleFileItemRequest request)
         }
         else if(request.control == T_OVER)
         {
-            FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
+            std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
             if(fileDesc != nullptr)
             {
                 switch(static_cast<FileItemType>(fileDesc->itemType))
@@ -1073,7 +1073,7 @@ void LoginDialog::procDownloadFileRequest(FileItemRequest response)
  */
 void LoginDialog::procDownloadFileOver(QString fileId, QString fileName)
 {
-    FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(fileId);
+    std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->getFile(fileId);
     if(fileDesc != nullptr)
     {
         switch(static_cast<FileItemType>(fileDesc->itemType))

@@ -48,6 +48,8 @@ public:
     QString getC2CAudioPath();
     QString getGroupAudioPath();
 
+    QString getC2CFilePath();
+
     QSettings * getSettings();
 
     QVariant getSettingValue(const QString & group,const QString &key,QVariant defaultValue);
@@ -95,6 +97,7 @@ private:
     QString userHome;
     QString userDBPath;
     QString userFilePath;
+    QString chatFilePath;           /*!< 聊天对话中文件存储路径 */
     QString chatImgPath;            /*!< 聊天对话中图片存储路径 */
     QString audioPath;              /*!< 聊天对话中音频存储路径 */
 

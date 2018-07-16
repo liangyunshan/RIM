@@ -59,6 +59,7 @@ const char CONFIG_FontsPath[] = "/fonts";
 const char PATH_UserPath[] = "../users";
 const char PATH_UserDirName[] = "users";
 const char USER_RecvFileDirName[] = "ChatRecvFile";         //保存接收到的文件
+const char USER_ChatFileDirName[] = "File";                 //在USER_RecvFileDirName目录下，保存接收的图片，其子目录可分为C2C、Group
 const char USER_ChatImageDirName[] = "Image";               //在USER_RecvFileDirName目录下，保存接收的图片，其子目录可分为C2C、Group
 const char USER_ChatAudioDirName[] = "Audio";               //在USER_RecvFileDirName目录下保存接收到的音频
 const char USER_C2CDirName[] = "C2C";
@@ -80,10 +81,9 @@ const char SYSTEM_NETWORK_TEXT_PORT[] = "textport";
 #ifdef __LOCAL_CONTACT__
 const char SYSTEM_NETWORK_TANDEM_IP1[] = "tandemip1";
 const char SYSTEM_NETWORK_TANDEM_PORT1[] = "tandemport1";
-#else
+#endif
 const char SYSTEM_NETWORK_FILE_IP[] = "fileip";
 const char SYSTEM_NETWORK_FILE_PORT[] = "fileport";
-#endif
 
 const char SYSTEM_DB[] = "database";
 const char SYSTEM_DB_TYPE[] = "type";

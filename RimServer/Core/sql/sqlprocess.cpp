@@ -2176,6 +2176,7 @@ bool SQLProcess::get716File(Database *db, int fileId, std::shared_ptr<ServerNetw
         desc->cdate = query.value(rfile.date).toInt();
         desc->ctime = query.value(rfile.time).toInt();
         desc->size = query.value(rfile.fileSize).toLongLong();
+        desc->dwPackAllLen = desc->size;
         desc->fileName = query.value(rfile.fileName).toString();
         desc->filePath = query.value(rfile.filePath).toString();
         desc->itemKind = query.value(rfile.fileType).toInt();

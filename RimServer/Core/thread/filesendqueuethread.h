@@ -10,6 +10,8 @@
 #ifndef FILESENDQUEUETHREAD_H
 #define FILESENDQUEUETHREAD_H
 
+#ifdef __LOCAL_CONTACT__
+
 #include <QString>
 #include <map>
 #include <mutex>
@@ -20,6 +22,7 @@ class QFile;
 
 #include "../protocol/datastruct.h"
 #include "Network/connection/tcpclient.h"
+#include "Network/multitransmits/basetransmit.h"
 
 /*!
  *  @brief  待发送文件管理器
@@ -65,15 +68,24 @@ private:
      * @brief 文件发送任务描述
      */
     struct FileSendTask{
-        int socketId;       /*!< 接收端socket连接句柄 */
+        int socketId;                                    /*!< 接收端socket连接句柄 */
+        ParameterSettings::CommucationMethod method;     /*!< 通信方式 */
+        ParameterSettings::MessageFormat format;         /*!< 报文格式 */
         std::shared_ptr<ServerNetwork::FileSendDesc> fptr;      /*!< 文件发送描述 */
     };
+
+    void initTransmits();
+    bool handleDataSend(SendUnit &unit);
 
 private:
     int maxTransferClients;             /*!< 最大传输的客户端连接数 */
     bool runningFlag;
     std::list<FileSendTask> sendList;
     Database * database;
+
+    std::map<CommMethod,BaseTransmit_Ptr> transmits;
 };
+
+#endif
 
 #endif // FILESENDQUEUETHREAD_H

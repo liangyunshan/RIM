@@ -22,7 +22,7 @@ class LocalMsgWrap : public MsgWrap
 public:
     LocalMsgWrap();
 
-    void handleMsg(MsgPacket * packet,CommucationMethod method = C_None, MessageFormat format = M_NONE);
+    void handleMsg(MsgPacket * packet,CommucationMethod method = C_None, MessageFormat format = M_NONE,ServerType stype = SERVER_TEXT);
 };
 
 #endif

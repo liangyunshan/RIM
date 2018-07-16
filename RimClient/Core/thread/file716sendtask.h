@@ -49,7 +49,11 @@ private:
  */
 struct FileSendDesc
 {
-    FileSendDesc():size(0),readLen(0),sliceNum(-1){}
+    FileSendDesc():size(0),readLen(0){
+#ifdef __LOCAL_CONTACT__
+        sliceNum = -1;
+#endif
+    }
 
     ~FileSendDesc(){
         destory();
@@ -61,7 +65,9 @@ struct FileSendDesc
             this->fullPath = fullPath;
             fileName = fileInfo.fileName();
             size = fileInfo.size();
+#ifdef __LOCAL_CONTACT__
             dwPackAllLen = fileInfo.size();
+#endif
             return true;
         }
         return false;
@@ -86,10 +92,13 @@ struct FileSendDesc
 
         if(isSendOver())
             return -1;
+
         memset(readBuff,0,MAX_PACKET);
         qint64 realReadLen = file.read(readBuff,MAX_PACKET);
         data.append(readBuff,realReadLen);
+#ifdef __LOCAL_CONTACT__
         sliceNum++;
+#endif
         return readLen += realReadLen;
     }
 
@@ -132,6 +141,8 @@ struct FileSendDesc
 #endif
 };
 
+#ifdef  __LOCAL_CONTACT__
+
 class File716SendTask : public ClientNetwork::RTask
 {
     Q_OBJECT
@@ -162,5 +173,7 @@ private:
     std::list<std::shared_ptr<FileSendDesc>> sendList;    /*!< 正在发送的文件信息 */
 
 };
+
+#endif
 
 #endif // FILE716SENDTASK_H

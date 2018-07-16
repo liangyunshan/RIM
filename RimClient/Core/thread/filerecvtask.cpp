@@ -196,7 +196,7 @@ void FileRecvTask::handleItem()
     fileRequest->msgType = MSG_FILE;
     fileRequest->msgCommand = MSG_TEXT_FILE ;
 
-    FileDesc * fileDesc = new FileDesc;
+    std::shared_ptr<FileDesc> fileDesc = std::shared_ptr<FileDesc>(new FileDesc);
     fileDesc->itemType = static_cast<int>(fileRequest->itemType);
     fileDesc->itemKind = static_cast<int>(fileRequest->itemKind);
     fileDesc->size = fileRequest->size;

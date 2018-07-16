@@ -14,6 +14,7 @@
 #include "../head.h"
 
 #include <functional>
+#include <memory>
 #include <QByteArray>
 
 namespace ServerNetwork{
@@ -40,5 +41,7 @@ protected:
 };
 
 }
+
+typedef std::shared_ptr<ServerNetwork::BaseTransmit> BaseTransmit_Ptr;
 
 #endif // BASETRANSMIT_H

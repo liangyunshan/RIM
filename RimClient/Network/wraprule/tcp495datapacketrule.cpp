@@ -1,5 +1,7 @@
 ﻿#include "tcp495datapacketrule.h"
 
+#ifdef __LOCAL_CONTACT__
+
 #include <qmath.h>
 #include <QDebug>
 
@@ -177,10 +179,19 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 
                     if(ptype == QDB2051::F_TEXT || ptype == QDB2051::F_BINARY)
                     {
-//                        socketData.data.resize(currentDataPackLen);
-//                        memcpy(socketData.data.data(),recvData + processLen,currentDataPackLen);
-//                        if(textHandler)
-//                            textHandler->handle(socketData);
+                        RecvUnit result;
+                        result.extendData.method = C_TCP;
+                        result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                        result.extendData.bPeserve = packet.bPeserve;
+                        result.extendData.wOffset = packet.wOffset;
+                        result.extendData.dwPackAllLen = packet.dwPackAllLen;
+
+                        result.data.resize(currentDataPackLen);
+                        memcpy(result.data.data(),recvData + processLen,currentDataPackLen);
+
+                        if(result.data.size() > 0){
+                            dhandler(result);
+                        }
                     }
                     else if(ptype == QDB2051::F_NO_SUFFIX)
                     {
@@ -315,3 +326,5 @@ int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
 }
 
 }
+
+#endif
