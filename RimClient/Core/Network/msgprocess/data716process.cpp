@@ -2,12 +2,23 @@
 
 #ifdef __LOCAL_CONTACT__
 
+#include <QDebug>
+#include <qmath.h>
+
 #include "util/rsingleton.h"
 #include "messdiapatch.h"
 #include "util/rsingleton.h"
-#include "Network/msgwrap/wrapfactory.h"
 #include "global.h"
-#include <QDebug>
+#include "file/filedesc.h"
+#include "file/filemanager.h"
+#include "Network/msgwrap/wrapfactory.h"
+#include "Network/network_global.h"
+#include "Util/rutil.h"
+#include "../../user/user.h"
+
+using namespace QDB495;
+using namespace QDB21;
+using namespace QDB2051;
 
 /*!
  * @brief 查询指定节点的通信配置方式
@@ -119,6 +130,64 @@ void Data716Process::applyTextStatus(const ProtocolPackage &data)
 void Data716Process::processTextApply(ProtocolPackage &data)
 {
 
+}
+
+/*!
+ * @brief 客户端处理接收的文件块
+ * @note 客户端在判断是否为同一文件时，需要根据发送方的节点号+流水号+文件名 \n
+ * @param[in] data 原始数据
+ */
+void Data716Process::processFileData(const ProtocolPackage &data)
+{
+    std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->get716File(QString::number(data.wSourceAddr)
+                                                ,data.usSerialNo,QString::fromLocal8Bit(data.cFilename));
+    if(fileDesc.get() == nullptr)
+    {
+        fileDesc = std::make_shared<FileDesc>();
+
+        fileDesc->setFilePath(G_User->getC2CFilePath());
+
+        fileDesc->md5 = RUtil::UUID();
+        fileDesc->itemKind = (int)data.cFileType;
+        fileDesc->bPackType = data.bPackType;
+        fileDesc->fileName = QString::fromLocal8Bit(data.cFilename);
+        fileDesc->accountId = QString::number(data.wSourceAddr);
+        fileDesc->otherId = QString::number(data.wDestAddr);
+        fileDesc->usOrderNo = data.usOrderNo;
+        fileDesc->usSerialNo = data.usSerialNo;
+        fileDesc->fileId = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.usSerialNo).arg(QString::fromLocal8Bit(data.cFilename));
+
+        int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+        int fileHeadLen = protocolDataLen + data.cFilename.size();
+        int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+
+        fileDesc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
+        fileDesc->writeLen = 0;
+
+        if(!fileDesc->create())
+            return;
+
+        if(!RSingleton<FileManager>::instance()->addFile(fileDesc))
+            return;
+    }
+
+    if(fileDesc->seek(data.wOffset * MAX_PACKET) && fileDesc->write(data.data) > 0)
+    {
+        if(fileDesc->flush() && fileDesc->isRecvOver())
+        {
+            fileDesc->close();
+
+            FileRecvDesc fdesc;
+            fdesc.usSerialNo = fileDesc->usSerialNo;
+            fdesc.wSourceAddr = fileDesc->accountId.toUShort();
+            fdesc.wDestAddr = fileDesc->otherId.toUShort();
+            fdesc.fileName = fileDesc->fileName;
+
+            //TODO 对接收文件进行处理
+            MessDiapatch::instance()->onRecvFileData(fdesc);
+            RSingleton<FileManager>::instance()->removeFile(fileDesc->fileId);
+        }
+    }
 }
 
 #endif

@@ -182,7 +182,7 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
  * @brief 处理下载完成用户文件
  * @param[in] fileDesc 文件标识
  */
-void UserClient::procDownOverFile(FileDesc *fileDesc)
+void UserClient::procDownOverFile(std::shared_ptr<FileDesc> fileDesc)
 {
     //【聊天文件发送:5/5】下载完指定fileId的文件，分发至对应的窗口
     FileItemKind itemKind = static_cast<FileItemKind>(fileDesc->itemKind);
@@ -203,7 +203,7 @@ void UserClient::procDownOverFile(FileDesc *fileDesc)
  * @brief 处理用户头像下载
  * @param[in] fileDesc 文件标识
  */
-void UserClient::procDownItemIcon(FileDesc *fileDesc)
+void UserClient::procDownItemIcon(std::shared_ptr<FileDesc> fileDesc)
 {
     toolItem->setIcon(G_User->getIcon(simpleUserInfo.isSystemIcon,simpleUserInfo.iconId));
 }

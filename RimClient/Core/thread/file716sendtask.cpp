@@ -13,6 +13,7 @@
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
 
+#ifdef  __LOCAL_CONTACT__
 std::mutex QueryNodeMutex;
 
 /*!
@@ -50,6 +51,8 @@ ParameterSettings::OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result
 
     return ParameterSettings::OuterNetConfig();
 }
+
+#endif
 
 FileSendManager::FileSendManager()
 {
@@ -131,6 +134,8 @@ int FileSendManager::size()
     std::unique_lock<std::mutex> ul(mutex);
     return fileList.size();
 }
+
+#ifdef  __LOCAL_CONTACT__
 
 File716SendTask* File716SendTask::recordTask = nullptr;
 
@@ -308,3 +313,5 @@ unsigned long File716SendTask::countPackAllLen(int fileSize, int fileNameLen)
     unsigned long total = slice * perHeadLen + fileSize;
     return total;
 }
+
+#endif

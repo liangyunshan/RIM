@@ -25,11 +25,16 @@ void User::createUserHome(const QString id)
     userHome = QDir::currentPath() + QDir::separator() + Constant::PATH_UserPath + QDir::separator() + id;
     userDBPath = userHome + QDir::separator() + Constant::USER_DBDirName;
     userFilePath = userHome + QDir::separator() + Constant::USER_RecvFileDirName;
+    chatFilePath = userFilePath + QDir::separator() + Constant::USER_ChatFileDirName;
     chatImgPath = userFilePath + QDir::separator() + Constant::USER_ChatImageDirName;
     audioPath = userFilePath + QDir::separator() + Constant::USER_ChatAudioDirName;
     if(RUtil::createDir(userHome)){
         RUtil::createDir(userDBPath);
         if(RUtil::createDir(userFilePath)){
+            if(RUtil::createDir(chatFilePath)){
+                RUtil::createDir(chatFilePath + QDir::separator() + Constant::USER_C2CDirName);
+                RUtil::createDir(chatFilePath + QDir::separator() + Constant::USER_GroupDirName);
+            }
             if(RUtil::createDir(chatImgPath)){
                 RUtil::createDir(chatImgPath + QDir::separator() + Constant::USER_C2CDirName);
                 RUtil::createDir(chatImgPath + QDir::separator() + Constant::USER_GroupDirName);
@@ -107,6 +112,13 @@ QString User::getC2CAudioPath()
 QString User::getGroupAudioPath()
 {
     QString tmpPath = audioPath + QDir::separator() + Constant::USER_GroupDirName;
+    RUtil::createDir(tmpPath);
+    return tmpPath;
+}
+
+QString User::getC2CFilePath()
+{
+    QString tmpPath = chatFilePath + QDir::separator() + Constant::USER_C2CDirName;
     RUtil::createDir(tmpPath);
     return tmpPath;
 }

@@ -25,10 +25,11 @@ void TaskManager::initTask()
 
     //文件线程
     addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
-    addTask(FILE_SEND_PROC,shared_ptr<ClientNetwork::RTask>(new File716SendTask()));
-#ifndef __LOCAL_CONTACT__
     addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
+#ifndef __LOCAL_CONTACT__
     addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
+#else
+    addTask(FILE_SEND_PROC,shared_ptr<ClientNetwork::RTask>(new File716SendTask()));
 #endif
     addTask(HISTORY_RECORD,shared_ptr<ClientNetwork::RTask>(new HistoryRecordTask()));
 }

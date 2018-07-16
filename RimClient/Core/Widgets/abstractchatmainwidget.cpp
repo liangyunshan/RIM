@@ -1310,4 +1310,3 @@ void AbstractChatMainWidget::prependChatTimeNote(QDateTime content, AbstractChat
     t_showTimeScript = QString("prependMessageTime('%1')").arg(t_curMsgTime);
     d->view->page()->runJavaScript(t_showTimeScript);
 }
-

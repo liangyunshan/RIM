@@ -19,8 +19,6 @@
 #include "Network/head.h"
 #include "Network/multitransmits/basetransmit.h"
 
-typedef std::shared_ptr<ServerNetwork::BaseTransmit> BaseTransmit_Ptr;
-
 class SendTextProcessThread : public QThread
 {
     Q_OBJECT
