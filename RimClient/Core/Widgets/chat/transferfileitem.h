@@ -1,4 +1,19 @@
-﻿#ifndef TRANSFERFILEITEM_H
+﻿/*!
+ *  @brief     自定义文件传送item
+ *  @details   显示文件传输信息、控制文件传输流程
+ *  @file      transferfileitem.h
+ *  @author    LYS
+ *  @version   1.0.3
+ *  @date      2018.07.12
+ *  @warning
+ *  @copyright NanJing RenGu.
+ *  @note
+ *      1.20180713-LYS 修复文件大小显示错误问题。
+ *      2.20180713-LYS 修改文件名显示逻辑。
+ *      3.20180716-LYS 添加文件传送状态保存。
+ *
+ */
+#ifndef TRANSFERFILEITEM_H
 #define TRANSFERFILEITEM_H
 
 #include <QWidget>
@@ -33,17 +48,20 @@ public:
     QString fileName() const;
     void setFileName(const QString &file);
 
-    int fileSize() const;
-    void setFileSize(const int size);
+    float fileSize() const;
+    void setFileSize(const float size);
 
     QString recvTime() const;
     void setRecvTime(const QString &time);
 
-    int finishedSize() const;
-    void setFinishedSize(const int size);
+    float finishedSize() const;
+    void setFinishedSize(const float size);
 
-    void setSenderFileDesc(const SenderFileDesc &desc);
-    SenderFileDesc senderFileDesc();
+    QString taskSerialNo() const;
+    void setTaskSerialNo(const QString &seriNo);
+
+    bool taskIfStarted() const;
+    void setTaskIfStarted(bool);
 
 signals:
     void saveAsFile(TransferFileItem *);

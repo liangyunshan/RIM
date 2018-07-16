@@ -195,7 +195,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     RToolButton * fileTransButt = new RToolButton();
     fileTransButt->setObjectName(Constant::Tool_Chat_FileTrans);
     fileTransButt->setToolTip(QObject::tr("FileTrans"));
-    QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_FileTrans(bool)));
+    QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(sendTargetFiles(bool)));
 
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
@@ -288,10 +288,38 @@ void AbstractChatMainWidgetPrivate::initWidget()
     rightSideWidget->setMinimumWidth(300);
     rightSideWidget->setVisible(false);
     rightSideWidget->setTabsClosable(true);
+    rightSideWidget->setStyleSheet("QTabWidget::pane{"
+                                        "border-top:1px solid #C4C4C3;"
+                                        "border-left:0px;"
+                                        "border-right:0px;"
+                                        "border-bottom:0px;}"
+                                   "QTabWidget::tab-bar {"
+                                        "left: 0px; }"
+                                   "QTabBar::tab {"
+                                        "background-color: transparent;"
+                                        "border-right:1px solid #C4C4C3;"
+                                        "padding: 6px;}"
+                                   "QTabBar::tab:selected{"
+                                        "border-bottom:1px solid #C4C4C3;"
+                                        "padding: 5px;}"
+                                   "QTabBar::close-button{"
+                                        "image:url(:/icon/resource/icon/Close-tab.png);}"
+                                   "QTabBar::close-button:hover{"
+                                        "image:url(:/icon/resource/icon/Close-tab-hover.png);}");
     QObject::connect(rightSideWidget,SIGNAL(tabCloseRequested(int)),q_ptr,SLOT(respCloseRightSideTab(int)));
 
+    QWidget *rightWidget = new QWidget(q_ptr);
+    rightWidget->setObjectName("Chat_Right");
+    rightWidget->setStyleSheet("QWidget#Chat_Right{"
+                                    "border-left: 1px solid #C4C4C3;}");
+    QVBoxLayout *rightLayout = new QVBoxLayout;
+    rightLayout->setContentsMargins(0,0,0,0);
+    rightLayout->setSpacing(0);
+    rightLayout->addWidget(rightSideWidget);
+    rightWidget->setLayout(rightLayout);
+
     mainLayout->addLayout(leftLayout);
-    mainLayout->addWidget(rightSideWidget);
+    mainLayout->addWidget(rightWidget);
     q_ptr->setLayout(mainLayout);
 }
 
@@ -702,7 +730,6 @@ void AbstractChatMainWidget::showQueryRecord(const ChatInfoUnit & msgUnit)
 {
     MQ_D(AbstractChatMainWidget);
 
-    //FIXME LYS-20180606 判断信息是属于发送的还是接收的
     if(msgUnit.accountId == d->m_userInfo.accountId)
     {
         appendMsgRecord(msgUnit,RECV);
@@ -739,7 +766,7 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
  * @brief 显示文件传输窗口
  * @details 选择需要发送的文件，支持多选
  */
-void AbstractChatMainWidget::slot_FileTrans(bool)
+void AbstractChatMainWidget::sendTargetFiles(bool)
 {
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(d);
@@ -754,27 +781,20 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     }
     foreach(QString fileName,files)
     {
-        showRightSideTab(SendFile);
-
-        QFileInfo fileInfo(fileName);
-
-        SenderFileDesc fileDesc;
-        fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-        fileDesc.destNodeId = d->netconfig.nodeId;
-        fileDesc.fullFilePath = fileName;
-        fileDesc.uuid = RUtil::UUID();
-
-        TransferFileItem *t_item = new TransferFileItem;
-        t_item->setFileType(TransferFileItem::COMMONFILE);
-        t_item->setTransferType(TransferFileItem::SENDFile);
-        t_item->setFileName(fileName);
-        t_item->setFileSize(fileInfo.size());
-        t_item->setFinishedSize(0);
-        t_item->setSenderFileDesc(fileDesc);
-        d->fileList->addItem(t_item);
-
-        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+        appendTransferFile(fileName);
     }
+}
+
+/*!
+ * @brief 更新文件传输tab内容
+ */
+void AbstractChatMainWidget::updateTransFileTab()
+{
+    MQ_D(AbstractChatMainWidget);
+
+    int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
+    QString m_tabText = tr("Transfer Files")+d->fileList->taskListProgress();
+    d->rightSideWidget->setTabText(transFileIndex,m_tabText);
 }
 
 /*!
@@ -812,12 +832,10 @@ void AbstractChatMainWidget::respHistoryRecord(bool flag)
     if(flag)
     {
         showRightSideTab(MsgRecord);
-        showRightSideTab(SendFile);
     }
     else
     {
         closeRightSideTab(MsgRecord);
-        closeRightSideTab(SendFile);
     }
 }
 
@@ -848,10 +866,8 @@ void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
         {
             d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->historyRecord));
         }
-
         break;
     case SendFile:
-        //TODO LYS-20180620移除发送文件子窗口
         if(d->fileList)
         {
             d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->fileList));
@@ -874,8 +890,25 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
     d->rightSideWidget->setVisible(true);
     switch (tabType) {
     case MsgRecord:
-        //TODO LYS-20180620显示消息记录子窗口
         d->historyRecord = new QTabWidget;
+        d->historyRecord->setStyleSheet("QTabWidget::pane{"
+                                            "border:0px;}"
+                                        "QTabWidget::tab-bar{"
+                                            "left: 0px;}"
+                                        "QTabBar::tab{"
+                                            "border-radius: 2px;"
+                                            "border:0px;"
+                                            "width:50px;"
+                                            "height:12px;"
+                                            "margin-left:4px;"
+                                            "margin-right:2px;"
+                                            "margin-top:4px;}"
+                                        "QTabBar::tab:selected{"
+                                            "background-color: rgb(39,140,222);"
+                                            "color:white;}"
+                                        "QTabBar::tab:hover:!selected{"
+                                            "background-color: rgb(39,140,222);"
+                                            "color:black;}");
         d->historyRecord->setAttribute(Qt::WA_DeleteOnClose);
         d->historyRecord->addTab(new QWidget,tr("All"));
         d->historyRecord->addTab(new QWidget,tr("Image"));
@@ -884,10 +917,13 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
         d->rightSideWidget->setCurrentWidget(d->historyRecord);
         break;
     case SendFile:
-        //TODO LYS-20180620显示发送文件子窗口
         if(!d->fileList)
         {
             d->fileList = new TransferFileListBox;
+            d->fileList->setStyleSheet("QWidget{background-color:transparent;}");
+            connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+                    d->fileList,SLOT(SetTransStatus(FileTransProgress)));
+            connect(d->fileList,SIGNAL(transferStatusChanged()),this,SLOT(updateTransFileTab()));
         }
         d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
         d->rightSideWidget->setCurrentWidget(d->fileList);
@@ -896,6 +932,36 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
     default:
         break;
     }
+}
+
+/*!
+ * @brief 界面显示传送文件队列
+ * @param fileName 待传送的文件名
+ */
+void AbstractChatMainWidget::appendTransferFile(QString &fileName)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    showRightSideTab(SendFile);
+
+    SenderFileDesc fileDesc;
+    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+    fileDesc.destNodeId = d->m_userInfo.accountId;
+    fileDesc.fullFilePath = fileName;
+    fileDesc.serialNo = RUtil::UUID();
+
+    QFileInfo fileInfo(fileName);
+    TransferFileItem *t_item = new TransferFileItem;
+    t_item->setFileType(TransferFileItem::COMMONFILE);
+    t_item->setTransferType(TransferFileItem::SENDFile);
+    t_item->setFileName(fileName);
+    t_item->setFileSize(fileInfo.size());
+    t_item->setTaskSerialNo(fileDesc.serialNo);
+    t_item->setFinishedSize(0);
+    d->fileList->addItem(t_item);
+
+    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    updateTransFileTab();
 }
 
 /*!

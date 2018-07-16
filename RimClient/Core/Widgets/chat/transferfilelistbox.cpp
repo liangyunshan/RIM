@@ -59,9 +59,7 @@ TransferFileListBox::TransferFileListBox(QWidget *parent) :
     QWidget(parent),
     d_ptr(new TransferFileListBoxPrivate(this))
 {
-    //TODO:信号绑定例子
-    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
-            this,SLOT(SetTransStatus(FileTransProgress)));
+
 }
 
 /*!
@@ -252,7 +250,7 @@ QString TransferFileListBox::taskListProgress()
  */
 void TransferFileListBox::saveAsFile(TransferFileItem *item)
 {
-    emit saveAsFile(item->fileName());
+    emit saveAsFile(item->taskSerialNo());
 }
 
 /*!
@@ -261,7 +259,7 @@ void TransferFileListBox::saveAsFile(TransferFileItem *item)
  */
 void TransferFileListBox::toOffLineSend(TransferFileItem *item)
 {
-    emit toOffLineSend(item->fileName());
+    emit toOffLineSend(item->taskSerialNo());
 }
 
 /*!
@@ -270,7 +268,7 @@ void TransferFileListBox::toOffLineSend(TransferFileItem *item)
  */
 void TransferFileListBox::startRecvFile(TransferFileItem *item)
 {
-    emit startRecvFile(item->fileName());
+    emit startRecvFile(item->taskSerialNo());
 }
 
 /*!
@@ -279,14 +277,48 @@ void TransferFileListBox::startRecvFile(TransferFileItem *item)
  */
 void TransferFileListBox::cancelTransfer(TransferFileItem *item)
 {
-    emit cancelTransfer(item->fileName());
+    emit cancelTransfer(item->taskSerialNo());
 }
 
 /*!
  * @brief 设置文件传输状态
  * @param progress 文件传输状态
  */
-void TransferFileListBox::SetTransStatus(FileTransProgress progress)
+void TransferFileListBox::SetTransStatus(const FileTransProgress &progress)
 {
-    Q_UNUSED(progress);
+    MQ_D(TransferFileListBox);
+
+    TransferFileItem *t_item = NULL;
+    foreach (t_item, d->fileItems)
+    {
+        if(t_item->taskSerialNo() == progress.serialNo)
+        {
+            break;
+        }
+    }
+    if(t_item)
+    {
+        t_item->setFinishedSize(progress.readySendBytes);
+        t_item->setFileSize(progress.totleBytes);
+        if(progress.transStatus == FileTransStatus::TransStart)
+        {
+            t_item->setTaskIfStarted(true);
+            d->m_transingCount ++;
+            emit transferStatusChanged();
+        }
+        else if(progress.transStatus == FileTransStatus::TransCancel)
+        {
+            if(t_item->taskIfStarted() == true)
+            {
+                d->m_transingCount --;
+                emit transferStatusChanged();
+            }
+        }
+        else if(progress.transStatus == FileTransStatus::TransSuccess)
+        {
+            d->m_transingCount --;
+            removeItem(t_item);
+            emit transferStatusChanged();
+        }
+    }
 }

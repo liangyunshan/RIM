@@ -1,5 +1,6 @@
 ﻿#include "transferfileitem.h"
 
+#include <QDir>
 #include <QLabel>
 #include <QFileInfo>
 #include <QPushButton>
@@ -27,6 +28,8 @@ private:
         m_transferType = 0;
         m_finishedSize = 0;
         m_totalSize = 0;
+        m_serialNo = QString();
+        m_startFlag = false;
         initWidget();
     }
 
@@ -47,8 +50,9 @@ private:
     QPushButton * cancelBtn;            //取消
 
     int m_fileType,m_transferType;      //传输的文件类型、文件传输类型
-    int m_finishedSize,m_totalSize;     //已完成传输大小、传输文件总大小
-    SenderFileDesc m_fileDesc;
+    float m_finishedSize,m_totalSize;     //已完成传输大小、传输文件总大小
+    QString m_serialNo;
+    bool m_startFlag;
 };
 
 void TransferFileItemPrivate::initWidget()
@@ -187,7 +191,6 @@ void TransferFileItem::setFileType(TransferFileItem::FileType type)
     MQ_D(TransferFileItem);
 
     d->m_fileType = type;
-    //TODO LYS-20180711 根据文件类型设置fileTypeLabel背景样式
     switch (type) {
     case COMMONFILE:
         d->fileTypeLabel->setStyleSheet("border-image: url("
@@ -265,7 +268,7 @@ QString TransferFileItem::fileName() const
 {
     MQ_D(TransferFileItem);
 
-    return d->fileNameLabel->text();;
+    return d->fileNameLabel->text();
 }
 
 /*!
@@ -276,14 +279,23 @@ void TransferFileItem::setFileName(const QString &file)
 {
     MQ_D(TransferFileItem);
 
-    d->fileNameLabel->setText(file);
+    if(d->m_transferType == FOLDERFILE)
+    {
+        QDir t_dir(file);
+        d->fileNameLabel->setText(t_dir.dirName());
+    }
+    else
+    {
+        QFileInfo tmpInfo(file);
+        d->fileNameLabel->setText(tmpInfo.fileName());
+    }
 }
 
 /*!
  * @brief 获取传输的文件大小（单位为B，字节）
  * @return 传输的文件大小（单位为B，字节）
  */
-int TransferFileItem::fileSize() const
+float TransferFileItem::fileSize() const
 {
     MQ_D(TransferFileItem);
 
@@ -294,7 +306,7 @@ int TransferFileItem::fileSize() const
  * @brief 设置传输的文件大小
  * @param size 传输的文件大小（单位为B，字节）
  */
-void TransferFileItem::setFileSize(const int size)
+void TransferFileItem::setFileSize(const float size)
 {
     MQ_D(TransferFileItem);
 
@@ -302,17 +314,17 @@ void TransferFileItem::setFileSize(const int size)
     QString t_fileSize = QString();
     if(size < 1024)
     {
-        QString t_showSize = QString::number(size);
+        QString t_showSize = QString::number(size,'f',2);
         t_fileSize = QString("(%1B)").arg(t_showSize);
     }
     else if(size > 1024)
     {
-        QString t_showSize = QString::number(size/1024);
+        QString t_showSize = QString::number(size/1024,'f',2);
         t_fileSize = QString("(%1KB)").arg(t_showSize);
     }
     else if(size > 1024*1024)
     {
-        QString t_showSize = QString::number(size/(1024*1024));
+        QString t_showSize = QString::number(size/(1024*1024),'f',2);
         t_fileSize = QString("(%1MB)").arg(t_showSize);
     }
     d->fileSizeLabel->setText(t_fileSize);
@@ -355,7 +367,7 @@ void TransferFileItem::setRecvTime(const QString &time)
  * @brief 获取文件已传输大小
  * @return 文件已传输大小（单位为B，字节）
  */
-int TransferFileItem::finishedSize() const
+float TransferFileItem::finishedSize() const
 {
     MQ_D(TransferFileItem);
 
@@ -366,12 +378,56 @@ int TransferFileItem::finishedSize() const
  * @brief 设置文件已传输大小
  * @param size 文件已传输大小（单位为B，字节）
  */
-void TransferFileItem::setFinishedSize(const int size)
+void TransferFileItem::setFinishedSize(const float size)
 {
     MQ_D(TransferFileItem);
 
     d->m_finishedSize = size;
     d->transferProgress->setValue(size);
+}
+
+/*!
+ * @brief 获取文件传送唯一标识
+ * @return 文件传送唯一标识
+ */
+QString TransferFileItem::taskSerialNo() const
+{
+    MQ_D(TransferFileItem);
+
+    return d->m_serialNo;
+}
+
+/*!
+ * @brief 设置文件传送流水号
+ * @param seriNo 文件传送流水号
+ */
+void TransferFileItem::setTaskSerialNo(const QString &seriNo)
+{
+    MQ_D(TransferFileItem);
+
+    d->m_serialNo = seriNo;
+}
+
+/*!
+ * @brief 获取文件是否开始传送
+ * @return 文件是否开始传送
+ */
+bool TransferFileItem::taskIfStarted() const
+{
+    MQ_D(TransferFileItem);
+
+    return d->m_startFlag;
+}
+
+/*!
+ * @brief 设置文件传送是否开始
+ * @param flag 开始状态
+ */
+void TransferFileItem::setTaskIfStarted(bool flag)
+{
+    MQ_D(TransferFileItem);
+
+    d->m_startFlag = flag;
 }
 
 /*!
@@ -398,24 +454,4 @@ void TransferFileItem::operateFile()
     {
         emit cancelTransfer(this);
     }
-}
-
-/*!
- * @brief 设置文件传输用户信息
- * @param desc 文件描述信息
- */
-void TransferFileItem::setSenderFileDesc(const SenderFileDesc &desc)
-{
-    MQ_D(TransferFileItem);
-    d->m_fileDesc = desc;
-}
-
-/*!
- * @brief 获取当前文件传输描述信息
- * @return 文件描述信息
- */
-SenderFileDesc TransferFileItem::senderFileDesc()
-{
-    MQ_D(TransferFileItem);
-    return d->m_fileDesc;
 }
