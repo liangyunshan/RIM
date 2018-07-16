@@ -377,26 +377,21 @@ void SplashLoginDialog::respTextConnect(bool flag)
         baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
 
         G_User = new User(baseInfo);
-    }
 
-    if(G_User){
-        G_User->setTextOnline(flag);
-        G_User->setLogin(flag);
-        if(!d->trayIcon)
-        {
-            d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
-            d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
-            d->trayIcon->setModel(SystemTrayIcon::System_Main);
-        }
+        d->trayIcon = new SystemTrayIcon();
+        d->trayIcon->setModel(SystemTrayIcon::System_Login);
+        d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+        d->trayIcon->setModel(SystemTrayIcon::System_Main);
 
         if(!d->mainDialog){
             d->mainDialog = new MainDialog();
-            RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
-            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
-            connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
-            connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
         }
+
+        RSingleton<NotifyWindow>::instance()->bindTrayIcon(d->trayIcon);
+        connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
+        connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
+        connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+
         d->mainDialog->setLogInState(STATUS_ONLINE);
 
         FileNetConnector::instance()->initialize();
@@ -405,16 +400,19 @@ void SplashLoginDialog::respTextConnect(bool flag)
         hide();
         d->mainDialog->show();
 
-        SERIALNO_RUSH_RG;
         DataPackType request;
         request.msgType = MSG_CONTROL;
         request.msgCommand = MSG_TCP_TRANS;
         request.extendData.type495 = T_DATA_REG;
         request.extendData.usOrderNo = O_2051;
-        request.extendData.usSerialNo = SERIALNO_FRASH;
         request.sourceId = G_User->BaseInfo().accountId;
         request.destId = request.sourceId;
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+    }
+
+    if(G_User){
+        G_User->setTextOnline(flag);
+        G_User->setLogin(flag);
     }
 
     enableInput(true);

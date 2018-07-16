@@ -25,11 +25,6 @@
 typedef int(*Func)(const char *,const int);
 
 static unsigned int SERIALNO_STATIC = 1;
-static unsigned int SERIALNO_MAX_STATIC = 65535;
-#define SERIALNO_MAX SERIALNO_MAX_STATIC
-#define SERIALNO_FRASH SERIALNO_STATIC
-#define SERIALNO_RUSH_RG SERIALNO_FRASH>=SERIALNO_MAX?(SERIALNO_FRASH=1) : (SERIALNO_FRASH++);
-
 
 struct DataPacket
 {
@@ -311,13 +306,6 @@ struct ExtendData
     unsigned short usOrderNo;       /*!< 编码代号 */
     unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
     unsigned short sliceNum;        /*!< 分片数量 */
-
-    ExtendData(){
-        usSerialNo = 0;
-        usOrderNo = 0;
-        bPeserve = 0;
-    }
-
 };
 
 /*!
