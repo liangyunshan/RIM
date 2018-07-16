@@ -13,6 +13,8 @@ typedef  int socklen_t;
 #define closesocket close
 #endif
 
+#include <QDebug>
+
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
 #include "Network/multitransmits/tcptransmit.h"
@@ -298,12 +300,8 @@ void FileNetConnector::doConnect()
     std::shared_ptr<ClientNetwork::BaseTransmit> tcpTrans = transmits.at(C_TCP);
     if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
-#ifdef __LOCAL_CONTACT__
-        IpPort connectInfo = G_NetSettings.textServer;
-#else
-        IpPort connectInfo = G_NetSettings.fileServer;
-#endif
 
+        IpPort connectInfo = G_NetSettings.fileServer;
         memcpy(ip,connectInfo.ip.toLocal8Bit().data(),connectInfo.ip.toLocal8Bit().size());
         bool connected = tcpTrans->connect(ip,connectInfo.port,delayTime);
         MessDiapatch::instance()->onFileConnected(connected);

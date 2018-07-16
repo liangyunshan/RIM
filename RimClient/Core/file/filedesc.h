@@ -12,8 +12,7 @@
 #define FILEDESC_H
 
 #include <QString>
-
-class QFile;
+#include <QFile>
 
 class FileDesc
 {
@@ -23,8 +22,8 @@ public:
 
     void setFilePath(const QString filePath);
 
+    bool isOpen();
     bool create();
-    bool isNull(){return !file;}
     bool seek(size_t pos);
     bool flush();
     bool isRecvOver();
@@ -47,7 +46,15 @@ public:
     QString accountId;                   /*!< 自己ID */
     QString otherId;                     /*!< 对方ID */
     QString filePath;                    /*!< 1.上传时保存上传文件的路径信息；2.下载时保存文件的路径，默认保存至用户文件夹的接收目录下，可修改 */
-    QFile * file;                        /*!< 下载时作为本地文件句柄 */
+    QFile   file;                        /*!< 下载时作为本地文件句柄 */
+
+#ifdef __LOCAL_CONTACT__
+    int cdate;                           /*!< 日期 */
+    int ctime;                           /*!< 时间 */
+    unsigned short usSerialNo;           /*!< 流水号*/
+    unsigned short usOrderNo;            /*!< 协议号*/
+    unsigned char bPackType;             /*!< 报文类型 */
+#endif
 
     friend class FileManager;
 };

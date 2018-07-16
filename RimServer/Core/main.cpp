@@ -20,6 +20,7 @@
 #include "constants.h"
 #include "thread/recvtextprocessthread.h"
 #include "thread/sendtextprocessthread.h"
+#include "thread/filesendqueuethread.h"
 #include "constants.h"
 #include "global.h"
 #include "file/xmlparse.h"
@@ -407,6 +408,7 @@ int main(int argc, char *argv[])
         }
 #endif
 
+        //【1】启动文件传输服务器
         if(commandResult.serviceType == SERVICE_TEXT)
         {
             printProgramInfo(commandResult,settingConfig.textIp,settingConfig.textListenPort);
@@ -420,6 +422,7 @@ int main(int argc, char *argv[])
             fileServer->startMe(settingConfig.fileIp.toLocal8Bit().data(),settingConfig.fileListenPort);
         }
 
+        //【2】启动文本接收处理线程
         for(int i = 0; i < settingConfig.textRecvProcCount;i++)
         {
             RecvTextProcessThread * thread = new RecvTextProcessThread;
@@ -436,10 +439,21 @@ int main(int argc, char *argv[])
             }
         }
 
-        for(int i = 0; i< settingConfig.textSendProcCount;i++)
+        //【3】启动文本发送处理线程
+        if(commandResult.serviceType == SERVICE_TEXT){
+            for(int i = 0; i< settingConfig.textSendProcCount;i++)
+            {
+                SendTextProcessThread * thread = new SendTextProcessThread;
+                thread->start();
+            }
+        }
+        else if(commandResult.serviceType == SERVICE_FILE)
         {
-            SendTextProcessThread * thread = new SendTextProcessThread;
-            thread->start();
+            for(int i = 0; i< settingConfig.textSendProcCount;i++)
+            {
+                FileSendQueueThread * thread = new FileSendQueueThread;
+                thread->startMe();
+            }
         }
 
         return a.exec();

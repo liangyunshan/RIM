@@ -750,7 +750,9 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
 
         SenderFileDesc fileDesc;
         fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-        fileDesc.destNodeId = d->netconfig.nodeId;
+#ifdef __LOCAL_CONTACT__
+        fileDesc.destNodeId = d->m_userInfo.accountId;
+#endif
         fileDesc.fullFilePath = fileName;
         fileDesc.uuid = RUtil::UUID();
 

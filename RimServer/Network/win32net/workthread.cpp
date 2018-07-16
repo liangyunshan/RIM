@@ -113,7 +113,7 @@ void WorkThread::handleAccept(IocpContext *ioData)
     TcpClient * client = ioData->getClient();
     client->setPort(remoteAddr->sin_port);
     client->setIp(inet_ntoa(remoteAddr->sin_addr));
-
+qDebug()<<"Client:"<<client->socket();
     serverSharedData->m_clientManager->addClient(client);
 
     NetUtil::crateIocp(client->socket(), serverSharedData, (DWORD)client);
@@ -131,7 +131,7 @@ void WorkThread::handleSend(IocpContext *ioData)
         senNum++;
         static int totalLen = 0;
         totalLen+=ioData->getWSABUF().len;
-        qDebug()<<"Send:"<<ioData->getWSABUF().len<<"__"<<totalLen<<"__+_"<<senNum;
+//        qDebug()<<"Send:"<<ioData->getWSABUF().len<<"__"<<totalLen<<"__+_"<<senNum;
         IocpContext::destory(ioData);
     }
 }

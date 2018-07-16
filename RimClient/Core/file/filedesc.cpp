@@ -4,7 +4,7 @@
 #include <QDir>
 #include <QDebug>
 
-FileDesc::FileDesc():file(NULL)
+FileDesc::FileDesc():file(NULL),writeLen(0),size(0)
 {
 
 }
@@ -12,11 +12,9 @@ FileDesc::FileDesc():file(NULL)
 bool FileDesc::create()
 {
     QString fullPath = filePath + QDir::separator() +fileName;
-    file = new QFile(fullPath);
-    if(file->open(QFile::WriteOnly) )
-    {
-        if(file->resize(size))
-        {
+    file.setFileName(fullPath);
+    if(file.open(QFile::WriteOnly)){
+        if(file.resize(size)){
             return true;
         }
     }
@@ -25,51 +23,47 @@ bool FileDesc::create()
 
 bool FileDesc::seek(size_t pos)
 {
-    if(!file)
+    if(!isOpen())
         return false;
 
-    return file->seek(pos);
+    return file.seek(pos);
 }
 
 qint64 FileDesc::write(const QByteArray &data)
 {
-    if(!file)
+    if(!isOpen())
         return -1;
-    qint64 realWriteLen = file->write(data);
+
+    qint64 realWriteLen = file.write(data);
     writeLen += realWriteLen;
     return realWriteLen;
 }
 
 bool FileDesc::flush()
 {
-    if(file)
-        return file->flush();
+    if(isOpen())
+        return file.flush();
     return false;
 }
 
 bool FileDesc::isRecvOver()
 {
-    if(!file)
+    if(!isOpen())
         return false;
-//    qDebug()<<writeLen<<"__File::"<<file->size();
-    return writeLen == file->size();
+
+    return writeLen == size;
 }
 
 void FileDesc::close()
 {
-    if(file)
-        file->close();
+    if(isOpen())
+        file.close();
 }
 
 void FileDesc::destory()
 {
-    if(file)
-    {
-        if(file->isOpen())
-        {
-            file->close();
-        }
-        delete file;
+    if(file.isOpen()){
+        file.close();
     }
 }
 
@@ -81,4 +75,9 @@ FileDesc::~FileDesc()
 void FileDesc::setFilePath(const QString filePath)
 {
     this->filePath = filePath;
+}
+
+bool FileDesc::isOpen()
+{
+    return file.isOpen();
 }

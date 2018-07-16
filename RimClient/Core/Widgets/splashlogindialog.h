@@ -46,11 +46,12 @@ private slots:
     void prepareNetConnect();
     void loadLocalSettings();
 
-    /**********网络连接**********/
+    /**********文本网络连接**********/
     void respTextConnect(bool flag);
     void respTextSocketError();
     void respTransmitError(QString errorMsg);
 
+    /**********文件网络连接**********/
     void respFileConnect(bool flag);
     void respFileSocketError();
 

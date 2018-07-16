@@ -29,6 +29,15 @@ protected:
 };
 
 /*!
+ *  @brief  服务器类型
+ *  @note   标注数据由哪个服务器发送
+ */
+enum ServerType{
+    SERVER_TEXT,            /*!< 文本服务器 */
+    SERVER_FILE             /*!< 文件服务器 */
+};
+
+/*!
  *  @brief  系统通知消息的类型
  *  @details 程序内部提供了系统级别的通知-订阅模式，此数据类型用于区分广播的类型。订阅者一句类型进行对应的处理。
  */
@@ -238,10 +247,8 @@ struct NetworkSettings{
     }
 
     IpPort textServer;              //主服务器
-#ifndef __LOCAL_CONTACT__
-    IpPort fileServer;              //文件服务器
-#endif
     IpPort tandemServer;            //串联服务器
+    IpPort fileServer;              //文件服务器
 
     IpPort connectedIpPort;         //保存正在连接的网络地址信息(要么为textServer，要么为tandemServer)
 };
@@ -415,6 +422,20 @@ struct ParaSettings{
 };
 
 }
+
+/*!
+ * @brief 接收文件信息描述
+ * @note 用于将接收的文件通知对话窗口
+ */
+struct FileRecvDesc
+{
+    unsigned short usSerialNo;      /*!< 流水号 */
+    unsigned short wSourceAddr;     /*!< 源节点号 */
+    unsigned short wDestAddr;       /*!< 目的节点号 */
+    char cDate[4];
+    char cTime[3];
+    QString fileName;
+};
 
 #endif
 

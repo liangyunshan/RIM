@@ -15,7 +15,10 @@
 
 #include <QHash>
 
+#ifdef __LOCAL_CONTACT__
+
 using namespace QDB495;
+#define TCP_SEND_BUFF 4096
 
 namespace ServerNetwork{
 
@@ -42,7 +45,7 @@ private:
 
 private:
     unsigned short SendPackId;
-    char sendBuff[MAX_495SEND_BUFF];
+    char sendBuff[TCP_SEND_BUFF];
 
     IocpContext * ioContext;              /*!< 当前处理的客户端信息 */
     Handler * textHandler;                /*!< 数据处理器 */
@@ -51,5 +54,7 @@ private:
 };
 
 }
+
+#endif
 
 #endif // TCP495DATAPACKETRULE_H
