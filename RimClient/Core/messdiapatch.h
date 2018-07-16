@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  *  @brief     信息中转
  *  @details   将下层处理的结果，通过此类分发至具体的结果页面
  *  @file      messdiapatch.h
@@ -27,7 +27,6 @@ public:
     void onRecvLoginResponse(ResponseLogin status, LoginResponse response);
     void onRecvUpdateBaseInfoResponse(ResponseUpdateUser status, UpdateBaseInfoResponse response);
     void onRecvUserStateChangedResponse(MsgOperateResponse result,UserStateResponse response);
-
     void onRecvSearchFriendResponse(ResponseAddFriend status, SearchFriendResponse response);
     void onRecvAddFriendResponse(ResponseAddFriend status);
     void onRecvFriendRequest(OperateFriendResponse response);
@@ -35,31 +34,27 @@ public:
     void onRecvFriendGroupingOperate(MsgOperateResponse status, GroupingResponse response);
     void onRecvGroupGroupingOperate(MsgOperateResponse status,GroupingResponse response);
     void onErrorGroupingOperate(OperateGrouping type);
-
     void onRecvSearchChatroomResponse(ResponseAddFriend result,SearchGroupResponse response);
     void onRecvGroupList(MsgOperateResponse status,ChatGroupListResponse * response);
     void onRecvResitGroup(MsgOperateResponse status, RegistGroupResponse response);
     void onRecvOpreateGroup(MsgOperateResponse status, GroupingChatResponse response);
     void onRecvGroupCommand(MsgOperateResponse status, GroupingCommandResponse response);
-
     void onRecvText(TextRequest response);
     void onRecvTextReply(TextReply reply);
     void onRecvGroupingFriend(MsgOperateResponse result,GroupingFriendResponse response);
-
     void onRecvFileControl(SimpleFileItemRequest request);
     void onRecvFileRequest(FileItemRequest request);
     void onRecvFileData(QString fileId,QString fileName);
     void onRecvFileData(FileRecvDesc desc);
 
     void onScreenChanged();
-
     void onAddHistoryItem(HistoryChatRecord &record);
-
     void onTransmitsInitialError(QString errorMsg);
     void onTextConnected(bool flag);
     void onTextSocketError();
     void onFileConnected(bool flag);
     void onFileSocketError();
+    void onFileTransStatusChanged(FileTransProgress progress);
 
 signals:
     void recvRegistResponse(ResponseRegister status,RegistResponse response);
@@ -100,6 +95,7 @@ signals:
     void textSocketError();
     void fileConnected(bool);
     void fileSocketError();
+    void sigTransStatus(FileTransProgress);
 
 private:
     MessDiapatch(QObject *parent = 0);

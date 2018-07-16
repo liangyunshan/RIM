@@ -8,6 +8,7 @@
 #include "../protocol/localprotocoldata.h"
 #include "../global.h"
 #include "../Network/netglobal.h"
+#include "../messdiapatch.h"
 
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
@@ -74,6 +75,40 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
     SendConVariable.notify_one();
 
     return true;
+}
+
+/*!
+ * @brief 将队列中的一个文件传输任务取消
+ * @param fileInfo 文件描述信息结构体
+ * @return 如果该文件存在队列中，则返回正确true
+ */
+bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
+{
+    std::list<SenderFileDesc>::iterator iter = fileList.begin();
+    bool ret = false ;
+    for (; iter != fileList.end(); )
+    {
+        if (fileInfo.fullFilePath != (*iter).fullFilePath)
+        {
+            ++iter;
+        }
+        else
+        {
+            FileTransProgress progress;
+            progress.transStatus = TransCancel;
+            progress.fileFullPath = (*iter).fullFilePath;
+            progress.serialNumber = QString((*iter).uuid).toUInt();
+            QFileInfo fileInfo(progress.fileFullPath);
+            progress.fileName = fileInfo.fileName();
+            MessDiapatch::instance()->onFileTransStatusChanged(progress);
+
+            fileList.erase(iter++);
+            ret = true;
+
+            break;
+        }
+    }
+    return ret;
 }
 
 SenderFileDesc FileSendManager::getFile()
@@ -203,7 +238,7 @@ void File716SendTask::processFileData()
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
                 progress.transStatus = TransSuccess;
-                emit sigTransStatus(progress);
+                MessDiapatch::instance()->onFileTransStatusChanged(progress);
 
                 (*iter).reset();
                 iter = sendList.erase(iter);
@@ -227,14 +262,14 @@ void File716SendTask::processFileData()
                 if(unit.dataUnit.wOffset==0)
                 {
                     progress.transStatus = TransStart;
-                    emit sigTransStatus(progress);
+                    MessDiapatch::instance()->onFileTransStatusChanged(progress);
                 }
                 else
                 {
                     if(unit.dataUnit.wOffset%processUnit == 0)
                     {
                         progress.transStatus = TransProcess;
-                        emit sigTransStatus(progress);
+                        MessDiapatch::instance()->onFileTransStatusChanged(progress);
                     }
                 }
 
