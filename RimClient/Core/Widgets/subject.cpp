@@ -3,6 +3,8 @@
 #include <QMutex>
 #include <QReadWriteLock>
 #include <QWriteLocker>
+#include <QDebug>
+#include <QObject>
 
 #include "head.h"
 #include "observer.h"
