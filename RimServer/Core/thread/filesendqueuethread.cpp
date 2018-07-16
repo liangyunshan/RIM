@@ -1,14 +1,22 @@
 ﻿#include "filesendqueuethread.h"
 
+#ifdef __LOCAL_CONTACT__
+
 #include "../rsingleton.h"
 #include "../sql/databasemanager.h"
 #include "../sql/sqlprocess.h"
+#include "Network/netglobal.h"'
+#include "Network/multitransmits/tcptransmit.h"
+#include "../protocol/datastruct.h"
 #include <QDebug>
 
 #include <condition_variable>
 
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
+
+using namespace ParameterSettings;
+extern OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result);
 
 FileSendManager::FileSendManager()
 {
@@ -57,9 +65,9 @@ int FileSendManager::size()
     return fileList.size();
 }
 
-FileSendQueueThread::FileSendQueueThread():maxTransferClients(10),database(nullptr)
+FileSendQueueThread::FileSendQueueThread():maxTransferClients(10),runningFlag(true),database(nullptr)
 {
-
+    initTransmits();
 }
 
 FileSendQueueThread::~FileSendQueueThread()
@@ -94,30 +102,74 @@ void FileSendQueueThread::run()
 
 /*!
  * @brief 网络发送文件数据
+ * @note  服务器读取的文件数据直接发送，不缓存发送
  */
 void FileSendQueueThread::processFileData()
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"Send File"<<runningFlag
-          <<"\n";
-    int count = 0 ;
     while(true && runningFlag){
         std::list<FileSendTask>::iterator iter = sendList.begin();
         while(iter != sendList.end()){
+            std::shared_ptr<ServerNetwork::FileSendDesc> fptr = (*iter).fptr;
+            if(fptr->isSendOver()){
+                qDebug()<<"Send over:"<<(*iter).fptr->fileName;
+                fptr.reset();
+                iter = sendList.erase(iter);
+            }else{
+                SendUnit unit;
+                unit.sockId = (*iter).socketId;
+                unit.dataUnit.wSourceAddr = fptr->accountId.toInt();
+                unit.dataUnit.wDestAddr = fptr->otherId.toInt();
+                fptr->read(unit.dataUnit.data);
+                unit.dataUnit.bPackType = T_DATA_AFFIRM;
+                unit.dataUnit.bPeserve = 0;
+                unit.dataUnit.usSerialNo = 4567;
+                unit.dataUnit.usOrderNo = O_2051;
+                unit.dataUnit.cDate = 0;
+                unit.dataUnit.cTime = 0;
+                unit.dataUnit.cFileType = QDB2051::F_BINARY;
+                unit.dataUnit.cFilename = fptr->fileName.toLocal8Bit();
+                unit.dataUnit.dwPackAllLen = fptr->dwPackAllLen;
+                unit.dataUnit.wOffset = fptr->sliceNum;
 
-            //TODO 20180709 发送文件
-            qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                   <<"ready send file :"<<(count)
-                  <<"\n";
-        }
+                if((*iter).method == ParameterSettings::C_NetWork && (*iter).format == ParameterSettings::M_205){
+                    unit.method = C_UDP;
+                }else if((*iter).method == ParameterSettings::C_TongKong && (*iter).format == ParameterSettings::M_495){
+                    unit.method = C_TCP;
+                }
 
-        if(sendList.size() < maxTransferClients){
-            prepareSendTask();
-        }
+                if(unit.method != C_NONE){
+                    if(!handleDataSend(unit)){
+                        //TODO 20180713 对错误处理
+                        qDebug()<<"++++send Error!!!";
+                    }
+                }
 
-        if(sendList.size() == 0)
-            break;
+                iter++;
+            }
+         }
+
+         if(sendList.size() < maxTransferClients){
+             prepareSendTask();
+         }
+
+         if(sendList.size() == 0)
+             break;
     }
+}
+
+void FileSendQueueThread::initTransmits()
+{
+    std::shared_ptr<ServerNetwork::TcpTransmit> tcpTrans = std::make_shared<ServerNetwork::TcpTransmit>();
+    transmits.insert(std::make_pair<CommMethod,BaseTransmit_Ptr>(tcpTrans->type(),tcpTrans));
+}
+
+bool FileSendQueueThread::handleDataSend(SendUnit &unit)
+{
+    auto selectedTrans = transmits.find(unit.method);
+    if( selectedTrans == transmits.end())
+        return false;
+
+    return (*selectedTrans).second->startTransmit(unit);
 }
 
 
@@ -128,7 +180,8 @@ void FileSendQueueThread::processFileData()
  */
 void FileSendQueueThread::prepareSendTask()
 {
-    while(sendList.size() < maxTransferClients){
+    while(sendList.size() < maxTransferClients)
+    {
         if(RSingleton<FileSendManager>::instance()->isEmpty()){
            break;
         }
@@ -140,11 +193,21 @@ void FileSendQueueThread::prepareSendTask()
         if(fileInfo.isValid()){
             std::shared_ptr<ServerNetwork::FileSendDesc> ptr = std::make_shared<ServerNetwork::FileSendDesc>();
             if(RSingleton<SQLProcess>::instance()->get716File(database,fileInfo.fileId,ptr)){
-                FileSendTask task;
-                task.socketId = fileInfo.sockId;
-                task.fptr = ptr;
-                sendList.push_back(task);
+                if(ptr->open()){
+                    FileSendTask task;
+                    task.socketId = fileInfo.sockId;
+                    task.fptr = ptr;
+                    bool result = false;
+                    OuterNetConfig config = QueryNodeDescInfo(ptr->otherId,result);
+                    if(result){
+                        task.format = config.messageFormat;
+                        task.method = config.communicationMethod;
+                    }
+                    sendList.push_back(task);
+                }
             }
         }
     }
 }
+
+#endif

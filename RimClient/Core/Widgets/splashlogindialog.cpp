@@ -400,14 +400,16 @@ void SplashLoginDialog::respTextConnect(bool flag)
         hide();
         d->mainDialog->show();
 
-        DataPackType request;
-        request.msgType = MSG_CONTROL;
-        request.msgCommand = MSG_TCP_TRANS;
-        request.extendData.type495 = T_DATA_REG;
-        request.extendData.usOrderNo = O_2051;
-        request.sourceId = G_User->BaseInfo().accountId;
-        request.destId = request.sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        if(flag){
+            DataPackType request;
+            request.msgType = MSG_CONTROL;
+            request.msgCommand = MSG_TCP_TRANS;
+            request.extendData.type495 = T_DATA_REG;
+            request.extendData.usOrderNo = O_2051;
+            request.sourceId = G_User->BaseInfo().accountId;
+            request.destId = request.sourceId;
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        }
     }
 
     if(G_User){
@@ -448,6 +450,17 @@ void SplashLoginDialog::respFileConnect(bool flag)
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
     }
+
+    if(flag){
+        DataPackType request;
+        request.msgType = MSG_CONTROL;
+        request.msgCommand = MSG_TCP_TRANS;
+        request.extendData.type495 = T_DATA_REG;
+        request.extendData.usOrderNo = O_2051;
+        request.sourceId = G_User->BaseInfo().accountId;
+        request.destId = request.sourceId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
+    }
 }
 
 void SplashLoginDialog::respFileSocketError()
@@ -474,6 +487,9 @@ void SplashLoginDialog::loadLocalSettings()
 
     G_NetSettings.tandemServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
     G_NetSettings.tandemServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
+
+    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
 
     RUtil::globalSettings()->endGroup();
 

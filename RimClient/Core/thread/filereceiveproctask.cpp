@@ -4,8 +4,7 @@
 #include "global.h"
 
 #include "util/rsingleton.h"
-#include "Network/msgparse/binaryparsefactory.h"
-
+#include "Network/msgparse/msgparsefactory.h"
 #include "../Network/wraprule/tcp_wraprule.h"
 
 #include <QDebug>
@@ -64,15 +63,40 @@ void FileReceiveProcTask::run()
 
             if(array.data.size() > 0)
             {
-                //TODO 20180704 未加入对716协议的解析
-                ProtocolPackage package;
-                package.data = array.data;
-
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"[********client recv file sucess********]"
-                      <<"\n";
-                RSingleton<BinaryParseFactory>::instance()->getDataParse()->processData(package);
+                validateRecvData(array);
             }
         }
     }
+}
+
+void FileReceiveProcTask::validateRecvData(const RecvUnit &data)
+{
+    ProtocolPackage package;
+#ifdef __LOCAL_CONTACT__
+
+    bool result = false;
+    switch(data.extendData.method){
+        case C_TCP:
+            result = RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,package);
+            break;
+        default:
+            break;
+    }
+
+    if(result){
+        package.bPackType = (unsigned char)data.extendData.type495;
+        package.bPeserve = data.extendData.bPeserve;
+        package.usSerialNo = data.extendData.usSerialNo;
+        package.usOrderNo = data.extendData.usOrderNo;
+        package.wOffset = data.extendData.wOffset;
+        package.dwPackAllLen = data.extendData.dwPackAllLen;
+
+        RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(package);
+    }
+
+#else
+    package.data = data.data;
+    RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(package);
+#endif
+
 }

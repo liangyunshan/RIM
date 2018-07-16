@@ -21,7 +21,7 @@ LocalMsgWrap::LocalMsgWrap()
  * @param[in] method 通信方式
  * @param[in] format 报文格式
  */
-void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, MessageFormat format)
+void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, MessageFormat format, ServerType stype)
 {
     if(packet == nullptr)
         return;
@@ -89,11 +89,20 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet,CommucationMethod method, Messag
         unit.method = C_TCP;
     }
 
-    if(unit.method != C_NONE){
-        G_TextSendMutex.lock();
-        G_TextSendBuffs.push(unit);
-        G_TextSendMutex.unlock();
-        G_TextSendWaitCondition.notify_one();
+    if(stype == SERVER_TEXT){
+        if(unit.method != C_NONE){
+            G_TextSendMutex.lock();
+            G_TextSendBuffs.push(unit);
+            G_TextSendMutex.unlock();
+            G_TextSendWaitCondition.notify_one();
+        }
+    }else if(stype == SERVER_FILE){
+        if(unit.method != C_NONE){
+            G_FileSendMutex.lock();
+            G_FileSendBuffs.push(unit);
+            G_FileSendMutex.unlock();
+            G_FileSendWaitCondition.notify_one();
+        }
     }
 }
 

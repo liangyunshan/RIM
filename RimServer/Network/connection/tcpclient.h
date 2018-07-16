@@ -15,13 +15,13 @@
 #include <QList>
 #include <QString>
 #include <QLinkedList>
-#include <QMutex>
 #include <mutex>
 #include <condition_variable>
 #include <QHash>
 #include <QFile>
 #include <QDir>
 #include <QFileInfo>
+#include <QDebug>
 #include <QDataStream>
 #include "../network_global.h"
 #include "../head.h"
@@ -215,14 +215,19 @@ struct FileRecvDesc
  */
 struct FileSendDesc
 {
-    FileSendDesc():fileTransState(FILE_ERROR){}
+    FileSendDesc():fileTransState(FILE_ERROR),readLen(0),size(0){
+#ifdef __LOCAL_CONTACT__
+        sliceNum = -1;
+#endif
+    }
 
     ~FileSendDesc(){
         destory();
     }
 
     bool open(){
-        QString fullPath = filePath + QDir::separator() + fileName;
+        QString fullPath = filePath + QDir::separator() + md5;
+        qDebug()<<"---:"<<(fullPath);
         if(QFileInfo(fullPath).exists()){
             file.setFileName(fullPath);
             return file.open(QFile::ReadOnly);
@@ -240,32 +245,35 @@ struct FileSendDesc
         return file.seek(pos);
     }
 
-    qint64 read(const QByteArray &data)
-    {
+    qint64 read(QByteArray &data){
         if(!file.isOpen())
             return -1;
-//        qint64 realWriteLen = file.write(data);
-//        writeLen += realWriteLen;
-//        return realWriteLen;
-        return -1;
+
+        if(isSendOver())
+            return -1;
+
+        memset(readBuff,0,MAX_PACKET);
+        qint64 realReadLen = file.read(readBuff,MAX_PACKET);
+        data.append(readBuff,realReadLen);
+#ifdef __LOCAL_CONTACT__
+        sliceNum++;
+#endif
+        return readLen += realReadLen;
     }
 
-    bool flush()
-    {
+    bool flush(){
         if(file.isOpen())
             return file.flush();
         return false;
     }
 
-    bool isRecvOver()
-    {
-        return writeLen == file.size();
-    }
-
-    void close()
-    {
+    void close(){
         if(file.isOpen())
             file.close();
+    }
+
+    bool isSendOver(){
+        return readLen == size;
     }
 
     std::mutex & RWMutex(){return mutex;}
@@ -287,7 +295,7 @@ struct FileSendDesc
     int itemKind;                        /*!< 文件类型 @link FileItemKind @endlink */
     FileTransState fileTransState;       /*!< 文件传输状态，用于控制文件的状态 */
     qint64 size;                         /*!< 文件大小 */
-    qint64 writeLen;                     /*!< 文件已经写入的大小 */
+    qint64 readLen;                      /*!< 文件已经发送的大小 */
     QString filePath;                    /*!< 文件保存的路径 */
     QString fileName;                    /*!< 文件名称 @attention 维护文件真实的信息 */
     QString md5;                         /*!< 文件MD5 */
@@ -296,13 +304,16 @@ struct FileSendDesc
     QString otherId;                     /*!< 接收方ID */
     QFile   file;                        /*!< 文件缓冲 */
     std::mutex mutex;                    /*!< 文件读写锁 */
+    char readBuff[MAX_PACKET];           /*!< 读取缓冲区 */
 
 #ifdef __LOCAL_CONTACT__
+    int sliceNum;                        /*!< 记录调用read次数，用于表示数据索引 */
     int cdate;                           /*!< 日期 */
     int ctime;                           /*!< 时间 */
     unsigned short usSerialNo;           /*!< 流水号*/
     unsigned short usOrderNo;            /*!< 协议号*/
     unsigned char bPackType;             /*!< 报文类型 */
+    unsigned long dwPackAllLen;          /*!< 待发送文件总大小 */
 #endif
 };
 

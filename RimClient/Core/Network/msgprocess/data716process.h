@@ -14,6 +14,8 @@ public:
     void processTextAffirm(const ProtocolPackage &data);
     void processTextApply(ProtocolPackage &data);
 
+    void processFileData(const ProtocolPackage &data);
+
 private:
     void processText(const ProtocolPackage &data);
     void applyTextStatus(const ProtocolPackage &data);

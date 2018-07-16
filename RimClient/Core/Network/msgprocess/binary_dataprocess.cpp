@@ -123,13 +123,11 @@ void Binary_DataProcess::proFileData(RBuffer &data)
         return;
     request.array.append(recvData,dataLen);
 
-    FileDesc * fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
+    std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->getFile(request.fileId);
     if(fileDesc)
     {
-        if(fileDesc->isNull() && !fileDesc->create())
-        {
+        if(!fileDesc->create())
             return;
-        }
 
 //        if(fileDesc->state() == FILE_TRANING || fileDesc->state() == FILE_PAUSE)
         if(fileDesc->seek(request.index * FILE_MAX_PACK_SIZE) && fileDesc->write(request.array) > 0)

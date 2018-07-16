@@ -16,6 +16,8 @@
 
 #define TCP_SEND_BUFF 4096
 
+#ifdef __LOCAL_CONTACT__
+
 namespace ClientNetwork{
 
 class TCP495DataPacketRule  : public WrapRule
@@ -44,5 +46,7 @@ private:
 };
 
 }
+
+#endif
 
 #endif // TCP495DATAPACKETRULE_H
