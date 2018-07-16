@@ -367,7 +367,7 @@
         return false;
     }
     // 显示消息时间
-    function showMessageTime(curTime) {
+    function appendMessageTime(curTime) {
         var content = document.getElementById('content');
         var timeContainer = document.createElement('div');
         var time = document.createElement('span');
@@ -375,6 +375,18 @@
         timeContainer.appendChild(time);
         timeContainer.setAttribute('class','timeBox');
         content.appendChild(timeContainer);
+        timeContainer.scrollIntoView(false);
+    }
+
+    // 前置显示消息时间
+    function prependMessageTime(curTime) {
+        var content = document.getElementById('content');
+        var timeContainer = document.createElement('div');
+        var time = document.createElement('span');
+        time.innerHTML = curTime;
+        timeContainer.appendChild(time);
+        timeContainer.setAttribute('class','timeBox');
+        content.insertBefore(timeContainer,content.childNodes[0]);
         timeContainer.scrollIntoView(false);
     }
     //切换窗口大小
@@ -456,8 +468,67 @@
             newDiv.scrollIntoView(false);
         }
     }
+
+    //向最前一条消息记录插入新的消息记录
+    function prependMesRecord(messageTarget,textMessage,avatarPath) {
+        if(textMessage === '')
+        {
+
+        }
+        else
+        {
+            //初始化容器
+            var content_container = document.getElementById('content');
+            var newDiv = document.createElement('div');
+            newDiv.className = 'dialogContainer';
+            var newDialog = document.createElement('div');
+            //头像信息
+            var avatarContainer = document.createElement('img');
+            avatarContainer.setAttribute('src',avatarPath);
+            avatarContainer.setAttribute('class','avatarPic');
+            // 文字信息
+            var textMes = document.createElement('div');
+            textMes.className = 'textMesContainer';
+            textMes.innerHTML = textMessage;
+            // 读取状态容器
+            var stateSpan = document.createElement('span');
+            stateSpan.setAttribute('class','stateSpan');
+            //添加内容
+            newDiv.appendChild(avatarContainer);
+            newDialog.appendChild(textMes);
+            newDiv.appendChild(newDialog);
+            newDiv.appendChild(stateSpan);
+            var div = document.createElement('div');
+            div.style = 'clear:both';
+            content_container.insertBefore(div,content_container.childNodes[0]);
+            content_container.insertBefore(newDiv,content_container.childNodes[0]);
+            if(messageTarget === 0)
+            {
+                newDialog.className = 'msgContent right dialog_me';
+            }
+            else
+            {
+                newDialog.className = 'msgContent left dialog_others';
+                avatarContainer.className = 'avatarPic left';
+            }
+            // 设置消息内图片样式
+            var imgSeter = document.getElementById('content').getElementsByClassName('msgContent')
+            for (var i=0;i<imgSeter.length;i++)
+            {
+                var imgBox = imgSeter[i].getElementsByTagName('img');
+                for (var j=0;j<imgBox.length;j++)
+                {
+                    imgBox[j].classList.add('imgMesContainer'); // 添加非重置
+                }
+            }
+
+            newDiv.scrollIntoView();
+        }
+
+    }
+
     // 设置提醒消息
-    function setNotice(noticeType,noticeContent) {
+    function appendNotice(noticeType,noticeContent) {
         var noticeContainer = document.createElement('div');
         noticeContainer.setAttribute('class','noticeContainer');
         var noticeBox = document.createElement('div');
@@ -483,6 +554,30 @@
         noticeContainer.appendChild(noticeBox);
         contentContainer.appendChild(noticeContainer);
         noticeContainer.scrollIntoView(false);
+    }
+
+    // 设置前置提醒消息
+    function prependNotice(noticeType,noticeContent) {
+        var noticeContainer = document.createElement('div');
+        noticeContainer.setAttribute('class','noticeContainer');
+        var noticeBox = document.createElement('div');
+        noticeBox.setAttribute('class','noticeBox');
+        var noticeIcon = document.createElement('i');
+        var noticeText = document.createElement('span');
+        var contentContainer = document.getElementById('content');
+        noticeText.innerHTML = noticeContent;
+        if( noticeType === 0){
+            noticeIcon.className = 'iconfont icon-cuowu';
+        }else if (noticeType === 1){
+            noticeIcon.className = 'iconfont icon-duihao2';
+        }else if (noticeType === 2){
+            noticeIcon.className = 'iconfont icon-tishi';
+        }
+        noticeBox.appendChild(noticeIcon);
+        noticeBox.appendChild(noticeText);
+        noticeContainer.appendChild(noticeBox);
+        contentContainer.insertBefore(noticeContainer,contentContainer.childNodes[0]);
+        noticeContainer.scrollIntoView();
     }
     // 收/发文件夹消息
     function appendFile(target,filePath,avatarPath,resultType) {
@@ -723,6 +818,85 @@
         div.style = 'clear:both';
         content_container.appendChild(div);
         div.scrollIntoView(false);
+    }
+
+    //前置发送语音消息
+    function prependVoiceMsg(messageTarget,voiceDuration,voicePath,avatarPath){
+        //初始化容器
+        var content_container = document.getElementById('content');
+        var newDiv = document.createElement('div');
+        var newDialog = document.createElement('div');
+        newDialog.setAttribute('class','voiceDiv');
+        //头像信息
+        var avatarContainer = document.createElement('img');
+        avatarContainer.setAttribute('src',avatarPath);
+        avatarContainer.setAttribute('class','avatarPic');
+        //语音信息
+        var soundIcon = document.createElement('i');
+        if(messageTarget === 0)
+        {
+            soundIcon.className = 'iconfont icon-sound_right';
+        }
+        else
+        {
+            soundIcon.className = 'iconfont icon-sound_left';
+        }
+        soundIcon.setAttribute('voicePath',voicePath);//LYS
+
+        var soundLength = document.createElement('span');
+        soundLength.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        var count = voiceDuration/2;
+        for(var index=0;index<count;index++)
+        {
+            soundLength.innerHTML += '&nbsp;';
+        }
+
+        var secondSpan = document.createElement('span');
+        secondSpan.innerHTML = voiceDuration+'"';
+        // 读取状态容器
+        var stateSpan;
+        if(messageTarget === 0)
+        {
+            stateSpan = document.createElement('span');
+            stateSpan.setAttribute('class','stateSpan');
+            stateSpan.innerHTML = '未读'
+        }
+        if(messageTarget === 0)
+        {
+            newDialog.appendChild(soundLength);
+            newDialog.appendChild(soundIcon);
+            newDialog.appendChild(secondSpan);
+        }
+        else
+        {
+            newDialog.appendChild(secondSpan);
+            newDialog.appendChild(soundIcon);
+            newDialog.appendChild(soundLength);
+        }
+
+        newDiv.appendChild(avatarContainer);
+        newDiv.appendChild(newDialog);
+        if(messageTarget === 0)
+        {
+            newDiv.appendChild(stateSpan);
+        }
+
+        newDiv.setAttribute('class','dialogContainer');
+        if(messageTarget === 0)
+        {
+            newDialog.className = 'msgContent right dialog_me';
+        }
+        else
+        {
+            newDialog.className = 'msgContent left dialog_others';
+            avatarContainer.className = 'avatarPic left';
+            /*stateSpan.className = 'stateSpan left';*/
+        }
+        content_container.insertBefore(newDiv,content_container.childNodes[0]);
+        var div = document.createElement('div');
+        div.style = 'clear:both';
+        content_container.insertBefore(div,content_container.childNodes[0]);
+        div.scrollIntoView();
     }
     </script>
 </html>
