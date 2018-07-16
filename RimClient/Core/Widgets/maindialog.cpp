@@ -569,9 +569,6 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
     if(!foundScreen)
     {
         QRect defaultRect = qApp->desktop()->screen()->rect();
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"defaultRect:"<<defaultRect
-              <<"\n";
         setGeometry(defaultRect.width() - w - 10,20,w,h);
 
         d->m_enDriection = d->None;
