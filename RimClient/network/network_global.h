@@ -24,13 +24,6 @@
 
 typedef int(*Func)(const char *,const int);
 
-static unsigned int SERIALNO_STATIC = 1;
-static unsigned int SERIALNO_MAX_STATIC = 65535;
-#define SERIALNO_MAX SERIALNO_MAX_STATIC
-#define SERIALNO_FRASH SERIALNO_STATIC
-#define SERIALNO_RUSH_RG SERIALNO_FRASH>=SERIALNO_MAX?(SERIALNO_FRASH=1) : (SERIALNO_FRASH++);
-
-
 struct DataPacket
 {
     unsigned int magicNum;                   //魔数

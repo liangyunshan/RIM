@@ -48,6 +48,7 @@
 #include "actionmanager/actionmanager.h"
 #include "Widgets/textedit/simpletextedit.h"
 #include "../thread/file716sendtask.h"
+#include "../network/netglobal.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -471,7 +472,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     Q_UNUSED(flag);
 
 #ifdef __LOCAL_CONTACT__
-    SERIALNO_RUSH_RG
+
 #endif
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
@@ -749,9 +750,6 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     }
     foreach(QString fileName,files)
     {
-#ifdef __LOCAL_CONTACT__
-    SERIALNO_RUSH_RG
-#endif
         showRightSideTab(SendFile);
 
         QFileInfo fileInfo(fileName);

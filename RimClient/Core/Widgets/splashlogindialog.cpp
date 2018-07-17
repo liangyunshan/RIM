@@ -37,6 +37,7 @@
 #include "messdiapatch.h"
 #include "Util/rlog.h"
 #include "Network/msgwrap/wrapfactory.h"
+#include "../network/netglobal.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -296,9 +297,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget = new ChatPersonWidget();
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
-#ifdef __LOCAL_CONTACT__
                 client->chatPersonWidget->setOuterNetConfig(client->netConfig);
-#endif
                 client->chatPersonWidget->initChatRecord();
             }
 //            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
@@ -405,7 +404,6 @@ void SplashLoginDialog::respTextConnect(bool flag)
         hide();
         d->mainDialog->show();
 
-        SERIALNO_RUSH_RG;
         DataPackType request;
         request.msgType = MSG_CONTROL;
         request.msgCommand = MSG_TCP_TRANS;
