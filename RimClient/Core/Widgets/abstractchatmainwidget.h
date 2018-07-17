@@ -105,18 +105,25 @@ private slots:
     void respHistoryRecord(bool flag);
 
     void slot_RecvRUDpData(QByteArray data);
-    void slot_FileTrans(bool);
+    void sendTargetFiles(bool);
+    void updateTransFileTab();
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;
     void setFontIconFilePath();
     void closeRightSideTab(RightTabType);
     void showRightSideTab(RightTabType);
+    void appendTransferFile(QString &);
     void appendMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
     void appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
+    void prependMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
+    void prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void appendVoiceMsg(QString recordFileName,MsgTarget source = RECV);
+    void prependVoiceMsg(QString recordFileName,MsgTarget source = RECV);
     void appendChatNotice(QString content,NoticeType type = NONOTICE);
+    void prependChatNotice(QString content,NoticeType type = NONOTICE);
     void appendChatTimeNote(QDateTime content,TimeFormat format = TIME);
+    void prependChatTimeNote(QDateTime content,TimeFormat format = TIME);
 };
 
 #endif // ABSTRACTCHATMAINWIDGET_H

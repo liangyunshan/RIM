@@ -290,7 +290,15 @@ int NotifyWindow::checkNotifyExist(const QString accountId)
         if(curItem->getName() == accountId)
         {
             t_count = curItem->getNotifyCount();
+            auto iter = d->systemNotifyInfos.find(curItem);
+            if(iter != d->systemNotifyInfos.end())
+            {
+                d->systemNotifyInfos.erase(iter);
+            }
             d->infoList->removeItem(curItem);
+            if(d->infoList->count() <= 0){
+                ignoreAll();
+            }
             break;
         }
     }
