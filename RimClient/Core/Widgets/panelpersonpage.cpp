@@ -318,7 +318,7 @@ void PanelPersonPage::updateFriendListAdapter()
         userInfo->remarks = user.nodeId;
         userInfo->isSystemIcon = true;
         userInfo->iconId = "";
-        userInfo->status = STATUS_ONLINE;
+        userInfo->status = STATUS_OFFLINE;
         groupData->users.append(userInfo);
     });
 

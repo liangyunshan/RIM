@@ -363,11 +363,10 @@ void SplashLoginDialog::prepareNetConnect()
 void SplashLoginDialog::respTextConnect(bool flag)
 {
     MQ_D(SplashLoginDialog);
-
     if(!flag){
+        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
         RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
-        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
     }else{
         RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
     }
@@ -420,10 +419,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
         FileNetConnector::instance()->initialize();
         FileNetConnector::instance()->connect();
 
-        unsigned short seriNo = SerialNo::instance()->getSerialNo();
+        unsigned short seriNo = SerialNo::instance()->getSqlSerialNo();
         if(seriNo == 0)
         {
-            SerialNo::instance()->updateSerialNo(1);
+            SerialNo::instance()->updateSqlSerialNo(1);
             SetSerialNo(1);
         }
         else
@@ -446,7 +445,6 @@ void SplashLoginDialog::respTextConnect(bool flag)
             RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
         }
     }
-
     enableInput(true);
 }
 
@@ -487,6 +485,7 @@ void SplashLoginDialog::respFileConnect(bool flag)
         request.msgCommand = MSG_TCP_TRANS;
         request.extendData.type495 = T_DATA_REG;
         request.extendData.usOrderNo = O_2051;
+        request.extendData.usSerialNo = SERIALNO_FRASH;
         request.sourceId = G_User->BaseInfo().accountId;
         request.destId = request.sourceId;
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);

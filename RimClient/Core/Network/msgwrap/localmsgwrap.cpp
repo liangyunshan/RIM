@@ -98,7 +98,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
         unit.method = C_TCP;
     }
 
-    SerialNo::instance()->updateSerialNo(unit.dataUnit.usSerialNo);
+    SerialNo::instance()->updateSqlSerialNo(unit.dataUnit.usSerialNo);
 
     if(stype == SERVER_TEXT){
         if(unit.method != C_NONE){

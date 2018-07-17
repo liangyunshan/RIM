@@ -40,9 +40,6 @@ unsigned int SerialNo::FrashSerialNo()
     SerialNoMutex.lock();
     SERIALNO_STATIC>=SERIALNO_MAX_STATIC?(SERIALNO_STATIC=1) : (SERIALNO_STATIC+=1);
     SerialNoMutex.unlock();
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"SERIALNO_STATIC:"<<SERIALNO_STATIC
-          <<"\n";
     return SERIALNO_STATIC;
 }
 
@@ -51,40 +48,10 @@ unsigned int SerialNo::SetSerialNo(unsigned int No)
     SerialNoMutex.lock();
     SERIALNO_STATIC = No;
     SerialNoMutex.unlock();
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"SERIALNO_STATIC:"<<SERIALNO_STATIC
-          <<"\n";
     return SERIALNO_STATIC;
 }
 
-void SerialNo::startMe()
-{
-    RTask::startMe();
-    runningFlag = true;
-
-    if(!isRunning())
-    {
-        start();
-    }
-    else
-    {
-        runWaitCondition.wakeOne();
-    }
-}
-
-void SerialNo::stopMe()
-{
-    RTask::stopMe();
-    runningFlag = false;
-    runWaitCondition.wakeOne();
-}
-
-void SerialNo::addPushTask(unsigned short No)
-{
-
-}
-
-bool SerialNo::updateSerialNo( unsigned short No)
+bool SerialNo::updateSqlSerialNo( unsigned short No)
 {
     DataTable::RChatSerialNo rhc;
     rhc.initTable("rchatserialno");
@@ -95,9 +62,6 @@ bool SerialNo::updateSerialNo( unsigned short No)
             .add(Restrictions::eq(rhc.table,rhc.id,1));
 
     QSqlQuery query(G_User->database()->sqlDatabase());
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"updateSerialNo:"<<rpd.sql()
-          <<"\n";
     if(query.exec(rpd.sql()))
     {
         return true;
@@ -106,7 +70,7 @@ bool SerialNo::updateSerialNo( unsigned short No)
     return false;
 }
 
-unsigned short SerialNo::getSerialNo()
+unsigned short SerialNo::getSqlSerialNo()
 {
     DataTable::RChatSerialNo rhc;
     rhc.initTable("rchatserialno");

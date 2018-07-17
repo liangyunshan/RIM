@@ -10,44 +10,17 @@
 #ifndef SERIALNO_H
 #define SERIALNO_H
 
-#include <QQueue>
-#include <QWaitCondition>
-
-#include "Network/rtask.h"
-
-class SerialNo : public ClientNetwork::RTask
+class SerialNo
 {
-    Q_OBJECT
 public:
     SerialNo();
     static SerialNo* instance();
     unsigned int FrashSerialNo();
     unsigned int SetSerialNo(unsigned int No);
 
-    void startMe();
-    void stopMe();
-
-    enum SerialTaskType
-    {
-        PushSerialNo,   //更新数据库中流水号
-        PullSerialNo    //获取最新流水号
-    };
-    struct SerialTask{
-        SerialTask() : taskType(PullSerialNo),No(0)
-        {}
-        SerialTaskType taskType;
-        unsigned short No;
-    };
-
-    void addPushTask(unsigned short No);
-    void addPullTask();
-
-    unsigned short getSerialNo();
-    bool updateSerialNo( unsigned short No);
+    unsigned short getSqlSerialNo();
+    bool updateSqlSerialNo( unsigned short No);
 private:
-
-    QWaitCondition runWaitCondition;
-    QMutex m_Pause;
     static SerialNo * staic_SerialNo;
 };
 
