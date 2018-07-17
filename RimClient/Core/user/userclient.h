@@ -15,6 +15,7 @@
 #include <QString>
 #include <functional>
 #include <mutex>
+#include <memory>
 
 class ToolItem;
 class FileDesc;
@@ -33,8 +34,8 @@ public:
     void procRecvContent(TextRequest &response);
     void procRecvServerTextReply(TextReply &reply);
 
-    void procDownOverFile(FileDesc * fileDesc);
-    void procDownItemIcon(FileDesc * fileDesc);
+    void procDownOverFile(std::shared_ptr<FileDesc> fileDesc);
+    void procDownItemIcon(std::shared_ptr<FileDesc> fileDesc);
 
 public:
     SimpleUserInfo simpleUserInfo;

@@ -5,6 +5,7 @@
 #include "../sql/database.h"
 
 #include <QSqlQuery>
+#include <QDebug>
 
 namespace DataTable {
 
@@ -54,6 +55,12 @@ RChatRecord::RChatRecord():table("rchatrecord"),id("ID"),accountId("ACCOUNTID"),
 
 }
 
+RChatSerialNo::RChatSerialNo():table("rchatserialno"),id("ID"),serialno("SERIALNO")
+{
+
+}
+
+
 bool RChatRecord::initTable(const QString &name)
 {
    table = name;
@@ -72,6 +79,20 @@ bool RChatRecord::initTable(const QString &name)
        return false;
 
    return true;
+}
+
+bool RChatSerialNo::initTable(const QString &name)
+{
+    table = name;
+    QString SQLSerialNo = QString("CREATE TABLE  IF NOT EXISTS `%1`("
+                                            "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                                            "`SERIALNO`  int(10) NOT NULL"
+                                            ")").arg(table);
+    QSqlQuery query(G_User->database()->sqlDatabase());
+    if(!query.exec(SQLSerialNo))
+        return false;
+
+    return true;
 }
 
 }

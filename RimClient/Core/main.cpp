@@ -180,8 +180,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
     qRegisterMetaType<CommMethod>("CommMethod");
     qRegisterMetaType<FileTransProgress>("FileTransProgress");
+    qRegisterMetaType<FileRecvDesc>("FileRecvDesc");
 
     RSingleton<TaskManager>::instance()->initTask();
+
 #ifndef __LOCAL_CONTACT__
     LoginDialog dialog;
     dialog.show();

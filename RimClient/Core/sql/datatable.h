@@ -71,6 +71,16 @@ public:
     bool initTable(const QString &name);
 };
 
+class RChatSerialNo
+{
+public:
+    RChatSerialNo();
+    bool initTable(const QString &name);
+    QString table;
+    const QString id;                   /*!< 记录id，int自动增长 */
+    const QString serialno;            /*!< 最新serialno */
+};
+
 }
 
 #endif // TABLE_H

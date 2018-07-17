@@ -74,8 +74,7 @@ SOURCES += \
     wraprule/tcpdatapacketrule.cpp \
     wraprule/TK205_WrapRule.cpp \
     wraprule/udp_wraprule.cpp \
-    wraprule/wraprule.cpp \
-    serialno.cpp
+    wraprule/wraprule.cpp
 
 HEADERS +=\
         network_global.h \
@@ -101,5 +100,4 @@ HEADERS +=\
     wraprule/tcpdatapacketrule.h \
     wraprule/tk205_wraprule.h \
     wraprule/udp_wraprule.h \
-    wraprule/wraprule.h \
-    serialno.h
+    wraprule/wraprule.h

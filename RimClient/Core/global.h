@@ -38,4 +38,10 @@ extern QAction *G_pHideWindowAction;                    //设置截图时是否�
 extern ScreenShot *G_pScreenShot;                       //快捷键设置界面
 extern int G_mIsEnter;
 
+unsigned short FrashSerialNo();
+unsigned short SetSerialNo(unsigned int No);
+
+#define SERIALNO_FRASH FrashSerialNo()
+#define SERIALNO_SetFrash(No) SetSerialNo(unsigned int No)
+
 #endif // GLOBAL_H

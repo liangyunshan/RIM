@@ -667,6 +667,7 @@ void PanelPersonPage::networkIsConnected(bool isConnected)
             });
         }
 #endif
+
     }else{
         for(int i = 0;i<d->toolBox->allPages().size();i++){
             ToolPage * page = d->toolBox->allPages().at(i);

@@ -256,20 +256,6 @@ void PanelBottomToolBar::respChangeConnector(bool)
 
                 G_NetSettings.connectedIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
                 TextNetConnector::instance()->connect();
-
-#ifdef __LOCAL_CONTACT__
-                //重新注册
-//                SERIALNO_RUSH_RG;
-//                DataPackType request;
-//                request.msgType = MSG_CONTROL;
-//                request.msgCommand = MSG_TCP_TRANS;
-//                request.extendData.type495 = T_DATA_REG;
-//                request.extendData.usOrderNo = O_2051;
-//                request.extendData.usSerialNo = SERIALNO_FRASH;
-//                request.sourceId = G_User->BaseInfo().accountId;
-//                request.destId = request.sourceId;
-//                RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
-#endif
             }
        }
     }

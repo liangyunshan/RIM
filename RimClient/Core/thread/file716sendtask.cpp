@@ -13,6 +13,7 @@
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
 
+#ifdef  __LOCAL_CONTACT__
 std::mutex QueryNodeMutex;
 
 /*!
@@ -50,6 +51,8 @@ ParameterSettings::OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result
 
     return ParameterSettings::OuterNetConfig();
 }
+
+#endif
 
 FileSendManager::FileSendManager()
 {
@@ -94,7 +97,7 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
             FileTransProgress progress;
             progress.transStatus = TransCancel;
             progress.fileFullPath = (*iter).fullFilePath;
-            progress.serialNumber = QString((*iter).uuid).toUInt();
+            progress.serialNo = QString((*iter).serialNo);
             QFileInfo fileInfo(progress.fileFullPath);
             progress.fileName = fileInfo.fileName();
             MessDiapatch::instance()->onFileTransStatusChanged(progress);
@@ -131,6 +134,8 @@ int FileSendManager::size()
     std::unique_lock<std::mutex> ul(mutex);
     return fileList.size();
 }
+
+#ifdef  __LOCAL_CONTACT__
 
 File716SendTask* File716SendTask::recordTask = nullptr;
 
@@ -197,9 +202,6 @@ void File716SendTask::prepareSendTask()
             if(ptr->parse(fileInfo.fullFilePath) && ptr->open()){
                 ptr->accountId = fileInfo.srcNodeId;
                 ptr->otherSideId = fileInfo.destNodeId;
-#ifdef __LOCAL_CONTACT__
-                ptr->usSerialNo = fileInfo.uuid.toUShort();
-#endif
                 ptr->fileType = QDB2051::F_BINARY;
                 bool result = false;
                 ParameterSettings::OuterNetConfig config = QueryNodeDescInfo(fileInfo.destNodeId,result);
@@ -311,3 +313,5 @@ unsigned long File716SendTask::countPackAllLen(int fileSize, int fileNameLen)
     unsigned long total = slice * perHeadLen + fileSize;
     return total;
 }
+
+#endif

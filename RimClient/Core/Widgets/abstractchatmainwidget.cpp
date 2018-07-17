@@ -196,7 +196,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     RToolButton * fileTransButt = new RToolButton();
     fileTransButt->setObjectName(Constant::Tool_Chat_FileTrans);
     fileTransButt->setToolTip(QObject::tr("FileTrans"));
-    QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(slot_FileTrans(bool)));
+    QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(sendTargetFiles(bool)));
 
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
@@ -218,6 +218,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     recordButt = new RToolButton();
     recordButt->setObjectName(Constant::Tool_Chat_Record);
     recordButt->setToolTip(QObject::tr("Record data"));
+    recordButt->setStyleSheet("border-image: url(:/icon/resource/icon/History-record.png)");
     recordButt->setCheckable(true);
     QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(respHistoryRecord(bool)));
 
@@ -288,10 +289,38 @@ void AbstractChatMainWidgetPrivate::initWidget()
     rightSideWidget->setMinimumWidth(300);
     rightSideWidget->setVisible(false);
     rightSideWidget->setTabsClosable(true);
+    rightSideWidget->setStyleSheet("QTabWidget::pane{"
+                                        "border-top:1px solid #C4C4C3;"
+                                        "border-left:0px;"
+                                        "border-right:0px;"
+                                        "border-bottom:0px;}"
+                                   "QTabWidget::tab-bar {"
+                                        "left: 0px; }"
+                                   "QTabBar::tab {"
+                                        "background-color: transparent;"
+                                        "border-right:1px solid #C4C4C3;"
+                                        "padding: 6px;}"
+                                   "QTabBar::tab:selected{"
+                                        "border-bottom:1px solid #C4C4C3;"
+                                        "padding: 5px;}"
+                                   "QTabBar::close-button{"
+                                        "image:url(:/icon/resource/icon/Close-tab.png);}"
+                                   "QTabBar::close-button:hover{"
+                                        "image:url(:/icon/resource/icon/Close-tab-hover.png);}");
     QObject::connect(rightSideWidget,SIGNAL(tabCloseRequested(int)),q_ptr,SLOT(respCloseRightSideTab(int)));
 
+    QWidget *rightWidget = new QWidget(q_ptr);
+    rightWidget->setObjectName("Chat_Right");
+    rightWidget->setStyleSheet("QWidget#Chat_Right{"
+                                    "border-left: 1px solid #C4C4C3;}");
+    QVBoxLayout *rightLayout = new QVBoxLayout;
+    rightLayout->setContentsMargins(0,0,0,0);
+    rightLayout->setSpacing(0);
+    rightLayout->addWidget(rightSideWidget);
+    rightWidget->setLayout(rightLayout);
+
     mainLayout->addLayout(leftLayout);
-    mainLayout->addWidget(rightSideWidget);
+    mainLayout->addWidget(rightWidget);
     q_ptr->setLayout(mainLayout);
 }
 
@@ -471,9 +500,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
 
-#ifdef __LOCAL_CONTACT__
-
-#endif
     //TODO 20180423 向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
@@ -706,8 +732,16 @@ void AbstractChatMainWidget::preapreCancelAudio()
  */
 void AbstractChatMainWidget::showQueryRecord(const ChatInfoUnit & msgUnit)
 {
-    //FIXME LYS-20180606 判断信息是属于发送的还是接收的
-    appendMsgRecord(msgUnit,RECV);
+    MQ_D(AbstractChatMainWidget);
+
+    if(msgUnit.accountId == d->m_userInfo.accountId)
+    {
+        appendMsgRecord(msgUnit,RECV);
+    }
+    else
+    {
+        appendMsgRecord(msgUnit,SEND);
+    }
 }
 
 /*!
@@ -736,9 +770,10 @@ void AbstractChatMainWidget::slot_RecvRUDpData(QByteArray data)
  * @brief 显示文件传输窗口
  * @details 选择需要发送的文件，支持多选
  */
-void AbstractChatMainWidget::slot_FileTrans(bool)
+void AbstractChatMainWidget::sendTargetFiles(bool)
 {
     MQ_D(AbstractChatMainWidget);
+    Q_UNUSED(d);
     QStringList files = QFileDialog::getOpenFileNames(
                               this,
                               tr("Select one or more files to open"),
@@ -750,31 +785,20 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
     }
     foreach(QString fileName,files)
     {
-        showRightSideTab(SendFile);
-
-        QFileInfo fileInfo(fileName);
-
-        SenderFileDesc fileDesc;
-        fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-        fileDesc.destNodeId = d->netconfig.nodeId;
-        fileDesc.fullFilePath = fileName;
-#ifdef __LOCAL_CONTACT__
-        fileDesc.uuid = QString::number(SERIALNO_FRASH);
-#else
-        fileDesc.uuid = RUtil::UUID();
-#endif
-
-        TransferFileItem *t_item = new TransferFileItem;
-        t_item->setFileType(TransferFileItem::COMMONFILE);
-        t_item->setTransferType(TransferFileItem::SENDFile);
-        t_item->setFileName(fileName);
-        t_item->setFileSize(fileInfo.size());
-        t_item->setFinishedSize(0);
-        t_item->setSenderFileDesc(fileDesc);
-        d->fileList->addItem(t_item);
-
-        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+        appendTransferFile(fileName);
     }
+}
+
+/*!
+ * @brief 更新文件传输tab内容
+ */
+void AbstractChatMainWidget::updateTransFileTab()
+{
+    MQ_D(AbstractChatMainWidget);
+
+    int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
+    QString m_tabText = tr("Transfer Files")+d->fileList->taskListProgress();
+    d->rightSideWidget->setTabText(transFileIndex,m_tabText);
 }
 
 /*!
@@ -812,12 +836,10 @@ void AbstractChatMainWidget::respHistoryRecord(bool flag)
     if(flag)
     {
         showRightSideTab(MsgRecord);
-        showRightSideTab(SendFile);
     }
     else
     {
         closeRightSideTab(MsgRecord);
-        closeRightSideTab(SendFile);
     }
 }
 
@@ -848,10 +870,8 @@ void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
         {
             d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->historyRecord));
         }
-
         break;
     case SendFile:
-        //TODO LYS-20180620移除发送文件子窗口
         if(d->fileList)
         {
             d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->fileList));
@@ -874,25 +894,78 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
     d->rightSideWidget->setVisible(true);
     switch (tabType) {
     case MsgRecord:
-        //TODO LYS-20180620显示消息记录子窗口
         d->historyRecord = new QTabWidget;
+        d->historyRecord->setStyleSheet("QTabWidget::pane{"
+                                            "border:0px;}"
+                                        "QTabWidget::tab-bar{"
+                                            "left: 0px;}"
+                                        "QTabBar::tab{"
+                                            "border-radius: 2px;"
+                                            "border:0px;"
+                                            "width:50px;"
+                                            "height:12px;"
+                                            "margin-left:4px;"
+                                            "margin-right:2px;"
+                                            "margin-top:4px;}"
+                                        "QTabBar::tab:selected{"
+                                            "background-color: rgb(39,140,222);"
+                                            "color:white;}"
+                                        "QTabBar::tab:hover:!selected{"
+                                            "background-color: rgb(39,140,222);"
+                                            "color:black;}");
         d->historyRecord->setAttribute(Qt::WA_DeleteOnClose);
         d->historyRecord->addTab(new QWidget,tr("All"));
         d->historyRecord->addTab(new QWidget,tr("Image"));
         d->historyRecord->addTab(new QWidget,tr("File"));
         d->rightSideWidget->addTab(d->historyRecord,tr("message record"));
+        d->rightSideWidget->setCurrentWidget(d->historyRecord);
         break;
     case SendFile:
-        //TODO LYS-20180620显示发送文件子窗口
         if(!d->fileList)
         {
             d->fileList = new TransferFileListBox;
+            d->fileList->setStyleSheet("QWidget{background-color:transparent;}");
+            connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+                    d->fileList,SLOT(SetTransStatus(FileTransProgress)));
+            connect(d->fileList,SIGNAL(transferStatusChanged()),this,SLOT(updateTransFileTab()));
         }
         d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
+        d->rightSideWidget->setCurrentWidget(d->fileList);
+
         break;
     default:
         break;
     }
+}
+
+/*!
+ * @brief 界面显示传送文件队列
+ * @param fileName 待传送的文件名
+ */
+void AbstractChatMainWidget::appendTransferFile(QString &fileName)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    showRightSideTab(SendFile);
+
+    SenderFileDesc fileDesc;
+    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+    fileDesc.destNodeId = d->m_userInfo.accountId;
+    fileDesc.fullFilePath = fileName;
+    fileDesc.serialNo = RUtil::UUID();
+
+    QFileInfo fileInfo(fileName);
+    TransferFileItem *t_item = new TransferFileItem;
+    t_item->setFileType(TransferFileItem::COMMONFILE);
+    t_item->setTransferType(TransferFileItem::SENDFile);
+    t_item->setFileName(fileName);
+    t_item->setFileSize(fileInfo.size());
+    t_item->setTaskSerialNo(fileDesc.serialNo);
+    t_item->setFinishedSize(0);
+    d->fileList->addItem(t_item);
+
+    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    updateTransFileTab();
 }
 
 /*!
@@ -1001,6 +1074,113 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
 }
 
 /*!
+ * @brief 将收到的信息前置显示在聊天信息记录界面上
+ * @param recvMsg 收到的信息
+ * @param source 信息来源（接收）
+ */
+void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, AbstractChatMainWidget::MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    Q_UNUSED(source);
+    QString t_showMsgScript = QString("");
+    QDateTime t_epochTime(QDate(1970,1,1),QTime(8,0,0));
+    QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
+    QString t_localHtml = recvMsg.sendData;
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+//    RUtil::removeEccapeDoubleQuote(t_localHtml);//FIXME LYS-20180608
+    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
+
+    t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
+/*!
+ * @brief 将收/发信息前置显示在聊天信息记录界面上
+ * @param unitMsg 收发的信息
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, AbstractChatMainWidget::MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    QString t_showMsgScript = QString("");
+    QString t_localHtml = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);//FIXME LYS-20180608
+    RUtil::escapeSingleQuote(t_localHtml);
+
+    if(source == RECV)
+    {
+        User tmpUser(d->m_userInfo.accountId);
+//        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+    else
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+
+    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
+/*!
  * @brief 将收发的语音信息追加显示在聊天信息记录界面上
  * @param recordFileName 语音文件路径
  * @param source 信息来源（接收/发送）
@@ -1023,6 +1203,29 @@ void AbstractChatMainWidget::appendVoiceMsg(QString recordFileName, MsgTarget so
 }
 
 /*!
+ * @brief 将收发的语音信息前置显示在聊天信息记录界面上
+ * @param recordFileName 语音文件路径
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::prependVoiceMsg(QString recordFileName, AbstractChatMainWidget::MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    QString t_headPath;
+    if(source == SEND)
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+    else if(source == RECV)
+    {
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+
+    QString t_showVoiceMsgScript = QString("prependVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
+    d->view->page()->runJavaScript(t_showVoiceMsgScript);
+}
+
+/*!
  * @brief 显示操作提示信息
  * @param content 信息内容
  * @param type 信息类型
@@ -1034,7 +1237,24 @@ void AbstractChatMainWidget::appendChatNotice(QString content, NoticeType type)
     {
         return;
     }
-    QString t_showNotice = QString("setNotice(%1,'%2')").arg(type).arg(content);
+    QString t_showNotice = QString("appendNotice(%1,'%2')").arg(type).arg(content);
+    d->view->page()->runJavaScript(t_showNotice);
+}
+
+/*!
+ * @brief 前置显示操作提示信息
+ * @param content 信息内容
+ * @param type 信息类型
+ */
+void AbstractChatMainWidget::prependChatNotice(QString content, AbstractChatMainWidget::NoticeType type)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    if(content.isEmpty())
+    {
+        return;
+    }
+    QString t_showNotice = QString("prependNotice(%1,'%2')").arg(type).arg(content);
     d->view->page()->runJavaScript(t_showNotice);
 }
 
@@ -1062,7 +1282,35 @@ void AbstractChatMainWidget::appendChatTimeNote(QDateTime content, AbstractChatM
     default:
         break;
     }
-    t_showTimeScript = QString("showMessageTime('%1')").arg(t_curMsgTime);
+    t_showTimeScript = QString("appendMessageTime('%1')").arg(t_curMsgTime);
     d->view->page()->runJavaScript(t_showTimeScript);
 }
 
+/*!
+ * @brief 前置显示时间提示信息
+ * @param content 时间显示格式
+ * @param format 显示内容
+ */
+void AbstractChatMainWidget::prependChatTimeNote(QDateTime content, AbstractChatMainWidget::TimeFormat format)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    QString t_curMsgTime = QString("");
+    QString t_showTimeScript = QString("");
+    if(content.isNull())
+    {
+        return;
+    }
+    switch (format) {
+    case TIME:
+        t_curMsgTime = content.time().toString("h:mm:ss");
+        break;
+    case DATETIME:
+        t_curMsgTime = content.toString("yyyy/M/d h:mm:ss");
+        break;
+    default:
+        break;
+    }
+    t_showTimeScript = QString("prependMessageTime('%1')").arg(t_curMsgTime);
+    d->view->page()->runJavaScript(t_showTimeScript);
+}

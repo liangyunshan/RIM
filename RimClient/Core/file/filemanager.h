@@ -11,8 +11,10 @@
 #ifndef FILEMANAGER_H
 #define FILEMANAGER_H
 
-#include <QMap>
-#include <QMutex>
+#include <QString>
+#include <memory>
+#include <mutex>
+#include <map>
 
 #include "../protocol/protocoldata.h"
 
@@ -29,13 +31,17 @@ public:
     bool addFile(const ProtocolType::FileItemRequest & desc, const QString savePath);
     bool removeFile(QString fileId);
 
-    bool addUploadFile(FileDesc *desc);
+    bool addUploadFile(std::shared_ptr<FileDesc> desc);
 
-    FileDesc *getFile(const QString fileId);
+    std::shared_ptr<FileDesc> getFile(const QString fileId);
+#ifdef __LOCAL_CONTACT__
+    std::shared_ptr<FileDesc> get716File(const QString& nodeId, const unsigned short &serialNo, const QString &fileName);
+#endif
+    bool addFile(std::shared_ptr<FileDesc> & fptr);
 
 private:
-    QMap<QString,FileDesc *> recvFileMap;
-    QMutex mutex;
+    std::map<QString,std::shared_ptr<FileDesc>> recvFileMap;
+    std::mutex mutex;
 };
 
 #endif // FILEMANAGER_H

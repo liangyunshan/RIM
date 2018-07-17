@@ -297,20 +297,16 @@ enum PacketType_495{
  */
 struct ExtendData
 {
+    ExtendData():usSerialNo(0),usOrderNo(0),wOffset(0),dwPackAllLen(0)
+    ,sliceNum(0){}
     CommMethod method;              /*!< 数据接收链路 */
     PacketType_495 type495;         /*!< 95信息类型 */
     unsigned char bPeserve;         /*!< 95保留字 */
     unsigned short usSerialNo;      /*!< 流水号 */
     unsigned short usOrderNo;       /*!< 编码代号 */
+    unsigned short wOffset;         /*!< 分片序号 */
     unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
     unsigned short sliceNum;        /*!< 分片数量 */
-
-    ExtendData(){
-        usSerialNo = 0;
-        usOrderNo = 0;
-        bPeserve = 0;
-    }
-
 };
 
 /*!

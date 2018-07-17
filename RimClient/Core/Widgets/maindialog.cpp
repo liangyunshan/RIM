@@ -150,7 +150,7 @@ void MainDialog::onMessage(MessageType type)
             break;
         case MESS_SCREEN_CHANGE:
             {
-                //如果运行这一句，在左右屏幕之间拖动聊天界面的时候，会将已经隐藏到桌边的主面板显示到固定的1屏幕位置
+            //如果运行这一句，在左右屏幕之间拖动聊天界面的时候，会将已经隐藏到桌边的主面板显示到固定的1屏幕位置
 //                changeGeometry(geometry());
             }
             break;
@@ -481,6 +481,7 @@ void MainDialog::readSettings()
     G_User->systemSettings()->compressCheck = settings->value(Constant::USER_SETTING_TEXT_COMPRESSION,false).toBool();
 
     settings->endGroup();
+
     changeGeometry(x,y,w,h);
 }
 
@@ -546,6 +547,7 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
 {
     MQ_D(MainDialog);
     bool foundScreen = false;
+
 
     //【1】查找上一次的位置是否在当前显示中可用，若可用，则可直接设置
     int screenSize = qApp->desktop()->screenCount();

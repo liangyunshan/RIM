@@ -22,7 +22,7 @@ public:
 
     void handleMsg(MsgPacket * packet
 #ifdef __LOCAL_CONTACT__
-                   , CommucationMethod method = C_None, MessageFormat format = M_NONE
+                   , CommucationMethod method = C_None, MessageFormat format = M_NONE,ServerType stype = SERVER_TEXT
 #endif
             );
 

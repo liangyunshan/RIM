@@ -181,7 +181,8 @@ SOURCES += \
     Network/msgprocess/data716process.cpp \
     Widgets/chat/transferfileitem.cpp \
     Widgets/chat/transferfilelistbox.cpp\
-    thread/file716sendtask.cpp
+    thread/file716sendtask.cpp \
+    others/serialno.cpp
 
 
 HEADERS  += \
@@ -303,7 +304,8 @@ HEADERS  += \
     Network/msgprocess/data716process.h \
     Widgets/chat/transferfileitem.h \
     Widgets/chat/transferfilelistbox.h\
-    thread/file716sendtask.h
+    thread/file716sendtask.h \
+    others/serialno.h
 
 DISTFILES += \
     Widgets/Widgets.pri

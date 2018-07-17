@@ -1,5 +1,7 @@
 ﻿#include "tcp495datapacketrule.h"
 
+#ifdef __LOCAL_CONTACT__
+
 #include <qmath.h>
 #include <QDebug>
 
@@ -81,7 +83,31 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, IocpContextSender sendFunc)
 
         //文件数据，每一片文件数据均小于最大传输限制
         if(dunit.dataUnit.cFileType == QDB2051::F_BINARY){
+            int headLen = 0;
+            if(dunit.dataUnit.usOrderNo == O_2051){
+                int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+                headLen = protocolDataLen + dunit.dataUnit.cFilename.size();
+            }
 
+            int totalIndex = countTotoalIndex(dunit.dataUnit.dwPackAllLen);
+            packet.dwPackAllLen =dunit.dataUnit.dwPackAllLen + totalIndex * headLen;
+            packet.wPackLen = headLen + dunit.dataUnit.data.length();
+            packet.wOffset = dunit.dataUnit.wOffset;
+            RSingleton<TCP_WrapRule>::instance()->wrap(dunit.dataUnit);
+
+            IocpContext * context = IocpContext::create(IocpType::IOCP_SEND,client);
+            memcpy(context->getPakcet(),(char *)&packet,sizeof(QDB495_SendPackage));
+            memcpy(context->getPakcet()+ sizeof(QDB495_SendPackage),dunit.dataUnit.data.data(),dunit.dataUnit.data.length());
+
+            context->getWSABUF().len = packet.wPackLen;
+
+            DWORD realSendLen = 0;
+            if(!sendFunc(dunit.sockId,context,realSendLen))
+                return false;
+
+            if(realSendLen == packet.wPackLen){
+                return true;
+            }
         }else if(dunit.dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dunit.dataUnit.cFileType == QDB2051::F_TEXT){
             QByteArray originalData = dunit.dataUnit.data;
 
@@ -151,7 +177,27 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, ByteSender sendFunc)
 
     //文件数据，每一片文件数据均小于最大传输限制
     if(dunit.dataUnit.cFileType == QDB2051::F_BINARY){
+        int headLen = 0;
+        if(dunit.dataUnit.usOrderNo == O_2051){
+            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+            headLen = protocolDataLen + dunit.dataUnit.cFilename.size();
+        }
 
+        int totalIndex = countTotoalIndex(dunit.dataUnit.dwPackAllLen);
+        packet.dwPackAllLen = dunit.dataUnit.dwPackAllLen + totalIndex * headLen;
+        packet.wPackLen = headLen + dunit.dataUnit.data.length();
+        packet.wOffset = dunit.dataUnit.wOffset;
+        RSingleton<TCP_WrapRule>::instance()->wrap(dunit.dataUnit);
+
+        memset(sendBuff,0,TCP_SEND_BUFF);
+        memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+        memcpy(sendBuff + sizeof(QDB495_SendPackage),dunit.dataUnit.data.data(),dunit.dataUnit.data.length());
+
+        int realSendLen = sendFunc(dunit.sockId,sendBuff,packet.wPackLen);
+
+        if(realSendLen == packet.wPackLen){
+            return true;
+        }
     }else if(dunit.dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dunit.dataUnit.cFileType == QDB2051::F_TEXT){
         QByteArray originalData = dunit.dataUnit.data;
 
@@ -178,7 +224,7 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, ByteSender sendFunc)
 
             packet.wPackLen = protocolDataLen + sliceLen;
 
-            memset(sendBuff,0,MAX_495SEND_BUFF);
+            memset(sendBuff,0,TCP_SEND_BUFF);
             memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
             memcpy(sendBuff + sizeof(QDB495_SendPackage),dunit.dataUnit.data.data(),dunit.dataUnit.data.length());
 
@@ -389,3 +435,5 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 }
 
 }
+
+#endif

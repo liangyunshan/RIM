@@ -125,7 +125,6 @@ void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage
         if((OnlineStatus)tmpClient->getOnLineState() == STATUS_OFFLINE){
             tmpClient->setAccount(QString::number(data.wSourceAddr));
             tmpClient->setOnLineState(STATUS_ONLINE);
-
             QList<ProtocolPackage> historyMsg;
             if(RSingleton<SQLProcess>::instance()->loadChat716Cache(db,data.wSourceAddr,historyMsg)){
                 std::for_each(historyMsg.begin(),historyMsg.end(),[&](ProtocolPackage & data){
@@ -150,8 +149,7 @@ void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage
 void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &data)
 {
     TcpClient * client = TcpClientManager::instance()->getClient(sockId);
-    if(client)
-    {
+    if(client){
         FileRecvDesc * desc = client->getFile(QString::fromLocal8Bit(data.cFilename));
         if(desc == nullptr){
             desc = new FileRecvDesc();
@@ -187,8 +185,7 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
                 //此处的偏移量计算依赖于发送接收方的每片大小一致。
                 if(desc->seek(data.wOffset * MAX_PACKET) && desc->write(data.data) > 0)
                 {
-                    if(desc->flush() && desc->isRecvOver())
-                    {
+                    if(desc->flush() && desc->isRecvOver()){
                         desc->close();
                     }
                 }

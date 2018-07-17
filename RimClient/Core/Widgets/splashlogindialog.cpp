@@ -38,6 +38,7 @@
 #include "Util/rlog.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "../network/netglobal.h"
+#include "others/serialno.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -366,6 +367,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
     if(!flag){
         RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
+        RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
     }else{
         RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
     }
@@ -381,6 +383,15 @@ void SplashLoginDialog::respTextConnect(bool flag)
     if(G_User){
         G_User->setTextOnline(flag);
         G_User->setLogin(flag);
+
+        if(!d->trayIcon)
+        {
+            d->trayIcon = new SystemTrayIcon();
+            d->trayIcon->setModel(SystemTrayIcon::System_Login);
+            d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+            d->trayIcon->setModel(SystemTrayIcon::System_Main);
+        }
+
         if(!d->trayIcon)
         {
             d->trayIcon = new SystemTrayIcon();
@@ -396,23 +407,44 @@ void SplashLoginDialog::respTextConnect(bool flag)
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
             connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
         }
-        d->mainDialog->setLogInState(STATUS_ONLINE);
+
+        if(flag)
+        {
+            d->mainDialog->setLogInState(STATUS_ONLINE);
+        }
+        else
+        {
+            d->mainDialog->setLogInState(STATUS_OFFLINE);
+        }
 
         FileNetConnector::instance()->initialize();
         FileNetConnector::instance()->connect();
 
+        unsigned short seriNo = SerialNo::instance()->getSerialNo();
+        if(seriNo == 0)
+        {
+            SerialNo::instance()->updateSerialNo(1);
+            SetSerialNo(1);
+        }
+        else
+        {
+            SetSerialNo(seriNo);
+        }
+
         hide();
         d->mainDialog->show();
 
-        DataPackType request;
-        request.msgType = MSG_CONTROL;
-        request.msgCommand = MSG_TCP_TRANS;
-        request.extendData.type495 = T_DATA_REG;
-        request.extendData.usOrderNo = O_2051;
-        request.extendData.usSerialNo = SERIALNO_FRASH;
-        request.sourceId = G_User->BaseInfo().accountId;
-        request.destId = request.sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        if(flag){
+            DataPackType request;
+            request.msgType = MSG_CONTROL;
+            request.msgCommand = MSG_TCP_TRANS;
+            request.extendData.type495 = T_DATA_REG;
+            request.extendData.usOrderNo = O_2051;
+            request.extendData.usSerialNo = SERIALNO_FRASH;
+            request.sourceId = G_User->BaseInfo().accountId;
+            request.destId = request.sourceId;
+            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        }
     }
 
     enableInput(true);
@@ -448,6 +480,17 @@ void SplashLoginDialog::respFileConnect(bool flag)
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
     }
+
+    if(flag){
+        DataPackType request;
+        request.msgType = MSG_CONTROL;
+        request.msgCommand = MSG_TCP_TRANS;
+        request.extendData.type495 = T_DATA_REG;
+        request.extendData.usOrderNo = O_2051;
+        request.sourceId = G_User->BaseInfo().accountId;
+        request.destId = request.sourceId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
+    }
 }
 
 void SplashLoginDialog::respFileSocketError()
@@ -474,6 +517,9 @@ void SplashLoginDialog::loadLocalSettings()
 
     G_NetSettings.tandemServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
     G_NetSettings.tandemServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
+
+    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
+    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
 
     RUtil::globalSettings()->endGroup();
 

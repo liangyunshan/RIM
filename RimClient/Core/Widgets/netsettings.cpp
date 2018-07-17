@@ -100,10 +100,8 @@ private:
     QWidget * contentWidget;
 
     IpSettingContainer * textServerIp;
-
-#ifndef __LOCAL_CONTACT__
     IpSettingContainer * fileServerIp;
-#else
+#ifdef __LOCAL_CONTACT__
     IpSettingContainer * tandemServerIp1;
 #endif
     RButton * saveButton;
@@ -292,20 +290,18 @@ void NetSettings::updateSettings()
         G_NetSettings.tandemServer.ip = d->tandemServerIp1->getIp();
         G_NetSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
     }
-#else
-        G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
-        G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
 #endif
+    G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
+    G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
 
     QSettings * settings =  RUtil::globalSettings();
     settings->beginGroup(Constant::SYSTEM_NETWORK);
     settings->setValue(Constant::SYSTEM_NETWORK_TEXT_IP,d->textServerIp->getIp());
     settings->setValue(Constant::SYSTEM_NETWORK_TEXT_PORT,d->textServerIp->getPort());
 
-#ifndef __LOCAL_CONTACT__
     settings->setValue(Constant::SYSTEM_NETWORK_FILE_IP,d->fileServerIp->getIp());
     settings->setValue(Constant::SYSTEM_NETWORK_FILE_PORT,d->fileServerIp->getPort());
-#else
+#ifdef __LOCAL_CONTACT__
     settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_IP1,d->tandemServerIp1->getIp());
     settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_PORT1,d->tandemServerIp1->getPort());
 #endif
