@@ -50,7 +50,7 @@ public slots:
     void queryRecordReady(ChatInfoUnitList);
     void queryMoreRecordReady(ChatInfoUnitList);
     void autoQueryRecord();
-    void updateMsgStatus(ushort serialNo);
+    void updateMsgStatus(ushort,ushort);
     void showMaximizedWindow(bool);
 
 private:

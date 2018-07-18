@@ -5,7 +5,6 @@
 #include "../sql/database.h"
 
 #include <QSqlQuery>
-#include <QDebug>
 
 namespace DataTable {
 

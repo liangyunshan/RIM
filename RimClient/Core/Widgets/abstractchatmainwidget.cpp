@@ -123,6 +123,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     chatRecordWidget->setAttribute(Qt::WA_DeleteOnClose);
     page = new PreviewPage(chatRecordWidget);
     view = new QWebEngineView(chatRecordWidget);
+    view->setWindowFlags(q_ptr->windowFlags() | Qt::FramelessWindowHint);   //FIXME LYS-20180718 修复显示大量数据时界面刷新问题
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
 
@@ -542,7 +543,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     ChatInfoUnit t_unit;
     t_unit.contentType = MSG_TEXT_TEXT;
     t_unit.accountId = G_User->BaseInfo().accountId;
-    t_unit.nickName = d->m_userInfo.nickName;
+    t_unit.nickName = G_User->BaseInfo().nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
 #ifdef __LOCAL_CONTACT__
@@ -584,7 +585,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     request->otherSideId = d->netconfig.nodeId;
-    request->textId = QString::number(SERIALNO_FRASH);
+    request->textId = QString::number(t_unit.serialNo);
     request->sendData = d->chatInputArea->toPlainText();
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else

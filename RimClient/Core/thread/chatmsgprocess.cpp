@@ -109,7 +109,6 @@ void ChatMsgProcess::appendC2CMoreQueryTask(QString otherID, uint begin, uint co
 }
 
 /*!
-<<<<<<< HEAD
  * @brief 更新单聊界面的信息的已读和未读状态
  * @param accountid 对方ID
  * @param serialNo 信息流水号
@@ -316,7 +315,7 @@ bool ChatMsgProcess::updateC2CTaskMsgStatus(QString otherID, ushort serialNo)
     rpd.update(rcr.table,{{rcr.status,MSG_READYREAD}})
             .enableAlias(false)
             .createCriteria()
-            .add(Restrictions::eq(rcr.table,rcr.accountId,otherID))
+            .add(Restrictions::eq(rcr.table,rcr.accountId,G_User->BaseInfo().accountId))
             .add(Restrictions::eq(rcr.table,rcr.serialNo,serialNo));
 
     QSqlQuery query(G_User->database()->sqlDatabase());

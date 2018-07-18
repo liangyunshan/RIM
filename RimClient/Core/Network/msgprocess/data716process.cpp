@@ -49,9 +49,6 @@ Data716Process::Data716Process()
 
 void Data716Process::processTextNoAffirm(const ProtocolPackage &data)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"I recv a 2048 affirm data:"<<data.usOrderNo<<data.usSerialNo
-          <<"\n";
     if(data.usOrderNo == O_2048)
     {
         TextReply textReply;

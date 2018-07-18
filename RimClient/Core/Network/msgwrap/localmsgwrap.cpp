@@ -98,11 +98,6 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
         unit.method = C_TCP;
     }
 
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"unit.dataUnit.usSerialNo:"<<unit.dataUnit.usSerialNo<<"stype:"<<stype<<packet->msgCommand
-          <<unit.dataUnit.wSourceAddr<<"->"<<unit.dataUnit.wDestAddr
-          <<"\n";
-
     SerialNo::instance()->updateSqlSerialNo(unit.dataUnit.usSerialNo);
 
     if(stype == SERVER_TEXT){

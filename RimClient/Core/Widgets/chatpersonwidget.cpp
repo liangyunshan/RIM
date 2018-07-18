@@ -181,7 +181,7 @@ void ChatPersonWidget::initChatRecord()
     connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList)),
             this,SLOT(queryRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(C2CMsgStatusChanged(ushort,ushort)),
-            this,SLOT(queryRecordReady(ChatInfoUnitList)));
+            this,SLOT(updateMsgStatus(ushort,ushort)));
     connect(chatProcess,SIGNAL(C2CMoreResultReady(ChatInfoUnitList)),
             this,SLOT(queryMoreRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
@@ -367,7 +367,7 @@ void ChatPersonWidget::showMaximizedWindow(bool flag)
  * @brief 更新界面文字已读/未读状态
  * @param serialNo 文字流水号
  */
-void ChatPersonWidget::updateMsgStatus(ushort serialNo)
+void ChatPersonWidget::updateMsgStatus(ushort id,ushort serialNo)
 {
     emit sendMsgStatus(serialNo);
 }
