@@ -25,7 +25,7 @@ unsigned short FrashSerialNo()
     return SerialNo::instance()->FrashSerialNo();
 }
 
-unsigned short SetSerialNo(unsigned int No)
+void SetSerialNo(unsigned int No)
 {
     return SerialNo::instance()->SetSerialNo(No);
 }

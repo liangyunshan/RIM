@@ -9,21 +9,12 @@
 #include "../global.h"
 #include "../user/user.h"
 
-#include <QDebug>
-
-#include <mutex>
-#include <condition_variable>
-
-SerialNo * SerialNo::staic_SerialNo = NULL;
-
-static unsigned short SERIALNO_STATIC = 1;
-static unsigned short SERIALNO_MAX_STATIC = 65535;
-
-std::mutex SerialNoMutex;
+SerialNo * SerialNo::staic_SerialNo = NULL ;
+const unsigned short SERIALNO_MAX   = 65535 ;
 
 SerialNo::SerialNo()
 {
-
+    m_SerialNo = 1;
 }
 
 SerialNo *SerialNo::instance()
@@ -35,20 +26,19 @@ SerialNo *SerialNo::instance()
     return staic_SerialNo;
 }
 
-unsigned int SerialNo::FrashSerialNo()
+unsigned short SerialNo::FrashSerialNo()
 {
     SerialNoMutex.lock();
-    SERIALNO_STATIC>=SERIALNO_MAX_STATIC?(SERIALNO_STATIC=1) : (SERIALNO_STATIC+=1);
+    m_SerialNo>=SERIALNO_MAX?(m_SerialNo=1) : (m_SerialNo+=1);
     SerialNoMutex.unlock();
-    return SERIALNO_STATIC;
+    return m_SerialNo;
 }
 
-unsigned int SerialNo::SetSerialNo(unsigned int No)
+void SerialNo::SetSerialNo(unsigned short No)
 {
     SerialNoMutex.lock();
-    SERIALNO_STATIC = No;
+    m_SerialNo = No;
     SerialNoMutex.unlock();
-    return SERIALNO_STATIC;
 }
 
 bool SerialNo::updateSqlSerialNo( unsigned short No)
