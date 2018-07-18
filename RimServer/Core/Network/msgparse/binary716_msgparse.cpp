@@ -4,8 +4,6 @@
 #include "../msgprocess/data716process.h"
 #include "Network/wraprule/tcp_wraprule.h"
 
-#include <QDebug>
-
 #ifdef __LOCAL_CONTACT__
 
 Binary716_MsgParse::Binary716_MsgParse():

@@ -219,6 +219,7 @@ enum CommMethod{
  */
 struct ProtocolPackage
 {
+    unsigned int uuid;              /*!< 文件发送时，当作文件id */
     unsigned short wSourceAddr;     /*!< 本节点号 */
     unsigned short wDestAddr;       /*!< 目标节点号 */
     unsigned char bPackType;        /*!< 报文类型 */
@@ -333,6 +334,18 @@ struct SendUnit
 {
     CommMethod method;              /*!< 发送方式 */
     ProtocolPackage dataUnit;       /*!< 待发送数据包及描述 */
+};
+
+/*!
+ * @brief 文件数据发送过程
+ * @note 当数据真正从网络发送出去之后，再更新发送的进度
+ */
+struct FileDataSendProgress
+{
+    unsigned short wSerialNo;       /*!< 流水号 */
+    unsigned short wDestAddr;       /*!< 目标节点号 */
+    unsigned short wPackLen;        /*!< 当前数据包大小 */
+    unsigned long dwPackAllLen;     /*!< 总数据包大小 */
 };
 
 #pragma pack(pop)

@@ -133,6 +133,8 @@ private:
     void doConnect();
     void doReconnect();
     void doDisconnect();
+
+    void processDataFileProgress(FileDataSendProgress progress);
 private:
     static FileNetConnector * netConnector;
 

@@ -2,7 +2,6 @@
 
 #include "netglobal.h"
 #include "Util/rlog.h"
-#include "../multitransmits/basetransmit.h"
 
 namespace ClientNetwork{
 
@@ -17,13 +16,14 @@ SendTask::SendTask(QThread *parent):
  * @return 是否添加成功
  * @attention 若容器中已经存在此种传输方式，默认不替换
  */
-bool SendTask::addTransmit(std::shared_ptr<BaseTransmit> trans)
+bool SendTask::addTransmit(std::shared_ptr<BaseTransmit> trans, SendCallbackFunc callback)
 {
     std::lock_guard<std::mutex> lg(tranMutex);
     if(transmits.find(trans->type()) != transmits.end())
         return true;
 
-    transmits.insert(std::pair<CommMethod,std::shared_ptr<BaseTransmit>>(trans->type(),trans));
+    transmits.insert(std::pair<CommMethod,std::pair<std::shared_ptr<BaseTransmit>,SendCallbackFunc>>(trans->type(),
+                             std::pair<std::shared_ptr<BaseTransmit>,SendCallbackFunc>(trans,callback)));
     return true;
 }
 
@@ -37,8 +37,8 @@ bool SendTask::removaAllTransmit()
 
     auto tbegin = transmits.begin();
     while(tbegin != transmits.end()){
-        (*tbegin).second->close();
-        (*tbegin).second.reset();
+        (*tbegin).second.first->close();
+        (*tbegin).second.first.reset();
         tbegin = transmits.erase(tbegin);
     }
 
@@ -130,8 +130,8 @@ bool TextSender::handleDataSend(SendUnit &unit)
 
     auto iter = transmits.find(unit.method);
     if(iter != transmits.end()){
-        if((*iter).second.get() != nullptr && (*iter).second->connected())
-            return (*iter).second->startTransmit(unit);
+        if((*iter).second.first.get() != nullptr && (*iter).second.first->connected())
+            return (*iter).second.first->startTransmit(unit,(*iter).second.second);
     }
 
     return false;
@@ -214,9 +214,11 @@ bool FileSender::handleDataSend(SendUnit &unit)
 {
     std::lock_guard<std::mutex> lg(tranMutex);
 
-    std::shared_ptr<BaseTransmit> trans = transmits.at(unit.method);
-    if(trans.get() != nullptr)
-        return trans->startTransmit(unit);
+    auto iter = transmits.find(unit.method);
+    if(iter != transmits.end()){
+        if((*iter).second.first.get() != nullptr && (*iter).second.first->connected())
+            return (*iter).second.first->startTransmit(unit,(*iter).second.second);
+    }
 
     return false;
 }

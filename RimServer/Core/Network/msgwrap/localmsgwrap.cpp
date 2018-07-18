@@ -2,8 +2,6 @@
 
 #ifdef __LOCAL_CONTACT__
 
-#include <QDebug>
-
 #include "Network/head.h"
 #include "Network/netglobal.h"
 #include "binary716_wrapfromat.h"
