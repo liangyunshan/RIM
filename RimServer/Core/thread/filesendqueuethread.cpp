@@ -140,7 +140,6 @@ void FileSendQueueThread::processFileData()
                 if(unit.method != C_NONE){
                     if(!handleDataSend(unit)){
                         //TODO 20180713 对错误处理
-                        qDebug()<<"++++send Error!!!";
                     }
                 }
 

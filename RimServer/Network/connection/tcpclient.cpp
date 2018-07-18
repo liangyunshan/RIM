@@ -1,7 +1,6 @@
 ﻿#include "tcpclient.h"
 
 #include <QMutexLocker>
-#include <QDebug>
 
 #include "Util/rlog.h"
 
@@ -98,7 +97,6 @@ TcpClient::~TcpClient()
          iter.next();
          delete iter.value();
     }
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"Delete TcpClient";
 }
 
 TcpClientManager * TcpClientManager::manager = NULL;

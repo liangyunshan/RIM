@@ -21,6 +21,7 @@
 using namespace ProtocolType;
 
 #include "Network/connection/tcpclient.h"
+#include <QSharedPointer>
 #include <memory>
 
 namespace Datastruct
@@ -77,7 +78,7 @@ public:
     bool loadSystemCache(Database * db,QString accountId,QList<AddFriendRequest> & requests);
     bool loadChatCache(Database * db, QString accountId, QList<TextRequest> &textResponse);
 
-    bool saveUserChat2Cache(Database * db, QSharedPointer<TextRequest> request);
+    bool saveUserChat2Cache(Database * db, QSharedPointer<ProtocolType::TextRequest> request);
 
     bool addQuoteFile(Database * db,const FileItemRequest * request);
     bool queryFile(Database * db,const QString & fileMd5);

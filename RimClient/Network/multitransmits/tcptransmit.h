@@ -30,7 +30,7 @@ public:
     CommMethod type();
     QString name();
 
-    bool startTransmit(SendUnit &unit);
+    bool startTransmit(SendUnit &unit,SendCallbackFunc func = nullptr);
     bool startRecv(char *recvBuff, int recvBuffLen,DataHandler recvDataFunc);
 
     bool connect(const char *remoteIp, const unsigned short remotePort, int timeouts);
@@ -43,6 +43,8 @@ private:
     std::shared_ptr<TCPDataPacketRule> dataPacketRule;
 #endif
     RSocket* tcpSocket;
+
+    std::function<int(const char *,const int)>  sendFunc;
 };
 
 }

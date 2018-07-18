@@ -776,9 +776,10 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
                               tr("./"),
                               tr("All (*.*)"));
     if(files.isEmpty())
-    {
         return ;
-    }
+
+    showRightSideTab(SendFile);
+
     foreach(QString fileName,files)
     {
         appendTransferFile(fileName);

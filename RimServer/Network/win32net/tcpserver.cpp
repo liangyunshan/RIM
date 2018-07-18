@@ -1,7 +1,5 @@
 ﻿#include "tcpserver.h"
 
-#include <QDebug>
-
 #if defined(Q_OS_WIN)
 
 #include "netglobal.h"

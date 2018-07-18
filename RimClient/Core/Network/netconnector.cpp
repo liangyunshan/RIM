@@ -19,6 +19,7 @@ typedef  int socklen_t;
 #include "Network/win32net/msgreceive.h"
 #include "Network/multitransmits/tcptransmit.h"
 #include "Network/multitransmits/ddstransmit.h"
+#include "../thread/file716sendtask.h"
 #include "Util/rlog.h"
 #include "global.h"
 #include "util/rsingleton.h"
@@ -266,9 +267,11 @@ bool FileNetConnector::initialize()
 
     msgSender = std::make_shared<ClientNetwork::FileSender>();
     QObject::connect(msgSender.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
+//    auto callBack = std::bind(&FileNetConnector::processDataFileProgress,this,std::placeholders::_1);
 
     std::for_each(transmits.begin(),transmits.end(),[&](const std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>> item){
-        if(msgSender->addTransmit(item.second)){
+        if(File716SendTask::instance()->addTransmit(item.second)){
+            msgSender->addTransmit(item.second);
             std::shared_ptr<ClientNetwork::FileReceive> msgRecv = std::make_shared<ClientNetwork::FileReceive>();
             QObject::connect(msgRecv.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
             msgRecv->bindTransmit(item.second);
@@ -326,9 +329,15 @@ void FileNetConnector::doDisconnect()
         item.second->close();
     });
 
-    msgSender->stopMe();
+    if(msgSender.get() != nullptr)
+        msgSender->stopMe();
 
     std::for_each(msgReceives.begin(),msgReceives.end(),[](std::pair<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> item){
         item.second->stopMe();
     });
+}
+
+void FileNetConnector::processDataFileProgress(FileDataSendProgress progress)
+{
+
 }

@@ -1,7 +1,5 @@
 ﻿#include "qdb21_wraprule.h"
 
-#include <QDebug>
-
 #ifdef __LOCAL_CONTACT__
 #include "head.h"
 using namespace QDB21;

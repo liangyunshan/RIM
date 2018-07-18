@@ -3,7 +3,6 @@
 #ifdef __LOCAL_CONTACT__
 
 #include <qmath.h>
-#include <QDebug>
 
 #include "head.h"
 #include "../win32net/iocpcontext.h"
@@ -247,11 +246,14 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, ByteSender sendFunc)
 
 /*!
  * @brief 计算数据总分包数量
+ * @note 2048协议头没有传输内容，因此要手动的置为1
  * @param[in] totalLength 数据总长度
  * @return 总分包大小
  */
 int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
 {
+    if(totalLength == 0)
+        return 1;
     return qCeil(((float) totalLength/ (MAX_PACKET)));
 }
 
@@ -422,7 +424,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
             }
             else
             {
-                qDebug()<<"Recv Error Packet";
+                //TODO 对错误处理
             }
         }while(processLen <= recvLen);
     }
