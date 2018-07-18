@@ -18,6 +18,12 @@ void Document::receiveText(const QString &r_path)
 {
     displayMessage(r_path);
 }
+
+void Document::getMoreRecord()
+{
+    chatWidget->updateMsgRecord();
+}
+
 void Document::setUi(AbstractChatMainWidget *ui)
 {
     chatWidget = ui;

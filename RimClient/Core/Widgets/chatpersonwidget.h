@@ -42,11 +42,14 @@ signals:
     void sendQueryRecord(const ChatInfoUnit &);
     void sendRecvedMsg(const TextRequest &msg);
     void sendRecvedAudio(const QString &file);
+    void sendMoreQueryRecord(const ChatInfoUnit & ,bool hasNext);
 
 public slots:
     void shakeWindow();
     void queryRecordReady(ChatInfoUnitList);
+    void queryMoreRecordReady(ChatInfoUnitList);
     void autoQueryRecord();
+    void showMaximizedWindow(bool);
 
 private:
     void switchWindowSize();
