@@ -466,8 +466,6 @@ QByteArray Json_WrapFormat::wrappedPack(MsgPacket *packet, int status, QJsonObje
     QJsonDocument document;
     document.setObject(obj);
 
-    //    qDebug()<<document.toJson(QJsonDocument::Indented);
-
     return document.toJson(QJsonDocument::Compact);
 }
 

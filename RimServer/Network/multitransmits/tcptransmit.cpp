@@ -3,6 +3,7 @@
 #include "Util/rlog.h"
 #include "../socket.h"
 #include "../win32net/iocpcontext.h"
+
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -77,6 +78,7 @@ bool TcpTransmit::sendIocpData(int sockId,IocpContext * context,DWORD & sendLeng
         int error = WSAGetLastError();
         if(error != ERROR_IO_PENDING){
             //TODO 对错误进行处理
+qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"writeError!";
             return false;
         }
     }
@@ -114,6 +116,11 @@ bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler re
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
     if(recvLen > 0)
     {
+//        if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
+//            RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
+//        }else{
+//            return true;
+//        }
     }
     else if(recvLen == 0)
     {

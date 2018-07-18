@@ -18,8 +18,6 @@
 #include <mutex>
 #include <memory>
 
-#include <QDebug>
-
 #include "../network_global.h"
 #include "../head.h"
 
@@ -32,7 +30,7 @@ class NETWORKSHARED_EXPORT SeriesConnection
 public:
     SeriesConnection();
     ~SeriesConnection(){
-qDebug()<<"delete seriesConnection~~";
+
     }
 
     void setSocket(int sockId){cSocket = sockId;}

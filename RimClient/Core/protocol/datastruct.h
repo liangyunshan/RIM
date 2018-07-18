@@ -297,6 +297,7 @@ enum FileTransStatus{
 struct FileTransProgress
 {
     unsigned int serialNumber;      /*!< 文件传输任务标识 */
+    double sendProgress;            /*!< 发送进度(已发送/总文件大小) */
     unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
     unsigned int totleBytes;        /*!< 总数据量大小 */
     FileTransStatus transStatus;    /*!< 文件传输状态 */

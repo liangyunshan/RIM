@@ -166,7 +166,5 @@ int TransferFileListBox::count() const
 //TODO:接收列子
 void TransferFileListBox::SetTransStatus(FileTransProgress progress)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"[ File Trans Status Changed ]"<<progress.transStatus
-          <<"\n";
+//    qDebug()<<progress.readySendBytes<<"_"<<progress.totleBytes;
 }

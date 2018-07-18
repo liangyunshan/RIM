@@ -16,6 +16,7 @@
 
 #include "../rtask.h"
 #include "../rsocket.h"
+#include "../multitransmits/basetransmit.h"
 
 #include <memory>
 #include <mutex>
@@ -23,15 +24,13 @@
 
 namespace ClientNetwork{
 
-class BaseTransmit;
-
 class NETWORKSHARED_EXPORT SendTask : public RTask
 {
     Q_OBJECT
 public:
     explicit SendTask(QThread * parent = 0);
 
-    bool addTransmit(std::shared_ptr<BaseTransmit> trans);
+    bool addTransmit(std::shared_ptr<BaseTransmit> trans,SendCallbackFunc callback = nullptr);
     bool removaAllTransmit();
 
 signals:
@@ -49,7 +48,7 @@ protected:
     QMutex SendPackMutex;
 
     std::mutex tranMutex;
-    std::map<CommMethod,std::shared_ptr<BaseTransmit> > transmits;
+    std::map<CommMethod,std::pair<std::shared_ptr<BaseTransmit>,SendCallbackFunc>> transmits;
 };
 
 class NETWORKSHARED_EXPORT TextSender : public SendTask

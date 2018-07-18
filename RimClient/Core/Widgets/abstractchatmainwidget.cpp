@@ -739,13 +739,12 @@ void AbstractChatMainWidget::slot_FileTrans(bool)
                               tr("./"),
                               tr("All (*.*)"));
     if(files.isEmpty())
-    {
         return ;
-    }
+
+    showRightSideTab(SendFile);
+
     foreach(QString fileName,files)
     {
-        showRightSideTab(SendFile);
-
         QFileInfo fileInfo(fileName);
 
         SenderFileDesc fileDesc;

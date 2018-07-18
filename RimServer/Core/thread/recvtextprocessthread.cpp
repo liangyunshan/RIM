@@ -6,8 +6,6 @@
 #include "rsingleton.h"
 #include "Network/connection/tcpclient.h"
 
-#include <QDebug>
-
 RecvTextProcessThread::RecvTextProcessThread()
 {
     runningFlag = true;

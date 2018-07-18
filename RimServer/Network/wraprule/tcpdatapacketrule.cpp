@@ -1,6 +1,5 @@
 ﻿#include "tcpdatapacketrule.h"
 #include <qmath.h>
-#include <QDebug>
 
 #include "../win32net/iocpcontext.h"
 #include "../dataprocess/handler.h"
@@ -223,7 +222,7 @@ void TCPDataPacketRule::recvData(const char * recvData,int recvLen)
             }
             else
             {
-                qDebug()<<"Recv Error Packet";
+                 //TODO 20180718对错误处理
             }
         }while(processLen <= recvLen);
     }

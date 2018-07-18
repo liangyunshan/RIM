@@ -84,31 +84,27 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
  */
 bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
 {
-    std::list<SenderFileDesc>::iterator iter = fileList.begin();
-    bool ret = false ;
-    for (; iter != fileList.end(); )
-    {
-        if (fileInfo.fullFilePath != (*iter).fullFilePath)
-        {
-            ++iter;
-        }
-        else
-        {
-            FileTransProgress progress;
-            progress.transStatus = TransCancel;
-            progress.fileFullPath = (*iter).fullFilePath;
-            progress.serialNumber = QString((*iter).uuid).toUInt();
-            QFileInfo fileInfo(progress.fileFullPath);
-            progress.fileName = fileInfo.fileName();
-            MessDiapatch::instance()->onFileTransStatusChanged(progress);
+    std::unique_lock<std::mutex> ul(mutex);
 
-            fileList.erase(iter++);
-            ret = true;
+    auto findIndex = std::find_if(fileList.begin(),fileList.end(),[&](const SenderFileDesc & fdesc)->bool{
+        return (fileInfo.destNodeId == fdesc.destNodeId && fileInfo.fullFilePath == fdesc.fullFilePath);
+    });
 
-            break;
-        }
+    if(findIndex != fileList.end()){
+
+        FileTransProgress progress;
+        progress.transStatus = TransCancel;
+        progress.fileFullPath = (*findIndex).fullFilePath;
+        progress.serialNumber = QString((*findIndex).uuid).toUInt();
+        QFileInfo fileInfo(progress.fileFullPath);
+        progress.fileName = fileInfo.fileName();
+        MessDiapatch::instance()->onFileTransStatusChanged(progress);
+
+        fileList.erase(findIndex);
+        return true;
     }
-    return ret;
+
+    return false;
 }
 
 SenderFileDesc FileSendManager::getFile()
@@ -155,6 +151,31 @@ File716SendTask::~File716SendTask()
 File716SendTask *File716SendTask::instance()
 {
     return recordTask;
+}
+
+bool File716SendTask::addTransmit(std::shared_ptr<ClientNetwork::BaseTransmit> trans, SendCallbackFunc callback)
+{
+    std::lock_guard<std::mutex> lg(tranMutex);
+    if(transmits.find(trans->type()) != transmits.end())
+        return true;
+
+    transmits.insert(std::pair<CommMethod,std::pair<std::shared_ptr<ClientNetwork::BaseTransmit>,SendCallbackFunc>>(trans->type(),
+                             std::pair<std::shared_ptr<ClientNetwork::BaseTransmit>,SendCallbackFunc>(trans,callback)));
+    return true;
+}
+
+bool File716SendTask::removaAllTransmit()
+{
+    std::lock_guard<std::mutex> lg(tranMutex);
+
+    auto tbegin = transmits.begin();
+    while(tbegin != transmits.end()){
+        (*tbegin).second.first->close();
+        (*tbegin).second.first.reset();
+        tbegin = transmits.erase(tbegin);
+    }
+
+    return true;
 }
 
 void File716SendTask::startMe()
@@ -215,28 +236,25 @@ void File716SendTask::prepareSendTask()
     }
 }
 
+/*!
+ * @brief 文件数据块发送
+ * @note  文件控制命令由FileSender发送 \n
+ *        若需要同时发送多个文件，每次循环读取每个文件的一部分，交由网络模块直接发送。 \n
+ *        根据发送成功与否，更新发送的进度。
+ */
 void File716SendTask::processFileData()
 {
     while(true && runningFlag){
         std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
 
-        //TODO:发送实时传输状态给进度控制单元 FileTransProgress progress;
-        int processUnit = 1;
-        if(sendList.size()>=100)
-        {
-            processUnit = sendList.size()/100;
-        }
-
         FileTransProgress progress;
-        if(sendList.size() >0)
-        {
-            progress.fileFullPath = (*iter)->fullPath ;
-            progress.totleBytes = (*iter)->dwPackAllLen;
-        }
+
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
+                progress.fileFullPath = (*iter)->fullPath ;
+                progress.totleBytes = (*iter)->dwPackAllLen;
                 progress.transStatus = TransSuccess;
                 MessDiapatch::instance()->onFileTransStatusChanged(progress);
 
@@ -259,19 +277,8 @@ void File716SendTask::processFileData()
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
 
                 progress.readySendBytes = (*iter)->readLen;
-                if(unit.dataUnit.wOffset==0)
-                {
-                    progress.transStatus = TransStart;
-                    MessDiapatch::instance()->onFileTransStatusChanged(progress);
-                }
-                else
-                {
-                    if(unit.dataUnit.wOffset%processUnit == 0)
-                    {
-                        progress.transStatus = TransProcess;
-                        MessDiapatch::instance()->onFileTransStatusChanged(progress);
-                    }
-                }
+                progress.fileFullPath = (*iter)->fullPath ;
+                progress.totleBytes = (*iter)->dwPackAllLen;
 
                 if((*iter)->method == ParameterSettings::C_NetWork && (*iter)->format == ParameterSettings::M_205){
                     unit.method = C_UDP;
@@ -279,13 +286,39 @@ void File716SendTask::processFileData()
                     unit.method = C_TCP;
                 }
 
-                if(unit.method != C_NONE){
-                    G_FileSendMutex.lock();
-                    G_FileSendBuffs.push(unit);
-                    G_FileSendMutex.unlock();
-                    G_FileSendWaitCondition.notify_one();
+                bool error = false;
+                do{
+                    if(unit.method != C_NONE){
+                        auto iter = transmits.find(unit.method);
+                        if(iter != transmits.end()){
+                            if((*iter).second.first.get() != nullptr && (*iter).second.first->connected()){
+                                if((*iter).second.first->startTransmit(unit,(*iter).second.second)){
+                                    if(unit.dataUnit.wOffset == 0)
+                                        progress.transStatus = TransStart;
+                                    else
+                                        progress.transStatus = TransProcess;
+                                }else{
+                                    progress.transStatus = TransError;
+                                    error = true;
+                                    break;
+                                }
+                            }else{
+                                progress.transStatus = TransError;
+                                error = true;
+                                break;
+                            }
+                            MessDiapatch::instance()->onFileTransStatusChanged(progress);
+                        }
+                    }
+                }while(0);
+
+                //文件发送失败
+                if(error){
+                    (*iter).reset();
+                    iter = sendList.erase(iter);
+                }else{
+                    iter++;
                 }
-                iter++;
             }
         }
 

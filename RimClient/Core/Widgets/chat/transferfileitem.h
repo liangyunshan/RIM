@@ -45,8 +45,6 @@ public:
     void setSenderFileDesc(const SenderFileDesc &desc);
     SenderFileDesc senderFileDesc();
 
-signals:
-
 public slots:
     void slot_SetTransStatus(FileTransProgress);
 

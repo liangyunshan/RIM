@@ -1,6 +1,5 @@
 ﻿#include "dataprocess.h"
 
-#include <QDebug>
 #include <QThread>
 #include <QScopedPointer>
 

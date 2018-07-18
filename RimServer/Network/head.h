@@ -160,7 +160,7 @@ struct ProtocolPackage
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
     unsigned short usSerialNo;      /*!< 流水号*/
     unsigned short usOrderNo;       /*!< 协议号*/
-    unsigned short wOffset;         /*!< 文件数据偏移量 */
+    unsigned short wOffset;         /*!< 文件数据偏移量,默认从0开始，若不是从0开始则直接丢弃 */
     unsigned long dwPackAllLen;     /*!< 数据总长度 */
     int cDate;                      /*!< 日期，4字节 */
     int cTime;                      /*!< 时间 低3字节 */

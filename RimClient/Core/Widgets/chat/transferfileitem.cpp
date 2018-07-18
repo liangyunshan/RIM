@@ -395,9 +395,7 @@ SenderFileDesc TransferFileItem::senderFileDesc()
 void TransferFileItem::slot_SetTransStatus(FileTransProgress progress)
 {
     if(progress.fileFullPath != fileName())
-    {
         return ;
-    }
 
     setFileSize(progress.totleBytes);
     setFinishedSize(progress.readySendBytes);
