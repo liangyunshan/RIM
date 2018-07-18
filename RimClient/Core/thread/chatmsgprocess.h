@@ -30,7 +30,8 @@ public:
     enum actionType
     {
         SAVE_MSG,   //存储消息
-        QUERY_MSG   //查询消息
+        QUERY_MSG,  //查询消息
+        QUERY_MOREMSG //查询更多消息
     };
     struct TaskQueue{
         TaskQueue():actType(SAVE_MSG),start(0),count(1){
@@ -55,6 +56,8 @@ public:
     void appendGroupStoreTask(ChatInfoUnit &msgUnit);
     void appendGoupQueryTask(QString groupID, uint begin, uint count);
 
+    void appendC2CMoreQueryTask(QString otherID, uint begin, uint count);
+
 protected:
     void run();
     bool runningFlag;
@@ -62,13 +65,16 @@ protected:
 signals:
     void C2CResultReady(ChatInfoUnitList);
     void GroupResultReady(ChatInfoUnitList);
+    void C2CMoreResultReady(ChatInfoUnitList);
 
 private:
     bool saveC2CTaskMsg(QString otherID,ChatInfoUnit &msgUnit);
     bool queryC2CTaskMsg(QString otherID,uint start, uint count);
+    bool queryC2CTaskMoreMsg(QString otherID,uint start, uint count);
 
     bool saveGroupTaskMsg(ChatInfoUnit &msgUnit);
     bool queryGroupTaskMsg(QString groupID,uint start, uint count);
+    bool queryGroupTaskMoreMsg(QString groupID,uint start, uint count);
 
 private:
     QQueue<TaskQueue> m_TaskQueue;

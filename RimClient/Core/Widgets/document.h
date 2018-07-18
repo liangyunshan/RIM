@@ -19,6 +19,7 @@ public:
 
 public slots:
     void receiveText(const QString &r_path);
+    void getMoreRecord();
 
 signals:
     void sendText(const QString &text);

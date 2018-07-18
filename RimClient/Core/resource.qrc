@@ -86,7 +86,6 @@
         <file>resource/icon/Font-system-gray.png</file>
         <file>resource/icon/Font-system-white.png</file>
         <file>resource/icon/Font-underline.png</file>
-        <file>resource/icon/History-record.png</file>
         <file>resource/icon/Tool_Panel_Network_Error.png</file>
         <file>resource/icon/Tool_Panel_Network_OK.png</file>
         <file>resource/icon/Tool_Chat_FileTrans.png</file>
@@ -97,6 +96,7 @@
         <file>resource/icon/File_Send.png</file>
         <file>resource/icon/Close-tab.png</file>
         <file>resource/icon/Close-tab-hover.png</file>
+        <file>resource/icon/Tool_Chat_Record.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

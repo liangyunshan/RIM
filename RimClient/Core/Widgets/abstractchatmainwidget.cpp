@@ -80,6 +80,7 @@ protected:
     QWidget * chatRecordWidget;             //聊天信息记录窗口
     QWidget * inputWidget;                  //聊天信息输入窗口
     QTabWidget * rightSideWidget;           //右侧边栏窗口
+    QWidget *rightWidget;
 
     QWebEngineView * view;                  //嵌入html页视图
     PreviewPage *page;                      //嵌入html页page
@@ -98,6 +99,8 @@ protected:
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
     QString windowId;                       //窗口身份ID，只在创建时指定，可用于身份判断
     QDateTime m_preMsgTime;                 //上一条信息收发日期时间
+    QDateTime m_nextMsgTime;                //下一条信息收发日期时间（在查看更多消息时使用）
+    uint m_recordCount = 0;                 //当前显示的消息记录条数
 #ifdef __LOCAL_CONTACT__
     ParameterSettings::OuterNetConfig netconfig;    /*!< 当前节点网络描述信息 */ 
 #endif
@@ -218,7 +221,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     recordButt = new RToolButton();
     recordButt->setObjectName(Constant::Tool_Chat_Record);
     recordButt->setToolTip(QObject::tr("Record data"));
-    recordButt->setStyleSheet("border-image: url(:/icon/resource/icon/History-record.png)");
     recordButt->setCheckable(true);
     QObject::connect(recordButt,SIGNAL(toggled(bool)),q_ptr,SLOT(respHistoryRecord(bool)));
 
@@ -287,7 +289,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     //聊天窗口右边栏（显示消息记录、发送文件子窗口）
     rightSideWidget = new QTabWidget(q_ptr);
     rightSideWidget->setMinimumWidth(300);
-    rightSideWidget->setVisible(false);
+//    rightSideWidget->setVisible(false);
     rightSideWidget->setTabsClosable(true);
     rightSideWidget->setStyleSheet("QTabWidget::pane{"
                                         "border-top:1px solid #C4C4C3;"
@@ -309,7 +311,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
                                         "image:url(:/icon/resource/icon/Close-tab-hover.png);}");
     QObject::connect(rightSideWidget,SIGNAL(tabCloseRequested(int)),q_ptr,SLOT(respCloseRightSideTab(int)));
 
-    QWidget *rightWidget = new QWidget(q_ptr);
+    rightWidget = new QWidget(q_ptr);
     rightWidget->setObjectName("Chat_Right");
     rightWidget->setStyleSheet("QWidget#Chat_Right{"
                                     "border-left: 1px solid #C4C4C3;}");
@@ -318,6 +320,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     rightLayout->setSpacing(0);
     rightLayout->addWidget(rightSideWidget);
     rightWidget->setLayout(rightLayout);
+    rightWidget->setVisible(false);
 
     mainLayout->addLayout(leftLayout);
     mainLayout->addWidget(rightWidget);
@@ -413,6 +416,27 @@ void AbstractChatMainWidget::playVoiceMessage(QString audioName)
 {
     RSingleton<AudioOutput>::instance()->setAudioSaveDir(G_User->getC2CAudioPath());
     RSingleton<AudioOutput>::instance()->start(audioName);
+}
+
+/*!
+ * @brief 当滚动条在最上方时继续向上滚动则查询显示更多消息记录
+ */
+void AbstractChatMainWidget::updateMsgRecord()
+{
+    MQ_D(AbstractChatMainWidget);
+
+    RSingleton<ChatMsgProcess>::instance()->appendC2CMoreQueryTask(d->m_userInfo.accountId,d->m_recordCount,25);
+}
+
+/*!
+ * @brief 查看更多消息模式下预览下一条消息日期时间
+ * @param nextTime 下一条消息日期
+ */
+void AbstractChatMainWidget::setNextDateTime(QDateTime nextTime)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->m_nextMsgTime = nextTime;
 }
 
 void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
@@ -607,7 +631,7 @@ void AbstractChatMainWidget::setSideVisible(bool flag)
 {
     MQ_D(AbstractChatMainWidget);
 
-    d->rightSideWidget->setVisible(flag);
+    d->rightWidget->setVisible(flag);
 }
 
 /*!
@@ -744,6 +768,37 @@ void AbstractChatMainWidget::showQueryRecord(const ChatInfoUnit & msgUnit)
     }
 }
 
+void AbstractChatMainWidget::showMoreQueryRecord(const ChatInfoUnit &msgUnit, bool hasNext)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    if(msgUnit.accountId == d->m_userInfo.accountId)
+    {
+        prependMsgRecord(msgUnit,RECV);
+    }
+    else
+    {
+        prependMsgRecord(msgUnit,SEND);
+    }
+
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(msgUnit.dtime);
+    if(hasNext)
+    {
+        if(d->m_nextMsgTime.date() != t_curMsgTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_nextMsgTime.time().secsTo(t_curMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        prependChatTimeNote(t_curMsgTime,DATETIME);
+    }
+}
+
 /*!
  * @brief 显示收到的消息
  * @param msg 收到的消息
@@ -798,7 +853,7 @@ void AbstractChatMainWidget::updateTransFileTab()
     MQ_D(AbstractChatMainWidget);
 
     int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
-    QString m_tabText = tr("Transfer Files")+d->fileList->taskListProgress();
+    QString m_tabText = tr("Transfer Files")+"("+d->fileList->taskListProgress()+")";
     d->rightSideWidget->setTabText(transFileIndex,m_tabText);
 }
 
@@ -892,7 +947,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
 {
     MQ_D(AbstractChatMainWidget);
 
-    d->rightSideWidget->setVisible(true);
+    d->rightWidget->setVisible(true);
     switch (tabType) {
     case MsgRecord:
         d->historyRecord = new QTabWidget;
@@ -978,6 +1033,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
 {
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(source);
+    d->m_recordCount++;
     QString t_showMsgScript = QString("");
     QDateTime t_epochTime(QDate(1970,1,1),QTime(8,0,0));
     QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
@@ -1026,6 +1082,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
 void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source)
 {
     MQ_D(AbstractChatMainWidget);
+    d->m_recordCount++;
     QString t_showMsgScript = QString("");
     QString t_localHtml = unitMsg.contents;
     QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
@@ -1061,8 +1118,6 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
 
     if(source == RECV)
     {
-        User tmpUser(d->m_userInfo.accountId);
-//        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
         t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
     else
@@ -1084,44 +1139,45 @@ void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, Abstra
     MQ_D(AbstractChatMainWidget);
 
     Q_UNUSED(source);
+    d->m_recordCount++;
     QString t_showMsgScript = QString("");
     QDateTime t_epochTime(QDate(1970,1,1),QTime(8,0,0));
     QDateTime t_curMsgTime = t_epochTime.addMSecs(recvMsg.timeStamp);
     QString t_localHtml = recvMsg.sendData;
     QString t_headPath = QString("");
 
-    if(d->m_preMsgTime.isNull())
-    {
-        d->m_preMsgTime = t_curMsgTime;
-        if(d->m_preMsgTime.date() != G_loginTime.date())
-        {
-            appendChatTimeNote(t_curMsgTime,DATETIME);
-        }
-        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
-        {
-            appendChatTimeNote(t_curMsgTime,TIME);
-        }
-    }
-    else
-    {
-        if(t_curMsgTime.date() != d->m_preMsgTime.date())
-        {
-            appendChatTimeNote(t_curMsgTime,DATETIME);
-        }
-        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
-        {
-            appendChatTimeNote(t_curMsgTime,TIME);
-        }
-        d->m_preMsgTime = t_curMsgTime;
-    }
-
-//    RUtil::removeEccapeDoubleQuote(t_localHtml);//FIXME LYS-20180608
+//    RUtil::removeEccapeDoubleQuote(t_localHtml);
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     t_showMsgScript = QString("prependMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
 
     d->view->page()->runJavaScript(t_showMsgScript);
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
 }
 
 /*!
@@ -1133,43 +1189,16 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, Abstr
 {
     MQ_D(AbstractChatMainWidget);
 
+    d->m_recordCount++;
     QString t_showMsgScript = QString("");
     QString t_localHtml = unitMsg.contents;
-    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
     QString t_headPath = QString("");
-
-    if(d->m_preMsgTime.isNull())
-    {
-        d->m_preMsgTime = t_curMsgTime;
-        if(d->m_preMsgTime.date() != G_loginTime.date())
-        {
-            appendChatTimeNote(t_curMsgTime,DATETIME);
-        }
-        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
-        {
-            appendChatTimeNote(t_curMsgTime,TIME);
-        }
-    }
-    else
-    {
-        if(t_curMsgTime.date() != d->m_preMsgTime.date())
-        {
-            appendChatTimeNote(t_curMsgTime,DATETIME);
-        }
-        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
-        {
-            appendChatTimeNote(t_curMsgTime,TIME);
-        }
-        d->m_preMsgTime = t_curMsgTime;
-    }
 
 //    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);//FIXME LYS-20180608
     RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)
     {
-        User tmpUser(d->m_userInfo.accountId);
-//        t_headPath = tmpUser.getIconAbsoultePath(false,d->m_userInfo.iconId);
         t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
     else
