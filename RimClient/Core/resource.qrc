@@ -95,6 +95,8 @@
         <file>resource/icon/Folder_File.png</file>
         <file>resource/icon/File_Recv.png</file>
         <file>resource/icon/File_Send.png</file>
+        <file>resource/icon/Close-tab.png</file>
+        <file>resource/icon/Close-tab-hover.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

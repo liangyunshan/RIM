@@ -237,7 +237,6 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
      MQ_D(ChatPersonWidget);
 
     uint start = 0;
-    //TODO LYS-获取单聊信息记录列表中当前联系人的聊天信息起始位置
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
 }
 
