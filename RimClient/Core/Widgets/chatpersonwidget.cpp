@@ -115,6 +115,7 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(q_ptr,SIGNAL(sendQueryRecord(const ChatInfoUnit &)),mainWidget,SLOT(showQueryRecord(const ChatInfoUnit &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedMsg(const TextRequest &)),mainWidget,SLOT(recvTextChatMsg(const TextRequest &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedAudio(QString)),mainWidget,SLOT(recvVoiceChatMsg(QString)));
+    QObject::connect(q_ptr,SIGNAL(sendMsgStatus(ushort)),mainWidget,SLOT(updateMsgStatus(ushort)));
 
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
@@ -176,6 +177,8 @@ void ChatPersonWidget::initChatRecord()
 {
     ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
     connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList)),
+            this,SLOT(queryRecordReady(ChatInfoUnitList)));
+    connect(chatProcess,SIGNAL(C2CMsgStatusChanged(ushort,ushort)),
             this,SLOT(queryRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
@@ -334,6 +337,15 @@ void ChatPersonWidget::autoQueryRecord()
     {
         showRecentlyChatMsg(3);
     }
+}
+
+/*!
+ * @brief 更新界面文字已读/未读状态
+ * @param serialNo 文字流水号
+ */
+void ChatPersonWidget::updateMsgStatus(ushort serialNo)
+{
+    emit sendMsgStatus(serialNo);
 }
 
 /*!

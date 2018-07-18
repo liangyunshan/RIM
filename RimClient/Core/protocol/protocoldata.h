@@ -128,6 +128,11 @@ enum MsgCommand
 
     MSG_OTHER_HEAT = 0x41,                             /*!< 心跳报 */
 
+    /***信息已读未读状态******/
+    MSG_READYREAD       = 0x61 ,    /*!< 信息未读 */
+    MSG_NOTREAD         = 0x62 ,    /*!< 信息已读 */
+    MSG_ARRIVE_SERVER   = 0x63 ,    /*!< 信息已到达服务器 */
+
 /****MsgType为MSG_TEXT时以下字段有效******/
     MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天文字信息 */
     MSG_TEXT_SHAKE = 0xA2,                             /*!< 窗口抖动 */
@@ -139,7 +144,7 @@ enum MsgCommand
 /****MsgType为MSG_FILE时以下字段有效******/
     MSG_FILE_CONTROL = 0xB1,                           /*!< 传输控制命令 */
     MSG_FILE_REQUEST = 0xB2,                           /*!< 传输请求 */
-    MSG_FILE_DATA = 0xB3,                               /*!< 传输正文 */
+    MSG_FILE_DATA = 0xB3,                              /*!< 传输正文 */
 
 /***TCP头部信息报文******/
     MSG_TCP_TRANS = 0xC1
@@ -976,6 +981,10 @@ class TextReply : public MsgPacket
 {
 public:
     TextReply();
+#ifdef __LOCAL_CONTACT__
+    unsigned short wSourceAddr; /*!< 本节点号 */
+    unsigned short wDestAddr;   /*!< 目标节点号 */
+#endif
     QString textId;             /*!< 消息唯一标识 */
     TextReplyType applyType;    /*!< 消息回执类型 @link TextApplyType @endlink */
 };

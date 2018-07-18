@@ -40,6 +40,7 @@ protected:
 
 signals:
     void sendQueryRecord(const ChatInfoUnit &);
+    void sendMsgStatus(ushort serialNo);
     void sendRecvedMsg(const TextRequest &msg);
     void sendRecvedAudio(const QString &file);
 
@@ -47,6 +48,7 @@ public slots:
     void shakeWindow();
     void queryRecordReady(ChatInfoUnitList);
     void autoQueryRecord();
+    void updateMsgStatus(ushort serialNo);
 
 private:
     void switchWindowSize();

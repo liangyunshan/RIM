@@ -107,6 +107,7 @@ private slots:
     void slot_RecvRUDpData(QByteArray data);
     void sendTargetFiles(bool);
     void updateTransFileTab();
+    void updateMsgStatus(ushort serialNo);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;

@@ -50,7 +50,7 @@ RChatList::RChatList():table("rchatlist"),id("ID"),accountId("ACCOUNTID"),firstC
 }
 
 RChatRecord::RChatRecord():table("rchatrecord"),id("ID"),accountId("ACCOUNTID"),nickName("NICKNAME"),time("TTIME"),type("TYPE"),
-    dateTime("DATETIME"),serialNo("SERIALNO"),data("DATA")
+    dateTime("DATETIME"),serialNo("SERIALNO"),status("STATUS"),data("DATA")
 {
 
 }
@@ -72,6 +72,7 @@ bool RChatRecord::initTable(const QString &name)
                                            "`TYPE`  tinyint(2) NULL ,"
                                            "`DATETIME`  varchar(7) NOT NULL,"
                                            "`SERIALNO`  tinyint(2) NOT NULL,"
+                                           "`STATUS`  tinyint(2) NULL ,"
                                            "`DATA`  varchar(255) NULL"
                                            ")").arg(table);
    QSqlQuery query(G_User->database()->sqlDatabase());

@@ -89,6 +89,26 @@ void ChatMsgProcess::appendC2CQueryTask(QString otherID, uint begin, uint count)
 }
 
 /*!
+ * @brief 更新单聊界面的信息的已读和未读状态
+ * @param accountid 对方ID
+ * @param serialNo 信息流水号
+ */
+void ChatMsgProcess::appendC2CUpdateMsgStatusTask(QString otherID, uint serialNo)
+{
+    TaskQueue t_newQueryTask;
+    ChatInfoUnit t_unit;
+    t_unit.accountId = G_User->BaseInfo().accountId;
+    t_unit.serialNo = serialNo;
+    t_newQueryTask.otherID = otherID;
+    t_newQueryTask.tskType = C2C_TASK;
+    t_newQueryTask.actType = UPDATE_MSG;
+    t_newQueryTask.msg = t_unit;
+    m_TaskQueue.enqueue(t_newQueryTask);
+
+    startMe();
+}
+
+/*!
  * @brief ChatMsgProcess::appendGroupStoreTask 加入存储群聊消息任务到任务队列中
  * @param targetID 群账号id
  * @param msgUnit 需要存储的群聊消息数据
@@ -165,6 +185,14 @@ void ChatMsgProcess::run()
                 }
 
                 break;
+            case UPDATE_MSG:
+                {
+                    if(m_task.tskType == C2C_TASK)
+                    {
+                        updateC2CTaskMsgStatus(m_task.otherID,m_task.msg.serialNo);
+                    }
+                }
+                break;
             default:
                 break;
             }
@@ -188,6 +216,7 @@ bool ChatMsgProcess::saveC2CTaskMsg(QString otherID, ChatInfoUnit &msgUnit)
                ,{rcr.time,msgUnit.dtime}
                ,{rcr.dateTime,msgUnit.dateTime}
                ,{rcr.serialNo,msgUnit.serialNo}
+               ,{rcr.status,MSG_NOTREAD}
                ,{rcr.data,msgUnit.contents}
                });
 
@@ -220,6 +249,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
                           {rcr.time},
                           {rcr.dateTime},
                           {rcr.serialNo},
+                          {rcr.status},
                           {rcr.data}})
             .createCriteria();
     rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
@@ -243,6 +273,27 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
         }
         if(chatMsgs.size())
             emit C2CResultReady(chatMsgs);
+        return true;
+    }
+
+    return false;
+}
+
+bool ChatMsgProcess::updateC2CTaskMsgStatus(QString otherID, ushort serialNo)
+{
+    DataTable::RChatRecord rcr;
+    rcr.initTable("rchatrecord_"+otherID);
+    RUpdate rpd(rcr.table);
+    rpd.update(rcr.table,{{rcr.status,MSG_READYREAD}})
+            .enableAlias(false)
+            .createCriteria()
+            .add(Restrictions::eq(rcr.table,rcr.accountId,otherID))
+            .add(Restrictions::eq(rcr.table,rcr.serialNo,serialNo));
+
+    QSqlQuery query(G_User->database()->sqlDatabase());
+    if(query.exec(rpd.sql()))
+    {
+        emit C2CMsgStatusChanged(otherID.toUShort(),serialNo);
         return true;
     }
 

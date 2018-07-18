@@ -570,8 +570,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
 
-    RSingleton<MsgQueueManager>::instance()->enqueue(request);
-
     //分开发送输入框中的图片
 //    QStringList t_imgDirs;
 //    d->chatInputArea->getInputedImgs(t_imgDirs);
@@ -799,6 +797,14 @@ void AbstractChatMainWidget::updateTransFileTab()
     int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
     QString m_tabText = tr("Transfer Files")+d->fileList->taskListProgress();
     d->rightSideWidget->setTabText(transFileIndex,m_tabText);
+}
+
+/*!
+ * @brief 更新界面中信息的已读未读状态
+ */
+void AbstractChatMainWidget::updateMsgStatus(ushort serialNo)
+{
+    //TODO 更新界面中显示的读取状态
 }
 
 /*!

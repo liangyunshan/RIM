@@ -146,6 +146,9 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
     QDB495_SendPackage packet;
     memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<recvLen
+          <<"\n";
 
     if(recvLen > sizeof(QDB495_SendPackage))
     {

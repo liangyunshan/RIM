@@ -49,12 +49,16 @@ Data716Process::Data716Process()
 
 void Data716Process::processTextNoAffirm(const ProtocolPackage &data)
 {
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"I recv a 2048 affirm data:"<<data.usOrderNo<<data.usSerialNo
+          <<"\n";
     if(data.usOrderNo == O_2048)
     {
         TextReply textReply;
+        textReply.wSourceAddr = data.wSourceAddr;
+        textReply.wDestAddr = data.wDestAddr;
         textReply.textId = QString::number(data.usSerialNo);
         textReply.applyType = APPLY_RECEIPT;
-
         MessDiapatch::instance()->onRecvTextReply(textReply);
     }
     else
@@ -123,6 +127,9 @@ void Data716Process::applyTextStatus(const ProtocolPackage &data)
         request.msgCommand = MSG_TCP_TRANS;
         request.sourceId = QString::number(data.wDestAddr);
         request.destId = QString::number(data.wSourceAddr);
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<"ready affirm data:"<<request.extendData.usOrderNo<<request.extendData.usSerialNo
+              <<"\n";
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,conf.communicationMethod,conf.messageFormat);
     }
 }
