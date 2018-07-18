@@ -43,12 +43,15 @@ signals:
     void sendMsgStatus(ushort serialNo);
     void sendRecvedMsg(const TextRequest &msg);
     void sendRecvedAudio(const QString &file);
+    void sendMoreQueryRecord(const ChatInfoUnit & ,bool hasNext);
 
 public slots:
     void shakeWindow();
     void queryRecordReady(ChatInfoUnitList);
+    void queryMoreRecordReady(ChatInfoUnitList);
     void autoQueryRecord();
     void updateMsgStatus(ushort serialNo);
+    void showMaximizedWindow(bool);
 
 private:
     void switchWindowSize();

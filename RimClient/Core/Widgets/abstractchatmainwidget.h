@@ -67,6 +67,8 @@ public:
     void inserHtml(QUrl &htmlUrl);
     void setChatType(ChatType type);
     void playVoiceMessage(QString audioName);
+    void updateMsgRecord();
+    void setNextDateTime(QDateTime);
     void setChatChannel(QWebChannel *channel);
 
 protected:
@@ -99,6 +101,7 @@ private slots:
     void preapreCancelAudio();
 
     void showQueryRecord(const ChatInfoUnit &);
+    void showMoreQueryRecord(const ChatInfoUnit & ,bool hasNext=false);
     void recvTextChatMsg(const TextRequest &msg);
     void recvVoiceChatMsg(const QString &msg);
     void respCloseRightSideTab(int);

@@ -7,7 +7,6 @@
 #include "qdb2051_wraprule.h"
 #include "qdb2048_wraprule.h"
 #include "Util/rsingleton.h"
-#include <QDebug>
 
 namespace ServerNetwork{
 

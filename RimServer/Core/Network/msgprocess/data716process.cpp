@@ -1,8 +1,8 @@
 ﻿#include "data716process.h"
 
-#include <QDebug>
 #include <thread>
 #include <qmath.h>
+#include <QDebug>
 
 #include "../msgwrap/localmsgwrap.h"
 #include "rsingleton.h"
@@ -24,7 +24,6 @@ using namespace QDB21;
 using namespace QDB2051;
 
 #ifdef __LOCAL_CONTACT__
-#include <QDebug>
 
 extern OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result);
 extern NodeServer QueryServerDescInfo(QString nodeId,bool & result);
@@ -142,6 +141,8 @@ void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage
  * @note 文件数据发送目前采用端-端传输方式，若A-S-B，那么文件传输为：A-S、S-B \n
  *       [1]文件接收由专门的文件管理器负责，提供对文件的查询、创建、保存等功能； \n
  *       [2]文件接收完成后，检查接收端是否在线，不在线则缓存记录，在线则直接传输。 \n
+ * @warning  [1]只有偏移量在为0的时候才进行文件创建 \n
+ *           [2]文件传输过程中可中止传输(响应4908命令)
  * @param[in] db 数据库连接
  * @param[in] sockId 网络连接
  * @param[in] data 数据信息描述
@@ -152,6 +153,10 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
     if(client){
         FileRecvDesc * desc = client->getFile(QString::fromLocal8Bit(data.cFilename));
         if(desc == nullptr){
+
+            if(data.wOffset != 0)
+                return;
+
             desc = new FileRecvDesc();
             desc->md5 = RUtil::UUID();
             desc->itemKind = (int)data.cFileType;

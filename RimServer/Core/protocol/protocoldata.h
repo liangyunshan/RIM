@@ -1138,6 +1138,6 @@ public:
     QByteArray data;                /*!< 数据块 */
 };
 
-}
+} //namespace ProtocolType
 
 #endif // PROTOCOLDATA_H

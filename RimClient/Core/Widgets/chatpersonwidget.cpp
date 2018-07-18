@@ -116,6 +116,7 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(q_ptr,SIGNAL(sendRecvedMsg(const TextRequest &)),mainWidget,SLOT(recvTextChatMsg(const TextRequest &)));
     QObject::connect(q_ptr,SIGNAL(sendRecvedAudio(QString)),mainWidget,SLOT(recvVoiceChatMsg(QString)));
     QObject::connect(q_ptr,SIGNAL(sendMsgStatus(ushort)),mainWidget,SLOT(updateMsgStatus(ushort)));
+    QObject::connect(q_ptr,SIGNAL(sendMoreQueryRecord(const ChatInfoUnit &,bool)),mainWidget,SLOT(showMoreQueryRecord(const ChatInfoUnit &,bool)));
 
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
@@ -136,6 +137,7 @@ void ChatPersonWidgetPrivate::initWidget()
     windowToolBar->setToolFlags(ToolBar::TOOL_ACTION);
     QObject::connect(windowToolBar,SIGNAL(minimumWindow()),q_ptr,SLOT(showMinimized()));
     QObject::connect(windowToolBar,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
+    QObject::connect(windowToolBar,SIGNAL(maxWindow(bool)),q_ptr,SLOT(showMaximizedWindow(bool)));
 }
 
 ChatPersonWidget::ChatPersonWidget(QWidget *parent):
@@ -180,6 +182,8 @@ void ChatPersonWidget::initChatRecord()
             this,SLOT(queryRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(C2CMsgStatusChanged(ushort,ushort)),
             this,SLOT(queryRecordReady(ChatInfoUnitList)));
+    connect(chatProcess,SIGNAL(C2CMoreResultReady(ChatInfoUnitList)),
+            this,SLOT(queryMoreRecordReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
 }
@@ -302,13 +306,27 @@ void ChatPersonWidget::shakeWindow()
  */
 void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
 {
-    MQ_D(ChatPersonWidget);
-
     foreach(ChatInfoUnit unit,historyMsgs)
     {
         emit sendQueryRecord(unit);
     }
 
+}
+
+void ChatPersonWidget::queryMoreRecordReady(ChatInfoUnitList moreMsgs)
+{
+    MQ_D(ChatPersonWidget);
+
+    for(int index=0;index<moreMsgs.count();index++)
+    {
+        ChatInfoUnit unit = moreMsgs.at(index);
+        bool hasNext = (index+1)<moreMsgs.count();
+        if(hasNext)
+        {
+            d->mainWidget->setNextDateTime(RUtil::addMSecsToEpoch(unit.dtime));
+        }
+        emit sendMoreQueryRecord(unit,hasNext);
+    }
 }
 
 /*!
@@ -337,6 +355,12 @@ void ChatPersonWidget::autoQueryRecord()
     {
         showRecentlyChatMsg(3);
     }
+}
+
+void ChatPersonWidget::showMaximizedWindow(bool flag)
+{
+    Q_UNUSED(flag);
+    showMaximized();
 }
 
 /*!

@@ -21,12 +21,9 @@
 #include <QFile>
 #include <QDir>
 #include <QFileInfo>
-#include <QDebug>
 #include <QDataStream>
 #include "../network_global.h"
 #include "../head.h"
-
-#include <QDebug>
 
 namespace ServerNetwork {
 
@@ -121,7 +118,6 @@ struct FileRecvDesc
     {
         if(!file.isOpen()){
             file.setFileName(filePath + "/" +md5);
-            qDebug()<<"++++:"<<(filePath + "/" +md5);
             if(file.open(QFile::WriteOnly) )
             {
                 if(file.resize(size))
@@ -227,7 +223,7 @@ struct FileSendDesc
 
     bool open(){
         QString fullPath = filePath + QDir::separator() + md5;
-        qDebug()<<"---:"<<(fullPath);
+
         if(QFileInfo(fullPath).exists()){
             file.setFileName(fullPath);
             return file.open(QFile::ReadOnly);
