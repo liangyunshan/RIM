@@ -18,6 +18,8 @@ TcpTransmit::TcpTransmit():
     dataPacketRule = std::make_shared<TCPDataPacketRule>();
 #endif
     tcpSocket = new RSocket();
+
+    sendFunc = [&](const char * buff,const int length)->int{return tcpSocket->send(buff,length);};
 }
 
 TcpTransmit::~TcpTransmit()
@@ -41,15 +43,20 @@ QString TcpTransmit::name()
  * @return 是否传输成功
  * @note 若传输失败，则直接关闭socket，并将错误信息交由上层处理。
  */
-bool TcpTransmit::startTransmit(SendUnit &unit)
+bool TcpTransmit::startTransmit(SendUnit &unit, SendCallbackFunc func)
 {
     if(tcpSocket && tcpSocket->isValid()){
-        auto func = [&](const char * buff,const int length)->int{
-            return tcpSocket->send(buff,length);
-        };
-
-        if(dataPacketRule->wrap(unit.dataUnit,func))
+        if(dataPacketRule->wrap(unit.dataUnit,sendFunc)){
+            if(func != nullptr){
+                FileDataSendProgress progress;
+                progress.wSerialNo = unit.dataUnit.usSerialNo;
+                progress.wDestAddr = unit.dataUnit.wDestAddr;
+                progress.dwPackAllLen = unit.dataUnit.dwPackAllLen;
+                progress.wPackLen = unit.dataUnit.data.length();
+                func(progress);
+            }
             return true;
+        }
     }
 
     close();

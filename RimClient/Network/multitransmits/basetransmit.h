@@ -14,6 +14,8 @@
 #include <functional>
 #include <QByteArray>
 
+typedef std::function<void(FileDataSendProgress)> SendCallbackFunc;
+
 namespace ClientNetwork{
 
 class NETWORKSHARED_EXPORT BaseTransmit
@@ -22,7 +24,7 @@ public:
     explicit BaseTransmit();
     virtual ~BaseTransmit();
 
-    virtual bool startTransmit(SendUnit & unit) = 0;
+    virtual bool startTransmit(SendUnit & unit,SendCallbackFunc func = nullptr) = 0;
     virtual bool startRecv(char * recvBuff,int recvBuffLen,DataHandler recvDataFunc) = 0;
 
     virtual CommMethod type() = 0;

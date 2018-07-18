@@ -128,16 +128,18 @@ void NetSettingsPrivate::initWidget()
 
     textServerIp = new IpSettingContainer;
 
+    /*******************串联服务器地址*************************/
+#ifdef __LOCAL_CONTACT__
+    QLabel * tandemLabel = new QLabel(mainWidget);
+    tandemLabel->setText(QObject::tr("Tandem Server"));
+    tandemServerIp1 = new IpSettingContainer;
+#endif
+
     /*******************文件服务器地址*************************/
     QLabel * fileLabel = new QLabel(mainWidget);
-#ifdef __LOCAL_CONTACT__
-    fileLabel->setText(QObject::tr("Tandem Server"));
-
-    tandemServerIp1 = new IpSettingContainer;
-#else
     fileLabel->setText(QObject::tr("File Server"));
     fileServerIp = new IpSettingContainer;
-#endif
+
     /***************按钮区******************/
     QWidget * bottomWidget = new QWidget(contentWidget);
 
@@ -162,16 +164,17 @@ void NetSettingsPrivate::initWidget()
 
     gridLayout->addWidget(textLabel,0,1,1,1);
     gridLayout->addWidget(textServerIp,1,1,1,5);
-
-    gridLayout->addWidget(fileLabel,2,1,1,1);
 #ifdef __LOCAL_CONTACT__
+    gridLayout->addWidget(tandemLabel,2,1,1,1);
     gridLayout->addWidget(tandemServerIp1,3,1,1,5);
-#else
-    gridLayout->addWidget(fileServerIp,3,1,1,5);
 #endif
-    gridLayout->setRowStretch(4,5);
-    gridLayout->addWidget(bottomWidget,5,0,1,7);
-    gridLayout->setColumnStretch(6,1);
+
+    gridLayout->addWidget(fileLabel,4,1,1,1);
+    gridLayout->addWidget(fileServerIp,5,1,1,5);
+
+    gridLayout->setRowStretch(6,5);
+    gridLayout->addWidget(bottomWidget,7,0,1,7);
+    gridLayout->setColumnStretch(8,1);
 
     mainWidget->setLayout(gridLayout);
 
@@ -217,10 +220,9 @@ void NetSettings::initLocalSettings()
 #ifdef __LOCAL_CONTACT__
     d->tandemServerIp1->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString(),
                                      settings->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toString());
-#else
+#endif
     d->fileServerIp->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString(),
                                      settings->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
-#endif
     RUtil::globalSettings()->endGroup();
 }
 
@@ -246,18 +248,19 @@ void NetSettings::updateSettings()
     }
 
 #ifdef __LOCAL_CONTACT__
-    if((d->tandemServerIp1->getIp().size() > 0 || d->tandemServerIp1->getPort().size() > 0) && (!d->tandemServerIp1->isValidIp()
-            || !d->tandemServerIp1->isValidPort()) ){
+    if(d->tandemServerIp1->getIp().size() <= 0 || d->tandemServerIp1->getPort().size() <= 0 || !d->tandemServerIp1->isValidIp()
+           || !d->tandemServerIp1->isValidPort() ){
         RMessageBox::warning(this,tr("Warning"),tr("trandem ip address is error!"),RMessageBox::Yes);
         return;
     }
-#else
-    if((d->fileServerIp->getIp().size() > 0 && !d->fileServerIp->isValidIp()) ||
-            (d->fileServerIp->getPort().size() > 0 && !d->fileServerIp->isValidPort())){
+#endif
+
+    if(d->fileServerIp->getIp().size() <= 0 || d->fileServerIp->getPort().size() <= 0 || !d->fileServerIp->isValidIp()
+           || !d->fileServerIp->isValidPort() ){
         RMessageBox::warning(this,tr("Warning"),tr("file address is error!"),RMessageBox::Yes);
         return;
     }
-#endif
+
 
     if(G_NetSettings.textServer.ip != d->textServerIp->getIp() ||
             G_NetSettings.textServer.port != d->textServerIp->getPort().toUShort())

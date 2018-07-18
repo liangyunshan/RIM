@@ -2,8 +2,6 @@
 
 #include <mswsock.h>
 
-#include <QDebug>
-
 #include "Util/rlog.h"
 
 #include "SharedIocpData.h"

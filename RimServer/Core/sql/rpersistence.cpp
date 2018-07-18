@@ -1,6 +1,5 @@
 ﻿#include "rpersistence.h"
 
-#include <QDebug>
 #include <QTextStream>
 
 const QString spacer = " ";

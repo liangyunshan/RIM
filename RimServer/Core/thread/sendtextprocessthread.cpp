@@ -1,6 +1,5 @@
 ﻿#include "sendtextprocessthread.h"
 
-#include <QDebug>
 #include <qmath.h>
 
 #include "Network/netglobal.h"

@@ -1,7 +1,6 @@
 ﻿#include "sqlprocess.h"
 
 #include <QString>
-#include <QDebug>
 #include <QSqlQuery>
 #include <QSqlResult>
 #include <QDate>
@@ -22,6 +21,7 @@
 #include "global.h"
 #include "autotransaction.h"
 #include "../rsingleton.h"
+#include "../protocol/protocoldata.h"
 
 std::mutex ACCOUNT_LOCK;
 std::mutex GROUP_ACCOUNT_LOCK;
@@ -1638,7 +1638,7 @@ bool SQLProcess::loadChatCache(Database *db, QString accountId, QList<TextReques
  * @param[in] request 文本请求
  * @return 是否保存成功
  */
-bool SQLProcess::saveUserChat2Cache(Database *db, QSharedPointer<TextRequest> request)
+bool SQLProcess::saveUserChat2Cache(Database *db, QSharedPointer<ProtocolType::TextRequest> request)
 {
     DataTable::RUserChatCache userchatcache;
     RPersistence rps(userchatcache.table);

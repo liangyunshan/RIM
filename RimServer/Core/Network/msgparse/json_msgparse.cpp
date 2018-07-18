@@ -2,9 +2,9 @@
 
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QVariant>
 #include <QSharedPointer>
 #include <memory>
-#include <QDebug>
 
 #include "Util/rlog.h"
 #include "rsingleton.h"

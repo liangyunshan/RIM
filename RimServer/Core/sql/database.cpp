@@ -1,7 +1,6 @@
 ﻿#include "database.h"
 
 #include <QSqlError>
-#include <QDebug>
 
 #include "Util/rutil.h"
 #include "Util/rlog.h"

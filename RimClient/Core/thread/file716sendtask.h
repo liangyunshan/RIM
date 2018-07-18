@@ -12,6 +12,7 @@
 
 #include "Network/rtask.h"
 #include "../protocol/datastruct.h"
+#include "Network/multitransmits/basetransmit.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -153,6 +154,9 @@ public:
 
     static File716SendTask * instance();
 
+    bool addTransmit(std::shared_ptr<ClientNetwork::BaseTransmit> trans,SendCallbackFunc callback = nullptr);
+    bool removaAllTransmit();
+
     void startMe();
     void stopMe();
 
@@ -170,6 +174,8 @@ private:
     int maxTransferFiles;         /*!< 最大传输的文件数量 */
     std::list<std::shared_ptr<FileSendDesc>> sendList;    /*!< 正在发送的文件信息 */
 
+    std::mutex tranMutex;
+    std::map<CommMethod,std::pair<std::shared_ptr<ClientNetwork::BaseTransmit>,SendCallbackFunc>> transmits;
 };
 
 #endif
