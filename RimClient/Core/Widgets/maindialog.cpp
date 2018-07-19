@@ -150,7 +150,8 @@ void MainDialog::onMessage(MessageType type)
             break;
         case MESS_SCREEN_CHANGE:
             {
-                changeGeometry(geometry());
+            //如果运行这一句，在左右屏幕之间拖动聊天界面的时候，会将已经隐藏到桌边的主面板显示到固定的1屏幕位置
+//                changeGeometry(geometry());
             }
             break;
          case MESS_USER_OFF_LINE:
@@ -515,16 +516,14 @@ void MainDialog::procRecvText(TextRequest response)
  */
 void MainDialog::procRecvServerTextReply(TextReply reply)
 {
-    TextRequest * msgDesc = RSingleton<MsgQueueManager>::instance()->dequeue(reply.textId);
-    if(msgDesc != NULL)
-    {
-         UserClient * client = RSingleton<UserManager>::instance()->client(msgDesc->otherSideId);
-         if(client && client->chatPersonWidget != NULL)
-         {
-             client->procRecvServerTextReply(reply);
-         }
-         delete msgDesc;
-    }
+    //TODO 尚超：因为需要实现信息的已读和未读状态控制，我们计划将信息从数据库中读取出来后，将对应流水号的状态修改为已读，同时更新数据库
+    //从内存缓存中读取流水号的方法已经不适应现有的已读未读状态控制的场景
+    //如果需要翻看以前的代码，请使用版本管理工具查看
+     UserClient * client = RSingleton<UserManager>::instance()->client(QString::number(reply.wSourceAddr));
+     if(client && client->chatPersonWidget != NULL)
+     {
+         client->procRecvServerTextReply(reply);
+     }
 }
 
 /*!

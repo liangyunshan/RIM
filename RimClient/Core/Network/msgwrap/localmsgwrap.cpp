@@ -8,6 +8,7 @@
 #include "binary_wrapformat.h"
 #include "global.h"
 #include "user/user.h"
+#include "others/serialno.h"
 #include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
@@ -56,6 +57,7 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
             {
                 unit.dataUnit.wSourceAddr = textRequest->accountId.toInt();
                 unit.dataUnit.wDestAddr = textRequest->accountId.toInt();
+                unit.dataUnit.usSerialNo = SERIALNO_FRASH;
                 unit.dataUnit.bPackType = T_DATA_NOAFFIRM;
                 unit.dataUnit.bPeserve = 0X80;
             }
@@ -70,7 +72,14 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
                 unit.dataUnit.wDestAddr = dataPackType->destId.toInt();
                 unit.dataUnit.bPackType = dataPackType->extendData.type495;
                 unit.dataUnit.usOrderNo = dataPackType->extendData.usOrderNo;
-                unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
+                if(dataPackType->extendData.usSerialNo == 0)
+                {
+                    unit.dataUnit.usSerialNo = SERIALNO_FRASH;
+                }
+                else
+                {
+                    unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
+                }
                 unit.dataUnit.bPeserve = 0X80;
             }
         }
@@ -88,6 +97,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
     }else if(method == C_TongKong && format == M_495){
         unit.method = C_TCP;
     }
+
+    SerialNo::instance()->updateSqlSerialNo(unit.dataUnit.usSerialNo);
 
     if(stype == SERVER_TEXT){
         if(unit.method != C_NONE){

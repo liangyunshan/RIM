@@ -49,10 +49,16 @@ RChatList::RChatList():table("rchatlist"),id("ID"),accountId("ACCOUNTID"),firstC
 }
 
 RChatRecord::RChatRecord():table("rchatrecord"),id("ID"),accountId("ACCOUNTID"),nickName("NICKNAME"),time("TTIME"),type("TYPE"),
-    dateTime("DATETIME"),serialNo("SERIALNO"),data("DATA")
+    dateTime("DATETIME"),serialNo("SERIALNO"),status("STATUS"),data("DATA")
 {
 
 }
+
+RChatSerialNo::RChatSerialNo():table("rchatserialno"),id("ID"),serialno("SERIALNO")
+{
+
+}
+
 
 bool RChatRecord::initTable(const QString &name)
 {
@@ -65,6 +71,7 @@ bool RChatRecord::initTable(const QString &name)
                                            "`TYPE`  tinyint(2) NULL ,"
                                            "`DATETIME`  varchar(7) NOT NULL,"
                                            "`SERIALNO`  tinyint(2) NOT NULL,"
+                                           "`STATUS`  tinyint(2) NULL ,"
                                            "`DATA`  varchar(255) NULL"
                                            ")").arg(table);
    QSqlQuery query(G_User->database()->sqlDatabase());
@@ -72,6 +79,20 @@ bool RChatRecord::initTable(const QString &name)
        return false;
 
    return true;
+}
+
+bool RChatSerialNo::initTable(const QString &name)
+{
+    table = name;
+    QString SQLSerialNo = QString("CREATE TABLE  IF NOT EXISTS `%1`("
+                                            "`ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+                                            "`SERIALNO`  int(10) NOT NULL"
+                                            ")").arg(table);
+    QSqlQuery query(G_User->database()->sqlDatabase());
+    if(!query.exec(SQLSerialNo))
+        return false;
+
+    return true;
 }
 
 }
