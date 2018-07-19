@@ -21,6 +21,7 @@ DEFINES += __LOCAL_CONTACT__
 
 TARGET = RimClient
 TEMPLATE = app
+CONFIG+= console
 
 CONFIG(debug, debug|release) {
 #  TARGET = $$join(TARGET,,,d)           #为debug版本生成的文件增加d的后缀
@@ -181,7 +182,8 @@ SOURCES += \
     Network/msgprocess/data716process.cpp \
     Widgets/chat/transferfileitem.cpp \
     Widgets/chat/transferfilelistbox.cpp\
-    thread/file716sendtask.cpp
+    thread/file716sendtask.cpp \
+    others/serialno.cpp
 
 
 HEADERS  += \
@@ -303,7 +305,8 @@ HEADERS  += \
     Network/msgprocess/data716process.h \
     Widgets/chat/transferfileitem.h \
     Widgets/chat/transferfilelistbox.h\
-    thread/file716sendtask.h
+    thread/file716sendtask.h \
+    others/serialno.h
 
 DISTFILES += \
     Widgets/Widgets.pri

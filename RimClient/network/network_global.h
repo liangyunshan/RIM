@@ -24,8 +24,6 @@
 
 typedef int(*Func)(const char *,const int);
 
-static unsigned int SERIALNO_STATIC = 1;
-
 struct DataPacket
 {
     unsigned int magicNum;                   //魔数

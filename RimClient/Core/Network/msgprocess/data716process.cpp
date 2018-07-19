@@ -52,9 +52,10 @@ void Data716Process::processTextNoAffirm(const ProtocolPackage &data)
     if(data.usOrderNo == O_2048)
     {
         TextReply textReply;
+        textReply.wSourceAddr = data.wSourceAddr;
+        textReply.wDestAddr = data.wDestAddr;
         textReply.textId = QString::number(data.usSerialNo);
         textReply.applyType = APPLY_RECEIPT;
-
         MessDiapatch::instance()->onRecvTextReply(textReply);
     }
     else

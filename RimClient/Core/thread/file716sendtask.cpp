@@ -267,7 +267,7 @@ void File716SendTask::processFileData()
                 (*iter)->read(unit.dataUnit.data);
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;
-                unit.dataUnit.usSerialNo = 4567;
+                unit.dataUnit.usSerialNo = (*iter)->usSerialNo;
                 unit.dataUnit.usOrderNo = O_2051;
                 unit.dataUnit.cDate = 0;
                 unit.dataUnit.cTime = 0;
