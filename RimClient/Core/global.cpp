@@ -1,6 +1,7 @@
 ﻿#include "global.h"
 #include <QApplication>
 #include <QAction>
+#include "others/serialno.h"
 
 ParameterSettings::ParaSettings* G_ParaSettings;   /*!< 本地参数配置 */
 
@@ -19,3 +20,12 @@ QAction *G_pHideWindowAction = NULL;
 ScreenShot *G_pScreenShot = NULL;
 int G_mIsEnter = Qt::Key_Return;
 
+unsigned short FrashSerialNo()
+{
+    return SerialNo::instance()->FrashSerialNo();
+}
+
+void SetSerialNo(unsigned int No)
+{
+    return SerialNo::instance()->SetSerialNo(No);
+}

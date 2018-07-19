@@ -1,4 +1,4 @@
-#include "netglobal.h"
+﻿#include "netglobal.h"
 
 std::queue<RecvUnit> G_TextRecvBuffs;
 std::mutex G_TextRecvMutex;

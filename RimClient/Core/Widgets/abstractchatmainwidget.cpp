@@ -48,6 +48,7 @@
 #include "actionmanager/actionmanager.h"
 #include "Widgets/textedit/simpletextedit.h"
 #include "../thread/file716sendtask.h"
+#include "../network/netglobal.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -542,10 +543,14 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     ChatInfoUnit t_unit;
     t_unit.contentType = MSG_TEXT_TEXT;
     t_unit.accountId = G_User->BaseInfo().accountId;
-    t_unit.nickName = d->m_userInfo.nickName;
+    t_unit.nickName = G_User->BaseInfo().nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
-    t_unit.serialNo = 123;
+#ifdef __LOCAL_CONTACT__
+    t_unit.serialNo = SERIALNO_FRASH;
+#else
+    t_unit.serialNo = record.dtime;
+#endif
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
@@ -580,8 +585,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->timeStamp = RUtil::timeStamp();
 #ifdef __LOCAL_CONTACT__
     request->otherSideId = d->netconfig.nodeId;
-    SERIALNO_STATIC>=65535?(SERIALNO_STATIC=1) : (SERIALNO_STATIC++);
-    request->textId = QString::number(SERIALNO_STATIC);
+    request->textId = QString::number(t_unit.serialNo);
     request->sendData = d->chatInputArea->toPlainText();
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 #else
@@ -590,8 +594,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->sendData = t_sendHtml;     //FIXME LYS-20180608
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
-
-    RSingleton<MsgQueueManager>::instance()->enqueue(request);
 
     //分开发送输入框中的图片
 //    QStringList t_imgDirs;
@@ -852,6 +854,14 @@ void AbstractChatMainWidget::updateTransFileTab()
     int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
     QString m_tabText = tr("Transfer Files")+"("+d->fileList->taskListProgress()+")";
     d->rightSideWidget->setTabText(transFileIndex,m_tabText);
+}
+
+/*!
+ * @brief 更新界面中信息的已读未读状态
+ */
+void AbstractChatMainWidget::updateMsgStatus(ushort serialNo)
+{
+    //TODO 更新界面中显示的读取状态
 }
 
 /*!

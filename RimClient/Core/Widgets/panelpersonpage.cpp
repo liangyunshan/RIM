@@ -279,6 +279,14 @@ void PanelPersonPage::onMessage(MessageType type)
                 updateGroupDescInfo();
             }
         break;
+    case MESS_TEXT_NET_OK:
+    case MESS_FILE_NET_OK:
+            {
+#ifdef __LOCAL_CONTACT__
+                networkIsConnected(true);
+#endif
+            }
+        break;
     default:
         break;
     }
@@ -310,7 +318,7 @@ void PanelPersonPage::updateFriendListAdapter()
         userInfo->remarks = user.nodeId;
         userInfo->isSystemIcon = true;
         userInfo->iconId = "";
-        userInfo->status = STATUS_ONLINE;
+        userInfo->status = STATUS_OFFLINE;
         groupData->users.append(userInfo);
     });
 
@@ -649,6 +657,17 @@ void PanelPersonPage::networkIsConnected(bool isConnected)
     MQ_D(PanelPersonPage);
     if(isConnected){
         //TODO 查询在线联系人状态
+
+        //如果按照新协议，则全部上线
+#ifdef __LOCAL_CONTACT__
+        for(int i = 0;i<d->toolBox->allPages().size();i++){
+            ToolPage * page = d->toolBox->allPages().at(i);
+            std::for_each(page->items().cbegin(),page->items().cend(),[](ToolItem *info){
+                info->setStatus(STATUS_ONLINE);
+            });
+        }
+#endif
+
     }else{
         for(int i = 0;i<d->toolBox->allPages().size();i++){
             ToolPage * page = d->toolBox->allPages().at(i);

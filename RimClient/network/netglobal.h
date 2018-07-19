@@ -1,4 +1,4 @@
-#ifndef NETGLOBAL_H
+﻿#ifndef NETGLOBAL_H
 #define NETGLOBAL_H
 
 #include "network_global.h"
@@ -24,6 +24,5 @@ NETWORKSHARED_EXPORT extern std::condition_variable  G_FileRecvCondition;
 NETWORKSHARED_EXPORT extern std::queue<SendUnit> G_FileSendBuffs;
 NETWORKSHARED_EXPORT extern std::mutex G_FileSendMutex;
 NETWORKSHARED_EXPORT extern std::condition_variable  G_FileSendWaitCondition;
-
 
 #endif // NETGLOBAL_H

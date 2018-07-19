@@ -58,7 +58,6 @@ class RChatRecord
 {
 public:
     RChatRecord();
-//    const QString table;
     QString table;
     const QString id;                   /*!< 记录id，int自动增长 */
     const QString accountId;            /*!< 对方accountId */
@@ -67,8 +66,19 @@ public:
     const QString type;                 /*!< 信息类型:文本信息、语音信息、图片信息等 */
     const QString dateTime;             /*!< 日期时间 */
     const QString serialNo;             /*!< 流水号 */
+    const QString status;               /*!< 已读未读状态 */
     const QString data;                 /*!< 对话内容 */
     bool initTable(const QString &name);
+};
+
+class RChatSerialNo
+{
+public:
+    RChatSerialNo();
+    bool initTable(const QString &name);
+    QString table;
+    const QString id;                   /*!< 记录id，int自动增长 */
+    const QString serialno;            /*!< 最新serialno */
 };
 
 }
