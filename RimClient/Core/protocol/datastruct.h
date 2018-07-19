@@ -477,7 +477,8 @@ struct ChatInfoUnit{
     QString nickName;                   /*!< 聊天对象昵称、群名称 */
     qint64 dtime;                       /*!< 日期 */
     QString dateTime;                   /*!< 日期时间 */
-    int serialNo;                       /*!< 流水号 */
+    unsigned short serialNo;            /*!< 流水号 */
+    Msg_Status msgstatus;               /*!< 流水号 */
     QString contents;                   /*!< 聊天内容（html内容/语音文件名称） */
 };
 
