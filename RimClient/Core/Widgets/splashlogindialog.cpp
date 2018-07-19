@@ -301,7 +301,11 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 #endif
                 client->chatPersonWidget->initChatRecord();
             }
-//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            else
+            {
+                //FIXME LYS-20180719 修复窗口隐藏时显示推送异常
+                client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+            }
             client->chatPersonWidget->show();
         }
     }

@@ -244,6 +244,8 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
 
     uint start = 0;
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
+    //FIXME LYS-20180719 修复窗口隐藏时显示推送异常
+    RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
 }
 
 bool ChatPersonWidget::eventFilter(QObject *watched, QEvent *event)

@@ -122,6 +122,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     chatRecordWidget->setAttribute(Qt::WA_DeleteOnClose);
     page = new PreviewPage(chatRecordWidget);
     view = new QWebEngineView(chatRecordWidget);
+    view->setWindowFlags(q_ptr->windowFlags() | Qt::FramelessWindowHint);   //FIXME LYS-20180718 修复显示大量数据时界面刷新问题
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
 
