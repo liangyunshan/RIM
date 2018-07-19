@@ -58,7 +58,7 @@ struct CommandParameter
 {
     CommandParameter()
     {
-        serviceType = SERVICE_FILE;
+        serviceType = SERVICE_TEXT;
         transMode = TRANS_NET;
         dbType = DB_MYSQL;
         parseResult = PARSE_ERROR;

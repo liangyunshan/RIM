@@ -55,7 +55,8 @@ public:
     enum RightTabType
     {
         MsgRecord,  //消息记录
-        SendFile    //发送文件
+        SendFile,   //发送文件
+        RecvFile    //接收文件
     };
     explicit AbstractChatMainWidget(QWidget *parent = 0);
     ~AbstractChatMainWidget();
@@ -110,6 +111,7 @@ private slots:
     void slot_RecvRUDpData(QByteArray data);
     void sendTargetFiles(bool);
     void updateTransFileTab();
+    void updateTransFileStatus(FileTransProgress);
     void updateMsgStatus(ushort serialNo);
 
 private:
@@ -117,7 +119,7 @@ private:
     void setFontIconFilePath();
     void closeRightSideTab(RightTabType);
     void showRightSideTab(RightTabType);
-    void appendTransferFile(QString &);
+    void appendTransferFile(QString &, TransType transType);
     void appendMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
     void appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void prependMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);

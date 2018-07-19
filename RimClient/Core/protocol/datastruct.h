@@ -292,10 +292,19 @@ enum FileTransStatus{
 };
 
 /*!
+ *  @brief 文件传输类型
+ */
+enum TransType{
+    TRANS_RECV,
+    TRANS_SEND
+};
+
+/*!
  *  @brief 文件传输进度控制信息结构体
  */
 struct FileTransProgress
 {
+    TransType transType;            /*!< 文件传输任务类型 */
     QString serialNo;               /*!< 文件传输任务标识 */
     unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
     unsigned int totleBytes;        /*!< 总数据量大小 */
