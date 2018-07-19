@@ -3,6 +3,8 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlDriver>
+#include <QReadWriteLock>
+#include <QWriteLocker>
 #include "../sql/database.h"
 #include "../sql/datatable.h"
 #include "../sql/rpersistence.h"
@@ -11,6 +13,8 @@
 
 SerialNo * SerialNo::staic_SerialNo = NULL ;
 const unsigned short SERIALNO_MAX   = 65535 ;
+
+QReadWriteLock SerialNo_lock(QReadWriteLock::Recursive);
 
 SerialNo::SerialNo()
 {
@@ -28,17 +32,15 @@ SerialNo *SerialNo::instance()
 
 unsigned short SerialNo::FrashSerialNo()
 {
-    SerialNoMutex.lock();
+    QWriteLocker locker(&SerialNo_lock);
     m_SerialNo>=SERIALNO_MAX?(m_SerialNo=1) : (m_SerialNo+=1);
-    SerialNoMutex.unlock();
     return m_SerialNo;
 }
 
 void SerialNo::SetSerialNo(unsigned short No)
 {
-    SerialNoMutex.lock();
+    QWriteLocker locker(&SerialNo_lock);
     m_SerialNo = No;
-    SerialNoMutex.unlock();
 }
 
 bool SerialNo::updateSqlSerialNo( unsigned short No)

@@ -6,6 +6,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QSqlRecord>
+#include <QDebug>
 
 #include <mutex>
 #include <memory>
@@ -2100,6 +2101,9 @@ bool SQLProcess::add716File(Database *db, ServerNetwork::FileRecvDesc *desc,int 
     rpc.insert(rfile.createTime,QDateTime::currentDateTime());
 
     QSqlQuery query(db->sqlDatabase());
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"insert file mysql rpc.sql():"<<rpc.sql()
+          <<"\n";
     if(query.exec(rpc.sql())){
         if(RGlobal::G_DB_FEATURE.lastInsertId && !query.lastInsertId().isNull()){
             dataId = query.lastInsertId().toInt();

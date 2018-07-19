@@ -116,7 +116,7 @@ bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, ByteArrayHandler re
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);
     if(recvLen > 0)
     {
-//        if(!dataPacketRule->unwrap(recvBuff,recvLen,recvDataFunc)){
+//        if(!dataPacketRule->unwrap(QByteArray(recvBuff,recvLen),recvDataFunc)){
 //            RLOG_ERROR("Tcp socket parse error! %d",tcpSocket->getLastError());
 //        }else{
 //            return true;
