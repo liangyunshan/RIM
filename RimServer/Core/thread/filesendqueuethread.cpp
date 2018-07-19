@@ -111,7 +111,7 @@ void FileSendQueueThread::processFileData()
         while(iter != sendList.end()){
             std::shared_ptr<ServerNetwork::FileSendDesc> fptr = (*iter).fptr;
             if(fptr->isSendOver()){
-                qDebug()<<"Send over:"<<(*iter).fptr->fileName;
+                qDebug()<<"[1]File Send over:"<<(*iter).fptr->fileName;
                 fptr.reset();
                 iter = sendList.erase(iter);
             }else{
@@ -122,7 +122,7 @@ void FileSendQueueThread::processFileData()
                 fptr->read(unit.dataUnit.data);
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;
-                unit.dataUnit.usSerialNo = 4567;
+                unit.dataUnit.usSerialNo = fptr->usSerialNo;
                 unit.dataUnit.usOrderNo = O_2051;
                 unit.dataUnit.cDate = 0;
                 unit.dataUnit.cTime = 0;

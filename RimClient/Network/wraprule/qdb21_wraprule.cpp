@@ -22,7 +22,6 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
     qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
     qdb21_Head.usOrderNo = data.usOrderNo;
     qdb21_Head.usSerialNo = data.usSerialNo;
-
     wrapTime(qdb21_Head.cDate,data.cDate,4);
     wrapTime(qdb21_Head.cTime,data.cTime,3);
 

@@ -298,6 +298,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                 socketData.extendData.bPeserve = packet.bPeserve;
                 socketData.extendData.wOffset = packet.wOffset;
                 socketData.extendData.dwPackAllLen = packet.dwPackAllLen;
+                socketData.extendData.usSerialNo = packet.wSerialNo;
 
                 //[1.1]至少存在多余一个完整数据包
                 int currentDataPackLen = packet.wPackLen - QDB495_SendPackage_Length;

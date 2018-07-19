@@ -224,12 +224,16 @@ void File716SendTask::prepareSendTask()
                 ptr->accountId = fileInfo.srcNodeId;
                 ptr->otherSideId = fileInfo.destNodeId;
                 ptr->fileType = QDB2051::F_BINARY;
+                ptr->usSerialNo = fileInfo.serialNo.toUShort();
                 bool result = false;
                 ParameterSettings::OuterNetConfig config = QueryNodeDescInfo(fileInfo.destNodeId,result);
                 if(result){
                     ptr->method = config.communicationMethod;
                     ptr->format = config.messageFormat;
                 }
+                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                       <<"ptr->usSerialNo:"<<ptr->usSerialNo
+                      <<"\n";
                 sendList.push_back(ptr);
             }
         }
@@ -248,6 +252,7 @@ void File716SendTask::processFileData()
         std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
 
         FileTransProgress progress;
+        progress.transType = TRANS_SEND;
 
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
@@ -268,6 +273,9 @@ void File716SendTask::processFileData()
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;
                 unit.dataUnit.usSerialNo = (*iter)->usSerialNo;
+                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+                       <<"unit.dataUnit.usSerialNo:"<<unit.dataUnit.usSerialNo
+                      <<"\n";
                 unit.dataUnit.usOrderNo = O_2051;
                 unit.dataUnit.cDate = 0;
                 unit.dataUnit.cTime = 0;

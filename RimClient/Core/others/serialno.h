@@ -27,8 +27,6 @@ public:
 
 private:
     unsigned short m_SerialNo;
-    std::mutex SerialNoMutex;
-
     static SerialNo * staic_SerialNo;
 };
 

@@ -185,6 +185,7 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                         result.extendData.bPeserve = packet.bPeserve;
                         result.extendData.wOffset = packet.wOffset;
                         result.extendData.dwPackAllLen = packet.dwPackAllLen;
+                        result.extendData.usSerialNo = packet.wSerialNo;
 
                         result.data.resize(currentDataPackLen);
                         memcpy(result.data.data(),recvData + processLen,currentDataPackLen);
