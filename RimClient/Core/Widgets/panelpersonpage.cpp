@@ -529,6 +529,7 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
         widget->initChatRecord();
         client->chatPersonWidget = widget;
         widget->show();
+        widget->raise();
     }
 }
 

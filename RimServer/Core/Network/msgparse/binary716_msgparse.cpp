@@ -4,6 +4,8 @@
 #include "../msgprocess/data716process.h"
 #include "Network/wraprule/tcp_wraprule.h"
 
+#include <QDebug>
+
 #ifdef __LOCAL_CONTACT__
 
 Binary716_MsgParse::Binary716_MsgParse():
@@ -28,6 +30,7 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
         packData.bPeserve = unit.extendData.bPeserve;
         packData.wOffset = unit.extendData.wOffset;
         packData.dwPackAllLen = unit.extendData.dwPackAllLen;
+        packData.usSerialNo = unit.extendData.usSerialNo;
 
         //文本信息
         if(packData.cFileType == QDB2051::F_NO_SUFFIX){

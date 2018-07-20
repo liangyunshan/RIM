@@ -55,7 +55,7 @@ void UserClient::procRecvContent(TextRequest & response)
 #ifdef __LOCAL_CONTACT__
         t_unit.dtime = response.timeStamp;
         t_unit.dateTime = RUtil::addMSecsToEpoch(response.timeStamp).toString("yyyyMMdd hh:mm:ss");
-        t_unit.serialNo = response.textId.toInt();
+        t_unit.serialNo = response.textId.toUShort();
 #else
         t_unit.dtime = RUtil::currentMSecsSinceEpoch(); //FIXME LYS-20180710
 #endif
@@ -101,6 +101,7 @@ void UserClient::procRecvContent(TextRequest & response)
                     chatPersonWidget->initChatRecord();
                 }
                 chatPersonWidget->show();
+                chatPersonWidget->raise();
 
             }
             else if(response.msgCommand == MSG_TEXT_TEXT)
@@ -289,18 +290,12 @@ void UserManager::for_each(std::function<void(UserClient*)> func)
     }
 }
 
-//TODO 关闭窗口出现问题
 void UserManager::closeAllClientWindow()
 {
     std::lock_guard<std::mutex> lg(clientMutex);
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
-//       if(iter.value()->chatWidget)
-//       {
-////           delete iter.value()->chatWidget;
-//       }
-
        if(iter.value()->chatPersonWidget)
        {
 //           delete iter.value()->chatPersonWidget;

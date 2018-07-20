@@ -114,6 +114,7 @@ MainDialog::MainDialog(QWidget *parent) :
     //716
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileData(FileRecvDesc)),this,SLOT(procRecvFile(FileRecvDesc)));
 
 }
 
@@ -524,6 +525,15 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
      {
          client->procRecvServerTextReply(reply);
      }
+}
+
+/*!
+ * @brief 接收服务器发送的文件对应的实时进度信息
+ */
+void MainDialog::procRecvFile(FileRecvDesc)
+{
+    //TODO 尚超 2018.07.19
+    //考虑到可能需要独立的文件传输进度管理界面，所以将进度信息发送这里中装一遍，方便进度信息的统一管理
 }
 
 /*!

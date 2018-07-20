@@ -292,10 +292,19 @@ enum FileTransStatus{
 };
 
 /*!
+ *  @brief 文件传输类型
+ */
+enum TransType{
+    TRANS_RECV,
+    TRANS_SEND
+};
+
+/*!
  *  @brief 文件传输进度控制信息结构体
  */
 struct FileTransProgress
 {
+    TransType transType;            /*!< 文件传输任务类型 */
     QString serialNo;               /*!< 文件传输任务标识 */
     unsigned int readySendBytes;    /*!< 已经传输的数据量，单位Byte,1char = 1Byte = 8位， */
     unsigned int totleBytes;        /*!< 总数据量大小 */
@@ -477,7 +486,8 @@ struct ChatInfoUnit{
     QString nickName;                   /*!< 聊天对象昵称、群名称 */
     qint64 dtime;                       /*!< 日期 */
     QString dateTime;                   /*!< 日期时间 */
-    int serialNo;                       /*!< 流水号 */
+    unsigned short serialNo;            /*!< 流水号 */
+    Msg_Status msgstatus;               /*!< 流水号 */
     QString contents;                   /*!< 聊天内容（html内容/语音文件名称） */
 };
 
