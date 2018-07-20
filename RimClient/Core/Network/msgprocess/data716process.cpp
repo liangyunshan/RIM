@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <qmath.h>
+#include <QDir>
 
 #include "util/rsingleton.h"
 #include "messdiapatch.h"
@@ -174,20 +175,36 @@ void Data716Process::processFileData(const ProtocolPackage &data)
 
     if(fileDesc->seek(data.wOffset * MAX_PACKET) && fileDesc->write(data.data) > 0)
     {
+        //TODO 对接收文件进行处理
+        FileTransProgress progress;
+        progress.transType = TRANS_RECV;
+        progress.serialNo = QString::number(fileDesc->usSerialNo);
+        progress.srcNodeId = fileDesc->accountId;
+        progress.destNodeId = fileDesc->otherId;
+        progress.fileName = fileDesc->fileName;
+        progress.fileFullPath = G_User->getC2CFilePath() + QDir::separator() + fileDesc->fileName;
+        progress.readySendBytes = fileDesc->writeLen;
+        progress.totleBytes = fileDesc->size;
+
+
         if(fileDesc->flush() && fileDesc->isRecvOver())
         {
             fileDesc->close();
-
-            FileRecvDesc fdesc;
-            fdesc.usSerialNo = fileDesc->usSerialNo;
-            fdesc.wSourceAddr = fileDesc->accountId.toUShort();
-            fdesc.wDestAddr = fileDesc->otherId.toUShort();
-            fdesc.fileName = fileDesc->fileName;
-
-            //TODO 对接收文件进行处理
-            MessDiapatch::instance()->onRecvFileData(fdesc);
+            progress.transStatus = TransSuccess;
             RSingleton<FileManager>::instance()->removeFile(fileDesc->fileId);
         }
+        else
+        {
+            if(data.wOffset == 0)
+            {
+                progress.transStatus = TransStart;
+            }
+            else
+            {
+                progress.transStatus = TransProcess;
+            }
+        }
+        MessDiapatch::instance()->onFileTransStatusChanged(progress);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QSqlRecord>
+#include <QDebug>
 
 #include <mutex>
 #include <memory>

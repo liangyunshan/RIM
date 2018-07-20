@@ -128,11 +128,6 @@ enum MsgCommand
 
     MSG_OTHER_HEAT = 0x41,                             /*!< 心跳报 */
 
-    /***信息已读未读状态******/
-    MSG_READYREAD       = 0x61 ,    /*!< 信息未读 */
-    MSG_NOTREAD         = 0x62 ,    /*!< 信息已读 */
-    MSG_ARRIVE_SERVER   = 0x63 ,    /*!< 信息已到达服务器 */
-
 /****MsgType为MSG_TEXT时以下字段有效******/
     MSG_TEXT_TEXT = 0xA1,                              /*!< 聊天文字信息 */
     MSG_TEXT_SHAKE = 0xA2,                             /*!< 窗口抖动 */
@@ -148,6 +143,15 @@ enum MsgCommand
 
 /***TCP头部信息报文******/
     MSG_TCP_TRANS = 0xC1
+};
+
+/*!
+ * @brief 信息已读未读状态
+ */
+enum Msg_Status{
+    MSG_READYREAD       = 0x00 ,    /*!< 信息未读 */
+    MSG_NOTREAD         = 0x01 ,    /*!< 信息已读 */
+    MSG_ARRIVE_SERVER   = 0x02 ,    /*!< 信息已到达服务器 */
 };
 
 /*!

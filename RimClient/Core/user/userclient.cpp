@@ -55,7 +55,7 @@ void UserClient::procRecvContent(TextRequest & response)
 #ifdef __LOCAL_CONTACT__
         t_unit.dtime = response.timeStamp;
         t_unit.dateTime = RUtil::addMSecsToEpoch(response.timeStamp).toString("yyyyMMdd hh:mm:ss");
-        t_unit.serialNo = 123;
+        t_unit.serialNo = response.textId.toUShort();
 #else
         t_unit.dtime = RUtil::currentMSecsSinceEpoch(); //FIXME LYS-20180710
 #endif

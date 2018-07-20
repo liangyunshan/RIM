@@ -49,6 +49,7 @@
 #include "Widgets/textedit/simpletextedit.h"
 #include "../thread/file716sendtask.h"
 #include "../network/netglobal.h"
+#include "../others/serialno.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -339,6 +340,9 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
     d_ptr->view->show();
     d_ptr->fontWidget->setDefault();
     this->setFocusPolicy(Qt::StrongFocus);
+
+    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
+            this,SLOT(updateTransFileStatus(FileTransProgress)));
 }
 
 AbstractChatMainWidget::~AbstractChatMainWidget()
@@ -840,7 +844,7 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
 
     foreach(QString fileName,files)
     {
-        appendTransferFile(fileName);
+        appendTransferFile(fileName,TRANS_SEND);
     }
 }
 
@@ -854,6 +858,39 @@ void AbstractChatMainWidget::updateTransFileTab()
     int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
     QString m_tabText = tr("Transfer Files")+"("+d->fileList->taskListProgress()+")";
     d->rightSideWidget->setTabText(transFileIndex,m_tabText);
+}
+
+/*!
+ * @brief 更新聊天界面的实时传输文件进度信息
+ * @param progress 实时传输文件进度信息
+ */
+void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
+{
+    MQ_D(AbstractChatMainWidget);
+    if(d->fileList)
+    {
+        showRightSideTab(RecvFile);
+    }
+
+    if(progress.transType == TRANS_SEND)
+    {
+        d->fileList->SetTransStatus(progress);
+    }
+    else
+    {
+        if(progress.transStatus == TransProcess)
+        {
+            d->fileList->SetTransStatus(progress);
+        }
+        else if(progress.transStatus == TransStart)
+        {
+            appendTransferFile(progress.fileFullPath,TRANS_RECV);
+        }
+        else if(progress.transStatus == TransSuccess)
+        {
+            d->fileList->SetTransStatus(progress);
+        }
+    }
 }
 
 /*!
@@ -984,12 +1021,11 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
         d->rightSideWidget->setCurrentWidget(d->historyRecord);
         break;
     case SendFile:
+    case RecvFile:
         if(!d->fileList)
         {
             d->fileList = new TransferFileListBox;
             d->fileList->setStyleSheet("QWidget{background-color:transparent;}");
-            connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
-                    d->fileList,SLOT(SetTransStatus(FileTransProgress)));
             connect(d->fileList,SIGNAL(transferStatusChanged()),this,SLOT(updateTransFileTab()));
         }
         d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
@@ -1005,29 +1041,46 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
  * @brief 界面显示传送文件队列
  * @param fileName 待传送的文件名
  */
-void AbstractChatMainWidget::appendTransferFile(QString &fileName)
+void AbstractChatMainWidget::appendTransferFile(QString &fileName,TransType transType)
 {
     MQ_D(AbstractChatMainWidget);
 
-    showRightSideTab(SendFile);
+    RightTabType type;
+    TransferFileItem::TransferType transferType;
+    if(transType == TRANS_RECV)
+    {
+        type = RecvFile;
+        transferType = TransferFileItem::RECVFile;
+    }
+    else
+    {
+        type = SendFile;
+        transferType = TransferFileItem::SENDFile;
+    }
+    showRightSideTab(type);
 
     SenderFileDesc fileDesc;
     fileDesc.srcNodeId = G_User->BaseInfo().accountId;
     fileDesc.destNodeId = d->m_userInfo.accountId;
     fileDesc.fullFilePath = fileName;
-    fileDesc.serialNo = RUtil::UUID();
+    fileDesc.serialNo = QString::number(SERIALNO_FRASH);
 
     QFileInfo fileInfo(fileName);
     TransferFileItem *t_item = new TransferFileItem;
     t_item->setFileType(TransferFileItem::COMMONFILE);
-    t_item->setTransferType(TransferFileItem::SENDFile);
+    t_item->setTransferType(transferType);
     t_item->setFileName(fileName);
     t_item->setFileSize(fileInfo.size());
     t_item->setTaskSerialNo(fileDesc.serialNo);
     t_item->setFinishedSize(0);
     d->fileList->addItem(t_item);
 
-    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    if(transType == TRANS_SEND)
+    {
+        SerialNo::instance()->updateSqlSerialNo(fileDesc.serialNo.toUShort());
+        RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    }
+
     updateTransFileTab();
 }
 
