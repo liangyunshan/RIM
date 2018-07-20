@@ -436,6 +436,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         hide();
         d->mainDialog->show();
+        d->mainDialog->raise();//FIXME LYS-20180719
 
         if(flag){
             DataPackType request;

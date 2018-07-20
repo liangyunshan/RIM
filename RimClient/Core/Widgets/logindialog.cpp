@@ -1191,13 +1191,6 @@ LoginDialog::~LoginDialog()
         d->toolBar = NULL;
     }
 
-    //FIXME LYS-20180607
-//    if(d->mainDialog)
-//    {
-//        delete d->mainDialog;
-//        d->mainDialog = NULL;
-//    }
-
     if(d->trayIcon)
     {
        delete d->trayIcon;
