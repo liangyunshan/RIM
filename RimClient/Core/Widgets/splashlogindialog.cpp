@@ -303,10 +303,10 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             }
             else
             {
-                //FIXME LYS-20180719 修复窗口隐藏时显示推送异常
                 client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             }
             client->chatPersonWidget->show();
+            client->chatPersonWidget->raise();
         }
     }
 
@@ -324,6 +324,7 @@ void SplashLoginDialog::openChatDialog(QString accountId)
    }
 
    client->chatPersonWidget->show();
+   client->chatPersonWidget->raise();
 }
 
 void SplashLoginDialog::showNetSettings()
@@ -436,6 +437,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         hide();
         d->mainDialog->show();
+        d->mainDialog->raise();//FIXME LYS-20180719 修复窗口显示被遮挡问题
 
         if(flag){
             DataPackType request;

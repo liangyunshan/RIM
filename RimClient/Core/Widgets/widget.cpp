@@ -344,7 +344,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
     MQ_D(Widget);
-    if(d->toolbarMoveable && d->toolBar){
+    if(d->toolbarMoveable && d->toolBar && d->isMousePressed){
         if(d->toolBar->geometry().contains(event->pos())){
             QPoint tempPos = pos() + event->pos() - d->mousePressPoint;
             move(tempPos);
@@ -367,7 +367,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *)
 
 void Widget::enterEvent(QEvent *)
 {
-    if(pos().y() <= 0)
+    if(pos().y() + shadowWidth() <= 0)
     {
         move(pos().x(), -WINDOW_MARGIN_SIZE);
     }

@@ -1158,8 +1158,8 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatPersonWidget->initChatRecord();
             }
 
-//            client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             client->chatPersonWidget->show();
+            client->chatPersonWidget->raise();
         }
     }
 
@@ -1177,6 +1177,7 @@ void LoginDialog::openChatDialog(QString accountId)
    }
 
    client->chatPersonWidget->show();
+   client->chatPersonWidget->raise();
 }
 
 LoginDialog::~LoginDialog()
@@ -1190,13 +1191,6 @@ LoginDialog::~LoginDialog()
         delete d->toolBar;
         d->toolBar = NULL;
     }
-
-    //FIXME LYS-20180607
-//    if(d->mainDialog)
-//    {
-//        delete d->mainDialog;
-//        d->mainDialog = NULL;
-//    }
 
     if(d->trayIcon)
     {
