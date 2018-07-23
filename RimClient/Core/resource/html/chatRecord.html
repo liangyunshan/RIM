@@ -433,16 +433,15 @@
             {
                 stateSpan = document.createElement('span');
                 stateSpan.setAttribute('class','stateSpan');
-				stateSpan.setAttribute('id',stateID);
-				console.log(stateID);
-				if(readState === 0)
-				{
-					stateSpan.innerHTML = '未读'
-				}
+                stateSpan.setAttribute('id',stateID);
+                if(readState === 0)
+                {
+                    stateSpan.innerHTML = '未读'
+                }
                 else
-				{
-					stateSpan.innerHTML = '已读'
-				}
+                {
+                    stateSpan.innerHTML = '已读'
+                }
             }
             //添加内容
             newDiv.appendChild(avatarContainer);
@@ -483,7 +482,7 @@
     }
 
     //向最前一条消息记录插入新的消息记录
-    function prependMesRecord(messageTarget,textMessage,avatarPath) {
+    function prependMesRecord(messageTarget,textMessage,avatarPath,readState,stateID) {
         if(textMessage === '')
         {
 
@@ -504,13 +503,29 @@
             textMes.className = 'textMesContainer';
             textMes.innerHTML = textMessage;
             // 读取状态容器
-            var stateSpan = document.createElement('span');
-            stateSpan.setAttribute('class','stateSpan');
+            var stateSpan;
+            if(messageTarget === 0)
+            {
+                stateSpan = document.createElement('span');
+                stateSpan.setAttribute('class','stateSpan');
+                stateSpan.setAttribute('id',stateID);
+                if(readState === 0)
+                {
+                    stateSpan.innerHTML = '未读'
+                }
+                else
+                {
+                    stateSpan.innerHTML = '已读'
+                }
+            }
             //添加内容
             newDiv.appendChild(avatarContainer);
             newDialog.appendChild(textMes);
             newDiv.appendChild(newDialog);
-            newDiv.appendChild(stateSpan);
+            if(messageTarget === 0)
+            {
+                newDiv.appendChild(stateSpan);
+            }
             var div = document.createElement('div');
             div.style = 'clear:both';
             content_container.insertBefore(div,content_container.childNodes[0]);
