@@ -363,14 +363,19 @@ void Widget::mouseReleaseEvent(QMouseEvent *)
     MQ_D(Widget);
 
     d->isMousePressed = false;
+    if(pos().y() + shadowWidth() < 0)
+    {
+        move(pos().x(), -WINDOW_MARGIN_SIZE);
+    }
+    if(pos().x() + shadowWidth() < 0)
+    {
+        move(-WINDOW_MARGIN_SIZE, pos().y());
+    }
 }
 
 void Widget::enterEvent(QEvent *)
 {
-    if(pos().y() + shadowWidth() <= 0)
-    {
-        move(pos().x(), -WINDOW_MARGIN_SIZE);
-    }
+
 }
 
 void Widget::leaveEvent(QEvent *)
