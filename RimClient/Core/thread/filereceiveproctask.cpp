@@ -71,9 +71,6 @@ void FileReceiveProcTask::run()
 
 void FileReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"file data.extendData.usSerialNo:"<<data.extendData.usSerialNo
-          <<"\n";
     ProtocolPackage package;
 #ifdef __LOCAL_CONTACT__
 

@@ -60,7 +60,7 @@ private slots:
     //716
     void procRecvText(TextRequest response);
     void procRecvServerTextReply(TextReply);
-    void procRecvFile(FileRecvDesc);
+    void procRecvFileProgress(FileTransProgress);
 
 private:
     void initWidget();

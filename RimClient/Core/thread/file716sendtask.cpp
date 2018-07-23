@@ -231,9 +231,6 @@ void File716SendTask::prepareSendTask()
                     ptr->method = config.communicationMethod;
                     ptr->format = config.messageFormat;
                 }
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"ptr->usSerialNo:"<<ptr->usSerialNo
-                      <<"\n";
                 sendList.push_back(ptr);
             }
         }
@@ -253,29 +250,27 @@ void File716SendTask::processFileData()
 
         FileTransProgress progress;
         progress.transType = TRANS_SEND;
-
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
+                progress.srcNodeId = (*iter)->accountId;
+                progress.destNodeId = (*iter)->otherSideId;
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
                 progress.transStatus = TransSuccess;
-                MessDiapatch::instance()->onFileTransStatusChanged(progress);
 
                 (*iter).reset();
                 iter = sendList.erase(iter);
+                MessDiapatch::instance()->onFileTransStatusChanged(progress);
             }else{
                 SendUnit unit;
                 unit.dataUnit.wSourceAddr = (*iter)->accountId.toInt();
                 unit.dataUnit.wDestAddr = (*iter)->otherSideId.toInt();
                 (*iter)->read(unit.dataUnit.data);
-                unit.dataUnit.bPackType = T_DATA_AFFIRM;
+                unit.dataUnit.bPackType = T_DATA_NOAFFIRM;
                 unit.dataUnit.bPeserve = 0;
                 unit.dataUnit.usSerialNo = (*iter)->usSerialNo;
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"unit.dataUnit.usSerialNo:"<<unit.dataUnit.usSerialNo
-                      <<"\n";
                 unit.dataUnit.usOrderNo = O_2051;
                 unit.dataUnit.cDate = 0;
                 unit.dataUnit.cTime = 0;
@@ -284,6 +279,8 @@ void File716SendTask::processFileData()
                 unit.dataUnit.dwPackAllLen = (*iter)->dwPackAllLen;
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
 
+                progress.srcNodeId = (*iter)->accountId;
+                progress.destNodeId = (*iter)->otherSideId;
                 progress.readySendBytes = (*iter)->readLen;
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;

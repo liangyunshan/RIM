@@ -487,7 +487,7 @@ struct ChatInfoUnit{
     qint64 dtime;                       /*!< 日期 */
     QString dateTime;                   /*!< 日期时间 */
     unsigned short serialNo;            /*!< 流水号 */
-    Msg_Status msgstatus;               /*!< 流水号 */
+    MsgStatus msgstatus;                /*!< 信息已读未读状态 */
     QString contents;                   /*!< 聊天内容（html内容/语音文件名称） */
 };
 

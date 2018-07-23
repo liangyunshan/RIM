@@ -296,7 +296,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
             unitMsg.dtime = query.value(rcr.time).toLongLong();
             unitMsg.dateTime = query.value(rcr.dateTime).toString();
             unitMsg.serialNo = query.value(rcr.serialNo).toInt();
-            unitMsg.msgstatus = (Msg_Status)query.value(rcr.serialNo).toInt();
+            unitMsg.msgstatus = (MsgStatus)query.value(rcr.serialNo).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
             chatMsgs.prepend(unitMsg);
         }

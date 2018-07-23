@@ -143,6 +143,7 @@ void Data716Process::processFileData(const ProtocolPackage &data)
 {
     std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->get716File(QString::number(data.wSourceAddr)
                                                 ,data.usSerialNo,QString::fromLocal8Bit(data.cFilename));
+    int sliceNums = 0;
     if(fileDesc.get() == nullptr)
     {
         fileDesc = std::make_shared<FileDesc>();
@@ -161,7 +162,7 @@ void Data716Process::processFileData(const ProtocolPackage &data)
 
         int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
         int fileHeadLen = protocolDataLen + data.cFilename.size();
-        int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+        sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
 
         fileDesc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
         fileDesc->writeLen = 0;
@@ -186,12 +187,13 @@ void Data716Process::processFileData(const ProtocolPackage &data)
         progress.readySendBytes = fileDesc->writeLen;
         progress.totleBytes = fileDesc->size;
 
-
         if(fileDesc->flush() && fileDesc->isRecvOver())
         {
             fileDesc->close();
             progress.transStatus = TransSuccess;
             RSingleton<FileManager>::instance()->removeFile(fileDesc->fileId);
+
+            MessDiapatch::instance()->onFileTransStatusChanged(progress);
         }
         else
         {
@@ -203,8 +205,20 @@ void Data716Process::processFileData(const ProtocolPackage &data)
             {
                 progress.transStatus = TransProcess;
             }
+            if( sliceNums >= 50)
+            {
+                if(data.wOffset % 10 == 0)
+                {
+                    MessDiapatch::instance()->onFileTransStatusChanged(progress);
+                }
+            }
+            else
+            {
+                MessDiapatch::instance()->onFileTransStatusChanged(progress);
+            }
         }
-        MessDiapatch::instance()->onFileTransStatusChanged(progress);
+
+
     }
 }
 

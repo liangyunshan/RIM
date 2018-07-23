@@ -21,6 +21,7 @@
 struct ChatInfoUnit;
 class RToolButton;
 class QWebChannel;
+class TransferFileItem;
 using namespace ProtocolType;
 
 class AbstractChatMainWidgetPrivate;
@@ -119,7 +120,7 @@ private:
     void setFontIconFilePath();
     void closeRightSideTab(RightTabType);
     void showRightSideTab(RightTabType);
-    void appendTransferFile(QString &, TransType transType);
+    TransferFileItem *appendTransferFile(QString &, TransType transType);
     void appendMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
     void appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void prependMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);

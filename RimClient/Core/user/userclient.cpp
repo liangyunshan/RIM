@@ -130,6 +130,9 @@ void UserClient::procRecvContent(TextRequest & response)
         }
     }
     else if(response.msgCommand == MSG_TEXT_FILE || response.msgCommand == MSG_TEXT_AUDIO || response.msgCommand == MSG_TEXT_IMAGE){
+
+#ifdef __LOCAL_CONTACT__
+#else
         //【聊天文件发送:4/5】拿着fileId向文件服务器下载对应文件
         SimpleFileItemRequest * request = new SimpleFileItemRequest;
         request->control = T_REQUEST;
@@ -147,6 +150,7 @@ void UserClient::procRecvContent(TextRequest & response)
         }
         request->fileId = response.sendData;
         FileRecvTask::instance()->addRecvItem(request);
+#endif
     }
 }
 
@@ -207,6 +211,91 @@ void UserClient::procDownOverFile(std::shared_ptr<FileDesc> fileDesc)
 void UserClient::procDownItemIcon(std::shared_ptr<FileDesc> fileDesc)
 {
     toolItem->setIcon(G_User->getIcon(simpleUserInfo.isSystemIcon,simpleUserInfo.iconId));
+}
+
+/*!
+ * @brief 处理正在传输的文件
+ * @param fileProgress 文件传输进度
+ */
+void UserClient::procTransFile(FileTransProgress fileProgress)
+{
+#ifdef __LOCAL_CONTACT__
+
+    if(fileProgress.transStatus == TransSuccess)
+    {
+        //存储消息至数据库
+        QDateTime t_curMsgTime = QDateTime::currentDateTime();
+        qint64 t_Time = t_curMsgTime.toMSecsSinceEpoch();
+
+        ChatInfoUnit        t_unit;
+        t_unit.contentType  = MSG_TEXT_FILE;
+        t_unit.accountId    = simpleUserInfo.accountId;
+        t_unit.nickName     = simpleUserInfo.nickName;
+        t_unit.dtime        = t_Time;
+        t_unit.dateTime     = RUtil::addMSecsToEpoch(t_Time).toString("yyyyMMdd hh:mm:ss");
+        t_unit.serialNo     = fileProgress.serialNo.toUShort();
+        t_unit.contents     = fileProgress.fileFullPath;
+        RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
+
+        if(fileProgress.transType == TRANS_RECV)
+        {
+            if(chatPersonWidget != NULL && !chatPersonWidget->isVisible())
+            {
+                NotifyInfo  info;
+                info.identityId = RUtil::UUID();
+                info.msgCommand = MSG_TEXT_FILE;
+                info.accountId = fileProgress.srcNodeId;
+                info.nickName = fileProgress.srcNodeId;
+                info.type = NotifyUser;
+                info.stype = OperatePerson;
+                info.isSystemIcon = simpleUserInfo.isSystemIcon;
+                info.iconId = simpleUserInfo.iconId;
+
+                RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
+                RSingleton<NotifyWindow>::instance()->showMe();
+            }
+        }
+    }
+
+    if(fileProgress.transStatus == TransStart)
+    {
+        QDateTime t_curMsgTime = QDateTime::currentDateTime();
+        qint64 t_Time = t_curMsgTime.toMSecsSinceEpoch();
+
+        //将信息添加至历史会话列表
+        HistoryChatRecord record;
+        record.accountId = simpleUserInfo.accountId;
+        record.nickName = simpleUserInfo.nickName;
+        record.dtime = t_Time;
+        record.lastRecord = RUtil::getTimeStamp();
+        record.systemIon = simpleUserInfo.isSystemIcon;
+        record.iconId = simpleUserInfo.iconId;
+        record.type = CHAT_C2C;
+        MessDiapatch::instance()->onAddHistoryItem(record);
+
+        if(chatPersonWidget == NULL)
+        {
+            chatPersonWidget = new ChatPersonWidget();
+            chatPersonWidget->setUserInfo(this->simpleUserInfo);
+            chatPersonWidget->setOuterNetConfig(this->netConfig);
+            chatPersonWidget->initChatRecord();
+        }
+        chatPersonWidget->show();
+        chatPersonWidget->recvTransFile(fileProgress);
+
+        if(G_User->systemSettings()->soundAvailable)
+        {
+            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+        }
+    }
+    else
+    {
+        if(chatPersonWidget && chatPersonWidget->isVisible())
+        {
+            chatPersonWidget->recvTransFile(fileProgress);
+        }
+    }
+#endif
 }
 
 UserManager::UserManager()
