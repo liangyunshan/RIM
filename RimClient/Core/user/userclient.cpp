@@ -101,6 +101,7 @@ void UserClient::procRecvContent(TextRequest & response)
                     chatPersonWidget->initChatRecord();
                 }
                 chatPersonWidget->show();
+                chatPersonWidget->raise();
 
             }
             else if(response.msgCommand == MSG_TEXT_TEXT)
@@ -289,18 +290,12 @@ void UserManager::for_each(std::function<void(UserClient*)> func)
     }
 }
 
-//TODO 关闭窗口出现问题
 void UserManager::closeAllClientWindow()
 {
     std::lock_guard<std::mutex> lg(clientMutex);
     QHash<QString,UserClient*>::iterator iter = clients.begin();
     while(iter != clients.end())
     {
-//       if(iter.value()->chatWidget)
-//       {
-////           delete iter.value()->chatWidget;
-//       }
-
        if(iter.value()->chatPersonWidget)
        {
 //           delete iter.value()->chatPersonWidget;

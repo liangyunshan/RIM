@@ -95,7 +95,7 @@ MainDialog::MainDialog(QWidget *parent) :
     d_ptr(new MainDialogPrivate(this)),
     Widget(parent)
 {
-    setAttribute(Qt::WA_DeleteOnClose); //FIXME LYS-20180607
+    setAttribute(Qt::WA_DeleteOnClose);
     setMinimumSize(Constant::MAIN_PANEL_MIN_WIDTH,Constant::MAIN_PANEL_MIN_HEIGHT);
     setMaximumWidth(Constant::MAIN_PANEL_MAX_WIDTH);
     setMaximumHeight(qApp->desktop()->screen()->height());

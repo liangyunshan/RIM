@@ -898,7 +898,13 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
  */
 void AbstractChatMainWidget::updateMsgStatus(ushort serialNo)
 {
-    //TODO 更新界面中显示的读取状态
+    MQ_D(AbstractChatMainWidget);
+
+    //TODO LYS-20180718 更新界面中显示的读取状态
+    QString stateID = QString::number(serialNo);
+    QString t_setStateScript = QString("");
+    t_setStateScript = QString("setMesReadState('%1')").arg(stateID);
+    d->view->page()->runJavaScript(t_setStateScript);
 }
 
 /*!
@@ -1125,7 +1131,7 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
         d->m_preMsgTime = t_curMsgTime;
     }
 
-//    RUtil::removeEccapeDoubleQuote(t_localHtml);//FIXME LYS-20180608
+//    RUtil::removeEccapeDoubleQuote(t_localHtml);
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
@@ -1173,7 +1179,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         d->m_preMsgTime = t_curMsgTime;
     }
 
-//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);//FIXME LYS-20180608
+//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
     RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)
@@ -1185,7 +1191,9 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
+    QString stateID = QString::number(unitMsg.serialNo);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                                                                 .arg(UNREAD).arg(stateID);
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
@@ -1254,7 +1262,7 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, Abstr
     QString t_localHtml = unitMsg.contents;
     QString t_headPath = QString("");
 
-//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);//FIXME LYS-20180608
+//    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
     RUtil::escapeSingleQuote(t_localHtml);
 
     if(source == RECV)

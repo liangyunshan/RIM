@@ -75,7 +75,7 @@ void ToolBoxPrivate::initWidget()
     scrollArea->setWidget(contentWidget);
     scrollArea->setWidgetResizable(true);
 
-    m_leftPressed = false;//FIXME LYS
+    m_leftPressed = false;
 }
 
 void ToolBoxPrivate::addPage(ToolPage *page)
@@ -532,7 +532,7 @@ void ToolBox::mouseMoveEvent(QMouseEvent *event)
         if((event->pos() -  d->m_startPos).manhattanLength() < QApplication::startDragDistance())
             return;
 
-        ToolPage * t_movedPage = pageInPos(d->m_startPos);    //FIXME LYS
+        ToolPage * t_movedPage = pageInPos(d->m_startPos);
         if(!t_movedPage)
             return;
 
