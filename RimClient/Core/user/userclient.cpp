@@ -230,13 +230,14 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
 
         ChatInfoUnit        t_unit;
         t_unit.contentType  = MSG_TEXT_FILE;
-        t_unit.accountId    = simpleUserInfo.accountId;
-        t_unit.nickName     = simpleUserInfo.nickName;
+        t_unit.accountId    = fileProgress.srcNodeId;
+        t_unit.nickName     = fileProgress.srcNodeId;
         t_unit.dtime        = t_Time;
         t_unit.dateTime     = RUtil::addMSecsToEpoch(t_Time).toString("yyyyMMdd hh:mm:ss");
         t_unit.serialNo     = fileProgress.serialNo.toUShort();
         t_unit.contents     = fileProgress.fileFullPath;
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
+        RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
 
         if(fileProgress.transType == TRANS_RECV)
         {
@@ -286,7 +287,7 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
 
         if(G_User->systemSettings()->soundAvailable)
         {
-            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaOnline);
+            RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
         }
     }
     else
