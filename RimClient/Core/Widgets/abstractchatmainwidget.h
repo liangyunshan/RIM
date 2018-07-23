@@ -43,6 +43,11 @@ public:
         INFO,       //普通提示
         NONOTICE    //无标识
     };
+    enum MsgReadState
+    {
+        UNREAD,     //未读
+        MARKREAD    //已读
+    };
     enum TimeFormat
     {
         TIME,       //时间

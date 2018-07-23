@@ -90,6 +90,7 @@ void TransferFileItemPrivate::initWidget()
                                             ":/icon/resource/icon/File_Send.png);");
     transferTypeLabel->setFixedSize(20,20);
     fileNameLabel = new QLabel(contentWidget);
+    fileNameLabel->setMaximumWidth(120);
     fileNameLabel->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
     fileSizeLabel= new QLabel(contentWidget);
     QHBoxLayout * infoLayout = new QHBoxLayout;
@@ -268,7 +269,7 @@ QString TransferFileItem::fileName() const
 {
     MQ_D(TransferFileItem);
 
-    return d->fileNameLabel->text();
+    return d->fileNameLabel->toolTip();
 }
 
 /*!
@@ -279,16 +280,22 @@ void TransferFileItem::setFileName(const QString &file)
 {
     MQ_D(TransferFileItem);
 
+    QFontMetrics fontMetr(d->fileNameLabel->font());
+    int t_maxWidth = d->fileNameLabel->maximumWidth();
+    QString t_nameText = QString("");
     if(d->m_transferType == FOLDERFILE)
     {
         QDir t_dir(file);
-        d->fileNameLabel->setText(t_dir.dirName());
+        t_nameText = t_dir.dirName();
     }
     else
     {
         QFileInfo tmpInfo(file);
-        d->fileNameLabel->setText(tmpInfo.fileName());
+        t_nameText = tmpInfo.fileName();
     }
+    d->fileNameLabel->setToolTip(t_nameText);
+    t_nameText = fontMetr.elidedText(t_nameText,Qt::ElideMiddle,t_maxWidth);
+    d->fileNameLabel->setText(t_nameText);
 }
 
 /*!

@@ -79,7 +79,7 @@ void ChatPersonWidgetPrivate::initWidget()
     userInfoWidget->setFixedHeight(50);
 
     QHBoxLayout * userLayout = new QHBoxLayout;
-    userLayout->setContentsMargins(6,0,0,0);
+    userLayout->setContentsMargins(6,0,6,0);
     userLayout->setSpacing(5);
 
     iconLabel = new RIconLabel(userInfoWidget);
@@ -90,9 +90,19 @@ void ChatPersonWidgetPrivate::initWidget()
     nameLabel->setObjectName("Chat_User_NameLabel");
     nameLabel->setFixedHeight(CHAT_USER_ICON_SIZE);
 
+    /**********窗口控制区_顶部***************/
+    windowToolBar = new ToolBar(contentWidget);
+    windowToolBar->setContentsMargins(5,0,0,0);
+
+    windowToolBar->setToolFlags(ToolBar::TOOL_ACTION);
+    QObject::connect(windowToolBar,SIGNAL(minimumWindow()),q_ptr,SLOT(showMinimized()));
+    QObject::connect(windowToolBar,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
+    QObject::connect(windowToolBar,SIGNAL(maxWindow(bool)),q_ptr,SLOT(showMaximizedWindow(bool)));
+
     userLayout->addWidget(iconLabel);
     userLayout->addWidget(nameLabel);
     userLayout->addStretch(1);
+    userLayout->addWidget(windowToolBar);
     userInfoWidget->setLayout(userLayout);
 
     /**********工具栏***************/
@@ -130,15 +140,6 @@ void ChatPersonWidgetPrivate::initWidget()
     QWebChannel *channel = new QWebChannel(mainWidget);
     channel->registerObject(QStringLiteral("bridge"),m_bridge);
     mainWidget->setChatChannel(channel);
-
-    /**********窗口控制区_顶部***************/
-    windowToolBar = new ToolBar(contentWidget);
-    windowToolBar->setContentsMargins(5,0,0,0);
-
-    windowToolBar->setToolFlags(ToolBar::TOOL_ACTION);
-    QObject::connect(windowToolBar,SIGNAL(minimumWindow()),q_ptr,SLOT(showMinimized()));
-    QObject::connect(windowToolBar,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
-    QObject::connect(windowToolBar,SIGNAL(maxWindow(bool)),q_ptr,SLOT(showMaximizedWindow(bool)));
 }
 
 ChatPersonWidget::ChatPersonWidget(QWidget *parent):
@@ -147,8 +148,8 @@ ChatPersonWidget::ChatPersonWidget(QWidget *parent):
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(windowFlags() &(~Qt::Tool));
-    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy)); //FIXME LYS-20180607
-    QNetworkProxyFactory::setUseSystemConfiguration(false); //FIXME LYS-20180607
+    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+    QNetworkProxyFactory::setUseSystemConfiguration(false);
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
 
@@ -246,7 +247,7 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
 
     uint start = 0;
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
-    //FIXME LYS-20180719 修复窗口隐藏时显示推送异常
+
     RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
 }
 
@@ -281,13 +282,6 @@ bool ChatPersonWidget::eventFilter(QObject *watched, QEvent *event)
     }
 
     return Widget::eventFilter(watched,event);
-}
-
-void ChatPersonWidget::resizeEvent(QResizeEvent *)
-{
-    MQ_D(ChatPersonWidget);
-
-    d->windowToolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - 3 * WINDOW_MARGIN_SIZE,Constant::TOOL_WIDTH);
 }
 
 /*!

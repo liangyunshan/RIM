@@ -346,7 +346,7 @@ void NotifyWindow::viewNotify(ToolItem *item)
         if(iter != d->systemNotifyInfos.end()){
             d->systemNotifyInfos.erase(iter);
         }
-//        d->infoList->removeItem(item);    //FIXME lys-20180710当推送消息完成显示后移除item
+//        d->infoList->removeItem(item);
 
         if(d->infoList->count() <= 0){
             ignoreAll();

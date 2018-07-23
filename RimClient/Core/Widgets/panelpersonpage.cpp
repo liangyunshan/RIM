@@ -207,7 +207,7 @@ void PanelPersonPage::removeTargetGroup(const QString id)
     RSingleton<UserFriendContainer>::instance()->deleteGroup(id);
 
     d->toolBox->removePage(t_delPage);
-    d->toolBox->removeFromList(t_delPage);  //FIXME 删除列表中的page且收回内存
+    d->toolBox->removeFromList(t_delPage);
     d->m_deleteID = QString();
 }
 
@@ -505,7 +505,19 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
 
     if(client->chatPersonWidget)
     {
-        client->chatPersonWidget->show();
+        if(client->chatPersonWidget->isMinimized())
+        {
+            client->chatPersonWidget->showNormal();
+        }
+        else if(client->chatPersonWidget->isMaximized())
+        {
+//            client->chatPersonWidget->raise();
+            client->chatPersonWidget->showMaximized();
+        }
+        else
+        {
+            client->chatPersonWidget->show();
+        }
     }
     else
     {
@@ -517,6 +529,7 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
         widget->initChatRecord();
         client->chatPersonWidget = widget;
         widget->show();
+        widget->raise();
     }
 }
 

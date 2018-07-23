@@ -407,7 +407,7 @@
         }
     }
     // 接收消息，暴露参数
-    function appendMesRecord(messageTarget,textMessage,avatarPath) {
+    function appendMesRecord(messageTarget,textMessage,avatarPath,readState,stateID) {
         if(textMessage === '')
         {
 
@@ -433,7 +433,16 @@
             {
                 stateSpan = document.createElement('span');
                 stateSpan.setAttribute('class','stateSpan');
-                stateSpan.innerHTML = '未读'
+				stateSpan.setAttribute('id',stateID);
+				console.log(stateID);
+				if(readState === 0)
+				{
+					stateSpan.innerHTML = '未读'
+				}
+                else
+				{
+					stateSpan.innerHTML = '已读'
+				}
             }
             //添加内容
             newDiv.appendChild(avatarContainer);
@@ -685,26 +694,11 @@
         }
     })
     // 显示消息读取状态
-    function setMesReadState(state) {
-        var dialogList = document.getElementsByClassName('dialogContainer');
-        var lastDialog = dialogList[dialogList.length-1];
-        var stateSpan = lastDialog.getElementsByClassName('stateSpan');
-        var theOnlySpan = stateSpan[0];
-        console.log(theOnlySpan)
-        if (stateSpan != '')
+    function setMesReadState(stateID) {
+        var stateSpan = document.getElementById(stateID);
+        if (stateSpan != null)
         {
-            console.log(stateSpan[0])
-            theOnlySpan.className = 'stateSpan';
-        }
-        if (state === 0)
-        {
-            theOnlySpan.innerHTML = '未读'
-            theOnlySpan.classList.add('notRead');
-        }
-        else if (state === 1)
-        {
-            theOnlySpan.innerHTML = '已读'
-            theOnlySpan.classList.add('readed');
+            stateSpan.innerHTML = '已读'
         }
         else
         {

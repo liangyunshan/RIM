@@ -37,7 +37,6 @@ public:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
-    void resizeEvent(QResizeEvent * event);
 
 signals:
     void sendQueryRecord(const ChatInfoUnit &);
