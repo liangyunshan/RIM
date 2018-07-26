@@ -505,19 +505,7 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
 
     if(client->chatPersonWidget)
     {
-        if(client->chatPersonWidget->isMinimized())
-        {
-            client->chatPersonWidget->showNormal();
-        }
-        else if(client->chatPersonWidget->isMaximized())
-        {
-//            client->chatPersonWidget->raise();
-            client->chatPersonWidget->showMaximized();
-        }
-        else
-        {
-            client->chatPersonWidget->show();
-        }
+        client->chatPersonWidget->respshowChat();
     }
     else
     {
@@ -528,8 +516,7 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
 #endif
         widget->initChatRecord();
         client->chatPersonWidget = widget;
-        widget->show();
-        widget->raise();
+        widget->respshowChat();
     }
 }
 

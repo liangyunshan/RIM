@@ -1158,8 +1158,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatPersonWidget->initChatRecord();
             }
 
-            client->chatPersonWidget->show();
-            client->chatPersonWidget->raise();
+            client->chatPersonWidget->respshowChat();
         }
     }
 
@@ -1176,8 +1175,7 @@ void LoginDialog::openChatDialog(QString accountId)
        client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatPersonWidget->show();
-   client->chatPersonWidget->raise();
+   client->chatPersonWidget->respshowChat();
 }
 
 LoginDialog::~LoginDialog()
