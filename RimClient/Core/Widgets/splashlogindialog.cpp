@@ -486,15 +486,16 @@ void SplashLoginDialog::respFileConnect(bool flag)
     }
 
     if(flag){
-        DataPackType request;
-        request.msgType = MSG_CONTROL;
-        request.msgCommand = MSG_TCP_TRANS;
-        request.extendData.type495 = T_DATA_REG;
-        request.extendData.usOrderNo = O_2051;
-        request.extendData.usSerialNo = SERIALNO_FRASH;
-        request.sourceId = G_User->BaseInfo().accountId;
-        request.destId = request.sourceId;
-        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
+        //TODO:测试接入原有服务器，注释文件服务器的注册报 尚超 20180726
+//        DataPackType request;
+//        request.msgType = MSG_CONTROL;
+//        request.msgCommand = MSG_TCP_TRANS;
+//        request.extendData.type495 = T_DATA_REG;
+//        request.extendData.usOrderNo = O_2051;
+//        request.extendData.usSerialNo = SERIALNO_FRASH;
+//        request.sourceId = G_User->BaseInfo().accountId;
+//        request.destId = request.sourceId;
+//        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
     }
 }
 

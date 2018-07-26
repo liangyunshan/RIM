@@ -8,6 +8,10 @@
 #include "Network/network_global.h"
 #include "Util/rsingleton.h"
 #include "tcp_wraprule.h"
+#ifdef Q_OS_WIN
+#include <WinSock2.h>
+#include <Windows.h>
+#endif
 
 namespace ClientNetwork{
 
@@ -15,6 +19,51 @@ using namespace QDB495;
 using namespace QDB21;
 using namespace QDB2051;
 using namespace QDB2048;
+
+
+unsigned short TransferAddr(QByteArray str)
+{
+    int i;
+    int k[4];
+    int Digits=str.length();
+    for(i=0;i<Digits;i++)
+    {
+        if(str[i]>='0'&&str[i]<='9')
+            k[i]=str[i]-48;
+        else if(str[i]>='A'&&str[i]<='F')
+            k[i]=str[i]-'A'+10;
+        else if(str[i]>='a'&&str[i]<='f')
+            k[i]=str[i]-'a'+10;
+
+    }
+    unsigned short tmp = ((unsigned short)(k[0]*4096+k[1]*256+k[2]*16+k[3]));
+    return tmp;
+}
+
+QByteArray UnTransferAddr(unsigned short addr)
+{
+    char addrList[5];
+    unsigned char temp[4];
+    temp[0] = addr / 4096;
+    temp[1] = (addr % 4096) / 256;
+    temp[2] = ((addr % 4096) % 256) / 16;
+    temp[3] = ((addr % 4096) % 256) % 16;
+
+    for(int i=0; i<4; i++)
+    {
+        if(temp[i] < 10)
+        {
+            addrList[i] = char(temp[i] + 48);
+        }
+        else
+        {
+            addrList[i] = char(temp[i] + 87);
+        }
+    }
+
+    addrList[4] = char(0);
+    return QByteArray(addrList,5);
+}
 
 TCP495DataPacketRule::TCP495DataPacketRule():
     WrapRule()
@@ -39,13 +88,92 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
     packet.bVersion = 1;
     packet.bPackType = dataUnit.bPackType;
     packet.bPriority = 0;
-    packet.bPeserve = dataUnit.bPeserve;
+    packet.bPeserve = htons(dataUnit.bPeserve);
     packet.wSerialNo = dataUnit.usSerialNo;
     packet.wCheckout = 0;
-    packet.wDestAddr = dataUnit.wDestAddr;
-    packet.wSourceAddr = dataUnit.wSourceAddr;
+    bool ret = true;
+//    unsigned short wSourceAddr = QString("0x%1").arg(dataUnit.wSourceAddr).toUShort(&ret,16);
+    unsigned short wSourceAddr = TransferAddr(QString("%1").arg(dataUnit.wSourceAddr).toLatin1());
+    packet.wSourceAddr = htons(wSourceAddr);
+//    unsigned short wDestAddr = QString("0x%1").arg(dataUnit.wDestAddr).toUShort(&ret,16);
+    unsigned short wDestAddr = TransferAddr(QString("%1").arg(dataUnit.wDestAddr).toLatin1());
+    packet.wDestAddr = htons(wDestAddr);
 
     int sendDataLen = 0;
+
+    //TODO:接入原有服务器 尚超 20180726
+    //[1]
+    if(packet.bPackType == WM_DATA_REG)
+    {
+        packet.wPackLen = htons(10);
+        packet.dwPackAllLen = packet.wPackLen;
+        packet.wOffset = 0;
+        char buff[10];
+        memset(buff,0,10);
+        buff[0] = 0;
+        buff[1] = 4;
+
+        packet.wSourceAddr=htons(packet.wSourceAddr);
+        memcpy(buff+sizeof(char)*2,(char *)&packet.wSourceAddr,sizeof(char)*2);
+
+        memset(sendBuff,0,TCP_SEND_BUFF);
+        memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+        memcpy(sendBuff + sizeof(QDB495_SendPackage),buff,10);
+        int realSendLen = sendDataFunc(sendBuff,QDB495_SendPackage_Length + 10);
+
+        if(realSendLen == packet.wPackLen){
+            return true;
+        }
+        return true;
+    }
+    else
+    {
+        QByteArray originalData = dataUnit.data;
+        //多个协议头长度
+        int protocolDataLen = 0;
+        if(dataUnit.usOrderNo == O_2051){
+            protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length;
+        }else if(dataUnit.usOrderNo == 2048){
+            protocolDataLen = QDB21_Head_Length + QDB2048_Head_Length;
+        }
+        int totalIndex = countTotoalIndex(originalData.length());
+        packet.dwPackAllLen = htonl(originalData.length() + totalIndex * protocolDataLen);
+
+        for(unsigned int i = 0; i < totalIndex; i++)
+        {
+            packet.wOffset = htons(i);
+
+            int leftDataLen = originalData.length() - sendDataLen;
+            int sliceLen = leftDataLen > MAX_PACKET ? MAX_PACKET: leftDataLen;
+
+            dataUnit.data.clear();
+            dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
+            RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+
+            packet.wPackLen = htons(protocolDataLen + sliceLen);
+
+            memset(sendBuff,0,TCP_SEND_BUFF);
+            memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
+            memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data(),dataUnit.data.length());
+
+            int realSendLen = sendDataFunc(sendBuff,QDB495_SendPackage_Length + protocolDataLen + sliceLen);
+
+            if(realSendLen == (QDB495_SendPackage_Length +protocolDataLen + sliceLen )){
+                sendDataLen += sliceLen;
+            }else{
+                break;
+            }
+        }
+
+        if(sendDataLen == originalData.length()){
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    //[~1]
 
     //文件数据，每一片文件数据均小于最大传输限制(1024byte)，不用继续分片
     if(dataUnit.cFileType == QDB2051::F_BINARY){
@@ -120,6 +248,7 @@ bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandle
 {
     dhandler = recvDataFunc;
     bool unWrapResult = false;
+    lastRecvBuff.clear();
     if(lastRecvBuff.size() > 0)
     {
         int tmpBuffLen = lastRecvBuff.size() + length + 1;
@@ -153,12 +282,26 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
         do
         {
             memcpy((char *)&packet,recvData+processLen,sizeof(QDB495_SendPackage));
+
+            //TODO
+            bool ret = true;
+            unsigned short wSourceAddr = ntohs(packet.wSourceAddr);
+            wSourceAddr = UnTransferAddr(wSourceAddr).toUShort();
+            unsigned short wDestAddr = ntohs(packet.wDestAddr);
+            wDestAddr = UnTransferAddr(wDestAddr).toUShort();
+
+            packet.wSourceAddr = wSourceAddr;
+            packet.wDestAddr = wDestAddr;
+            packet.bPeserve = ntohs(packet.bPeserve);
+            packet.wPackLen = ntohs(packet.wPackLen);
+            packet.dwPackAllLen = ntohl(packet.dwPackAllLen);
+
             processLen += sizeof(QDB495_SendPackage);
             //[1]数据头部分正常
             if(true)
             {
                 //[1.1]至少存在多余一个完整数据包
-                int currentDataPackLen = packet.wPackLen - QDB495_SendPackage_Length;
+                int currentDataPackLen = packet.wPackLen;
                 if(currentDataPackLen <= recvLen - processLen)
                 {
                     //对数据包类型进行预判断处理
