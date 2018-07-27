@@ -196,17 +196,20 @@ struct IpPort{
     IpPort(QString ip,unsigned short port){
         this->ip = ip;
         this->port = port;
+        connected = false;
     }
 
     IpPort(const IpPort & otherSide){
         this->ip = otherSide.ip;
         this->port = otherSide.port;
+        this->connected = otherSide.connected;
     }
 
     IpPort operator=(const IpPort & otherSide){
         if(this != &otherSide){
             this->ip = otherSide.ip;
             this->port = otherSide.port;
+            this->connected = otherSide.connected;
         }
 
         return *this;
@@ -234,7 +237,7 @@ struct IpPort{
  */
 struct NetworkSettings{
 
-    QVector<IpPort> validIps(){
+    QVector<IpPort> validTextIps(){
         QVector<IpPort> ipCollects;
 
         if(textServer.isValid())
@@ -246,11 +249,21 @@ struct NetworkSettings{
         return ipCollects;
     }
 
+    QVector<IpPort> validFileIps(){
+        QVector<IpPort> ipCollects;
+
+        if(fileServer.isValid())
+            ipCollects.append(fileServer);
+
+        return ipCollects;
+    }
+
     IpPort textServer;              //主服务器
     IpPort tandemServer;            //串联服务器
     IpPort fileServer;              //文件服务器
 
-    IpPort connectedIpPort;         //保存正在连接的网络地址信息(要么为textServer，要么为tandemServer)
+    IpPort connectedTextIpPort;         //保存正在连接的文本网络地址信息(要么为textServer，要么为tandemServer)
+    IpPort connectedFileIpPort;         //保存正在连接的文件网络地址信息
 };
 
 /*!

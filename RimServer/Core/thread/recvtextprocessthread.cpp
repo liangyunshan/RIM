@@ -42,7 +42,6 @@ void RecvTextProcessThread::run()
 
             if(existed)
                 RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(database,sockData);
-
         }
     }
 }
