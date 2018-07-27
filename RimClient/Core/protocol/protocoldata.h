@@ -149,8 +149,8 @@ enum MsgCommand
  * @brief 信息已读未读状态
  */
 enum Msg_Status{
-    MSG_READYREAD       = 0x00 ,    /*!< 信息未读 */
-    MSG_NOTREAD         = 0x01 ,    /*!< 信息已读 */
+    MSG_READYREAD       = 0x00 ,    /*!< 信息已读 */
+    MSG_NOTREAD         = 0x01 ,    /*!< 信息未读 */
     MSG_ARRIVE_SERVER   = 0x02 ,    /*!< 信息已到达服务器 */
 };
 

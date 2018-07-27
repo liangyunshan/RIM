@@ -62,6 +62,8 @@ private slots:
     void procRecvServerTextReply(TextReply);
     void procRecvFile(FileRecvDesc);
 
+    void respOpenPanel();
+
 private:
     void initWidget();
     void readSettings();

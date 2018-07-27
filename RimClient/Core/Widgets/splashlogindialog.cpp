@@ -305,8 +305,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             }
-            client->chatPersonWidget->show();
-            client->chatPersonWidget->raise();
+            client->chatPersonWidget->respshowChat();
         }
     }
 
@@ -323,8 +322,7 @@ void SplashLoginDialog::openChatDialog(QString accountId)
        client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatPersonWidget->show();
-   client->chatPersonWidget->raise();
+   client->chatPersonWidget->respshowChat();
 }
 
 void SplashLoginDialog::showNetSettings()
