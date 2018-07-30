@@ -1193,10 +1193,20 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    QString stateID = QString::number(unitMsg.serialNo);
-    int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                 .arg(t_readState).arg(stateID);
+    if(unitMsg.contentType == MSG_TEXT_TEXT)
+    {
+        QString stateID = QString::number(unitMsg.serialNo);
+        int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
+        t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                                                                     .arg(t_readState).arg(stateID);
+    }
+    else if(unitMsg.contentType == MSG_TEXT_FILE)
+    {
+        QString t_filePath = unitMsg.contents;
+        t_showMsgScript = QString("appendFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
+                                                                     .arg(1);
+    }
+
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
