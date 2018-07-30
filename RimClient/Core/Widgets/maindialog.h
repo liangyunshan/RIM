@@ -11,6 +11,9 @@
  *      20180130:wey:
  *      20180222:LYS:添加主窗口面板在桌面自动贴边隐藏与弹出显示功能;
  *      20180227:wey:修复主面板在多显示屏下不能自动切换问题；修复自动隐藏在多显示屏下错误问题；
+ *      20180727:LYS:修改自动贴边隐藏逻辑;
+ *      20180730:LYS:修改窗口配置记录（考虑面板阴影边框）;
+ *      20180730:LYS:修复主面板显示菜单时自动贴边隐藏问题;
  */
 #ifndef MAINDIALOG_H
 #define MAINDIALOG_H
@@ -36,6 +39,8 @@ public:
 
     void onMessage(MessageType type);
     void setLogInState(OnlineStatus state);
+    void blockAutoHidePanel();
+    void unblockAutoHidePanel();
 
 protected:
     void resizeEvent(QResizeEvent * );
@@ -47,7 +52,7 @@ private slots:
     void updateWidgetGeometry();
     void closeWindow();
     void makeWindowFront(bool flag);
-    void blockAutoHidePanel();
+    void respSettingChange();
 
     void showHoverItem(bool,ToolItem*);
 
@@ -63,6 +68,8 @@ private slots:
     void procRecvFile(FileRecvDesc);
 
     void respOpenPanel();
+    void respMenuToShow();
+    void respMenuToHide();
 
 private:
     void initWidget();
