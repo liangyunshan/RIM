@@ -21,6 +21,9 @@
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
 
+const char IP_TYPE[]  = "TP_TYPE";
+const char IP_DATA[]  = "TP_DATA";
+
 class PanelBottomToolBarPrivate : public GlobalData<PanelBottomToolBar>
 {
     Q_DECLARE_PUBLIC(PanelBottomToolBar)
@@ -152,17 +155,25 @@ void PanelBottomToolBar::onMessage(MessageType mtype)
         case MESS_ADD_FRIEND_WINDOWS:
             showAddFriendPanel();
             break;
+
         case MESS_TEXT_NET_OK:
-            updateNetConnectorInfo();
-            break;
         case MESS_TEXT_NET_ERROR:
             updateNetConnectorInfo();
             break;
+
         case MESS_FILE_NET_ERROR:
+#ifdef __LOCAL_CONTACT__
+            updateNetConnectorInfo();
+#else
             networkIsConnected(false);
+#endif
             break;
         case MESS_FILE_NET_OK:
+#ifdef __LOCAL_CONTACT__
+            updateNetConnectorInfo();
+#else
             networkIsConnected(true);
+#endif
             break;
         default:
             break;
@@ -211,22 +222,39 @@ void PanelBottomToolBar::updateNetConnectorInfo()
     QMenu * netConnectMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_NETCONNECTOR);
     if(netConnectMenu){
         netConnectMenu->clear();
-        QVector<IpPort> ips = G_NetSettings.validIps();
-        std::for_each(ips.begin(),ips.end(),[&](const IpPort & ip){
+
+        std::function<void(const IpPort &,ServerType,IpPort connectedIpPort)> func = [&](const IpPort & ip,ServerType ipType,IpPort connectedIpPort){
             QAction * action = new QAction();
-            if(G_NetSettings.connectedIpPort == ip){
-                if(G_NetSettings.connectedIpPort.isConnected())
+            if(connectedIpPort == ip){
+                if(connectedIpPort.isConnected())
                     action->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
                 else
                     action->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_Error.png"));
             }
-            action->setText(QString("%1:%2").arg(ip.ip).arg(ip.port));
+            action->setProperty(IP_TYPE,ipType);
+            action->setProperty(IP_DATA,QString("%1:%2").arg(ip.ip).arg(ip.port));
+
+            if(ipType == SERVER_TEXT)
+                action->setText(QString("%1:%2 | %3").arg(ip.ip).arg(ip.port).arg(tr("Text Server")));
+            else if(ipType == SERVER_FILE)
+                action->setText(QString("%1:%2 | %3").arg(ip.ip).arg(ip.port).arg(tr("File Server")));
+
             connect(action,SIGNAL(triggered(bool)),this,SLOT(respChangeConnector(bool)));
             netConnectMenu->addAction(action);
-        });
+        };
+
+        //文本服务器
+        QVector<IpPort> ips = G_NetSettings.validTextIps();
+        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_TEXT,G_NetSettings.connectedTextIpPort));
+
+        netConnectMenu->addSeparator();
+
+        //文件服务器
+        ips = G_NetSettings.validFileIps();
+        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_FILE,G_NetSettings.connectedFileIpPort));
     }
 
-    if(G_NetSettings.connectedIpPort.isConnected()){
+    if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedFileIpPort.isConnected()){
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->setToolTip(tr("Network connected"));
         ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
@@ -246,16 +274,30 @@ void PanelBottomToolBar::respChangeConnector(bool)
 {
     QAction * toolButt = dynamic_cast<QAction *>(QObject::sender());
     if(toolButt){
-       QStringList connectorInfo = toolButt->text().split(":");
-       if(connectorInfo.size() == 2){
-            if(G_NetSettings.connectedIpPort.isConnected()){
-                RMessageBox::warning(this,QObject::tr("warning"),tr("Network established!"),RMessageBox::Yes);
-            }else{
-                RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
-                                         .arg(connectorInfo.at(1)),RMessageBox::Yes);
+       ServerType ipType = static_cast<ServerType>(toolButt->property(IP_TYPE).toInt());
 
-                G_NetSettings.connectedIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
-                TextNetConnector::instance()->connect();
+       QStringList connectorInfo = toolButt->property(IP_DATA).toString().split(":");
+       if(connectorInfo.size() == 2){
+            if(ipType == SERVER_TEXT){
+                if(G_NetSettings.connectedTextIpPort.isConnected()){
+                    RMessageBox::warning(this,QObject::tr("warning"),tr("Text Network established!"),RMessageBox::Yes);
+                }else{
+                    RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
+                                             .arg(connectorInfo.at(1)),RMessageBox::Yes);
+
+                    G_NetSettings.connectedTextIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
+                    TextNetConnector::instance()->connect();
+                }
+            }else if(ipType == SERVER_FILE){
+                if(G_NetSettings.connectedFileIpPort.isConnected()){
+                    RMessageBox::warning(this,QObject::tr("warning"),tr("File Network established!"),RMessageBox::Yes);
+                }else{
+                    RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
+                                             .arg(connectorInfo.at(1)),RMessageBox::Yes);
+
+                    G_NetSettings.connectedFileIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
+                    FileNetConnector::instance()->connect();
+                }
             }
        }
     }

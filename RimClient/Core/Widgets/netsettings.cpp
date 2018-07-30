@@ -265,7 +265,7 @@ void NetSettings::updateSettings()
     if(G_NetSettings.textServer.ip != d->textServerIp->getIp() ||
             G_NetSettings.textServer.port != d->textServerIp->getPort().toUShort())
     {
-        if(G_NetSettings.connectedIpPort.isConnected() && G_NetSettings.connectedIpPort == G_NetSettings.textServer){
+        if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedTextIpPort == G_NetSettings.textServer){
             int result = RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
                 TextNetConnector::instance()->disConnect();
@@ -282,7 +282,7 @@ void NetSettings::updateSettings()
     if(G_NetSettings.tandemServer.ip != d->tandemServerIp1->getIp() ||
             G_NetSettings.tandemServer.port != d->tandemServerIp1->getPort().toUShort())
     {
-        if(G_NetSettings.connectedIpPort.isConnected() && G_NetSettings.connectedIpPort == G_NetSettings.tandemServer){
+        if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedTextIpPort == G_NetSettings.tandemServer){
             int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
                 TextNetConnector::instance()->disConnect();
@@ -294,8 +294,22 @@ void NetSettings::updateSettings()
         G_NetSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
     }
 #endif
-    G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
-    G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
+
+    if(G_NetSettings.fileServer.ip != d->fileServerIp->getIp() ||
+            G_NetSettings.fileServer.port != d->fileServerIp->getPort().toUShort())
+    {
+        if(G_NetSettings.connectedFileIpPort.isConnected() && G_NetSettings.connectedFileIpPort == G_NetSettings.fileServer){
+            int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
+            if(result == RMessageBox::Yes){
+                FileNetConnector::instance()->disConnect();
+            }else{
+                return;
+            }
+        }
+
+        G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
+        G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
+    }
 
     QSettings * settings =  RUtil::globalSettings();
     settings->beginGroup(Constant::SYSTEM_NETWORK);

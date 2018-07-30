@@ -70,15 +70,26 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
         if(realSendLen == packet.wPackLen){
             return true;
         }
-    }else if(dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dataUnit.cFileType == QDB2051::F_TEXT){
+    }
+    //文本数据
+    else if(dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dataUnit.cFileType == QDB2051::F_TEXT)
+    {
         QByteArray originalData = dataUnit.data;
+
         //多个协议头长度
         int protocolDataLen = 0;
-        if(dataUnit.usOrderNo == O_2051){
-            protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
-        }else if(dataUnit.usOrderNo == 2048){
-            protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2048_Head_Length;
+        switch(dataUnit.usOrderNo){
+           case O_NONE:
+                protocolDataLen = QDB495_SendPackage_Length;
+                break;
+           case O_2051:
+                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+                break;
+           case O_2048:
+                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2048_Head_Length;
+                break;
         }
+
         int totalIndex = countTotoalIndex(originalData.length());
         packet.dwPackAllLen = originalData.length() + totalIndex * protocolDataLen;
 
@@ -91,7 +102,8 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
 
             dataUnit.data.clear();
             dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
-            RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+            if(dataUnit.usOrderNo != O_NONE)
+                RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
 
             packet.wPackLen = protocolDataLen + sliceLen;
 
@@ -323,6 +335,7 @@ int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
 {
     if(totalLength <= 0)
         return int(1);
+
     return qCeil(((float) totalLength/ MAX_PACKET));
 }
 
