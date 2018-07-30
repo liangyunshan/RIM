@@ -95,7 +95,6 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
         FileTransProgress progress;
         progress.transStatus = TransCancel;
         progress.fileFullPath = (*findIndex).fullFilePath;
-//        progress.serialNumber = QString((*findIndex).uuid).toUInt();
         QFileInfo fileInfo(progress.fileFullPath);
         progress.fileName = fileInfo.fileName();
         MessDiapatch::instance()->onFileTransStatusChanged(progress);
@@ -231,9 +230,7 @@ void File716SendTask::prepareSendTask()
                     ptr->method = config.communicationMethod;
                     ptr->format = config.messageFormat;
                 }
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"ptr->usSerialNo:"<<ptr->usSerialNo
-                      <<"\n";
+
                 sendList.push_back(ptr);
             }
         }
@@ -273,9 +270,6 @@ void File716SendTask::processFileData()
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;
                 unit.dataUnit.usSerialNo = (*iter)->usSerialNo;
-                qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-                       <<"unit.dataUnit.usSerialNo:"<<unit.dataUnit.usSerialNo
-                      <<"\n";
                 unit.dataUnit.usOrderNo = O_2051;
                 unit.dataUnit.cDate = 0;
                 unit.dataUnit.cTime = 0;

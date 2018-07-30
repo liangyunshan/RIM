@@ -9,7 +9,7 @@
 #include "util/rsingleton.h"
 #include "Util/imagemanager.h"
 
-User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr)
+User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr),fileOnLine(false),textOnLine(false)
 {
     createUserHome(baseInfo.accountId);
     systemSetting = new SystemSettingKey;

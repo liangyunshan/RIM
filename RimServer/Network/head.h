@@ -137,12 +137,17 @@ struct QDB2048_Head{
 }
 
 /*!
- *  @brief 协议类型
- *  @details 使用TCP传输时，因需要确认机制，因此发送的协议采用2051，确认协议采用2048.
+ *  @brief 正文描述类型
+ *  @details 描述当前数据包的类型: \n
+ *           TCP协议中，按照不同的数据发送类型，其后面接入的协议也是不一样： \n
+ *           O_NONE:[495] \n
+ *           O_2051:[495][21][2051] \n
+ *           O_2048:[495][21][2048] \n
  */
 enum OrderNoType{
-    O_2051 = 2051,      /*!<  */
-    O_2048 = 2048       /*!<  */
+    O_NONE = 1111,     /*!< 数据请求 */
+    O_2051 = 2051,     /*!< 数据请求 */
+    O_2048 = 2048      /*!< 数据绘制 */
 };
 
 /*!
@@ -262,6 +267,7 @@ enum PacketType_495{
  */
 struct ExtendData
 {
+    CommMethod method;              /*!< 接收方式 */
     SocketOperateType type;         /*!< 请求类型 */
     SOCKET sockId;                  /*!< 客户端Socket标识Id */
     PacketType_495 type495;         /*!< 495信息类型 */
@@ -271,6 +277,8 @@ struct ExtendData
     unsigned short wOffset;         /*!< 分片序号 */
     unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
     unsigned short sliceNum;        /*!< 分片数量 */
+    unsigned short wSourceAddr;     /*!< 源节点号 */
+    unsigned short wDestAddr;       /*!< 目的节点号 */
 };
 
 /*!

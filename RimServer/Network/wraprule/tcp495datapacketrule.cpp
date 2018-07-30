@@ -293,31 +293,37 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
             if(true)
             {
                 RecvUnit socketData;
+                socketData.extendData.method = C_TCP;
                 socketData.extendData.sockId = ioContext->getClient()->socket();
                 socketData.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
                 socketData.extendData.bPeserve = packet.bPeserve;
                 socketData.extendData.wOffset = packet.wOffset;
                 socketData.extendData.dwPackAllLen = packet.dwPackAllLen;
                 socketData.extendData.usSerialNo = packet.wSerialNo;
+                socketData.extendData.wDestAddr = packet.wDestAddr;
+                socketData.extendData.wSourceAddr = packet.wSourceAddr;
 
                 //[1.1]至少存在多余一个完整数据包
                 int currentDataPackLen = packet.wPackLen - QDB495_SendPackage_Length;
                 if(currentDataPackLen <= recvLen - processLen)
                 {
-                    //对数据包类型进行预判断处理
-                    QDB21::QDB21_Head head21;
-                    memset(&head21,0,sizeof(QDB21::QDB21_Head));
-                    memcpy((char *)&head21,recvData + processLen,sizeof(QDB21::QDB21_Head));
-
                     //若协议为2051需要对文件的类型进行判断，若为2048则直接默认以text形式发送
                     int ptype = QDB2051::F_NO_SUFFIX;
-                    if(head21.usOrderNo == O_2051){
-                        QDB2051::QDB2051_Head head2051;
-                        memset(&head2051,0,sizeof(QDB2051::QDB2051_Head));
-                        memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
-                        ptype = (int)(head2051.cFileType);
-                    }else if(head21.usOrderNo == O_2048){
-                        //2048中不包含相关协议字段，暂不解析
+
+                    if(socketData.extendData.type495 != T_DATA_REG){
+                        //对数据包类型进行预判断处理
+                        QDB21::QDB21_Head head21;
+                        memset(&head21,0,sizeof(QDB21::QDB21_Head));
+                        memcpy((char *)&head21,recvData + processLen,sizeof(QDB21::QDB21_Head));
+
+                        if(head21.usOrderNo == O_2051){
+                            QDB2051::QDB2051_Head head2051;
+                            memset(&head2051,0,sizeof(QDB2051::QDB2051_Head));
+                            memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
+                            ptype = (int)(head2051.cFileType);
+                        }else if(head21.usOrderNo == O_2048){
+                            //2048中不包含相关协议字段，暂不解析
+                        }
                     }
 
                     if(ptype == QDB2051::F_TEXT || ptype == QDB2051::F_BINARY)
