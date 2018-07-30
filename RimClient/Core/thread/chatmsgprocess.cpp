@@ -244,7 +244,7 @@ bool ChatMsgProcess::saveC2CTaskMsg(QString otherID, ChatInfoUnit &msgUnit)
                ,{rcr.time,msgUnit.dtime}
                ,{rcr.dateTime,msgUnit.dateTime}
                ,{rcr.serialNo,msgUnit.serialNo}
-               ,{rcr.status,MSG_NOTREAD}
+               ,{rcr.status,msgUnit.msgstatus}
                ,{rcr.data,msgUnit.contents}
                });
 
@@ -296,7 +296,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
             unitMsg.dtime = query.value(rcr.time).toLongLong();
             unitMsg.dateTime = query.value(rcr.dateTime).toString();
             unitMsg.serialNo = query.value(rcr.serialNo).toInt();
-            unitMsg.msgstatus = (MsgStatus)query.value(rcr.serialNo).toInt();
+            unitMsg.msgstatus = (MsgStatus)query.value(rcr.status).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
             chatMsgs.prepend(unitMsg);
         }
@@ -350,6 +350,7 @@ bool ChatMsgProcess::queryC2CTaskMoreMsg(QString otherID, uint start, uint count
                           {rcr.time},
                           {rcr.dateTime},
                           {rcr.serialNo},
+                          {rcr.status},
                           {rcr.data}})
             .createCriteria();
     rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
@@ -368,6 +369,7 @@ bool ChatMsgProcess::queryC2CTaskMoreMsg(QString otherID, uint start, uint count
             unitMsg.dtime = query.value(rcr.time).toLongLong();
             unitMsg.dateTime = query.value(rcr.dateTime).toString();
             unitMsg.serialNo = query.value(rcr.serialNo).toInt();
+            unitMsg.msgstatus = (MsgStatus)query.value(rcr.status).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
             chatMsgs.append(unitMsg);
         }

@@ -25,32 +25,52 @@ Binary716_MsgParse::Binary716_MsgParse():
 void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
 {
     ProtocolPackage packData;
-    if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
+
+    if(unit.extendData.method == C_TCP)
+    {
         packData.bPackType = unit.extendData.type495;
         packData.bPeserve = unit.extendData.bPeserve;
         packData.wOffset = unit.extendData.wOffset;
         packData.dwPackAllLen = unit.extendData.dwPackAllLen;
         packData.usSerialNo = unit.extendData.usSerialNo;
+        packData.wSourceAddr = unit.extendData.wSourceAddr;
+        packData.wDestAddr = unit.extendData.wDestAddr;
 
-        //文本信息
-        if(packData.cFileType == QDB2051::F_NO_SUFFIX){
-            switch(unit.extendData.type495){
-                case T_DATA_AFFIRM:
-                case T_DATA_NOAFFIRM:
-                    RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
-                    break;
-                case T_DATA_REG:
-                    RSingleton<Data716Process>::instance()->processUserRegist(db,unit.extendData.sockId,packData);
-                    break;
-
-                default:break;
+        if(checkHead495Only(unit.extendData.type495))
+        {
+            RSingleton<Data716Process>::instance()->processUserRegist(db,unit.extendData.sockId,packData);
+        }
+        else
+        {
+            if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
+                //文本信息
+                if(packData.cFileType == QDB2051::F_NO_SUFFIX){
+                    switch(unit.extendData.type495){
+                        case T_DATA_AFFIRM:
+                        case T_DATA_NOAFFIRM:
+                            RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
+                            break;
+                        default:break;
+                    }
+                }
+                //文件信息
+                else if(packData.cFileType == QDB2051::F_TEXT || packData.cFileType == QDB2051::F_BINARY){
+                    RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
+                }
             }
         }
-        //文件信息
-        else if(packData.cFileType == QDB2051::F_TEXT || packData.cFileType == QDB2051::F_BINARY){
-            RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
-        }
     }
+}
+
+/*!
+ * @brief 根据数据包类型判断数据头是否需要进一步解析
+ * @param[in] type 数据包类型
+ * @return true  此数据只包含495协议 \n
+ *         false 此数据需要解析21、2051或其他数据头
+ */
+bool Binary716_MsgParse::checkHead495Only(const PacketType_495 type)
+{
+    return (type == T_DATA_REG);
 }
 
 #endif

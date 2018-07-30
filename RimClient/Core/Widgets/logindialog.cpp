@@ -390,7 +390,7 @@ void LoginDialog::respFileSocketError()
 void LoginDialog::login()
 {
 #ifndef __NO_SERVER__
-    G_NetSettings.connectedIpPort = G_NetSettings.textServer;
+    G_NetSettings.connectedTextIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
 
@@ -1158,8 +1158,7 @@ void LoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
                 client->chatPersonWidget->initChatRecord();
             }
 
-            client->chatPersonWidget->show();
-            client->chatPersonWidget->raise();
+            client->chatPersonWidget->respshowChat();
         }
     }
 
@@ -1176,8 +1175,7 @@ void LoginDialog::openChatDialog(QString accountId)
        client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatPersonWidget->show();
-   client->chatPersonWidget->raise();
+   client->chatPersonWidget->respshowChat();
 }
 
 LoginDialog::~LoginDialog()

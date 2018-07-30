@@ -123,7 +123,7 @@ void SplashLoginDialogPrivate::initWidget()
     bottomGridLayout->addWidget(tcpFlowServerIp1,2,4,1,2);
 
     bottomGridLayout->setRowStretch(3,1);
-    bottomGridLayout->addWidget(loginButt,4,2,1,3);
+    bottomGridLayout->addWidget(loginButt,4,1,1,4);
 
     bottomWidget->setLayout(bottomGridLayout);
 
@@ -305,8 +305,7 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
             }
-            client->chatPersonWidget->show();
-            client->chatPersonWidget->raise();
+            client->chatPersonWidget->respshowChat();
         }
     }
 
@@ -323,8 +322,7 @@ void SplashLoginDialog::openChatDialog(QString accountId)
        client->chatPersonWidget->initChatRecord();
    }
 
-   client->chatPersonWidget->show();
-   client->chatPersonWidget->raise();
+   client->chatPersonWidget->respshowChat();
 }
 
 void SplashLoginDialog::showNetSettings()
@@ -360,7 +358,7 @@ void SplashLoginDialog::prepareNetConnect()
     MQ_D(SplashLoginDialog);
 
     Q_UNUSED(d);
-    G_NetSettings.connectedIpPort = G_NetSettings.textServer;
+    G_NetSettings.connectedTextIpPort = G_NetSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
 }
@@ -421,8 +419,11 @@ void SplashLoginDialog::respTextConnect(bool flag)
             d->mainDialog->setLogInState(STATUS_OFFLINE);
         }
 
-        FileNetConnector::instance()->initialize();
-        FileNetConnector::instance()->connect();
+        if(!G_User->isFileOnLine()){
+            G_NetSettings.connectedFileIpPort = G_NetSettings.fileServer;
+            FileNetConnector::instance()->initialize();
+            FileNetConnector::instance()->connect();
+        }
 
         unsigned short seriNo = SerialNo::instance()->getSqlSerialNo();
         if(seriNo == 0)
@@ -444,7 +445,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
             request.msgType = MSG_CONTROL;
             request.msgCommand = MSG_TCP_TRANS;
             request.extendData.type495 = T_DATA_REG;
-            request.extendData.usOrderNo = O_2051;
+            request.extendData.usOrderNo = O_NONE;
             request.extendData.usSerialNo = SERIALNO_FRASH;
             request.sourceId = G_User->BaseInfo().accountId;
             request.destId = request.sourceId;
@@ -459,7 +460,7 @@ void SplashLoginDialog::respTextSocketError()
     if(G_User){
         G_User->setTextOnline(false);
     }
-    G_NetSettings.connectedIpPort.setConnected(false);
+    G_NetSettings.connectedTextIpPort.setConnected(false);
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
     RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
@@ -501,7 +502,9 @@ void SplashLoginDialog::respFileConnect(bool flag)
 
 void SplashLoginDialog::respFileSocketError()
 {
-    G_User->setFileOnline(false);
+    if(G_User)
+        G_User->setFileOnline(false);
+    G_NetSettings.connectedFileIpPort.setConnected(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
     RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);

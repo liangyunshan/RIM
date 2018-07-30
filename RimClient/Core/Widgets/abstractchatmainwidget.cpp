@@ -552,6 +552,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 #else
     t_unit.serialNo = record.dtime;
 #endif
+    t_unit.msgstatus = ProtocolType::MSG_NOTREAD;
 
     //转义原始Html
     QString t_sendHtml = t_simpleHtml;
@@ -1114,7 +1115,8 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
+    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(RECV).arg(t_localHtml).arg(t_headPath)
+                                                            .arg(UNREAD).arg(recvMsg.textId);
 
     d->view->page()->runJavaScript(t_showMsgScript);
 }
@@ -1170,9 +1172,19 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    QString stateID = QString::number(unitMsg.serialNo);
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                 .arg(UNREAD).arg(stateID);
+    if(unitMsg.contentType == MSG_TEXT_TEXT)
+    {
+        QString stateID = QString::number(unitMsg.serialNo);
+        int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
+        t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                .arg(t_readState).arg(stateID);
+    }
+    else if(unitMsg.contentType == MSG_TEXT_FILE)
+    {
+        QString t_filePath = unitMsg.contents;
+        t_showMsgScript = QString("appendFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
+                .arg(1);
+    }
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
@@ -1181,7 +1193,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
  * @param recvMsg 收到的信息
  * @param source 信息来源（接收）
  */
-void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, AbstractChatMainWidget::MsgTarget source)
+void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, MsgTarget source)
 {
     MQ_D(AbstractChatMainWidget);
 
@@ -1197,7 +1209,9 @@ void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, Abstra
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
-    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3')").arg(RECV).arg(t_localHtml).arg(t_headPath);
+
+    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(RECV).arg(t_localHtml).arg(t_headPath)
+                                                                    .arg(UNREAD).arg(recvMsg.textId);
 
     d->view->page()->runJavaScript(t_showMsgScript);
 
@@ -1232,13 +1246,14 @@ void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, Abstra
  * @param unitMsg 收发的信息
  * @param source 信息来源（接收/发送）
  */
-void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, AbstractChatMainWidget::MsgTarget source)
+void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source)
 {
     MQ_D(AbstractChatMainWidget);
 
     d->m_recordCount++;
     QString t_showMsgScript = QString("");
     QString t_localHtml = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
     QString t_headPath = QString("");
 
 //    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
@@ -1253,8 +1268,36 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, Abstr
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3')").arg(source).arg(t_localHtml).arg(t_headPath);
+    QString stateID = QString::number(unitMsg.serialNo);
+    int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
+    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                                                                    .arg(t_readState).arg(stateID);
     d->view->page()->runJavaScript(t_showMsgScript);
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
 }
 
 /*!

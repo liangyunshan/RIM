@@ -366,7 +366,38 @@ void ChatPersonWidget::autoQueryRecord()
 void ChatPersonWidget::showMaximizedWindow(bool flag)
 {
     Q_UNUSED(flag);
-    showMaximized();
+
+    switchWindowSize();
+}
+
+/*!
+ * @brief 统一处理单聊窗口显示
+ */
+void ChatPersonWidget::respshowChat()
+{
+    MQ_D(ChatPersonWidget);
+
+    if(this->isHidden())
+    {
+        this->setVisible(true);
+        this->show();
+    }
+    else if(this->isMinimized())
+    {
+        this->showNormal();
+    }
+    else if(this->isMaximized() || d->isMaxSize)
+    {
+        this->raise();
+        return;
+    }
+    else
+    {
+        this->show();
+    }
+
+    this->activateWindow();
+    this->raise();
 }
 
 /*!
@@ -375,6 +406,7 @@ void ChatPersonWidget::showMaximizedWindow(bool flag)
  */
 void ChatPersonWidget::updateMsgStatus(ushort id,ushort serialNo)
 {
+    Q_UNUSED(id);
     emit sendMsgStatus(serialNo);
 }
 

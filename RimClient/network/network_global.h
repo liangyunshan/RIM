@@ -34,7 +34,10 @@ struct DataPacket
     unsigned int totalLen;                   //总数据长度
 };
 
-//数据包接收缓冲
+/*!
+ *  @brief 数据包接收缓冲
+ *  @details 可用于接收断包数据
+ */
 struct PacketBuff
 {
     PacketBuff()
@@ -118,10 +121,14 @@ struct QDB495_SendPackage{
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
 };
+
 #define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
+
 }
 
-namespace QDB21{
+namespace QDB21
+{
+
 struct QDB21_Head{
     unsigned short usDestAddr;
     unsigned short usSourceAddr;
@@ -138,7 +145,8 @@ struct QDB21_Head{
 
 }
 
-namespace QDB2051{
+namespace QDB2051
+{
 
 struct QDB2051_Head{
     unsigned long ulPackageLen;
@@ -158,9 +166,11 @@ enum FileType{
     F_TEXT = 1,         /*!< 文本文件 */
     F_BINARY = 2        /*!< 二进制文件*/
 };
+
 }
 
-namespace QDB2048{
+namespace QDB2048
+{
 
 struct QDB2048_Head{
     unsigned long ulPackageLen;
@@ -182,9 +192,7 @@ struct TK205_SendPackage{
     unsigned char index[3];
     unsigned char time[6];
     unsigned char length[3];
-
     char cPackDataBuf[1];                //报文内容
-
     char endof;
 };
 
@@ -192,11 +200,16 @@ struct TK205_SendPackage{
 
 /*!
  *  @brief 正文描述类型
- *  @details 5148等等
+ *  @details 描述当前数据包的类型: \n
+ *           TCP协议中，按照不同的数据发送类型，其后面接入的协议也是不一样： \n
+ *           O_NONE:[495] \n
+ *           O_2051:[495][21][2051] \n
+ *           O_2048:[495][21][2048] \n
  */
 enum OrderNoType{
-    O_2051 = 2051,     /*!<  */
-    O_2048 = 2048     /*!<  */
+    O_NONE = 1111,     /*!< 数据请求 */
+    O_2051 = 2051,     /*!< 数据请求 */
+    O_2048 = 2048      /*!< 数据绘制 */
 };
 
 /*!
@@ -301,8 +314,8 @@ struct ExtendData
     ExtendData():usSerialNo(0),usOrderNo(0),wOffset(0),dwPackAllLen(0)
     ,sliceNum(0){}
     CommMethod method;              /*!< 数据接收链路 */
-    PacketType_495 type495;         /*!< 95信息类型 */
-    unsigned char bPeserve;         /*!< 95保留字 */
+    PacketType_495 type495;         /*!< 495信息类型 */
+    unsigned char bPeserve;         /*!< 495保留字 */
     unsigned short usSerialNo;      /*!< 流水号 */
     unsigned short usOrderNo;       /*!< 编码代号 */
     unsigned short wOffset;         /*!< 分片序号 */

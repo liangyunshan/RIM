@@ -208,6 +208,7 @@ void MainDialog::enterEvent(QEvent *event)
     if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
     {
         showPanel();
+        raise();
     }
     QWidget::enterEvent(event);
 }
@@ -383,7 +384,7 @@ void MainDialog::initWidget()
     d->MainPanel->setLayout(mainLayout);
 
     connect(SystemTrayIcon::instance(),SIGNAL(quitApp()),this,SLOT(closeWindow()));
-    connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(showNormal()));
+    connect(SystemTrayIcon::instance(),SIGNAL(showMainPanel()),this,SLOT(respOpenPanel()));
 
     d->toolBar = new ToolBar(d->MainPanel);
     d->toolBar->setToolFlags(ToolBar::TOOL_ICON|ToolBar::TOOL_MIN|ToolBar::TOOL_CLOSE|ToolBar::TOOL_SPACER);
@@ -547,6 +548,35 @@ void MainDialog::procRecvFileProgress(FileTransProgress fileProgress)
     {
         client->procTransFile(fileProgress);
     }
+}
+
+/*!
+ * @brief 响应打开面板操作
+ */
+void MainDialog::respOpenPanel()
+{
+    MQ_D(MainDialog);
+
+    if(this->isMinimized())
+    {
+        this->showNormal();
+        if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
+        {
+            showPanel();
+        }
+    }
+    else if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
+    {
+        if(this->isHidden())
+            this->setVisible(true);
+        showPanel();
+    }
+    else
+    {
+        this->show();
+    }
+    this->activateWindow();
+    this->raise();
 }
 
 /*!

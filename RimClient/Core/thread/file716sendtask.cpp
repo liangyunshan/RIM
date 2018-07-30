@@ -95,7 +95,6 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
         FileTransProgress progress;
         progress.transStatus = TransCancel;
         progress.fileFullPath = (*findIndex).fullFilePath;
-//        progress.serialNumber = QString((*findIndex).uuid).toUInt();
         QFileInfo fileInfo(progress.fileFullPath);
         progress.fileName = fileInfo.fileName();
         MessDiapatch::instance()->onFileTransStatusChanged(progress);

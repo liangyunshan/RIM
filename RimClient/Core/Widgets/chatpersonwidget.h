@@ -53,6 +53,7 @@ public slots:
     void autoQueryRecord();
     void updateMsgStatus(ushort,ushort);
     void showMaximizedWindow(bool);
+    void respshowChat();
 
 private:
     void switchWindowSize();

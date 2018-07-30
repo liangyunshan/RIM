@@ -142,15 +142,16 @@ enum MsgCommand
     MSG_FILE_DATA = 0xB3,                              /*!< 传输正文 */
 
 /***TCP头部信息报文******/
-    MSG_TCP_TRANS = 0xC1
+    MSG_TCP_TRANS = 0xC1                               /*!< 客户端注册报文 */
 };
 
 /*!
  * @brief 信息已读未读状态
  */
+
 enum MsgStatus{
-    MSG_READYREAD       = 0x00 ,    /*!< 信息未读 */
-    MSG_NOTREAD         = 0x01 ,    /*!< 信息已读 */
+    MSG_READYREAD       = 0x00 ,    /*!< 信息已读 */
+    MSG_NOTREAD         = 0x01 ,    /*!< 信息未读 */
     MSG_ARRIVE_SERVER   = 0x02 ,    /*!< 信息已到达服务器 */
 };
 
