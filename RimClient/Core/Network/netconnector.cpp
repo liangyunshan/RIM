@@ -198,9 +198,9 @@ void TextNetConnector::doConnect()
     std::shared_ptr<ClientNetwork::BaseTransmit> tcpTrans = transmits.at(C_TCP);
     if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
-        memcpy(ip,G_NetSettings.connectedIpPort.ip.toLocal8Bit().data(),G_NetSettings.connectedIpPort.ip.toLocal8Bit().size());
-        bool connected = tcpTrans->connect(ip,G_NetSettings.connectedIpPort.port,delayTime);
-        G_NetSettings.connectedIpPort.setConnected(connected);
+        memcpy(ip,G_NetSettings.connectedTextIpPort.ip.toLocal8Bit().data(),G_NetSettings.connectedTextIpPort.ip.toLocal8Bit().size());
+        bool connected = tcpTrans->connect(ip,G_NetSettings.connectedTextIpPort.port,delayTime);
+        G_NetSettings.connectedTextIpPort.setConnected(connected);
         MessDiapatch::instance()->onTextConnected(connected);
 
         if(connected){
@@ -304,9 +304,9 @@ void FileNetConnector::doConnect()
     if(tcpTrans.get()!= nullptr && !tcpTrans->connected()){
         char ip[50] = {0};
 
-        IpPort connectInfo = G_NetSettings.fileServer;
-        memcpy(ip,connectInfo.ip.toLocal8Bit().data(),connectInfo.ip.toLocal8Bit().size());
-        bool connected = tcpTrans->connect(ip,connectInfo.port,delayTime);
+        memcpy(ip,G_NetSettings.connectedFileIpPort.ip.toLocal8Bit().data(),G_NetSettings.connectedFileIpPort.ip.toLocal8Bit().size());
+        bool connected = tcpTrans->connect(ip,G_NetSettings.connectedFileIpPort.port,delayTime);
+        G_NetSettings.connectedFileIpPort.setConnected(connected);
         MessDiapatch::instance()->onFileConnected(connected);
         if(connected){
             if(msgReceives.at(C_TCP).get() != nullptr && !msgReceives.at(C_TCP)->running())

@@ -20,6 +20,9 @@ public:
     explicit Binary716_MsgParse();
 
     void processData(Database *db, const RecvUnit & unit);
+
+private:
+    bool checkHead495Only(const PacketType_495 type);
 };
 
 #endif
