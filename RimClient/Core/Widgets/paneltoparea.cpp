@@ -232,6 +232,12 @@ void PanelTopArea::setState(OnlineStatus state)
     d->onlineState->setState(state);
 }
 
+QMenu *PanelTopArea::loginStateMenu()
+{
+    MQ_D(PanelTopArea);
+    return d->onlineState->stateMenu();
+}
+
 #ifndef __LOCAL_CONTACT__
 void PanelTopArea::respSignChanged(QString content)
 {

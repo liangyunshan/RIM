@@ -423,6 +423,5 @@ void ChatPersonWidget::switchWindowSize()
     }
 #endif
     d->isMaxSize = !d->isMaxSize;
-
     setShadowWindow(!isMaximized());
 }
