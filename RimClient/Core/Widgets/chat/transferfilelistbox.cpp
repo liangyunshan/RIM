@@ -311,8 +311,9 @@ void TransferFileListBox::SetTransStatus(const FileTransProgress &progress)
             if(t_item->taskIfStarted() == true)
             {
                 d->m_transingCount --;
-                emit transferStatusChanged();
             }
+            removeItem(t_item);
+            emit transferStatusChanged();
         }
         else if(progress.transStatus == FileTransStatus::TransSuccess)
         {

@@ -117,6 +117,7 @@ private slots:
     void slot_RecvRUDpData(QByteArray data);
     void sendTargetFiles(bool);
     void updateTransFileTab();
+    void cancelTransfer(QString);
     void updateTransFileStatus(FileTransProgress);
     void updateMsgStatus(ushort serialNo);
 

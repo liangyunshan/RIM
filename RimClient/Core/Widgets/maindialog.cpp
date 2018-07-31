@@ -44,6 +44,7 @@
 #include "sql/databasemanager.h"
 #include "sql/sqlprocess.h"
 #include "screenshot.h"
+#include "Network/msgwrap/wrapfactory.h"
 
 #define PANEL_MARGIN 20
 #define PANEL_HIDEMARGIN 1
@@ -231,7 +232,10 @@ void MainDialog::updateWidgetGeometry()
 void MainDialog::closeWindow()
 {
     if(G_User->systemSettings()->exitSystem)
+    {
+        //TODO:填写注销报文
         this->close();
+    }
     else
         this->hide();
 }
@@ -534,7 +538,7 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
 void MainDialog::procRecvFileProgress(FileTransProgress fileProgress)
 {
     //TODO 尚超 2018.07.19
-    //考虑到可能需要独立的文件传输进度管理界面，所以将进度信息发送这里中装一遍，方便进度信息的统一管理
+    //考虑到可能需要独立的文件传输进度管理界面，所以将进度信息发送这里中转一遍，方便进度信息的统一管理
     UserClient * client = NULL;
     if(fileProgress.transType == TRANS_SEND)
     {

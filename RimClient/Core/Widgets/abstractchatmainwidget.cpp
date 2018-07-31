@@ -526,7 +526,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     MQ_D(AbstractChatMainWidget);
     Q_UNUSED(flag);
 
-    //TODO 20180423 向历史会话记录列表插入一条记录
+    //向历史会话记录列表插入一条记录
     HistoryChatRecord record;
     record.accountId = d->m_userInfo.accountId;
     record.nickName = d->m_userInfo.nickName;
@@ -538,33 +538,27 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     record.status = d->m_userInfo.status;
     MessDiapatch::instance()->onAddHistoryItem(record);
 
-    QString t_simpleHtml = QString("");
-    d->chatInputArea->extractPureHtml(t_simpleHtml);
-
     ChatInfoUnit t_unit;
     t_unit.contentType = MSG_TEXT_TEXT;
     t_unit.accountId = G_User->BaseInfo().accountId;
     t_unit.nickName = G_User->BaseInfo().nickName;
     t_unit.dtime = RUtil::currentMSecsSinceEpoch();
     t_unit.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
+    t_unit.msgstatus = ProtocolType::MSG_NOTREAD;
 #ifdef __LOCAL_CONTACT__
     t_unit.serialNo = SERIALNO_FRASH;
+    t_unit.contents = d->chatInputArea->toPlainText();
 #else
     t_unit.serialNo = record.dtime;
-#endif
-    t_unit.msgstatus = ProtocolType::MSG_NOTREAD;
-
-    //转义原始Html
+    QString t_simpleHtml = QString("");
+    d->chatInputArea->extractPureHtml(t_simpleHtml);
     QString t_sendHtml = t_simpleHtml;
     RUtil::escapeSingleQuote(t_sendHtml);
     RUtil::escapeDoubleQuote(t_sendHtml);
-
-    //存储发送信息到数据库
-#ifdef __LOCAL_CONTACT__
-    t_unit.contents = d->chatInputArea->toPlainText();
-#else
     t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
 #endif
+
+    //存储发送信息到数据库
     RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(d->m_userInfo.accountId,t_unit);
     appendMsgRecord(t_unit,SEND);
 
@@ -581,7 +575,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
         //TODO 数据压缩
     }
     request->isCompress = G_User->systemSettings()->compressCheck;
-
     request->textType = TEXT_NORAML;
     request->accountId = G_User->BaseInfo().accountId;
     request->timeStamp = RUtil::timeStamp();
@@ -846,6 +839,9 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
         fileDesc.destNodeId = d->m_userInfo.accountId;
         fileDesc.fullFilePath = fileName;
         fileDesc.serialNo = item->taskSerialNo();
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<item->fileName()
+              <<"\n";
 
         SerialNo::instance()->updateSqlSerialNo(fileDesc.serialNo.toUShort());
         RSingleton<FileSendManager>::instance()->addFile(fileDesc);
@@ -863,6 +859,33 @@ void AbstractChatMainWidget::updateTransFileTab()
     int transFileIndex = d->rightSideWidget->indexOf(d->fileList);
     QString m_tabText = tr("Transfer Files")+"("+d->fileList->taskListProgress()+")";
     d->rightSideWidget->setTabText(transFileIndex,m_tabText);
+    if(d->fileList->count() == 0)
+    {
+        closeRightSideTab(SendFile);
+    }
+}
+
+/*!
+ * @brief 响应文件传输交互单元中的取消操作
+ */
+void AbstractChatMainWidget::cancelTransfer(QString serialNo)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    foreach(TransferFileItem *item,d->fileList->items())
+    {
+        if(item->taskSerialNo() == serialNo)
+        {
+            SenderFileDesc fileDesc;
+            fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+            fileDesc.destNodeId = d->m_userInfo.accountId;
+            fileDesc.fullFilePath = item->fileName();
+            fileDesc.serialNo = serialNo;
+
+            RSingleton<FileSendManager>::instance()->deleteFile(fileDesc);
+            break;
+        }
+    }
 }
 
 /*!
@@ -971,12 +994,18 @@ void AbstractChatMainWidget::closeRightSideTab(RightTabType tabType)
         if(d->fileList)
         {
             d->rightSideWidget->removeTab(d->rightSideWidget->indexOf(d->fileList));
-            d->rightSideWidget->clear();
         }
         break;
     default:
         break;
     }
+
+    if(d->rightSideWidget->count() == 0)
+    {
+        d->rightSideWidget->clear();
+        setSideVisible(false);
+    }
+
 }
 
 /*!
@@ -1023,6 +1052,7 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
             d->fileList = new TransferFileListBox;
             d->fileList->setStyleSheet("QWidget{background-color:transparent;}");
             connect(d->fileList,SIGNAL(transferStatusChanged()),this,SLOT(updateTransFileTab()));
+            connect(d->fileList,SIGNAL(cancelTransfer(QString)),this,SLOT(cancelTransfer(QString)));
         }
         d->rightSideWidget->addTab(d->fileList,tr("Transfer Files"));
         d->rightSideWidget->setCurrentWidget(d->fileList);

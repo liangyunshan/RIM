@@ -36,6 +36,7 @@ public:
     bool addFile(SenderFileDesc & fileInfo);
     bool deleteFile(SenderFileDesc & fileInfo);
     SenderFileDesc getFile();
+    void pop_front();
     bool isEmpty();
     int size();
 

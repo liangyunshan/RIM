@@ -85,7 +85,6 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
 bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
 {
     std::unique_lock<std::mutex> ul(mutex);
-
     auto findIndex = std::find_if(fileList.begin(),fileList.end(),[&](const SenderFileDesc & fdesc)->bool{
         return (fileInfo.destNodeId == fdesc.destNodeId && fileInfo.fullFilePath == fdesc.fullFilePath);
     });
@@ -93,10 +92,14 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
     if(findIndex != fileList.end()){
 
         FileTransProgress progress;
+        progress.transType = TRANS_SEND;
         progress.transStatus = TransCancel;
         progress.fileFullPath = (*findIndex).fullFilePath;
         QFileInfo fileInfo(progress.fileFullPath);
         progress.fileName = fileInfo.fileName();
+        progress.srcNodeId = (*findIndex).srcNodeId;
+        progress.destNodeId = (*findIndex).destNodeId;
+        progress.serialNo = (*findIndex).serialNo;
         MessDiapatch::instance()->onFileTransStatusChanged(progress);
 
         fileList.erase(findIndex);
@@ -112,10 +115,17 @@ SenderFileDesc FileSendManager::getFile()
     SenderFileDesc info;
     if(fileList.size() > 0){
         info = fileList.front();
-        fileList.pop_front();
     }
 
     return info;
+}
+
+void FileSendManager::pop_front()
+{
+    std::unique_lock<std::mutex> ul(mutex);
+    if(fileList.size() > 0){
+        fileList.pop_front();
+    }
 }
 
 bool FileSendManager::isEmpty()
@@ -258,6 +268,7 @@ void File716SendTask::processFileData()
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
                 progress.transStatus = TransSuccess;
+                RSingleton<FileSendManager>::instance()->pop_front();
 
                 (*iter).reset();
                 iter = sendList.erase(iter);

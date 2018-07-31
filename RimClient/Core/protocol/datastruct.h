@@ -287,7 +287,7 @@ struct SenderFileDesc
     QString destNodeId;         /*!< 目的节点 */
     QString fullFilePath;       /*!< 文件全路径 */
     QDateTime createDatetime;   /*!< 文件产生时间 */
-    QString serialNo;       /*!< 文件唯一识别号 */
+    QString serialNo;           /*!< 文件唯一识别号 */
 };
 
 /*!
