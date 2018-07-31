@@ -18,24 +18,26 @@ class QTextStream;
 class QXmlStreamReader;
 class BaseTextEdit : public QTextEdit
 {
+    Q_OBJECT
 public:
     BaseTextEdit(QWidget * parent = 0 );
 
-    void insertCopyImage(QImage &image);
+    QString insertCopyImage(QImage &image);
     void setInputTextColor(QColor Color);
     void getInputedImgs(QStringList &imgDirs);
     void clearInputImg();
+    bool isVaiablePlaintext();
+
+Q_SIGNALS:
+    void sigDropFile(QString);
 
 protected:
     bool eventFilter(QObject *, QEvent *);
-
-protected:
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
 
 private:
     QStringList m_inputImgs;
-
 };
 
 #endif // BASETEXTEDIT_H

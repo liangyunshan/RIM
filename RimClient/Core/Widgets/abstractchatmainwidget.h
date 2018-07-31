@@ -93,6 +93,7 @@ private slots:
     void sendShakeWindow(bool);
     void screenShotReady(bool);
     void enterSend();
+    void dealDropFile(QString);
     void sendMsg(bool flag=true);
     void setSideVisible(bool flag=false);
 

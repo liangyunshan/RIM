@@ -157,6 +157,7 @@ public:
 
     bool addTransmit(std::shared_ptr<ClientNetwork::BaseTransmit> trans,SendCallbackFunc callback = nullptr);
     bool removaAllTransmit();
+    std::shared_ptr<FileSendDesc> removeTask(QString No);
 
     void startMe();
     void stopMe();
@@ -172,8 +173,9 @@ private:
 private:
     static File716SendTask * recordTask;
 
-    int maxTransferFiles;         /*!< 最大传输的文件数量 */
-    std::list<std::shared_ptr<FileSendDesc>> sendList;    /*!< 正在发送的文件信息 */
+    int maxTransferFiles;                                   /*!< 最大传输的文件数量 */
+    std::mutex sendFileMutex;
+    std::list<std::shared_ptr<FileSendDesc>> sendList;      /*!< 正在发送的文件信息 */
 
     std::mutex tranMutex;
     std::map<CommMethod,std::pair<std::shared_ptr<ClientNetwork::BaseTransmit>,SendCallbackFunc>> transmits;

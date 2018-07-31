@@ -117,7 +117,6 @@ MainDialog::MainDialog(QWidget *parent) :
     //716
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
-    connect(MessDiapatch::instance(),SIGNAL(recvFileData(FileRecvDesc)),this,SLOT(procRecvFile(FileRecvDesc)));
     connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),this,SLOT(procRecvFileProgress(FileTransProgress)));
 
     QMenu *t_mainMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_SETTING);

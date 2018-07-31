@@ -347,6 +347,7 @@ void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
  */
 void RUtil::escapeSingleQuote(QString &targetHtml)
 {
+    targetHtml = targetHtml.replace("\\","\\\\");
     targetHtml = targetHtml.replace("\'","\\\'");
     targetHtml = targetHtml.replace("\n","");
 }
