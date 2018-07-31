@@ -89,21 +89,7 @@ struct FileSendDesc
         return file.seek(pos);
     }
 
-    qint64 read(QByteArray &data){
-        if(!file.isOpen())
-            return -1;
-
-        if(isSendOver())
-            return -1;
-
-        memset(readBuff,0,MAX_PACKET);
-        qint64 realReadLen = file.read(readBuff,MAX_PACKET);
-        data.append(readBuff,realReadLen);
-#ifdef __LOCAL_CONTACT__
-        sliceNum++;
-#endif
-        return readLen += realReadLen;
-    }
+    qint64 read(QByteArray &data);
 
     bool isSendOver(){
         return readLen == size;

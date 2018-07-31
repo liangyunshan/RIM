@@ -151,7 +151,8 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
 {
     TcpClient * client = TcpClientManager::instance()->getClient(sockId);
     if(client){
-        FileRecvDesc * desc = client->getFile(QString::fromLocal8Bit(data.cFilename));
+        QString fUUID = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.wDestAddr).arg(data.usSerialNo);
+        FileRecvDesc * desc = client->getFile(fUUID);
         if(desc == nullptr){
 
             if(data.wOffset != 0)
@@ -167,14 +168,13 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             desc->usOrderNo = data.usOrderNo;
             desc->usSerialNo = data.usSerialNo;
 
-            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
-            int fileHeadLen = protocolDataLen + data.cFilename.size();
-            int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+            int protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length;
+            desc->fileHeadLen = protocolDataLen + data.cFilename.size();
 
-            desc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
+            desc->size = data.dwPackAllLen - desc->fileHeadLen ;
             desc->writeLen = 0;
 
-            if(!client->addFile(QString::fromLocal8Bit(data.cFilename),desc))
+            if(!client->addFile(fUUID,desc))
                 return;
         }
 
@@ -188,7 +188,7 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
 
             if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
                 //此处的偏移量计算依赖于发送接收方的每片大小一致。
-                if(desc->seek(data.wOffset * MAX_PACKET) && desc->write(data.data) > 0)
+                if(desc->seek(data.wOffset > 0 ? (data.wOffset * MAX_PACKET - desc->fileHeadLen) : 0) && desc->write(data.data) > 0)
                 {
                     if(desc->flush() && desc->isRecvOver()){
                         desc->close();
@@ -260,7 +260,7 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             }else{
                 RLOG_ERROR("Save transfered failed!");
             }
-            client->removeFile(QString::fromLocal8Bit(data.cFilename));
+            client->removeFile(fUUID);
         }
     }
 }

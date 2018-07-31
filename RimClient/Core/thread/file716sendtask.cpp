@@ -9,6 +9,7 @@
 #include "../global.h"
 #include "../Network/netglobal.h"
 #include "../messdiapatch.h"
+#include "Network/network_global.h"
 
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
@@ -154,6 +155,36 @@ int FileSendManager::size()
 {
     std::unique_lock<std::mutex> ul(mutex);
     return fileList.size();
+}
+
+/*!
+ * @brief 读取待发送的文件
+ * @warning 在进行文件读写时，产生N个分包，只会在第一个分包中存在21、2051数据头，因此第一个分包的文件数据长度为512-sizeof(21)-sizeof(2051).这点较为特殊
+ * @param[in/out] data 待填充的发送缓冲区
+ * @return 实际读取的字节数
+ */
+qint64 FileSendDesc::read(QByteArray &data)
+{
+    if(!file.isOpen())
+        return -1;
+
+    if(isSendOver())
+        return -1;
+
+    int prepareReadLen = MAX_PACKET;
+#ifdef __LOCAL_CONTACT__
+    if(sliceNum == -1){
+        prepareReadLen = MAX_PACKET - sizeof(QDB21::QDB21_Head) - sizeof(QDB2051::QDB2051_Head) - fileName.toLocal8Bit().length();
+    }
+#endif
+
+    memset(readBuff,0,MAX_PACKET);
+    qint64 realReadLen = file.read(readBuff,prepareReadLen);
+    data.append(readBuff,realReadLen);
+#ifdef __LOCAL_CONTACT__
+    sliceNum++;
+#endif
+    return readLen += realReadLen;
 }
 
 #ifdef  __LOCAL_CONTACT__
