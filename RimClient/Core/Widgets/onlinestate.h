@@ -38,6 +38,8 @@ public:
 
     static QString getStatePixmap(OnlineStatus state);
 
+    QMenu *stateMenu() const;
+
 signals:
     void stateChanged(OnlineStatus state);
 

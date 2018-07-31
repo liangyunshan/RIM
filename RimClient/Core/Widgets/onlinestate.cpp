@@ -77,6 +77,17 @@ QString OnLineState::getStatePixmap(OnlineStatus state)
     return onlineStatePixmap.value(state);
 }
 
+/*!
+ * @brief 获取
+ * @return
+ */
+QMenu *OnLineState::stateMenu() const
+{
+    MQ_D(OnLineState);
+
+    return d->popMenu;
+}
+
 void OnLineState::initWidget()
 {
     MQ_D(OnLineState);

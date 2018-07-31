@@ -285,7 +285,7 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         chatPersonWidget->show();
         chatPersonWidget->recvTransFile(fileProgress);
 
-        if(G_User->systemSettings()->soundAvailable)
+        if(G_User->systemSettings()->soundAvailable && fileProgress.transType == TRANS_RECV)
         {
             RSingleton<MediaPlayer>::instance()->play(MediaPlayer::MediaMsg);
         }

@@ -68,6 +68,7 @@ class MainDialogPrivate : public GlobalData<MainDialog>
         editWindow = NULL;
         m_bIsAutoHide = false;
         m_enDriection = None;
+        m_blocked = false;
     }
 
 private:
@@ -86,6 +87,7 @@ private:
 
     bool m_bIsAutoHide;
     Direction m_enDriection;
+    bool m_blocked;
 
     MainDialog * q_ptr;
 };
@@ -115,8 +117,20 @@ MainDialog::MainDialog(QWidget *parent) :
     //716
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
-    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),
-            this,SLOT(procRecvFileProgress(FileTransProgress)));
+    connect(MessDiapatch::instance(),SIGNAL(recvFileData(FileRecvDesc)),this,SLOT(procRecvFile(FileRecvDesc)));
+    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),this,SLOT(procRecvFileProgress(FileTransProgress)));
+
+    QMenu *t_mainMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_SETTING);
+    connect(t_mainMenu,SIGNAL(aboutToShow()),this,SLOT(respMenuToShow()));
+    connect(t_mainMenu,SIGNAL(aboutToHide()),this,SLOT(respMenuToHide()));
+
+    QMenu *t_netMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_NETCONNECTOR);
+    connect(t_netMenu,SIGNAL(aboutToShow()),this,SLOT(respMenuToShow()));
+    connect(t_netMenu,SIGNAL(aboutToHide()),this,SLOT(respMenuToHide()));
+
+    QMenu *t_stateMenu = d_ptr->panelTopArea->loginStateMenu();
+    connect(t_stateMenu,SIGNAL(aboutToShow()),this,SLOT(respMenuToShow()));
+    connect(t_stateMenu,SIGNAL(aboutToHide()),this,SLOT(respMenuToHide()));
 }
 
 MainDialog::~MainDialog()
@@ -147,7 +161,7 @@ void MainDialog::onMessage(MessageType type)
         case MESS_SETTINGS:
             {
                 makeWindowFront(G_User->systemSettings()->keepFront);
-                blockAutoHidePanel();
+                respSettingChange();
             }
             break;
         case MESS_SCREEN_CHANGE:
@@ -179,6 +193,40 @@ void MainDialog::setLogInState(OnlineStatus state)
     d->panelTopArea->setState(state);
 }
 
+/*!
+ * @brief 阻塞面板自动贴边隐藏
+ */
+void MainDialog::blockAutoHidePanel()
+{
+    MQ_D(MainDialog);
+
+    if(d->m_bIsAutoHide)
+    {
+        moveToDesktop(d->m_enDriection);
+        d->m_bIsAutoHide = false;
+    }
+    d->m_blocked = true;
+}
+
+/*!
+ * @brief 解除面板自动贴边隐藏阻塞
+ */
+void MainDialog::unblockAutoHidePanel()
+{
+    MQ_D(MainDialog);
+
+    if(!d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
+    {
+        isAutoHide();
+        if(d->m_enDriection)
+        {
+            hidePanel();
+            d->m_bIsAutoHide = true;
+        }
+    }
+    d->m_blocked = false;
+}
+
 void MainDialog::resizeEvent(QResizeEvent *)
 {
     updateWidgetGeometry();
@@ -195,10 +243,13 @@ void MainDialog::closeEvent(QCloseEvent *)
 void MainDialog::leaveEvent(QEvent *event)
 {
     MQ_D(MainDialog);
+    if(d->m_blocked)
+        return;
     isAutoHide();
-    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
+    if(d->m_enDriection && G_User->systemSettings()->hidePanel)
     {
         hidePanel();
+        d->m_bIsAutoHide = true;
     }
     QWidget::leaveEvent(event);
 }
@@ -206,10 +257,11 @@ void MainDialog::leaveEvent(QEvent *event)
 void MainDialog::enterEvent(QEvent *event)
 {
     MQ_D(MainDialog);
-    if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
+    if(d->m_bIsAutoHide)
     {
         showPanel();
         raise();
+        d->m_bIsAutoHide = false;
     }
     QWidget::enterEvent(event);
 }
@@ -260,22 +312,27 @@ void MainDialog::makeWindowFront(bool flag)
     show();
 }
 
-void MainDialog::blockAutoHidePanel()
+/*!
+ * @brief 响应面板自动贴边隐藏配置变动
+ */
+void MainDialog::respSettingChange()
 {
     MQ_D(MainDialog);
-    isAutoHide();
     if(!G_User->systemSettings()->hidePanel)
     {
         if(d->m_bIsAutoHide)
         {
             moveToDesktop(d->m_enDriection);
+            d->m_bIsAutoHide = false;
         }
     }
     else
     {
-        if(d->m_bIsAutoHide)
+        isAutoHide();
+        if(!d->m_bIsAutoHide && d->m_enDriection)
         {
             hidePanel();
+            d->m_bIsAutoHide = true;
         }
     }
 }
@@ -403,7 +460,7 @@ void MainDialog::initWidget()
 
     //读取个人配置信息设置系统功能
     makeWindowFront(G_User->systemSettings()->keepFront);
-    blockAutoHidePanel();
+    respSettingChange();
 
     d->panelTopArea = new PanelTopArea(d->TopBar);
     QHBoxLayout * topAreaLayout = new QHBoxLayout();
@@ -567,6 +624,7 @@ void MainDialog::respOpenPanel()
         if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
         {
             showPanel();
+            d->m_bIsAutoHide = false;
         }
     }
     else if(d->m_bIsAutoHide && G_User->systemSettings()->hidePanel)
@@ -574,6 +632,7 @@ void MainDialog::respOpenPanel()
         if(this->isHidden())
             this->setVisible(true);
         showPanel();
+        d->m_bIsAutoHide = false;
     }
     else
     {
@@ -581,6 +640,16 @@ void MainDialog::respOpenPanel()
     }
     this->activateWindow();
     this->raise();
+}
+
+void MainDialog::respMenuToShow()
+{
+    blockAutoHidePanel();
+}
+
+void MainDialog::respMenuToHide()
+{
+    unblockAutoHidePanel();
 }
 
 /*!
@@ -602,7 +671,6 @@ void MainDialog::changeGeometry(int x, int y, int w, int h)
 {
     MQ_D(MainDialog);
     bool foundScreen = false;
-
 
     //【1】查找上一次的位置是否在当前显示中可用，若可用，则可直接设置
     int screenSize = qApp->desktop()->screenCount();
@@ -673,6 +741,8 @@ void MainDialog::moveToDesktop(int direction)
 void MainDialog::writeSettings()
 {
     QRect rect = this->geometry();
+    rect.setX(rect.x()+shadowWidth());
+    rect.setY(rect.y()+shadowWidth());
     QSettings * settings = G_User->getSettings();
     settings->beginGroup(Constant::USER_BASIC_GROUP);
     settings->setValue(Constant::USER_BASIC_X,rect.x());
@@ -753,7 +823,6 @@ void MainDialog::isAutoHide()
 {
     MQ_D(MainDialog);
     QPoint t_pos = this->pos();
-    d->m_bIsAutoHide = true;
 
     QRect screenGeometry = RUtil::screenGeometry();
 
@@ -772,7 +841,6 @@ void MainDialog::isAutoHide()
     else
     {
         d->m_enDriection = d->None;
-        d->m_bIsAutoHide = false;
     }
 }
 
@@ -782,7 +850,7 @@ void MainDialog::isAutoHide()
  * @return 无
  * @note 目前直接获取width()其宽度是不准确的，因包含了两个的shadowWidth.
  */
-void MainDialog:: hidePanel()
+void MainDialog::hidePanel()
 {
     MQ_D(MainDialog);
     int t_xValue,t_yValue,t_width,t_height;

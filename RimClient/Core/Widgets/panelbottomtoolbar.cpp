@@ -195,6 +195,7 @@ void PanelBottomToolBar::showAddFriendPanel()
 void PanelBottomToolBar::showSystemSetting()
 {
     MQ_D(PanelBottomToolBar);
+
     if(!d->settingsInstance)
     {
         d->settingsInstance = new SystemSettings();

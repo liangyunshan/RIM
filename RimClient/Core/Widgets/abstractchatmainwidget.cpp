@@ -839,13 +839,9 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
         fileDesc.destNodeId = d->m_userInfo.accountId;
         fileDesc.fullFilePath = fileName;
         fileDesc.serialNo = item->taskSerialNo();
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<item->fileName()
-              <<"\n";
 
         SerialNo::instance()->updateSqlSerialNo(fileDesc.serialNo.toUShort());
         RSingleton<FileSendManager>::instance()->addFile(fileDesc);
-
     }
 }
 
@@ -1207,14 +1203,15 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
         QString stateID = QString::number(unitMsg.serialNo);
         int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
         t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                .arg(t_readState).arg(stateID);
+                                                                     .arg(t_readState).arg(stateID);
     }
     else if(unitMsg.contentType == MSG_TEXT_FILE)
     {
         QString t_filePath = unitMsg.contents;
         t_showMsgScript = QString("appendFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
-                .arg(1);
+                                                                     .arg(1);
     }
+
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 

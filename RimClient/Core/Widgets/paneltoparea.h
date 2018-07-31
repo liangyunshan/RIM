@@ -36,6 +36,8 @@ public:
     void onMessage(MessageType type);
     void setState(OnlineStatus state);
 
+    QMenu *loginStateMenu();
+
 private slots:
 #ifndef __LOCAL_CONTACT__
     void respSignChanged(QString content);

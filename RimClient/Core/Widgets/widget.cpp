@@ -80,13 +80,13 @@ void Widget::setShadowWindow(bool flag)
     d->isShadowVisible = flag;
     if(flag)
     {
-          QTimer::singleShot(25,this,SLOT(setLayoutMargin()));
+        QTimer::singleShot(25,this,SLOT(setLayoutMargin()));
     }
     else
     {
         dynamic_cast<QHBoxLayout *>(layout())->setContentsMargins(0,0,0,0);
+        update();
     }
-    update();
 }
 
 /*!
@@ -238,6 +238,7 @@ void Widget::paintEvent(QPaintEvent *)
 bool Widget::nativeEvent(const QByteArray &/*eventType*/, void *message, long *result)
 {
     MQ_D(Widget);
+
 #ifdef Q_OS_WIN
     if(d->isShadowVisible)
     {
@@ -370,6 +371,24 @@ void Widget::mouseReleaseEvent(QMouseEvent *)
     if(pos().x() + shadowWidth() < 0)
     {
         move(-WINDOW_MARGIN_SIZE, pos().y());
+    }
+    //防止右出界
+    QDesktopWidget* desktopWidget = QApplication::desktop();
+    int t_count = desktopWidget->screenCount();
+    int t_width = 0;
+    int t_height = desktopWidget->screenGeometry(pos()).height();
+    for(int index = 0;index < t_count;index++)
+    {
+        t_width += desktopWidget->screenGeometry(index).width();
+    }
+    if(pos().x()+width() > t_width)
+    {
+        move(t_width-width()+WINDOW_MARGIN_SIZE, pos().y());
+    }
+    //防止下出界
+    if(pos().y()+height() > t_height)
+    {
+        move(pos().x(), t_height-height()+WINDOW_MARGIN_SIZE);
     }
 }
 
