@@ -141,8 +141,8 @@ void Data716Process::processTextApply(ProtocolPackage &data)
  */
 void Data716Process::processFileData(const ProtocolPackage &data)
 {
-    std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->get716File(QString::number(data.wSourceAddr)
-                                                ,data.usSerialNo,QString::fromLocal8Bit(data.cFilename));
+    QString fUUID = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.wDestAddr).arg(data.usSerialNo);
+    std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->get716File(fUUID);
     if(fileDesc.get() == nullptr)
     {
         fileDesc = std::make_shared<FileDesc>();
@@ -157,13 +157,12 @@ void Data716Process::processFileData(const ProtocolPackage &data)
         fileDesc->otherId = QString::number(data.wDestAddr);
         fileDesc->usOrderNo = data.usOrderNo;
         fileDesc->usSerialNo = data.usSerialNo;
-        fileDesc->fileId = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.usSerialNo).arg(QString::fromLocal8Bit(data.cFilename));
+        fileDesc->fileId = fUUID;
 
-        int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
-        int fileHeadLen = protocolDataLen + data.cFilename.size();
-        int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+        int protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length;
+        fileDesc->fileHeadLen = protocolDataLen + data.cFilename.size();
 
-        fileDesc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
+        fileDesc->size = data.dwPackAllLen - fileDesc->fileHeadLen ;
         fileDesc->writeLen = 0;
 
         if(!fileDesc->create())
@@ -173,7 +172,7 @@ void Data716Process::processFileData(const ProtocolPackage &data)
             return;
     }
 
-    if(fileDesc->seek(data.wOffset * MAX_PACKET) && fileDesc->write(data.data) > 0)
+    if(fileDesc->seek(data.wOffset > 0 ? (data.wOffset * MAX_PACKET - fileDesc->fileHeadLen) : 0) && fileDesc->write(data.data) > 0)
     {
         //TODO 对接收文件进行处理
         FileTransProgress progress;
@@ -185,7 +184,6 @@ void Data716Process::processFileData(const ProtocolPackage &data)
         progress.fileFullPath = G_User->getC2CFilePath() + QDir::separator() + fileDesc->fileName;
         progress.readySendBytes = fileDesc->writeLen;
         progress.totleBytes = fileDesc->size;
-
 
         if(fileDesc->flush() && fileDesc->isRecvOver())
         {

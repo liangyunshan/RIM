@@ -35,7 +35,7 @@ public:
 
     std::shared_ptr<FileDesc> getFile(const QString fileId);
 #ifdef __LOCAL_CONTACT__
-    std::shared_ptr<FileDesc> get716File(const QString& nodeId, const unsigned short &serialNo, const QString &fileName);
+    std::shared_ptr<FileDesc> get716File(const QString& fileId);
 #endif
     bool addFile(std::shared_ptr<FileDesc> & fptr);
 

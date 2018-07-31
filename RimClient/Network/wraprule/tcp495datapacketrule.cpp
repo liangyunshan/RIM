@@ -32,6 +32,21 @@ bool TCP495DataPacketRule::unwrap(const QByteArray &data, ProtocolPackage &resul
     return false;
 }
 
+/*!
+ * @brief 将待发送的原始数据加上数据传输协议头
+ * @note 原始的数据根据协议的类型，加上不同的传输协议头： @n
+ *       文本信息：【495】【21】【2051】【Data】 @n
+ *       文本确认信息：【495】【21】【2048】 @n
+ *       文件信息：【495】【21】【2051】 @n
+ *
+ *       @date 20180730
+ *             1.若因data过长导致数据分包，那么只有在第一包中以【495】【21】【2051】【文件名】【Data】协议组成，其它包均为【495】【Data】组成。 @n
+ *             2.495中单包数据长度以及总数据长度，均不包括495本身的数据长度。
+ *
+ * @param[in] dataUnit 待发送数据描述信息
+ * @param[in] sendDataFunc 数据发送函数
+ * @return 是否发送成功
+ */
 bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (const char *, const int)> sendDataFunc)
 {
     QDB495_SendPackage packet;
@@ -47,74 +62,87 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
 
     int sendDataLen = 0;
 
-    //文件数据，每一片文件数据均小于最大传输限制(1024byte)，不用继续分片
-    if(dataUnit.cFileType == QDB2051::F_BINARY){
-        int headLen = 0;
-        if(dataUnit.usOrderNo == O_2051){
-            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
-            headLen = protocolDataLen + dataUnit.cFilename.size();
+    //文件数据，每一片文件数据均小于最大传输限制(512byte)，不用继续分片
+    if(dataUnit.cFileType == QDB2051::F_BINARY)
+    {
+        int protocolDataLen = 0;
+        if(dataUnit.wOffset == 0)
+        {
+            if(dataUnit.usOrderNo == O_2051){
+                protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length + dataUnit.cFilename.length();
+            }
+            RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+            packet.wPackLen = dataUnit.data.length();
+        }
+        else
+        {
+            packet.wPackLen = dataUnit.data.length();
         }
 
-        int totalIndex = countTotoalIndex(dataUnit.dwPackAllLen);
-        packet.dwPackAllLen = dataUnit.dwPackAllLen + totalIndex * headLen;
-        packet.wPackLen = headLen + dataUnit.data.length();
+        packet.dwPackAllLen = dataUnit.dwPackAllLen + protocolDataLen ;
         packet.wOffset = dataUnit.wOffset;
-        RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+
+        unsigned short currPackTotalLen = packet.wPackLen + sizeof(QDB495_SendPackage);
 
         memset(sendBuff,0,TCP_SEND_BUFF);
         memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
         memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data(),dataUnit.data.length());
 
-        int realSendLen = sendDataFunc(sendBuff,packet.wPackLen);
+        int realSendLen = sendDataFunc(sendBuff,currPackTotalLen);
 
-        if(realSendLen == packet.wPackLen){
+        if(realSendLen == currPackTotalLen){
             return true;
         }
     }
     //文本数据
     else if(dataUnit.cFileType == QDB2051::F_NO_SUFFIX || dataUnit.cFileType == QDB2051::F_TEXT)
     {
-        QByteArray originalData = dataUnit.data;
-
         //多个协议头长度
         int protocolDataLen = 0;
         switch(dataUnit.usOrderNo){
            case O_NONE:
-                protocolDataLen = QDB495_SendPackage_Length;
+                protocolDataLen = 0;
                 break;
            case O_2051:
-                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
+                protocolDataLen =  QDB21_Head_Length + QDB2051_Head_Length;
                 break;
            case O_2048:
-                protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2048_Head_Length;
+                protocolDataLen =  QDB21_Head_Length + QDB2048_Head_Length;
+                break;
+           default:
                 break;
         }
 
-        int totalIndex = countTotoalIndex(originalData.length());
-        packet.dwPackAllLen = originalData.length() + totalIndex * protocolDataLen;
+        packet.dwPackAllLen = dataUnit.data.length() + protocolDataLen;
+        int totalIndex = countTotoalIndex(packet.dwPackAllLen);
+
+        //添加21、2051协议头
+        if(dataUnit.usOrderNo != O_NONE)
+            RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
+
+        QByteArray originalData = dataUnit.data;
 
         for(unsigned int i = 0; i < totalIndex; i++)
         {
             packet.wOffset = i;
 
-            int leftDataLen = originalData.length() - sendDataLen;
+            int leftDataLen = packet.dwPackAllLen - sendDataLen;
             int sliceLen = leftDataLen > MAX_PACKET ? MAX_PACKET: leftDataLen;
 
             dataUnit.data.clear();
             dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
-            if(dataUnit.usOrderNo != O_NONE)
-                RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
 
-            packet.wPackLen = protocolDataLen + sliceLen;
+            packet.wPackLen = sliceLen;
+            unsigned short currPackTotalLen = packet.wPackLen + sizeof(QDB495_SendPackage);
 
             memset(sendBuff,0,TCP_SEND_BUFF);
             memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
             memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data(),dataUnit.data.length());
 
-            int realSendLen = sendDataFunc(sendBuff,packet.wPackLen);
+            int realSendLen = sendDataFunc(sendBuff,currPackTotalLen);
 
-            if(realSendLen == packet.wPackLen){
-                sendDataLen += (packet.wPackLen - protocolDataLen);
+            if(realSendLen == currPackTotalLen){
+                sendDataLen += packet.wPackLen;
             }else{
                 break;
             }
@@ -170,35 +198,52 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
             if(true)
             {
                 //[1.1]至少存在多余一个完整数据包
-                int currentDataPackLen = packet.wPackLen - QDB495_SendPackage_Length;
+                int currentDataPackLen = packet.wPackLen;
                 if(currentDataPackLen <= recvLen - processLen)
                 {
-                    //对数据包类型进行预判断处理
-                    QDB21::QDB21_Head head21;
-                    memset(&head21,0,sizeof(QDB21::QDB21_Head));
-                    memcpy((char *)&head21,recvData + processLen,sizeof(QDB21::QDB21_Head));
-
                     //若协议为2051需要对文件的类型进行判断，若为2048则直接默认以text形式发送
-                    int ptype = QDB2051::F_NO_SUFFIX;
-                    if(head21.usOrderNo == O_2051){
-                        QDB2051::QDB2051_Head head2051;
-                        memset(&head2051,0,sizeof(QDB2051::QDB2051_Head));
-                        memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
-                        ptype = (int)(head2051.cFileType);
-                    }else if(head21.usOrderNo == O_2048){
+                    FileType ptype = QDB2051::F_NO_SUFFIX;
 
+                    if(packet.wOffset == 0)
+                    {
+                        //对数据包类型进行预判断处理
+                        QDB21::QDB21_Head head21;
+                        memset(&head21,0,sizeof(QDB21::QDB21_Head));
+                        memcpy((char *)&head21,recvData + processLen,sizeof(QDB21::QDB21_Head));
+
+                        if(head21.usOrderNo == O_2051){
+                            QDB2051::QDB2051_Head head2051;
+                            memset(&head2051,0,sizeof(QDB2051::QDB2051_Head));
+                            memcpy((char *)&head2051,recvData + processLen + sizeof(QDB21::QDB21_Head),sizeof(QDB2051::QDB2051_Head));
+                            ptype = static_cast<FileType>((head2051.cFileType));
+                        }else if(head21.usOrderNo == O_2048){
+
+                        }
                     }
+                    else
+                    {
+                        if(queryFiletype(RecvFileTypeId(packet.wSourceAddr,packet.wDestAddr,packet.wSerialNo),ptype)){
+
+                        }
+                    }
+
+                    RecvUnit result;
+                    result.extendData.method = C_TCP;
+                    result.extendData.fileType = ptype;
+                    result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
+                    result.extendData.bPeserve = packet.bPeserve;
+                    result.extendData.wOffset = packet.wOffset;
+                    result.extendData.dwPackAllLen = packet.dwPackAllLen;
+                    result.extendData.usSerialNo = packet.wSerialNo;
+                    result.extendData.wDestAddr = packet.wDestAddr;
+                    result.extendData.wSourceAddr = packet.wSourceAddr;
 
                     if(ptype == QDB2051::F_TEXT || ptype == QDB2051::F_BINARY)
                     {
-                        RecvUnit result;
-                        result.extendData.method = C_TCP;
-                        result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
-                        result.extendData.bPeserve = packet.bPeserve;
-                        result.extendData.wOffset = packet.wOffset;
-                        result.extendData.dwPackAllLen = packet.dwPackAllLen;
-                        result.extendData.usSerialNo = packet.wSerialNo;
-
+                        if(packet.wOffset == 0){
+                           //TODO 20180731考虑如何删除指定的记录
+                           addFileId(RecvFileTypeId(RecvFileTypeId(packet.wSourceAddr,packet.wDestAddr,packet.wSerialNo,ptype)));
+                        }
                         result.data.resize(currentDataPackLen);
                         memcpy(result.data.data(),recvData + processLen,currentDataPackLen);
 
@@ -211,11 +256,6 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                         //[1.1.1]一包数据
                         if(packet.dwPackAllLen == packet.wPackLen)
                         {
-                            RecvUnit result;
-                            result.extendData.method = C_TCP;
-                            result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
-                            result.extendData.bPeserve = packet.bPeserve;
-
                             result.data.resize(currentDataPackLen);
                             memcpy(result.data.data(),recvData + processLen,currentDataPackLen);
 
@@ -240,6 +280,7 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                                 buff->buff.append(data);
 
                                 packetBuffs.insert(packet.wSerialNo,buff);
+                                addFileId(RecvFileTypeId(RecvFileTypeId(packet.wSourceAddr,packet.wDestAddr,packet.wSerialNo,ptype)));
                            }
                            else
                            {
@@ -253,20 +294,19 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                                         buff->isCompleted = true;
 
                                         RecvUnit result;
-                                        result.extendData.method = C_TCP;
-                                        result.extendData.type495 = static_cast<PacketType_495>(packet.bPackType);
-                                        result.extendData.bPeserve = packet.bPeserve;
                                         result.extendData.sliceNum = packet.wOffset + 1;
 
                                         int userPrtocolLen = sizeof(QDB21::QDB21_Head) + sizeof(QDB2051::QDB2051_Head);
                                         buff->packDataWidthPrtocol(result.data,userPrtocolLen);
 
+                                        packetBuffs.remove(packet.wSerialNo);
+                                        delete buff;
+
+                                        removeFileId(RecvFileTypeId(RecvFileTypeId(packet.wSourceAddr,packet.wDestAddr,packet.wSerialNo,ptype)));
+
                                         if(result.data.size() > 0){
                                             dhandler(result);
                                         }
-
-                                        packetBuffs.remove(packet.wSerialNo);
-                                        delete buff;
                                     }
                                 }
                            }
@@ -337,6 +377,48 @@ int TCP495DataPacketRule::countTotoalIndex(const int totalLength)
         return int(1);
 
     return qCeil(((float) totalLength/ MAX_PACKET));
+}
+
+bool TCP495DataPacketRule::addFileId(RecvFileTypeId fileId)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+
+    QDB2051::FileType pType;
+    if(queryFiletype(fileId,pType))
+        return true;
+
+    fileTypeVecs.push_back(fileId);
+
+    return true;
+}
+
+void TCP495DataPacketRule::removeFileId(RecvFileTypeId fileId)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+
+    auto beg = fileTypeVecs.begin();
+    while(beg != fileTypeVecs.end()){
+        if(*beg == fileId){
+           beg = fileTypeVecs.erase(beg);
+           continue;
+        }
+        beg++;
+    }
+}
+
+bool TCP495DataPacketRule::queryFiletype(RecvFileTypeId &fileId, FileType &pType)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+    auto findex = std::find_if(fileTypeVecs.begin(),fileTypeVecs.end(),[&](RecvFileTypeId & existFileId){
+        return existFileId == fileId;
+    });
+
+    if(findex == fileTypeVecs.end())
+        return false;
+
+    pType = (*findex).filetype;
+
+    return true;
 }
 
 }

@@ -54,6 +54,7 @@ public:
     unsigned short usSerialNo;           /*!< 流水号*/
     unsigned short usOrderNo;            /*!< 协议号*/
     unsigned char bPackType;             /*!< 报文类型 */
+    int fileHeadLen;                     /*!< sizeof(21)+sizeof(2051)+fileNameLength */
 #endif
 
     friend class FileManager;
