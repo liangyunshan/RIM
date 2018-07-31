@@ -77,16 +77,9 @@ bool FileManager::addFile(std::shared_ptr<FileDesc> &fptr)
 {
     std::unique_lock<std::mutex> ul(mutex);
 
-#ifdef __LOCAL_CONTACT__
     auto findIndex = std::find_if(recvFileMap.begin(),recvFileMap.end(),[&](const std::pair<QString,std::shared_ptr<FileDesc>> & ptr){
-        return (fptr->accountId == ptr.second->accountId && fptr->usSerialNo == ptr.second->usSerialNo
-                    && fptr->fileName == ptr.second->fileName);
+        return fptr->fileId == ptr.second->fileId;
     });
-#else
-    auto findIndex = std::find_if(recvFileMap.begin(),recvFileMap.end(),[&](const std::pair<QString,std::shared_ptr<FileDesc>> & ptr){
-        return (fptr->fileId == ptr.second->fileId);
-    });
-#endif
 
     if(findIndex == recvFileMap.end()){
         recvFileMap.insert(std::pair<QString,std::shared_ptr<FileDesc>>(fptr->fileId,fptr));
@@ -115,13 +108,12 @@ std::shared_ptr<FileDesc> FileManager::getFile(const QString fileId)
  * @param[in] serialNo 发送流水号
  * @param[in] fileName 发送文件名
  */
-std::shared_ptr<FileDesc> FileManager::get716File(const QString &nodeId, const unsigned short &serialNo, const QString &fileName)
+std::shared_ptr<FileDesc> FileManager::get716File(const QString &fileId)
 {
     std::unique_lock<std::mutex> ul(mutex);
 
     auto findIndex = std::find_if(recvFileMap.begin(),recvFileMap.end(),[&](const std::pair<QString,std::shared_ptr<FileDesc>>& fptr){
-        return (fptr.second->accountId == nodeId && fptr.second->usSerialNo == serialNo
-                && fptr.second->fileName == fileName);
+        return (fptr.second->fileId == fileId);
     });
 
     if(findIndex != recvFileMap.end()){

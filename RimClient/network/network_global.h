@@ -14,7 +14,7 @@
 #define SEND_MAGIC_NUM 0x7DBCD6AC               //发送魔数
 #define RECV_MAGIC_NUM 0xD7CB6DCA               //接收魔数
 
-#define MAX_PACKET 1024                         //发送数据时一次最大数据长度(不包括前后的控制信息)
+#define MAX_PACKET 512                         //发送数据时一次最大数据长度(495报文后的数据长度)
 #define MAX_SEND_BUFF (MAX_PACKET + 24)
 
 #include <functional>
@@ -111,13 +111,13 @@ namespace QDB495{
 struct QDB495_SendPackage{
     unsigned char bVersion;
     unsigned char bPackType;
-    unsigned short wPackLen;
+    unsigned short wPackLen;                    /*!< 495后面数据体长度 */
     unsigned char bPriority;
     unsigned char bPeserve;
     unsigned short wSerialNo;
     unsigned short wCheckout;
     unsigned short wOffset;
-    unsigned long dwPackAllLen;
+    unsigned long dwPackAllLen;                 /*!< sizeof(21)+sizeof(2051)+Datalength */
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
 };
@@ -239,7 +239,7 @@ struct ProtocolPackage
     unsigned short usSerialNo;      /*!< 流水号495*/
     unsigned short usOrderNo;       /*!< 协议号2051/2048*/
     unsigned short wOffset;         /*!< 数据帧偏移量 */
-    unsigned long dwPackAllLen;     /*!< 总数据包大小(每一片数据*分片数量) */
+    unsigned long dwPackAllLen;     /*!< 总数据包大小(文件大小或原始数据大小，不包含协议) */
     int cDate;                      /*!< 日期，4字节 */
     int cTime;                      /*!< 时间 低3字节 */
     char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
@@ -315,12 +315,15 @@ struct ExtendData
     ,sliceNum(0){}
     CommMethod method;              /*!< 数据接收链路 */
     PacketType_495 type495;         /*!< 495信息类型 */
+    QDB2051::FileType fileType;     /*!< 文件类型 */
     unsigned char bPeserve;         /*!< 495保留字 */
     unsigned short usSerialNo;      /*!< 流水号 */
     unsigned short usOrderNo;       /*!< 编码代号 */
     unsigned short wOffset;         /*!< 分片序号 */
     unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
     unsigned short sliceNum;        /*!< 分片数量 */
+    unsigned short wSourceAddr;     /*!< 源节点号 */
+    unsigned short wDestAddr;       /*!< 目的节点号 */
 };
 
 /*!
