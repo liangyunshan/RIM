@@ -19,6 +19,7 @@
 #include "Widgets/widget/rlabel.h"
 #include "Util/rutil.h"
 #include "Widgets/onlinestate.h"
+#include "../maindialog.h"
 
 #define TOOL_ITEM_MAX_HEIGHT 56
 #define TOOL_ITEM_INFOLABEL_WIDTH 25
@@ -251,7 +252,9 @@ bool ToolItem::eventFilter(QObject *watched, QEvent *event)
             {
                 emit updateGroupActions();
                 emit itemButtonClick(QEvent::ContextMenu,this);
+                MainDialog::instance()->blockAutoHidePanel();
                 d->contenxMenu->exec(QCursor::pos());
+                MainDialog::instance()->unblockAutoHidePanel();
                 return true;
             }
         }else if(event->type() == QEvent::MouseButtonDblClick){
