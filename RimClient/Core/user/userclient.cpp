@@ -172,7 +172,7 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
     case APPLY_RECEIPT:
         {
             //更新数据库->更新聊天界面
-            RSingleton<ChatMsgProcess>::instance()->appendC2CUpdateMsgStatusTask(QString::number(reply.wSourceAddr),reply.textId.toUInt());
+            RSingleton<ChatMsgProcess>::instance()->appendC2CUpdateMsgStatusTask(reply.wSourceAddr,reply.textId.toUInt());
         }
         break;
     default:

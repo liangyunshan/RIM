@@ -578,7 +578,7 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
     //TODO 尚超：因为需要实现信息的已读和未读状态控制，我们计划将信息从数据库中读取出来后，将对应流水号的状态修改为已读，同时更新数据库
     //从内存缓存中读取流水号的方法已经不适应现有的已读未读状态控制的场景
     //如果需要翻看以前的代码，请使用版本管理工具查看
-     UserClient * client = RSingleton<UserManager>::instance()->client(QString::number(reply.wSourceAddr));
+     UserClient * client = RSingleton<UserManager>::instance()->client(reply.wSourceAddr);
      if(client && client->chatPersonWidget != NULL)
      {
          client->procRecvServerTextReply(reply);

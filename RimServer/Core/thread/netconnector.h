@@ -19,7 +19,7 @@
 #include "../Network/head.h"
 
 class NetConnector;
-typedef std::function<void(QString,bool,int)> NetFunc;
+typedef std::function<void(unsigned short,bool,int)> NetFunc;
 
 #ifdef __LOCAL_CONTACT__
 void RunNetConnetor(NetFunc func,ParameterSettings::NodeServer & server);
@@ -42,7 +42,7 @@ private:
     char buff[SOCK_CHAR_BUFF_LEN];
     unsigned short port;
     bool dataReady;
-    QString nodeId;
+    unsigned short nodeId;
 
     NetFunc nfc;
 };

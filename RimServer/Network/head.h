@@ -158,8 +158,8 @@ enum OrderNoType{
  */
 struct ProtocolPackage
 {
-    unsigned short wSourceAddr;     /*!< 本节点号 */
-    unsigned short wDestAddr;       /*!< 目标节点号 */
+    unsigned short wSourceAddr;     /*!< 本节点号(10进制) */
+    unsigned short wDestAddr;       /*!< 目标节点号(10进制) */
     unsigned char bPackType;        /*!< 报文类型 */
     unsigned char bPeserve;         /*!< 95保留字，用于扩展内部状态控制 */
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/

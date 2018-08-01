@@ -288,14 +288,17 @@ void FileNetConnector::respSocketError(CommMethod method)
 {
     switch(method){
         case C_TCP:
-            MessDiapatch::instance()->onFileSocketError();
+            {
+                MessDiapatch::instance()->onFileSocketError();
+                std::shared_ptr<ClientNetwork::FileReceive> tcpTrans = msgReceives.at(C_TCP);
+                if(tcpTrans.get()){
+                    tcpTrans->stopMe();
+                }
+            }
             break;
         default:
             break;
     }
-
-//    msgSender->stopMe();
-//    msgReceive->stopMe();
 }
 
 void FileNetConnector::doConnect()
