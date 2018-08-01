@@ -95,6 +95,7 @@ private slots:
     void enterSend();
     void dealDropFile(QString);
     void sendMsg(bool flag=true);
+    void sendImg();
     void setSideVisible(bool flag=false);
 
     /**********字体处理**********/

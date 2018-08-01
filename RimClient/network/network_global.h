@@ -324,6 +324,7 @@ struct ExtendData
     unsigned short sliceNum;        /*!< 分片数量 */
     unsigned short wSourceAddr;     /*!< 源节点号 */
     unsigned short wDestAddr;       /*!< 目的节点号 */
+    QByteArray data;                /*!< 正文内容 */
 };
 
 /*!

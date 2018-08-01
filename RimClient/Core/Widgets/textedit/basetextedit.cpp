@@ -19,6 +19,7 @@
 #include <QTime>
 #include <QTextCursor>
 #include <QCryptographicHash>
+#include <QMetaClassInfo>
 
 #include "Util/rutil.h"
 #include "util/rsingleton.h"
@@ -176,7 +177,20 @@ bool BaseTextEdit::isVaiablePlaintext()
     {
         return false;
     }
+    if(text.size()<=imageCount())
+    {
+        return false;
+    }
     return true;
+}
+
+/*!
+ * @brief 获取显示的图形个数
+ * @return 图形个数
+ */
+int BaseTextEdit::imageCount()
+{
+    return m_inputImgs.count();
 }
 
 void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)

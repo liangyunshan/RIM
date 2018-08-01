@@ -449,6 +449,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
             request.extendData.usSerialNo = SERIALNO_FRASH;
             request.sourceId = G_User->BaseInfo().accountId;
             request.destId = request.sourceId;
+            request.extendData.data = G_User->BaseInfo().accountId.toLatin1();
             RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
         }
     }

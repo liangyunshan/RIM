@@ -262,7 +262,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     RButton * sendMessButton = new RButton(buttonWidget);
     sendMessButton->setObjectName(Constant::Button_Chat_Send);
     sendMessButton->setText(QObject::tr("Send message"));
-    QObject::connect(sendMessButton,SIGNAL(clicked(bool)),q_ptr,SLOT(sendMsg(bool)));
+    QObject::connect(sendMessButton,SIGNAL(clicked()),q_ptr,SLOT(enterSend()));
 
     QHBoxLayout * composeLayout = new QHBoxLayout;
     composeLayout->setSpacing(0);
@@ -515,30 +515,16 @@ void AbstractChatMainWidget::screenShotReady(bool)
  */
 void AbstractChatMainWidget::enterSend()
 {
-    sendMsg();
-}
-
-/*!
- * @brief 处理文字输入区域中拖放来的文件信息
- * @param fileName 文件绝对路径
- */
-void AbstractChatMainWidget::dealDropFile(QString fileName)
-{
     MQ_D(AbstractChatMainWidget);
 
-    TransferFileItem *item = appendTransferFile(fileName,TRANS_SEND);
-    SenderFileDesc fileDesc;
-    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
-    fileDesc.destNodeId = d->m_userInfo.accountId;
-    fileDesc.fullFilePath = fileName;
-    fileDesc.serialNo = item->taskSerialNo();
-
-    SerialNo::instance()->updateSqlSerialNo(fileDesc.serialNo.toUShort());
-    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
+    sendMsg();
+    sendImg();
+    d->chatInputArea->clear();
+    d->chatInputArea->setFocus();
 }
 
 /*!
- * @brief 发送信息
+ * @brief 发送文字信息
  */
 void AbstractChatMainWidget::sendMsg(bool flag)
 {
@@ -581,7 +567,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     RUtil::escapeDoubleQuote(t_sendHtml);
     t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
 #endif
-
     //存储发送信息到数据库
     RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(d->m_userInfo.accountId,t_unit);
     appendMsgRecord(t_unit,SEND);
@@ -608,7 +593,22 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->sendData = d->chatInputArea->toPlainText();
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 
-    //分开发送输入框中的图片
+#else
+    request->otherSideId = d->m_userInfo.accountId;
+    request->textId = RUtil::UUID();
+    request->sendData = t_sendHtml;     //FIXME LYS-20180608
+    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+#endif
+
+}
+
+/*!
+ * @brief 发送信息出入框中的图片信息
+ */
+void AbstractChatMainWidget::sendImg()
+{
+    MQ_D(AbstractChatMainWidget);
+
     QStringList t_imgDirs;
     d->chatInputArea->getInputedImgs(t_imgDirs);
     if(!t_imgDirs.isEmpty())
@@ -620,38 +620,25 @@ void AbstractChatMainWidget::sendMsg(bool flag)
         }
         d->chatInputArea->clearInputImg();
     }
-#else
-    request->otherSideId = d->m_userInfo.accountId;
-    request->textId = RUtil::UUID();
-    request->sendData = t_sendHtml;     //FIXME LYS-20180608
-    RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
+}
 
-    //分开发送输入框中的图片
-    QStringList t_imgDirs;
-    d->chatInputArea->getInputedImgs(t_imgDirs);
-    if(!t_imgDirs.isEmpty())
-    {
-        for(int imgIndex=0;imgIndex<t_imgDirs.count();imgIndex++)
-        {
-            QString t_imgPath = t_imgDirs.at(imgIndex);
+/*!
+ * @brief 处理文字输入区域中拖放来的文件信息
+ * @param fileName 文件绝对路径
+ */
+void AbstractChatMainWidget::dealDropFile(QString fileName)
+{
+    MQ_D(AbstractChatMainWidget);
 
-            QString fileName = t_imgPath;
-            FileItemDesc * desc = new FileItemDesc;
-            desc->id = RUtil::UUID();
-            desc->fullPath = fileName;
-            desc->fileSize = QFileInfo(fileName).size();
-            desc->otherSideId = d->userInfo.accountId;
-            desc->itemType = FILE_ITEM_CHAT_UP;
-            desc->itemKind = FILE_IMAGE;
-            FileRecvTask::instance()->addSendItem(desc);
+    TransferFileItem *item = appendTransferFile(fileName,TRANS_SEND);
+    SenderFileDesc fileDesc;
+    fileDesc.srcNodeId = G_User->BaseInfo().accountId;
+    fileDesc.destNodeId = d->m_userInfo.accountId;
+    fileDesc.fullFilePath = fileName;
+    fileDesc.serialNo = item->taskSerialNo();
 
-            Q_UNUSED(t_imgPath);
-        }
-    }
-#endif
-
-    d->chatInputArea->clear();
-    d->chatInputArea->setFocus();
+    SerialNo::instance()->updateSqlSerialNo(fileDesc.serialNo.toUShort());
+    RSingleton<FileSendManager>::instance()->addFile(fileDesc);
 }
 
 /*!
@@ -840,7 +827,7 @@ void AbstractChatMainWidget::recvTextChatMsg(const TextRequest &msg)
     unit.accountId = msg.accountId;
     unit.contents = msg.sendData;
     unit.dtime = msg.timeStamp;
-    unit.contentType == msg.msgCommand;
+    unit.contentType = msg.msgCommand;
     appendMsgRecord(unit,RECV);
 }
 

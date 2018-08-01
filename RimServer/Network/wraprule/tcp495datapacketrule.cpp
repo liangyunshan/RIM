@@ -398,15 +398,15 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                         //[1.1.2]多包数据(保存除495头以外的部分)
                         else
                         {
-                           QByteArray data;
-                           data.resize(currentDataPackLen);
+                            QByteArray data;
+                            data.resize(currentDataPackLen);
 
-                           //currentDataPackLen的第一包长度=sizeof(21)+sizeof(2051)+真实数据长度，第二包开始currentDataPackLen=真实数据长度
-                           memcpy(data.data(),ioContext->getPakcet() + processLen,currentDataPackLen);
+                            //currentDataPackLen的第一包长度=sizeof(21)+sizeof(2051)+真实数据长度，第二包开始currentDataPackLen=真实数据长度
+                            memcpy(data.data(),ioContext->getPakcet() + processLen,currentDataPackLen);
 
-                           std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
-                           if(ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL) == NULL)
-                           {
+                            std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
+                            if(ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL) == NULL)
+                            {
                                 PacketBuff * buff = new PacketBuff;
                                 buff->totalPackLen = packet.dwPackAllLen;
                                 buff->recvSize += packet.wPackLen;
@@ -414,9 +414,9 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 
                                 ioContext->getClient()->getPacketBuffs().insert(packet.wSerialNo,buff);
                                 ioContext->getClient()->addFileId(RecvFileTypeId(RecvFileTypeId(packet.wSourceAddr,packet.wDestAddr,packet.wSerialNo,ptype)));
-                           }
-                           else
-                           {
+                            }
+                            else
+                            {
                                 PacketBuff * buff = ioContext->getClient()->getPacketBuffs().value(packet.wSerialNo,NULL);
                                 if(buff)
                                 {
@@ -439,7 +439,7 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                                             textHandler->handle(socketData);
                                     }
                                 }
-                           }
+                            }
                         }
                     }
 

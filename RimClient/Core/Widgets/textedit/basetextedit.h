@@ -27,6 +27,7 @@ public:
     void getInputedImgs(QStringList &imgDirs);
     void clearInputImg();
     bool isVaiablePlaintext();
+    int imageCount();
 
 Q_SIGNALS:
     void sigDropFile(QString);
