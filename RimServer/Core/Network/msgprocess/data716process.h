@@ -64,17 +64,17 @@ private:
     void cacheMsgProtocol(ParameterSettings::NodeServer serverInfo, ProtocolPackage & package);
     void cacheFileProtocol(Database * db,ParameterSettings::NodeServer serverInfo, ParameterSettings::Simple716FileInfo & fileIndo);
 
-    void respTextNetConnectResult(QString nodeId, bool connected, int socketId);
-    void respFileNetConnectResult(QString nodeId, bool connected, int socketId);
+    void respTextNetConnectResult(unsigned short nodeId, bool connected, int socketId);
+    void respFileNetConnectResult(unsigned short nodeId, bool connected, int socketId);
 
     void saveFile2Database(std::vector<ParameterSettings::Simple716FileInfo> &recvFileCache);
 
 private:
     std::mutex textCacheMutex;
-    std::map<QString,TextServerCacheInfo> textServerCache;
+    std::map<unsigned short,TextServerCacheInfo> textServerCache;
 
     std::mutex fileCacheMutex;
-    std::map<QString,FileServerCacheInfo> fileServerCache;
+    std::map<unsigned short,FileServerCacheInfo> fileServerCache;
 };
 
 #endif

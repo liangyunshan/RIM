@@ -16,7 +16,7 @@ std::mutex SendMutex;
 std::condition_variable SendConVariable;
 
 using namespace ParameterSettings;
-extern OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result);
+extern OuterNetConfig QueryNodeDescInfo(unsigned short nodeId,bool & result);
 
 FileSendManager::FileSendManager()
 {
@@ -197,7 +197,7 @@ void FileSendQueueThread::prepareSendTask()
                     task.socketId = fileInfo.sockId;
                     task.fptr = ptr;
                     bool result = false;
-                    OuterNetConfig config = QueryNodeDescInfo(ptr->otherId,result);
+                    OuterNetConfig config = QueryNodeDescInfo(ptr->otherId.toUShort(),result);
                     if(result){
                         task.format = config.messageFormat;
                         task.method = config.communicationMethod;

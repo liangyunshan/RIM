@@ -2,11 +2,13 @@
 
 #ifdef __LOCAL_CONTACT__
 
+#include <WinSock2.h>
 #include <qmath.h>
 #include <QDebug>
 
 #include "Network/network_global.h"
 #include "Util/rsingleton.h"
+#include "Util/scaleswitcher.h"
 #include "tcp_wraprule.h"
 
 namespace ClientNetwork{
@@ -55,10 +57,10 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
     packet.bPackType = dataUnit.bPackType;
     packet.bPriority = 0;
     packet.bPeserve = dataUnit.bPeserve;
-    packet.wSerialNo = dataUnit.usSerialNo;
-    packet.wCheckout = 0;
-    packet.wDestAddr = dataUnit.wDestAddr;
-    packet.wSourceAddr = dataUnit.wSourceAddr;
+    packet.wSerialNo = ScaleSwitcher::htons(dataUnit.usSerialNo);
+    packet.wCheckout = ScaleSwitcher::htons(0);
+    packet.wDestAddr = ScaleSwitcher::htons(dataUnit.wDestAddr);
+    packet.wSourceAddr = ScaleSwitcher::htons(dataUnit.wSourceAddr);
 
     int sendDataLen = 0;
 
@@ -72,17 +74,14 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
                 protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length + dataUnit.cFilename.length();
             }
             RSingleton<TCP_WrapRule>::instance()->wrap(dataUnit);
-            packet.wPackLen = dataUnit.data.length();
-        }
-        else
-        {
-            packet.wPackLen = dataUnit.data.length();
         }
 
-        packet.dwPackAllLen = dataUnit.dwPackAllLen + protocolDataLen ;
-        packet.wOffset = dataUnit.wOffset;
+        packet.wPackLen = ScaleSwitcher::htons(dataUnit.data.length());
 
-        unsigned short currPackTotalLen = packet.wPackLen + sizeof(QDB495_SendPackage);
+        packet.dwPackAllLen = ScaleSwitcher::htonl(dataUnit.dwPackAllLen + protocolDataLen);
+        packet.wOffset = ScaleSwitcher::htons(dataUnit.wOffset);
+
+        unsigned short currPackTotalLen = dataUnit.data.length() + sizeof(QDB495_SendPackage);
 
         memset(sendBuff,0,TCP_SEND_BUFF);
         memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
@@ -113,8 +112,9 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
                 break;
         }
 
-        packet.dwPackAllLen = dataUnit.data.length() + protocolDataLen;
-        int totalIndex = countTotoalIndex(packet.dwPackAllLen);
+        unsigned long packAllLen = dataUnit.data.length() + protocolDataLen;
+        packet.dwPackAllLen = ScaleSwitcher::htonl(packAllLen);
+        int totalIndex = countTotoalIndex(packAllLen);
 
         //添加21、2051协议头
         if(dataUnit.usOrderNo != O_NONE)
@@ -124,16 +124,16 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
 
         for(unsigned int i = 0; i < totalIndex; i++)
         {
-            packet.wOffset = i;
+            packet.wOffset = ScaleSwitcher::htons(i);
 
-            int leftDataLen = packet.dwPackAllLen - sendDataLen;
+            int leftDataLen = packAllLen - sendDataLen;
             int sliceLen = leftDataLen > MAX_PACKET ? MAX_PACKET: leftDataLen;
 
             dataUnit.data.clear();
             dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
 
-            packet.wPackLen = sliceLen;
-            unsigned short currPackTotalLen = packet.wPackLen + sizeof(QDB495_SendPackage);
+            packet.wPackLen = ScaleSwitcher::htons(sliceLen);
+            unsigned short currPackTotalLen = sliceLen + sizeof(QDB495_SendPackage);
 
             memset(sendBuff,0,TCP_SEND_BUFF);
             memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
@@ -142,7 +142,7 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
             int realSendLen = sendDataFunc(sendBuff,currPackTotalLen);
 
             if(realSendLen == currPackTotalLen){
-                sendDataLen += packet.wPackLen;
+                sendDataLen += sliceLen;
             }else{
                 break;
             }
@@ -186,14 +186,26 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
     QDB495_SendPackage packet;
     memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+    QDB495_SendPackage packetOrigin;
+    memset((char *)&packetOrigin,0,sizeof(QDB495_SendPackage));
 
     if(recvLen > sizeof(QDB495_SendPackage))
     {
         unsigned int processLen = 0;
         do
         {
+            memcpy((char *)&packetOrigin,recvData+processLen,sizeof(QDB495_SendPackage));
             memcpy((char *)&packet,recvData+processLen,sizeof(QDB495_SendPackage));
             processLen += sizeof(QDB495_SendPackage);
+
+            packet.wPackLen = ScaleSwitcher::ntohs(packet.wPackLen);
+            packet.wSerialNo = ScaleSwitcher::ntohs(packet.wSerialNo);
+            packet.wCheckout =ScaleSwitcher:: ntohs(packet.wCheckout);
+            packet.wOffset = ScaleSwitcher::ntohs(packet.wOffset);
+            packet.dwPackAllLen = ScaleSwitcher::ntohl(packet.dwPackAllLen);
+            packet.wDestAddr = ScaleSwitcher::ntohs(packet.wDestAddr);
+            packet.wSourceAddr = ScaleSwitcher::ntohs(packet.wSourceAddr);
+
             //[1]数据头部分正常
             if(true)
             {
@@ -328,8 +340,6 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                     else
                     {
                         //[1.1.3.1]【信息被截断】
-                        memcpy(&packet,recvData + processLen,leftLen);
-
                         lastRecvBuff.clear();
                         lastRecvBuff.append(recvData + processLen,leftLen);
 
@@ -344,7 +354,7 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                     int leftLen = recvLen - processLen;
 
                     lastRecvBuff.clear();
-                    lastRecvBuff.append((char *)&packet,sizeof(QDB495_SendPackage));
+                    lastRecvBuff.append((char *)&packetOrigin,sizeof(QDB495_SendPackage));
                     lastRecvBuff.append(recvData+processLen,leftLen);
 
                     processLen += leftLen;

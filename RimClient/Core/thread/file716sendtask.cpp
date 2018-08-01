@@ -9,6 +9,7 @@
 #include "../global.h"
 #include "../Network/netglobal.h"
 #include "../messdiapatch.h"
+#include "Util/scaleswitcher.h"
 #include "Network/network_global.h"
 
 std::mutex SendMutex;
@@ -295,8 +296,8 @@ void File716SendTask::processFileData()
                 iter = sendList.erase(iter);
             }else{
                 SendUnit unit;
-                unit.dataUnit.wSourceAddr = (*iter)->accountId.toInt();
-                unit.dataUnit.wDestAddr = (*iter)->otherSideId.toInt();
+                unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec((*iter)->accountId);
+                unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec((*iter)->otherSideId);
                 (*iter)->read(unit.dataUnit.data);
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;

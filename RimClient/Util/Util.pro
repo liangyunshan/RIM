@@ -48,7 +48,8 @@ SOURCES += \
     rutil.cpp \
     regexp.cpp \
     rbuffer.cpp \
-    rsingleton.cpp
+    rsingleton.cpp \
+    scaleswitcher.cpp
 
 HEADERS +=\
         util_global.h \
@@ -58,4 +59,5 @@ HEADERS +=\
     rutil.h \
     regexp.h \
     rbuffer.h \
-    rsingleton.h
+    rsingleton.h \
+    scaleswitcher.h

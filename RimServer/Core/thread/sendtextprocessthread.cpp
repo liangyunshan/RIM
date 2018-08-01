@@ -62,7 +62,7 @@ void SendTextProcessThread::run()
 
                 }else{
                     //20180702 对错误处理,若为服务器连接，则需要从SeriesConnectionManager移除对应的连接
-                    SeriesConnectionManager::instance()->remove(sockData.sockId);
+                    SeriesConnectionManager::instance()->removeFd(sockData.sockId);
                 }
             }
         }

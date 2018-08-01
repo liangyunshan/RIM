@@ -42,15 +42,15 @@ public:
     void setPort(unsigned short destPort);
     unsigned short port() const {return cPort;}
 
-    void setNodeId(QString id){this->nodeId = id;}
-    QString getNodeId(){return this->nodeId;}
+    void setNodeId(unsigned short id){this->nodeId = id;}
+    unsigned short getNodeId(){return this->nodeId;}
 
 private:
     char cIp[SOCK_CHAR_BUFF_LEN];
     unsigned short cPort;
     int cSocket;
 
-    QString nodeId;
+    unsigned short nodeId;
 
     friend class SeriesConnectionManager;
 };
@@ -64,12 +64,12 @@ public:
     void addConnection(std::shared_ptr<SeriesConnection> conn);
 
     void remove(std::shared_ptr<SeriesConnection> conn);
-    void remove(QString nodeId);
-    void remove(int sockdId);
+    void remove(unsigned short nodeId);
+    void removeFd(int sockdId);
     void removeAll();
 
     std::shared_ptr<SeriesConnection>  getConnection(int sock);
-    std::shared_ptr<SeriesConnection>  getConnection(QString nodeId);
+    std::shared_ptr<SeriesConnection>  getConnection(unsigned short nodeId);
 
 private:
     explicit SeriesConnectionManager();

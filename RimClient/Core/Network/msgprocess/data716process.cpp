@@ -15,6 +15,7 @@
 #include "Network/msgwrap/wrapfactory.h"
 #include "Network/network_global.h"
 #include "Util/rutil.h"
+#include "Util/scaleswitcher.h"
 #include "../../user/user.h"
 
 using namespace QDB495;
@@ -23,7 +24,7 @@ using namespace QDB2051;
 
 /*!
  * @brief 查询指定节点的通信配置方式
- * @param[in] nodeId 带查询的节点号
+ * @param[in] nodeId 十进制待查询的节点号
  * @param[in] success 是否查询成功的标识
  */
 OuterNetConfig QueryNodeConfig(unsigned short nodeId,bool & success )
@@ -32,7 +33,7 @@ OuterNetConfig QueryNodeConfig(unsigned short nodeId,bool & success )
 
     if(G_ParaSettings){
         auto index = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&nodeId](const OuterNetConfig & conf){
-            return QString::number(nodeId) == conf.nodeId;
+            return nodeId == ScaleSwitcher::fromHexToDec(const_cast<QString&>(conf.nodeId));
         });
 
         if(index != G_ParaSettings->outerNetConfig.end()){
@@ -53,8 +54,8 @@ void Data716Process::processTextNoAffirm(const ProtocolPackage &data)
     if(data.usOrderNo == O_2048)
     {
         TextReply textReply;
-        textReply.wSourceAddr = data.wSourceAddr;
-        textReply.wDestAddr = data.wDestAddr;
+        textReply.wSourceAddr = ScaleSwitcher::fromDecToHex(data.wSourceAddr);
+        textReply.wDestAddr = ScaleSwitcher::fromDecToHex(data.wDestAddr);
         textReply.textId = QString::number(data.usSerialNo);
         textReply.applyType = APPLY_RECEIPT;
         MessDiapatch::instance()->onRecvTextReply(textReply);
@@ -80,9 +81,9 @@ void Data716Process::processText(const ProtocolPackage &data)
     TextRequest response;
 
     response.msgCommand = MSG_TEXT_TEXT;
-    response.accountId = QString::number(data.wDestAddr);
+    response.accountId = ScaleSwitcher::fromDecToHex(data.wDestAddr);
+    response.otherSideId = ScaleSwitcher::fromDecToHex(data.wSourceAddr);
     response.textId = QString::number(data.usSerialNo);
-    response.otherSideId = QString::number(data.wSourceAddr);
     response.type = OperatePerson;
 
     QDate t_date = QDate::fromString(QString::number(data.cDate),QString("yyyyMMdd"));
@@ -123,8 +124,8 @@ void Data716Process::applyTextStatus(const ProtocolPackage &data)
 
         request.extendData.type495 = T_DATA_NOAFFIRM;
         request.msgCommand = MSG_TCP_TRANS;
-        request.sourceId = QString::number(data.wDestAddr);
-        request.destId = QString::number(data.wSourceAddr);
+        request.sourceId = ScaleSwitcher::fromDecToHex(data.wDestAddr);
+        request.destId = ScaleSwitcher::fromDecToHex(data.wSourceAddr);
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,conf.communicationMethod,conf.messageFormat);
     }
 }

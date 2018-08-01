@@ -8,6 +8,8 @@
 #include "rsingleton.h"
 #include "global.h"
 
+#include <QDebug>
+
 #include "../../protocol/datastruct.h"
 using namespace ParameterSettings;
 
@@ -21,12 +23,13 @@ std::mutex QueryNodeMutex;
  * @param[in] result 查找结果，true表示查找成功，false表示查找失败
  * @return 所查找的节点号信息
  */
-OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result){
+OuterNetConfig QueryNodeDescInfo(unsigned short nodeId,bool & result){
     std::lock_guard<std::mutex> lg(QueryNodeMutex);
     result = false;
 
     auto findIndex = std::find_if(RGlobal::G_ParaSettings->outerNetConfig.begin(),RGlobal::G_ParaSettings->outerNetConfig.end(),
                  [&nodeId](const OuterNetConfig & config){
+
         if(config.nodeId == nodeId)
             return true;
         return false;
@@ -55,7 +58,7 @@ OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result){
  * @param[in] result 配置文件中是否存在当前服务器的父节点
  * @return 查找的服务器节点
  */
-NodeServer QueryServerDescInfo(QString nodeId,bool & result){
+NodeServer QueryServerDescInfo(unsigned short nodeId,bool & result){
     result = false;
 
     auto clientIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),[&nodeId](const NodeClient & client){
@@ -105,7 +108,7 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
 
     if(inServer){
         bool flag = false;
-        OuterNetConfig destConfig = QueryNodeDescInfo(QString::number(package.wDestAddr),flag);
+        OuterNetConfig destConfig = QueryNodeDescInfo(package.wDestAddr,flag);
         if(flag){
             if(destConfig.communicationMethod == C_NetWork && destConfig.messageFormat == M_205){
                 sUnit.method = C_UDP;
@@ -115,7 +118,7 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
         }
     }else{
         bool findServer = false;
-        NodeServer serverInfo = QueryServerDescInfo(QString::number(package.wDestAddr),findServer);
+        NodeServer serverInfo = QueryServerDescInfo(package.wDestAddr,findServer);
         if(findServer){
             if(serverInfo.communicationMethod == C_NetWork && serverInfo.messageFormat == M_205){
                 sUnit.method = C_UDP;
