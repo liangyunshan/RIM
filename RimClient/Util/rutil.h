@@ -65,6 +65,8 @@ public:
 
     static void removeEccapeDoubleQuote(QString &targetHtml);
 
+    static void showInExplorer(QString &pathIn);
+
 private:
     static QSettings * gSettings;
 };

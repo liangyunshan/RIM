@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariant>
 
 class AbstractChatMainWidget;
 
@@ -20,6 +21,11 @@ public:
 public slots:
     void receiveText(const QString &r_path);
     void getMoreRecord();
+    bool targetIsDir(const QString &path);
+    QString getTargetName(const QString &path);
+    QString getTargetDir(const QString &path);
+    void openFile(const QString &filePath);
+    void openFolder(const QString &folderPath);
 
 signals:
     void sendText(const QString &text);

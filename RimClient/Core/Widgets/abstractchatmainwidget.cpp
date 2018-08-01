@@ -451,6 +451,24 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
     d->page->setWebChannel(channel);
 }
 
+/*!
+ * @brief 打开文件
+ * @param filePath 目标文件全路径
+ */
+void AbstractChatMainWidget::openTargetFile(QString filePath)
+{
+    QProcess::execute(QString("explorer %1").arg(QDir::toNativeSeparators(filePath)));
+}
+
+/*!
+ * @brief 打开文件夹
+ * @param folderPath 文件夹全路径
+ */
+void AbstractChatMainWidget::openTargetFolder(QString filePath)
+{
+    RUtil::showInExplorer(filePath);
+}
+
 void AbstractChatMainWidget::keyPressEvent(QKeyEvent *e)
 {
     MQ_D(AbstractChatMainWidget);
@@ -846,6 +864,16 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
     foreach(QString fileName,files)
     {
         appendTransferFile(fileName,TRANS_SEND);
+        //Test
+        ChatInfoUnit temp;
+        temp.contentType = MSG_TEXT_FILE;
+        temp.accountId = G_User->BaseInfo().accountId;
+        temp.nickName = G_User->BaseInfo().nickName;
+        temp.dtime = RUtil::currentMSecsSinceEpoch();
+        temp.dateTime = QDateTime::currentDateTime().toString("yyyyMMdd hh:mm:ss");
+        temp.serialNo = SERIALNO_FRASH;
+        temp.contents = fileName;
+        appendMsgRecord(temp);
     }
 }
 
@@ -1365,6 +1393,119 @@ void AbstractChatMainWidget::prependVoiceMsg(QString recordFileName, AbstractCha
 
     QString t_showVoiceMsgScript = QString("prependVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
+}
+
+/*!
+ * @brief 将收发的图片信息追加显示在聊天信息记录界面上
+ * @param unitMsg 图片消息
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::appendImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+    d->m_recordCount++;
+    QString t_showMsgScript = QString("");
+    QString t_imgPath = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+    if(source == RECV)
+    {
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+    else
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+
+    if(unitMsg.contentType == MSG_TEXT_IMAGE)
+    {
+        t_showMsgScript = QString("appendImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+    }
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
+/*!
+ * @brief 将收发的图片信息前置显示在聊天信息记录界面上
+ * @param unitMsg 图片消息
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::prependImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->m_recordCount++;
+    QString t_showMsgScript = QString("");
+    QString t_imgPath = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
+    QString t_headPath = QString("");
+
+    if(source == RECV)
+    {
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+    else
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+
+    if(unitMsg.contentType == MSG_TEXT_IMAGE)
+    {
+        t_showMsgScript = QString("prependImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+    }
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
 }
 
 /*!
