@@ -342,14 +342,46 @@ void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
 }
 
 /*!
+ * @brief 将字符串转换为可显示的HTML源码
+ * @param targetHtml 需要转义处理的字符串
+ */
+void RUtil::StringToHtml(QString &targetHtml)
+{
+    escapeSingleQuote(targetHtml);
+    escapeBracketsQuote(targetHtml);
+    escapeLFQuote(targetHtml);
+}
+
+/*!
  * @brief RUtil::escapeQuote 将Html内容中的双引号、单引号进行转义
  * @param targetHtml 需要转义处理的Html内容
  */
 void RUtil::escapeSingleQuote(QString &targetHtml)
 {
     targetHtml = targetHtml.replace("\\","\\\\");
-    targetHtml = targetHtml.replace("\'","\\\'");
-    targetHtml = targetHtml.replace("\n","");
+    targetHtml = targetHtml.replace("\'","&qpos");
+}
+
+/*!
+ * @brief 转换尖括号为HTML可显示字符
+ * @param targetHtml 源字符串
+ */
+void RUtil::escapeBracketsQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("<","&lt;");
+    targetHtml = targetHtml.replace("<=","&le;");
+    targetHtml = targetHtml.replace(">","&gt;");
+    targetHtml = targetHtml.replace(">=","&ge;");
+}
+
+/*!
+ * @brief 转换回车符号为HTML可显示字符
+ * @param targetHtml 源字符串
+ */
+void RUtil::escapeLFQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\n","</br>");
+    targetHtml = targetHtml.replace(" ","&nbsp;");
 }
 
 /*!

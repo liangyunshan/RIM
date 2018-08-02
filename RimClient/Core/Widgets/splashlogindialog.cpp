@@ -327,6 +327,10 @@ void SplashLoginDialog::openChatDialog(QString accountId)
 #endif
        client->chatPersonWidget->initChatRecord();
    }
+   else
+   {
+       client->chatPersonWidget->autoQueryRecord();
+   }
 
    client->chatPersonWidget->respshowChat();
 }

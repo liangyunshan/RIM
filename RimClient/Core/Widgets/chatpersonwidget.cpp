@@ -341,6 +341,7 @@ void ChatPersonWidget::autoQueryRecord()
     MQ_D(ChatPersonWidget);
 
     int t_notifyCount = RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
+
     if(t_notifyCount)
     {
         if(t_notifyCount > 20)

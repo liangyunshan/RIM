@@ -104,6 +104,10 @@ void UserClient::procRecvContent(TextRequest & response)
 #endif
                     chatPersonWidget->initChatRecord();
                 }
+                else
+                {
+                    chatPersonWidget->autoQueryRecord();
+                }
                 chatPersonWidget->respshowChat();
 
             }
@@ -240,7 +244,6 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         t_unit.serialNo     = fileProgress.serialNo.toUShort();
         t_unit.contents     = fileProgress.fileFullPath;
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
-        RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
 
         if(fileProgress.transType == TRANS_RECV)
         {
@@ -259,6 +262,10 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
                 RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
                 RSingleton<NotifyWindow>::instance()->showMe();
             }
+        }
+        else
+        {
+            RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
         }
     }
 
@@ -287,7 +294,11 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
 #endif
             chatPersonWidget->initChatRecord();
         }
-        chatPersonWidget->show();
+        else
+        {
+            chatPersonWidget->autoQueryRecord();
+        }
+        chatPersonWidget->respshowChat();
         chatPersonWidget->recvTransFile(fileProgress);
 
         if(G_User->systemSettings()->soundAvailable && fileProgress.transType == TRANS_RECV)

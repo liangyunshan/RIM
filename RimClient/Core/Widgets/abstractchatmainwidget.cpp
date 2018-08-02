@@ -1208,7 +1208,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     }
 
 //    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
-    RUtil::escapeSingleQuote(t_localHtml);
+    RUtil::StringToHtml(t_localHtml);
 
     if(source == RECV)
     {
