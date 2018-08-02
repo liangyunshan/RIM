@@ -302,10 +302,6 @@
         {
              bridge = channel.objects.bridge;
         });
-
-        //window.onmousewheel = document.onmousewheel = scrollFunc;
-        //document.onmousewheel = scrollFunc;
-        window.onmousewheel = scrollFunc;
     }
 
     var input = document.getElementById('msg_input');//查找缓存
@@ -726,7 +722,7 @@
         contentContainer.insertBefore(noticeContainer,contentContainer.childNodes[0]);
         noticeContainer.scrollIntoView();
     }
-    // 收/发文件夹消息
+    // 向后插入收/发文件夹消息
     function appendFile(target,filePath,avatarPath,resultType) {
         // 初始化容器
         var content_container = document.getElementById('content');
@@ -754,13 +750,13 @@
         fileNameBox.setAttribute('class','fileNameBox');
         var noticeBox = document.createElement('div');
         noticeBox.setAttribute('class','fileNoticeBox');
-        if (resultType === 0)
+        if (target === 0)
         {
-            noticeBox.innerHTML = '<i class="iconfont icon-cuowu"></i><span>文件发送失败！</span>';
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功发送文件</span>';
         }
-        if (resultType === 1)
+        if (target === 1)
         {
-            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>发送成功!</span>';
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功存至'+filePath+'</span>';
         }
         // 文件详情
         // 根据路径获得文件名称
@@ -800,11 +796,94 @@
         content_container.appendChild(newDiv);
         if(target === 0)
         {
-            newDialog.className = 'msgContent right';
+            newDialog.className = 'msgContent right dialog_me';
         }
         else
         {
-            newDialog.className = 'msgContent left';
+            newDialog.className = 'msgContent left dialog_others';
+            avatarContainer.className = 'avatarPic left'
+        }
+        newDiv.scrollIntoView(false);
+    }
+
+    function prependFile(target,filePath,avatarPath,resultType) {
+        // 初始化容器
+        var content_container = document.getElementById('content');
+        var newDiv = document.createElement('div');
+        newDiv.className = 'dialogContainer';
+        var newDialog = document.createElement('div');
+        //头像信息
+        var avatarContainer = document.createElement('img');
+        avatarContainer.setAttribute('src',avatarPath);
+        avatarContainer.setAttribute('class','avatarPic');
+
+        var content_container = document.getElementById('content');
+        // 文件夹内元素
+        var fileContainer = document.createElement('div');
+        fileContainer.setAttribute('class','fileContainer');
+        var fileInfo = document.createElement('div');
+        fileInfo.setAttribute('class','fileInfo');
+        var fileManipulate = document.createElement('div');
+        fileManipulate.setAttribute('class','fileManipulate');
+        var fileIcon = document.createElement('i');
+        fileIcon.setAttribute('class','iconfont icon-icon_folder');
+        var fileDetail = document.createElement('div');
+        fileDetail.setAttribute('class','fileDetail');
+        var fileNameBox = document.createElement('span');
+        fileNameBox.setAttribute('class','fileNameBox');
+        var noticeBox = document.createElement('div');
+        noticeBox.setAttribute('class','fileNoticeBox');
+        if (target === 0)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功发送文件</span>';
+        }
+        if (target === 1)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功存至'+filePath+'</span>';
+        }
+        // 文件详情
+        // 根据路径获得文件名称
+        bridge.getTargetName(filePath,function(fileName){
+            fileNameBox.innerHTML = fileName;
+        });//FIXME LYS
+
+        fileDetail.appendChild(fileNameBox);
+        fileDetail.appendChild(noticeBox);
+        // 文件信息
+        fileInfo.appendChild(fileIcon);
+        fileInfo.appendChild(fileDetail);
+        fileContainer.appendChild(fileInfo);
+        // 操作
+        bridge.targetIsDir(filePath,function(t_result){
+            if(t_result === false)
+            {
+                var openFolder = openFolderBtn();
+                /*bridge.getTargetDir(filePath,function(folderPath){
+                    openFolder.setAttribute('dirPath',folderPath);
+                    fileManipulate.appendChild(openFolder);
+                });*/
+                openFolder.setAttribute('dirPath',filePath);
+                fileManipulate.appendChild(openFolder);
+            }
+        });
+
+        var openFile = openFileBtn();
+        openFile.setAttribute('fullPath',filePath);
+        fileManipulate.appendChild(openFile);
+
+        fileContainer.appendChild(fileManipulate);
+        // 会话容器绑定
+        newDialog.appendChild(fileContainer);
+        newDiv.appendChild(avatarContainer);
+        newDiv.appendChild(newDialog);
+        content_container.insertBefore(newDiv,content_container.childNodes[0]);
+        if(target === 0)
+        {
+            newDialog.className = 'msgContent right dialog_me';
+        }
+        else
+        {
+            newDialog.className = 'msgContent left dialog_others';
             avatarContainer.className = 'avatarPic left'
         }
         newDiv.scrollIntoView(false);
@@ -1121,5 +1200,6 @@
             bridge.getMoreRecord();
         }
     }
+
     </script>
 </html>

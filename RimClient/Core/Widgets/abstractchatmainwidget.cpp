@@ -13,9 +13,10 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWebChannel>
-#include <QWebChannel>
+#include <QJsonObject>
 #include <QApplication>
 #include <QHostAddress>
+#include <QJsonDocument>
 #include <QWebEngineView>
 #include <QWebEnginePage>
 
@@ -127,11 +128,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     view->setWindowFlags(q_ptr->windowFlags() | Qt::FramelessWindowHint);   //FIXME LYS-20180718 修复显示大量数据时界面刷新问题
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
-
-    //HTML与Qt交互channel
-    QWebChannel *channel = new QWebChannel(q_ptr);
-    channel->registerObject(QStringLiteral("content"),&m_content);
-    page->setWebChannel(channel);
 
     fontWidget = new SetFontWidget(q_ptr);
     fontWidget->setVisible(false);
@@ -1318,10 +1314,20 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTa
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    QString stateID = QString::number(unitMsg.serialNo);
-    int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
-    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                    .arg(t_readState).arg(stateID);
+    if(unitMsg.contentType == MSG_TEXT_TEXT)
+    {
+        QString stateID = QString::number(unitMsg.serialNo);
+        int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
+        t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                                                                        .arg(t_readState).arg(stateID);
+    }
+    else if(unitMsg.contentType == MSG_TEXT_FILE)
+    {
+        QString t_filePath = unitMsg.contents;
+        t_showMsgScript = QString("prependFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
+                                                                     .arg(1);
+    }
+
     d->view->page()->runJavaScript(t_showMsgScript);
 
     if(d->m_preMsgTime.isNull())

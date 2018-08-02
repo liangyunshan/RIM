@@ -20,10 +20,12 @@ class HistoryMsgRecord : public QWidget
     Q_OBJECT
 public:
     explicit HistoryMsgRecord(QWidget *parent = 0);
+    ~HistoryMsgRecord();
 
 signals:
 
 public slots:
+
 };
 
 #endif // HISTORYMSGRECORD_H

@@ -383,8 +383,8 @@ void RUtil::removeEccapeDoubleQuote(QString &targetHtml)
 }
 
 /*!
- * \brief 在Explorer中显示
- * \param path 待显示路径
+ * @brief 在Explorer中显示
+ * @param path 待显示路径
  */
 void RUtil::showInExplorer(QString &pathIn)
 {
