@@ -75,7 +75,7 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
 
     fileList.push_back(fileInfo);
     SendConVariable.notify_one();
-
+qDebug()<<"Add_File:"<<fileList.size()<<"__"<<fileInfo.fullFilePath;
     return true;
 }
 
@@ -134,6 +134,8 @@ SenderFileDesc FileSendManager::getFile()
         info = fileList.front();
         fileList.pop_front();
     }
+
+qDebug()<<"Get_FIle:"<<fileList.size()<<"__"<<info.fullFilePath;
 
     return info;
 }

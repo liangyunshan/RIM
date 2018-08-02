@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QDomDocument>
 #include <QDomElement>
+#include <QProcess>
 
 #include "../Core/constants.h"
 
@@ -412,4 +413,49 @@ void RUtil::removeEccapeDoubleQuote(QString &targetHtml)
 {
     targetHtml = targetHtml.replace("\\\"","\"");
     targetHtml = targetHtml.replace("\n","");
+}
+
+/*!
+ * @brief 在Explorer中显示
+ * @param path 待显示路径
+ */
+void RUtil::showInExplorer(QString &pathIn)
+{
+    QString explorer = QLatin1String("explorer.exe");
+    QMap<QString, QString> m_values;
+    QString explorerPath;
+
+    QStringList env = QProcessEnvironment::systemEnvironment().toStringList();
+    foreach (const QString &s, env) {
+        int i = s.indexOf(QLatin1Char('='));
+        if (i >= 0)
+        {
+            m_values.insert(s.left(i).toUpper(), s.mid(i+1));
+        }
+    }
+
+    QString exec = QDir::cleanPath(explorer);
+
+    QStringList pathEnv = m_values.value(QLatin1String("PATH")).split(QLatin1Char(';'),
+                                                                      QString::SkipEmptyParts);
+    foreach (const QString &p, pathEnv) {
+        QString directory = QDir::fromNativeSeparators(p);
+        const QChar slash = QLatin1Char('/');
+        if (!directory.endsWith(slash))
+            directory += slash;
+        QFileInfo fi(directory + exec);
+        if (fi.exists() && fi.isFile() && fi.isExecutable())
+        {
+            explorerPath = fi.absoluteFilePath();
+            break;
+        }
+    }
+    if(explorerPath.isEmpty())
+        return;
+    QStringList param;
+    if (!QFileInfo(pathIn).isDir())
+        param += QLatin1String("/select,");
+    param += QDir::toNativeSeparators(pathIn);
+    QProcess::startDetached(explorerPath, param);
+
 }

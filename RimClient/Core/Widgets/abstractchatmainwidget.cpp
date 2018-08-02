@@ -13,9 +13,10 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWebChannel>
-#include <QWebChannel>
+#include <QJsonObject>
 #include <QApplication>
 #include <QHostAddress>
+#include <QJsonDocument>
 #include <QWebEngineView>
 #include <QWebEnginePage>
 
@@ -126,11 +127,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     view->setWindowFlags(q_ptr->windowFlags() | Qt::FramelessWindowHint);   //FIXME LYS-20180718 修复显示大量数据时界面刷新问题
     view->setPage(page);
     QObject::connect(view,SIGNAL(loadFinished(bool)),q_ptr,SLOT(finishLoadHTML(bool)));
-
-    //HTML与Qt交互channel
-    QWebChannel *channel = new QWebChannel(q_ptr);
-    channel->registerObject(QStringLiteral("content"),&m_content);
-    page->setWebChannel(channel);
 
     fontWidget = new SetFontWidget(q_ptr);
     fontWidget->setVisible(false);
@@ -446,6 +442,24 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
     MQ_D(AbstractChatMainWidget);
 
     d->page->setWebChannel(channel);
+}
+
+/*!
+ * @brief 打开文件
+ * @param filePath 目标文件全路径
+ */
+void AbstractChatMainWidget::openTargetFile(QString filePath)
+{
+    QProcess::execute(QString("explorer %1").arg(QDir::toNativeSeparators(filePath)));
+}
+
+/*!
+ * @brief 打开文件夹
+ * @param folderPath 文件夹全路径
+ */
+void AbstractChatMainWidget::openTargetFolder(QString filePath)
+{
+    RUtil::showInExplorer(filePath);
 }
 
 void AbstractChatMainWidget::keyPressEvent(QKeyEvent *e)
@@ -1316,10 +1330,20 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTa
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
 
-    QString stateID = QString::number(unitMsg.serialNo);
-    int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
-    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                    .arg(t_readState).arg(stateID);
+    if(unitMsg.contentType == MSG_TEXT_TEXT)
+    {
+        QString stateID = QString::number(unitMsg.serialNo);
+        int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
+        t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
+                                                                        .arg(t_readState).arg(stateID);
+    }
+    else if(unitMsg.contentType == MSG_TEXT_FILE)
+    {
+        QString t_filePath = unitMsg.contents;
+        t_showMsgScript = QString("prependFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
+                                                                     .arg(1);
+    }
+
     d->view->page()->runJavaScript(t_showMsgScript);
 
     if(d->m_preMsgTime.isNull())
@@ -1391,6 +1415,119 @@ void AbstractChatMainWidget::prependVoiceMsg(QString recordFileName, AbstractCha
 
     QString t_showVoiceMsgScript = QString("prependVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
+}
+
+/*!
+ * @brief 将收发的图片信息追加显示在聊天信息记录界面上
+ * @param unitMsg 图片消息
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::appendImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+    d->m_recordCount++;
+    QString t_showMsgScript = QString("");
+    QString t_imgPath = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
+    QString t_headPath = QString("");
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            appendChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            appendChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
+
+    if(source == RECV)
+    {
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+    else
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+
+    if(unitMsg.contentType == MSG_TEXT_IMAGE)
+    {
+        t_showMsgScript = QString("appendImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+    }
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+}
+
+/*!
+ * @brief 将收发的图片信息前置显示在聊天信息记录界面上
+ * @param unitMsg 图片消息
+ * @param source 信息来源（接收/发送）
+ */
+void AbstractChatMainWidget::prependImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    d->m_recordCount++;
+    QString t_showMsgScript = QString("");
+    QString t_imgPath = unitMsg.contents;
+    QDateTime t_curMsgTime = RUtil::addMSecsToEpoch(unitMsg.dtime);
+    QString t_headPath = QString("");
+
+    if(source == RECV)
+    {
+        t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
+    }
+    else
+    {
+        t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+    }
+
+    if(unitMsg.contentType == MSG_TEXT_IMAGE)
+    {
+        t_showMsgScript = QString("prependImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+    }
+
+    d->view->page()->runJavaScript(t_showMsgScript);
+
+    if(d->m_preMsgTime.isNull())
+    {
+        d->m_preMsgTime = t_curMsgTime;
+        if(d->m_preMsgTime.date() != G_loginTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(G_loginTime.time().secsTo(d->m_preMsgTime.time())>= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+    }
+    else
+    {
+        if(t_curMsgTime.date() != d->m_preMsgTime.date())
+        {
+            prependChatTimeNote(t_curMsgTime,DATETIME);
+        }
+        else if(d->m_preMsgTime.time().secsTo(t_curMsgTime.time()) >= TIMESTAMP_GAP)
+        {
+            prependChatTimeNote(t_curMsgTime,TIME);
+        }
+        d->m_preMsgTime = t_curMsgTime;
+    }
 }
 
 /*!
