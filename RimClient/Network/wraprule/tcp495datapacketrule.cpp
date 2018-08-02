@@ -140,7 +140,6 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
             memcpy(sendBuff + sizeof(QDB495_SendPackage),dataUnit.data.data(),dataUnit.data.length());
 
             int realSendLen = sendDataFunc(sendBuff,currPackTotalLen);
-
             if(realSendLen == currPackTotalLen){
                 sendDataLen += sliceLen;
             }else{

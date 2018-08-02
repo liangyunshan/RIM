@@ -81,7 +81,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
                 {
                     unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
                 }
-                unit.dataUnit.bPeserve = 0X80;
+                unit.dataUnit.data = dataPackType->extendData.data;
+                unit.dataUnit.bPeserve = 0;
             }
         }
         break;

@@ -287,7 +287,7 @@ struct SenderFileDesc
     QString destNodeId;         /*!< 目的节点 */
     QString fullFilePath;       /*!< 文件全路径 */
     QDateTime createDatetime;   /*!< 文件产生时间 */
-    QString serialNo;       /*!< 文件唯一识别号 */
+    QString serialNo;           /*!< 文件唯一识别号 */
 };
 
 /*!
@@ -500,7 +500,7 @@ struct ChatInfoUnit{
     qint64 dtime;                       /*!< 日期 */
     QString dateTime;                   /*!< 日期时间 */
     unsigned short serialNo;            /*!< 流水号 */
-    Msg_Status msgstatus;               /*!< 流水号 */
+    MsgStatus msgstatus;                /*!< 信息已读未读状态 */
     QString contents;                   /*!< 聊天内容（html内容/语音文件名称） */
 };
 

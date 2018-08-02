@@ -21,6 +21,7 @@
 struct ChatInfoUnit;
 class RToolButton;
 class QWebChannel;
+class TransferFileItem;
 using namespace ProtocolType;
 
 class AbstractChatMainWidgetPrivate;
@@ -92,7 +93,9 @@ private slots:
     void sendShakeWindow(bool);
     void screenShotReady(bool);
     void enterSend();
+    void dealDropFile(QString);
     void sendMsg(bool flag=true);
+    void sendImg();
     void setSideVisible(bool flag=false);
 
     /**********字体处理**********/
@@ -116,6 +119,7 @@ private slots:
     void slot_RecvRUDpData(QByteArray data);
     void sendTargetFiles(bool);
     void updateTransFileTab();
+    void cancelTransfer(QString);
     void updateTransFileStatus(FileTransProgress);
     void updateMsgStatus(ushort serialNo);
 
@@ -124,7 +128,7 @@ private:
     void setFontIconFilePath();
     void closeRightSideTab(RightTabType);
     void showRightSideTab(RightTabType);
-    void appendTransferFile(QString &, TransType transType);
+    TransferFileItem *appendTransferFile(QString &, TransType transType);
     void appendMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
     void appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void prependMsgRecord(const TextRequest &recvMsg,MsgTarget source = RECV);
