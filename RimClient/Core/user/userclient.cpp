@@ -99,6 +99,9 @@ void UserClient::procRecvContent(TextRequest & response)
                 {
                     chatPersonWidget = new ChatPersonWidget();
                     chatPersonWidget->setUserInfo(simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+                    chatPersonWidget->setOuterNetConfig(this->netConfig);
+#endif
                     chatPersonWidget->initChatRecord();
                 }
                 chatPersonWidget->respshowChat();
@@ -279,7 +282,9 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         {
             chatPersonWidget = new ChatPersonWidget();
             chatPersonWidget->setUserInfo(this->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
             chatPersonWidget->setOuterNetConfig(this->netConfig);
+#endif
             chatPersonWidget->initChatRecord();
         }
         chatPersonWidget->show();
