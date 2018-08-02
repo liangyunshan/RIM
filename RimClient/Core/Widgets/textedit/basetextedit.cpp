@@ -19,6 +19,7 @@
 #include <QTime>
 #include <QTextCursor>
 #include <QCryptographicHash>
+#include <QMetaClassInfo>
 
 #include "Util/rutil.h"
 #include "util/rsingleton.h"
@@ -58,7 +59,10 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
                 else if(mimeData->hasText())
                 {
                     qDebug() << "Ctrl + V mimeData->hasText()";
-                    this->textCursor().insertText(mimeData->text());
+                    if(!mimeData->hasUrls())
+                    {
+                        this->textCursor().insertText(mimeData->text());
+                    }
                 }
                 if(mimeData->hasImage())
                 {
@@ -72,6 +76,19 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
                 {
                     qDebug() << "Ctrl + V mimeData->hasColor()";
                 }
+
+                if(mimeData->hasUrls())
+                {
+                    QList<QUrl> urlList = mimeData->urls();
+                    for(int index=0;index<urlList.count();index++)
+                    {
+                        QString fileName = urlList.at(index).toLocalFile();
+                        if(!fileName.isEmpty())
+                        {
+                            emit sigDropFile(fileName);
+                        }
+                    }
+                }
                 return true;
             }
         }
@@ -82,9 +99,9 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
 /*!
  * @brief BaseTextEdit::insertCopyImage 将图片插入到文本框当前位置
  * @param image 待插入的图片
- * @return 无
+ * @return 图片存放路径
  */
-void BaseTextEdit::insertCopyImage(QImage &image)
+QString BaseTextEdit::insertCopyImage(QImage &image)
 {
     QString t_msec = QString::number(QTime::currentTime().msec());
     QByteArray data = QByteArray((char*)image.bits()).append(t_msec.toLocal8Bit());
@@ -95,7 +112,6 @@ void BaseTextEdit::insertCopyImage(QImage &image)
 
     //保存图片到本地
     QString imgAbsoultPath = G_User->getC2CImagePath() + QDir::separator() + t_imgName;
-
     QFileInfo fileinfo(imgAbsoultPath);
     if(!fileinfo.exists())
     {
@@ -103,7 +119,6 @@ void BaseTextEdit::insertCopyImage(QImage &image)
     }
     m_inputImgs.append(imgAbsoultPath);
 
-    //图片比例缩放显示
     int width = SHOTIMAGE_WIDTH;
     if (image.width() > width || image.height() > width)
     {
@@ -117,8 +132,9 @@ void BaseTextEdit::insertCopyImage(QImage &image)
     imgFlagContent = imgFlagContent + Constant::PATH_UserPath + QDir::separator() + userID + QDir::separator() + Constant::USER_RecvFileDirName;
     imgFlagContent = imgFlagContent + QDir::separator() + Constant::USER_ChatImageDirName + QDir::separator() + Constant::USER_C2CDirName;
     imgFlagContent = imgFlagContent + QDir::separator() + t_imgName;
-//    cursor.insertImage(image,imgFlagContent);
-    cursor.insertImage(image,t_imgName);    //使用纯文件名作为img标签内容
+    cursor.insertImage(image,t_imgName);
+
+    return imgAbsoultPath;
 }
 
 void BaseTextEdit::setInputTextColor(QColor Color)
@@ -149,6 +165,34 @@ void BaseTextEdit::clearInputImg()
     m_inputImgs.clear();
 }
 
+/*!
+ * @brief 是否有可显示的字符
+ * @return 有显示字符则返回true，否则为false
+ */
+bool BaseTextEdit::isVaiablePlaintext()
+{
+    QString text = this->toPlainText();
+    text = text.trimmed();
+    if(text.isEmpty())
+    {
+        return false;
+    }
+    if(text.size()<=imageCount())
+    {
+        return false;
+    }
+    return true;
+}
+
+/*!
+ * @brief 获取显示的图形个数
+ * @return 图形个数
+ */
+int BaseTextEdit::imageCount()
+{
+    return m_inputImgs.count();
+}
+
 void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 {
     if(e->mimeData()->hasUrls())
@@ -173,9 +217,7 @@ void BaseTextEdit::dropEvent(QDropEvent *e)
             QString fileName = urlList.at(index).toLocalFile();
             if(!fileName.isEmpty())
             {
-                QFileInfo filInfo(fileName);
-                Q_UNUSED(filInfo);
-                //TODO 发送拖拽进来的文件
+                emit sigDropFile(fileName);
             }
         }
     }

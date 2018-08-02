@@ -44,6 +44,7 @@
 #include "sql/databasemanager.h"
 #include "sql/sqlprocess.h"
 #include "screenshot.h"
+#include "Network/msgwrap/wrapfactory.h"
 
 #define PANEL_MARGIN 20
 #define PANEL_HIDEMARGIN 1
@@ -116,7 +117,7 @@ MainDialog::MainDialog(QWidget *parent) :
     //716
     connect(MessDiapatch::instance(),SIGNAL(recvText(TextRequest)),this,SLOT(procRecvText(TextRequest)));
     connect(MessDiapatch::instance(),SIGNAL(recvTextReply(TextReply)),this,SLOT(procRecvServerTextReply(TextReply)));
-    connect(MessDiapatch::instance(),SIGNAL(recvFileData(FileRecvDesc)),this,SLOT(procRecvFile(FileRecvDesc)));
+    connect(MessDiapatch::instance(),SIGNAL(sigTransStatus(FileTransProgress)),this,SLOT(procRecvFileProgress(FileTransProgress)));
 
     QMenu *t_mainMenu = ActionManager::instance()->menu(Constant::MENU_PANEL_BOTTOM_SETTING);
     connect(t_mainMenu,SIGNAL(aboutToShow()),this,SLOT(respMenuToShow()));
@@ -129,7 +130,6 @@ MainDialog::MainDialog(QWidget *parent) :
     QMenu *t_stateMenu = d_ptr->panelTopArea->loginStateMenu();
     connect(t_stateMenu,SIGNAL(aboutToShow()),this,SLOT(respMenuToShow()));
     connect(t_stateMenu,SIGNAL(aboutToHide()),this,SLOT(respMenuToHide()));
-
 }
 
 MainDialog::~MainDialog()
@@ -283,7 +283,10 @@ void MainDialog::updateWidgetGeometry()
 void MainDialog::closeWindow()
 {
     if(G_User->systemSettings()->exitSystem)
+    {
+        //TODO:填写注销报文
         this->close();
+    }
     else
         this->hide();
 }
@@ -578,7 +581,7 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
     //TODO 尚超：因为需要实现信息的已读和未读状态控制，我们计划将信息从数据库中读取出来后，将对应流水号的状态修改为已读，同时更新数据库
     //从内存缓存中读取流水号的方法已经不适应现有的已读未读状态控制的场景
     //如果需要翻看以前的代码，请使用版本管理工具查看
-     UserClient * client = RSingleton<UserManager>::instance()->client(QString::number(reply.wSourceAddr));
+     UserClient * client = RSingleton<UserManager>::instance()->client(reply.wSourceAddr);
      if(client && client->chatPersonWidget != NULL)
      {
          client->procRecvServerTextReply(reply);
@@ -588,10 +591,23 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
 /*!
  * @brief 接收服务器发送的文件对应的实时进度信息
  */
-void MainDialog::procRecvFile(FileRecvDesc)
+void MainDialog::procRecvFileProgress(FileTransProgress fileProgress)
 {
     //TODO 尚超 2018.07.19
-    //考虑到可能需要独立的文件传输进度管理界面，所以将进度信息发送这里中装一遍，方便进度信息的统一管理
+    //考虑到可能需要独立的文件传输进度管理界面，所以将进度信息发送这里中转一遍，方便进度信息的统一管理
+    UserClient * client = NULL;
+    if(fileProgress.transType == TRANS_SEND)
+    {
+        client = RSingleton<UserManager>::instance()->client(fileProgress.destNodeId);
+    }
+    else
+    {
+        client = RSingleton<UserManager>::instance()->client(fileProgress.srcNodeId);
+    }
+    if(client)
+    {
+        client->procTransFile(fileProgress);
+    }
 }
 
 /*!

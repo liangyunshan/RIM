@@ -18,7 +18,6 @@ typedef  int socklen_t;
 #include "Network/win32net/msgsender.h"
 #include "Network/win32net/msgreceive.h"
 #include "Network/multitransmits/tcptransmit.h"
-#include "Network/multitransmits/ddstransmit.h"
 #include "../thread/file716sendtask.h"
 #include "Util/rlog.h"
 #include "global.h"
@@ -145,9 +144,6 @@ bool TextNetConnector::initialize()
 {
     std::shared_ptr<ClientNetwork::TcpTransmit> tcpTransmit = std::make_shared<ClientNetwork::TcpTransmit>();
     transmits.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>>(tcpTransmit->type(),tcpTransmit));
-
-//    std::shared_ptr<ClientNetwork::DDSTransmit> ddsTransmit = std::make_shared<ClientNetwork::DDSTransmit>();
-//    transmits.insert(std::pair<CommMethod,std::shared_ptr<ClientNetwork::BaseTransmit>>(ddsTransmit->type(),ddsTransmit));
 
     msgSender = std::make_shared<ClientNetwork::TextSender>();
     QObject::connect(msgSender.get(),SIGNAL(socketError(CommMethod)),this,SLOT(respSocketError(CommMethod)));
@@ -288,14 +284,17 @@ void FileNetConnector::respSocketError(CommMethod method)
 {
     switch(method){
         case C_TCP:
-            MessDiapatch::instance()->onFileSocketError();
+            {
+                MessDiapatch::instance()->onFileSocketError();
+                std::shared_ptr<ClientNetwork::FileReceive> tcpTrans = msgReceives.at(C_TCP);
+                if(tcpTrans.get()){
+                    tcpTrans->stopMe();
+                }
+            }
             break;
         default:
             break;
     }
-
-//    msgSender->stopMe();
-//    msgReceive->stopMe();
 }
 
 void FileNetConnector::doConnect()

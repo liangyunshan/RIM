@@ -19,10 +19,6 @@ RUDPSocket::RUDPSocket(QHostAddress host, int localRecvPort, QObject *parent)
 
     m_udpRecvScocket = new QUdpSocket();
     ret2 = m_udpRecvScocket->bind(QHostAddress::AnyIPv4, m_RecvPort);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<""<<ret1<<m_udpSendScocket->localPort()<<ret2<<m_udpRecvScocket->localPort()
-          <<"\n";
-
     connect(m_udpRecvScocket, SIGNAL(readyRead()),
             this, SLOT(readPendingDatagrams()));
 
@@ -187,9 +183,6 @@ void RUDPSocket::slot_ResendTimerOut()
 
         StopResendTimer();
         m_WaitSendQueue.dequeue();
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<"StopResendTimer"
-              <<"\n";
         return ;
     }
     if(buff->totalPackIndex == 1)
@@ -706,9 +699,6 @@ void RUDPSocket::StartCheckValidityTimer()
 
 void RUDPSocket::StopCheckValidityTimer()
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"StopCheckValidityTimer"
-          <<"\n";
     if(m_CheckValidityTimer && m_CheckValidityTimer->isActive())
     {
         m_CheckValidityTimer->stop();

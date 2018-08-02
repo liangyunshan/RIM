@@ -31,7 +31,6 @@ class FileReceive;
 namespace ClientNetwork {
 class RTask;
 class TcpTransmit;
-class DDSTransmit;
 class BaseTransmit;
 }
 

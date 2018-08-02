@@ -36,6 +36,7 @@ public:
 
     void procDownOverFile(std::shared_ptr<FileDesc> fileDesc);
     void procDownItemIcon(std::shared_ptr<FileDesc> fileDesc);
+    void procTransFile(FileTransProgress);
 
 public:
     SimpleUserInfo simpleUserInfo;

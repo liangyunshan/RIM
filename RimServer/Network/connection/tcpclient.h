@@ -49,7 +49,7 @@ struct PacketBuff
      * @param[in] container 数据容器
      * @param[in] perPacketOffset 截取每个分段的起始点
      */
-    void packDataWidthPrtocol(QByteArray & container,int perPacketOffset){
+    void packDataWidthPrtocol(QByteArray & container){
         if(isCompleted && recvSize > 0)
         {
             if(buff.size() > 0){
@@ -57,9 +57,7 @@ struct PacketBuff
             }
 
             while(!buff.isEmpty())
-            {
-                container.append(buff.takeFirst().mid(perPacketOffset));
-            }
+                container.append(buff.takeFirst());
         }
     }
 
@@ -82,7 +80,7 @@ struct PacketBuff
     unsigned short totalPackIndex;              /*!< 总数据包分包大小 */
     unsigned short recvPackIndex;               /*!< 已经接收到数据的索引，在recvPackIndex==totalPackIndex时由处理线程进行重新组包 */
 
-    qint64 totalPackLen;                        /*!< 总数据长度(分片数量*495+数据部分) */
+    qint64 totalPackLen;                        /*!< 总数据长度 */
 
     QLinkedList<QByteArray> buff;               /*!< 存放接收到数据(不包含网络数据头DataPacket)，插入时recvPackIndex+1 */
 };
@@ -108,7 +106,7 @@ enum FileTransState
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():fileTransState(FILE_ERROR){}
+    FileRecvDesc():fileTransState(FILE_ERROR),fileHeadLen(0){}
 
     ~FileRecvDesc(){
         destory();
@@ -144,6 +142,7 @@ struct FileRecvDesc
     {
         if(!file.isOpen())
             return -1;
+
         qint64 realWriteLen = file.write(data);
         writeLen += realWriteLen;
         return realWriteLen;
@@ -201,6 +200,7 @@ struct FileRecvDesc
     unsigned short usSerialNo;           /*!< 流水号*/
     unsigned short usOrderNo;            /*!< 协议号*/
     unsigned char bPackType;             /*!< 报文类型 */
+    int fileHeadLen;                     /*!< sizeof(21)+sizeof(2051)+fileNameLength */
 #endif
 };
 
@@ -241,19 +241,27 @@ struct FileSendDesc
         return file.seek(pos);
     }
 
-    qint64 read(QByteArray &data){
+    qint64 read(QByteArray &data)
+    {
         if(!file.isOpen())
             return -1;
 
         if(isSendOver())
             return -1;
 
+        int prepareReadLen = MAX_PACKET;
+    #ifdef __LOCAL_CONTACT__
+        if(sliceNum == -1){
+            prepareReadLen = MAX_PACKET - sizeof(QDB21::QDB21_Head) - sizeof(QDB2051::QDB2051_Head) - fileName.toLocal8Bit().length();
+        }
+    #endif
+
         memset(readBuff,0,MAX_PACKET);
-        qint64 realReadLen = file.read(readBuff,MAX_PACKET);
+        qint64 realReadLen = file.read(readBuff,prepareReadLen);
         data.append(readBuff,realReadLen);
-#ifdef __LOCAL_CONTACT__
+    #ifdef __LOCAL_CONTACT__
         sliceNum++;
-#endif
+    #endif
         return readLen += realReadLen;
     }
 
@@ -313,6 +321,30 @@ struct FileSendDesc
 #endif
 };
 
+#ifdef __LOCAL_CONTACT__
+/*!
+ *  @brief 用于在多包接收数据时，用于信息的访问标识。
+ */
+struct RecvFileTypeId
+{
+    RecvFileTypeId():wSourceAddr(0),wDestAddr(0),usSerialNo(0){}
+    RecvFileTypeId(unsigned short source,unsigned short dest,unsigned short serialNo,QDB2051::FileType ftype = QDB2051::F_NO_SUFFIX):wSourceAddr(source),
+        wDestAddr(dest),usSerialNo(serialNo),filetype(ftype){}
+
+    bool operator== (const RecvFileTypeId & others){
+        if(this == &others)
+            return true;
+
+        return (this->wSourceAddr == others.wSourceAddr && this->wDestAddr == others.wDestAddr
+                && this->usSerialNo == others.usSerialNo);
+    }
+
+    unsigned short wSourceAddr;     /*!< 源节点号 */
+    unsigned short wDestAddr;       /*!< 目的节点号 */
+    unsigned short usSerialNo;      /*!< 流水号 */
+    QDB2051::FileType filetype;     /*!< 文件类型 */
+};
+#endif
 
 class NETWORKSHARED_EXPORT TcpClient
 {
@@ -347,6 +379,12 @@ public:
     bool removeFile(QString &fileId);
     FileRecvDesc * getFile(QString fileId);
 
+#ifdef __LOCAL_CONTACT__
+    bool addFileId(RecvFileTypeId fileId);
+    void removeFileId(RecvFileTypeId fileId);
+    bool queryFiletype(RecvFileTypeId &fileId, QDB2051::FileType & pType);
+#endif
+
 private:
     explicit TcpClient();
     ~TcpClient();
@@ -371,6 +409,11 @@ private:
 
     QHash<QString,FileRecvDesc*> fileRecvList;      /*!< 文件接收缓冲列表 */
     std::mutex fileMutex;
+
+#ifdef __LOCAL_CONTACT__
+    std::recursive_mutex fileTypeMutex;
+    std::vector<RecvFileTypeId> fileTypeVecs;
+#endif
 
     friend class TcpClientManager;
 };

@@ -127,6 +127,7 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(q_ptr,SIGNAL(sendRecvedAudio(QString)),mainWidget,SLOT(recvVoiceChatMsg(QString)));
     QObject::connect(q_ptr,SIGNAL(sendMsgStatus(ushort)),mainWidget,SLOT(updateMsgStatus(ushort)));
     QObject::connect(q_ptr,SIGNAL(sendMoreQueryRecord(const ChatInfoUnit &,bool)),mainWidget,SLOT(showMoreQueryRecord(const ChatInfoUnit &,bool)));
+    QObject::connect(q_ptr,SIGNAL(sendFileTransProgress(const FileTransProgress &)),mainWidget,SLOT(updateTransFileStatus(const FileTransProgress &)));
 
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
@@ -248,6 +249,15 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
 
     RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
+}
+
+/*!
+ * @brief 处理界面文件传输进度
+ * @param grocess 文件传输进度
+ */
+void ChatPersonWidget::recvTransFile(const FileTransProgress &grocess)
+{
+    emit sendFileTransProgress(grocess);
 }
 
 bool ChatPersonWidget::eventFilter(QObject *watched, QEvent *event)

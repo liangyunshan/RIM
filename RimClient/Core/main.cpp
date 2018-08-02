@@ -29,6 +29,7 @@ using namespace ProtocolType;
 #include "Network/win32net/msgreceive.h"
 
 #include "Widgets/splashlogindialog.h"
+#include "Widgets/chat/transferfileitem.h"
 
 #include <Dbghelp.h>
 #pragma comment( lib, "DbgHelp")
@@ -182,6 +183,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<CommMethod>("CommMethod");
     qRegisterMetaType<FileTransProgress>("FileTransProgress");
     qRegisterMetaType<FileRecvDesc>("FileRecvDesc");
+//    qRegisterMetaType<TransferFileItem>("TransferFileItem");
 
     RSingleton<TaskManager>::instance()->initTask();
 

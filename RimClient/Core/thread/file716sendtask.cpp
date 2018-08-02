@@ -9,6 +9,8 @@
 #include "../global.h"
 #include "../Network/netglobal.h"
 #include "../messdiapatch.h"
+#include "Util/scaleswitcher.h"
+#include "Network/network_global.h"
 
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
@@ -85,22 +87,40 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
 bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
 {
     std::unique_lock<std::mutex> ul(mutex);
-
     auto findIndex = std::find_if(fileList.begin(),fileList.end(),[&](const SenderFileDesc & fdesc)->bool{
         return (fileInfo.destNodeId == fdesc.destNodeId && fileInfo.fullFilePath == fdesc.fullFilePath);
     });
 
+    FileTransProgress progress;
+    progress.transType = TRANS_SEND;
+    progress.transStatus = TransCancel;
+
     if(findIndex != fileList.end()){
-
-        FileTransProgress progress;
-        progress.transStatus = TransCancel;
         progress.fileFullPath = (*findIndex).fullFilePath;
-        QFileInfo fileInfo(progress.fileFullPath);
-        progress.fileName = fileInfo.fileName();
+        QFileInfo info(progress.fileFullPath);
+        progress.fileName = info.fileName();
+        progress.srcNodeId = (*findIndex).srcNodeId;
+        progress.destNodeId = (*findIndex).destNodeId;
+        progress.serialNo = (*findIndex).serialNo;
         MessDiapatch::instance()->onFileTransStatusChanged(progress);
-
         fileList.erase(findIndex);
         return true;
+    }
+    else
+    {
+        //TODO：将正在传输中的任务终止，removeTask方法需要修改
+        std::shared_ptr<FileSendDesc> desc = File716SendTask::instance()->removeTask(fileInfo.serialNo);
+        if(desc)
+        {
+            progress.fileFullPath = desc->fullPath;
+            QFileInfo info(progress.fileFullPath);
+            progress.fileName = info.fileName();
+            progress.srcNodeId = desc->accountId;
+            progress.destNodeId = desc->otherSideId;
+            progress.serialNo = desc->usSerialNo;
+            MessDiapatch::instance()->onFileTransStatusChanged(progress);
+            return true;
+        }
     }
 
     return false;
@@ -118,6 +138,14 @@ SenderFileDesc FileSendManager::getFile()
     return info;
 }
 
+void FileSendManager::pop_front()
+{
+    std::unique_lock<std::mutex> ul(mutex);
+    if(fileList.size() > 0){
+        fileList.pop_front();
+    }
+}
+
 bool FileSendManager::isEmpty()
 {
     std::unique_lock<std::mutex> ul(mutex);
@@ -130,12 +158,42 @@ int FileSendManager::size()
     return fileList.size();
 }
 
+/*!
+ * @brief 读取待发送的文件
+ * @warning 在进行文件读写时，产生N个分包，只会在第一个分包中存在21、2051数据头，因此第一个分包的文件数据长度为512-sizeof(21)-sizeof(2051).这点较为特殊
+ * @param[in/out] data 待填充的发送缓冲区
+ * @return 实际读取的字节数
+ */
+qint64 FileSendDesc::read(QByteArray &data)
+{
+    if(!file.isOpen())
+        return -1;
+
+    if(isSendOver())
+        return -1;
+
+    int prepareReadLen = MAX_PACKET;
+#ifdef __LOCAL_CONTACT__
+    if(sliceNum == -1){
+        prepareReadLen = MAX_PACKET - sizeof(QDB21::QDB21_Head) - sizeof(QDB2051::QDB2051_Head) - fileName.toLocal8Bit().length();
+    }
+#endif
+
+    memset(readBuff,0,MAX_PACKET);
+    qint64 realReadLen = file.read(readBuff,prepareReadLen);
+    data.append(readBuff,realReadLen);
+#ifdef __LOCAL_CONTACT__
+    sliceNum++;
+#endif
+    return readLen += realReadLen;
+}
+
 #ifdef  __LOCAL_CONTACT__
 
 File716SendTask* File716SendTask::recordTask = nullptr;
 
 File716SendTask::File716SendTask(QObject *parent):
-    ClientNetwork::RTask(parent),maxTransferFiles(2)
+    ClientNetwork::RTask(parent),maxTransferFiles(1)
 {
     recordTask = this;
 }
@@ -177,6 +235,27 @@ bool File716SendTask::removaAllTransmit()
     return true;
 }
 
+/*!
+ * @brief 从正在执行中的文件传输任务中，移除特定流水号的任务
+ * @param No 任务流水号
+ * @return 移除一个存在的任务则返回任务信息，需要移除的任务不存在则返回一个空值
+ */
+std::shared_ptr<FileSendDesc> File716SendTask::removeTask(QString No)
+{
+    std::lock_guard<std::mutex> lg(sendFileMutex);
+    std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
+    while(iter != sendList.end()){
+        if(No.toUShort() == (*iter)->usSerialNo)
+        {
+            (*iter).reset();
+            iter = sendList.erase(iter);
+            return (*iter);
+        }
+    }
+
+    return nullptr;
+}
+
 void File716SendTask::startMe()
 {
     RTask::startMe();
@@ -209,34 +288,6 @@ void File716SendTask::run()
     }
 }
 
-void File716SendTask::prepareSendTask()
-{
-    while(sendList.size() < maxTransferFiles){
-        if(RSingleton<FileSendManager>::instance()->isEmpty()){
-           break;
-        }
-
-        SenderFileDesc fileInfo = RSingleton<FileSendManager>::instance()->getFile();
-        if(fileInfo.isValid()){
-            std::shared_ptr<FileSendDesc> ptr = std::make_shared<FileSendDesc>();
-            if(ptr->parse(fileInfo.fullFilePath) && ptr->open()){
-                ptr->accountId = fileInfo.srcNodeId;
-                ptr->otherSideId = fileInfo.destNodeId;
-                ptr->fileType = QDB2051::F_BINARY;
-                ptr->usSerialNo = fileInfo.serialNo.toUShort();
-                bool result = false;
-                ParameterSettings::OuterNetConfig config = QueryNodeDescInfo(fileInfo.destNodeId,result);
-                if(result){
-                    ptr->method = config.communicationMethod;
-                    ptr->format = config.messageFormat;
-                }
-
-                sendList.push_back(ptr);
-            }
-        }
-    }
-}
-
 /*!
  * @brief 文件数据块发送
  * @note  文件控制命令由FileSender发送 \n
@@ -250,24 +301,25 @@ void File716SendTask::processFileData()
 
         FileTransProgress progress;
         progress.transType = TRANS_SEND;
-
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
+                progress.srcNodeId = (*iter)->accountId;
+                progress.destNodeId = (*iter)->otherSideId;
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
                 progress.transStatus = TransSuccess;
-                MessDiapatch::instance()->onFileTransStatusChanged(progress);
 
                 (*iter).reset();
                 iter = sendList.erase(iter);
+                MessDiapatch::instance()->onFileTransStatusChanged(progress);
             }else{
                 SendUnit unit;
-                unit.dataUnit.wSourceAddr = (*iter)->accountId.toInt();
-                unit.dataUnit.wDestAddr = (*iter)->otherSideId.toInt();
+                unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec((*iter)->accountId);
+                unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec((*iter)->otherSideId);
                 (*iter)->read(unit.dataUnit.data);
-                unit.dataUnit.bPackType = T_DATA_AFFIRM;
+                unit.dataUnit.bPackType = T_DATA_NOAFFIRM;
                 unit.dataUnit.bPeserve = 0;
                 unit.dataUnit.usSerialNo = (*iter)->usSerialNo;
                 unit.dataUnit.usOrderNo = O_2051;
@@ -278,6 +330,8 @@ void File716SendTask::processFileData()
                 unit.dataUnit.dwPackAllLen = (*iter)->dwPackAllLen;
                 unit.dataUnit.wOffset = (*iter)->sliceNum;
 
+                progress.srcNodeId = (*iter)->accountId;
+                progress.destNodeId = (*iter)->otherSideId;
                 progress.readySendBytes = (*iter)->readLen;
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
@@ -309,7 +363,10 @@ void File716SendTask::processFileData()
                                 error = true;
                                 break;
                             }
-                            MessDiapatch::instance()->onFileTransStatusChanged(progress);
+                            if(unit.dataUnit.wOffset %4 == 0)//TODO:如果每一帧都发送信号，界面会有明显的卡顿
+                            {
+                                MessDiapatch::instance()->onFileTransStatusChanged(progress);
+                            }
                         }
                     }
                 }while(0);
@@ -318,6 +375,7 @@ void File716SendTask::processFileData()
                 if(error){
                     (*iter).reset();
                     iter = sendList.erase(iter);
+                    MessDiapatch::instance()->onFileTransStatusChanged(progress);
                 }else{
                     iter++;
                 }
@@ -332,6 +390,34 @@ void File716SendTask::processFileData()
             break;
     }
 }
+
+void File716SendTask::prepareSendTask()
+{
+    while(sendList.size() < maxTransferFiles){
+        if(RSingleton<FileSendManager>::instance()->isEmpty()){
+           break;
+        }
+
+        SenderFileDesc fileInfo = RSingleton<FileSendManager>::instance()->getFile();
+        if(fileInfo.isValid()){
+            std::shared_ptr<FileSendDesc> ptr = std::make_shared<FileSendDesc>();
+            if(ptr->parse(fileInfo.fullFilePath) && ptr->open()){
+                ptr->accountId = fileInfo.srcNodeId;
+                ptr->otherSideId = fileInfo.destNodeId;
+                ptr->fileType = QDB2051::F_BINARY;
+                ptr->usSerialNo = fileInfo.serialNo.toUShort();
+                bool result = false;
+                ParameterSettings::OuterNetConfig config = QueryNodeDescInfo(fileInfo.destNodeId,result);
+                if(result){
+                    ptr->method = config.communicationMethod;
+                    ptr->format = config.messageFormat;
+                }
+                sendList.push_back(ptr);
+            }
+        }
+    }
+}
+
 
 /*!
  * @brief 计算一次完整的文件发送过程中，需要传输的数据长度(文件+各个协议头(495、21、2051))

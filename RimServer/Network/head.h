@@ -21,7 +21,7 @@
 #define IO_BUFF_SIZE  1024
 #define MAX_RECV_SIZE 1024*8
 
-#define MAX_PACKET 1024                         /*!< 应用层数据最大发送长度，超过此长度后，网络层会进行拆包。 @attention 未加入网络层协议头， @link DataPacket @endlink */
+#define MAX_PACKET 512                          /*!< 应用层数据最大发送长度，超过此长度后，网络层会进行拆包。 @attention 未加入网络层协议头， @link DataPacket @endlink */
 #define MAX_SEND_BUFF (MAX_PACKET + 24)         /*!< 网络层最大发送长度 */
 
 #define SOCK_CHAR_BUFF_LEN  32                  /*!< 存储ip地址集合长度 */
@@ -70,13 +70,13 @@ namespace QDB495{
 struct QDB495_SendPackage{
     unsigned char bVersion;
     unsigned char bPackType;
-    unsigned short wPackLen;            /*!< sizeof(495)+数据体 */
+    unsigned short wPackLen;            /*!< 不包含495传输头 */
     unsigned char bPriority;
     unsigned char bPeserve;
     unsigned short wSerialNo;
     unsigned short wCheckout;
     unsigned short wOffset;             /*!< 分片序号 */
-    unsigned long dwPackAllLen;         /*!< 分片数量*(sizeof(495)+sizeof(21)+sizeof(2051)+文件名长度)+数据体，此处无法直接获得文件的长度!! */
+    unsigned long dwPackAllLen;         /*!< (sizeof(21)+sizeof(2051)+文件名长度)+数据体，此处无法直接获得文件的长度!! */
     unsigned short wDestAddr;
     unsigned short wSourceAddr;
 };
@@ -158,8 +158,8 @@ enum OrderNoType{
  */
 struct ProtocolPackage
 {
-    unsigned short wSourceAddr;     /*!< 本节点号 */
-    unsigned short wDestAddr;       /*!< 目标节点号 */
+    unsigned short wSourceAddr;     /*!< 本节点号(10进制) */
+    unsigned short wDestAddr;       /*!< 目标节点号(10进制) */
     unsigned char bPackType;        /*!< 报文类型 */
     unsigned char bPeserve;         /*!< 95保留字，用于扩展内部状态控制 */
                                     /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
