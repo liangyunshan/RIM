@@ -36,6 +36,7 @@ public:
     bool addFile(SenderFileDesc & fileInfo);
     bool deleteFile(SenderFileDesc & fileInfo);
     SenderFileDesc getFile();
+    void pop_front();
     bool isEmpty();
     int size();
 
@@ -88,21 +89,7 @@ struct FileSendDesc
         return file.seek(pos);
     }
 
-    qint64 read(QByteArray &data){
-        if(!file.isOpen())
-            return -1;
-
-        if(isSendOver())
-            return -1;
-
-        memset(readBuff,0,MAX_PACKET);
-        qint64 realReadLen = file.read(readBuff,MAX_PACKET);
-        data.append(readBuff,realReadLen);
-#ifdef __LOCAL_CONTACT__
-        sliceNum++;
-#endif
-        return readLen += realReadLen;
-    }
+    qint64 read(QByteArray &data);
 
     bool isSendOver(){
         return readLen == size;
@@ -156,6 +143,7 @@ public:
 
     bool addTransmit(std::shared_ptr<ClientNetwork::BaseTransmit> trans,SendCallbackFunc callback = nullptr);
     bool removaAllTransmit();
+    std::shared_ptr<FileSendDesc> removeTask(QString No);
 
     void startMe();
     void stopMe();
@@ -171,8 +159,9 @@ private:
 private:
     static File716SendTask * recordTask;
 
-    int maxTransferFiles;         /*!< 最大传输的文件数量 */
-    std::list<std::shared_ptr<FileSendDesc>> sendList;    /*!< 正在发送的文件信息 */
+    int maxTransferFiles;                                   /*!< 最大传输的文件数量 */
+    std::mutex sendFileMutex;
+    std::list<std::shared_ptr<FileSendDesc>> sendList;      /*!< 正在发送的文件信息 */
 
     std::mutex tranMutex;
     std::map<CommMethod,std::pair<std::shared_ptr<ClientNetwork::BaseTransmit>,SendCallbackFunc>> transmits;

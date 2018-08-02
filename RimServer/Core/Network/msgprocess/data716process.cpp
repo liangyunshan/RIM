@@ -25,8 +25,8 @@ using namespace QDB2051;
 
 #ifdef __LOCAL_CONTACT__
 
-extern OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result);
-extern NodeServer QueryServerDescInfo(QString nodeId,bool & result);
+extern OuterNetConfig QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeServer QueryServerDescInfo(unsigned short nodeId,bool & result);
 
 Data716Process::Data716Process()
 {
@@ -54,11 +54,11 @@ Data716Process::Data716Process()
  */
 void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data)
 {
-    if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+    if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId){
         ClientList clist = TcpClientManager::instance()->getClients(QString::number(data.wDestAddr));
         TcpClient * sourceClient = TcpClientManager::instance()->getClient(sockId);
 
-        if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+        if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId){
             std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
                 if(sourceClient && destClient->ip() != sourceClient->ip() && destClient->port() != sourceClient->port()){
                     RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(destClient->socket(),data);
@@ -76,11 +76,11 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
         }
     }else{
         bool findNode = false;
-        QueryNodeDescInfo(QString::number(data.wDestAddr),findNode);
+        QueryNodeDescInfo(data.wDestAddr,findNode);
 
         if(findNode){
             bool findServer = false;
-            NodeServer serverInfo = QueryServerDescInfo(QString::number(data.wDestAddr),findServer);
+            NodeServer serverInfo = QueryServerDescInfo(data.wDestAddr,findServer);
             if(findServer){
                 if(serverInfo.nodeId == RGlobal::G_ParaSettings->baseInfo.nodeId){
                     TcpClient * destClient = TcpClientManager::instance()->getClient(QString::number(data.wDestAddr));
@@ -151,7 +151,8 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
 {
     TcpClient * client = TcpClientManager::instance()->getClient(sockId);
     if(client){
-        FileRecvDesc * desc = client->getFile(QString::fromLocal8Bit(data.cFilename));
+        QString fUUID = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.wDestAddr).arg(data.usSerialNo);
+        FileRecvDesc * desc = client->getFile(fUUID);
         if(desc == nullptr){
 
             if(data.wOffset != 0)
@@ -167,14 +168,13 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             desc->usOrderNo = data.usOrderNo;
             desc->usSerialNo = data.usSerialNo;
 
-            int protocolDataLen = QDB495_SendPackage_Length + QDB21_Head_Length + QDB2051_Head_Length;
-            int fileHeadLen = protocolDataLen + data.cFilename.size();
-            int sliceNums = qCeil((float)data.dwPackAllLen /(fileHeadLen + MAX_PACKET));
+            int protocolDataLen = QDB21_Head_Length + QDB2051_Head_Length;
+            desc->fileHeadLen = protocolDataLen + data.cFilename.size();
 
-            desc->size = data.dwPackAllLen - sliceNums * fileHeadLen ;
+            desc->size = data.dwPackAllLen - desc->fileHeadLen ;
             desc->writeLen = 0;
 
-            if(!client->addFile(QString::fromLocal8Bit(data.cFilename),desc))
+            if(!client->addFile(fUUID,desc))
                 return;
         }
 
@@ -188,7 +188,7 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
 
             if(desc->state() == FILE_TRANING || desc->state() == FILE_PAUSE){
                 //此处的偏移量计算依赖于发送接收方的每片大小一致。
-                if(desc->seek(data.wOffset * MAX_PACKET) && desc->write(data.data) > 0)
+                if(desc->seek(data.wOffset > 0 ? (data.wOffset * MAX_PACKET - desc->fileHeadLen) : 0) && desc->write(data.data) > 0)
                 {
                     if(desc->flush() && desc->isRecvOver()){
                         desc->close();
@@ -202,11 +202,11 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             int saveFileId = -1;
             if(RSingleton<SQLProcess>::instance()->add716File(db,desc,saveFileId))
             {
-                if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+                if(data.wDestAddr == RGlobal::G_ParaSettings->baseInfo.nodeId){
                     ClientList clist = TcpClientManager::instance()->getClients(QString::number(data.wDestAddr));
                     TcpClient * sourceClient = TcpClientManager::instance()->getClient(sockId);
 
-                    if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId.toUShort()){
+                    if(data.wSourceAddr == RGlobal::G_ParaSettings->baseInfo.nodeId){
                         std::for_each(clist.begin(),clist.end(),[&](TcpClient * destClient){
                             if(sourceClient && destClient->ip() != sourceClient->ip() && destClient->port() != sourceClient->port()){
                                 ParameterSettings::Simple716FileInfo fileInfo(destClient->socket(),QString::number(data.wDestAddr),saveFileId);
@@ -226,11 +226,11 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
                     }
                 }else{
                     bool findNode = false;
-                    QueryNodeDescInfo(QString::number(data.wDestAddr),findNode);
+                    QueryNodeDescInfo(data.wDestAddr,findNode);
 
                     if(findNode){
                         bool findServer = false;
-                        NodeServer serverInfo = QueryServerDescInfo(QString::number(data.wDestAddr),findServer);
+                        NodeServer serverInfo = QueryServerDescInfo(data.wDestAddr,findServer);
                         if(findServer){
                             if(serverInfo.nodeId == RGlobal::G_ParaSettings->baseInfo.nodeId){
                                 TcpClient * destClient = TcpClientManager::instance()->getClient(QString::number(data.wDestAddr));
@@ -260,7 +260,7 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             }else{
                 RLOG_ERROR("Save transfered failed!");
             }
-            client->removeFile(QString::fromLocal8Bit(data.cFilename));
+            client->removeFile(fUUID);
         }
     }
 }
@@ -287,7 +287,7 @@ void Data716Process::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &pa
         cacheInfo.msgCache.push_back(package);
 
         cacheInfo.connStats = SCS_IN;
-        textServerCache.insert(std::pair<QString,TextServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+        textServerCache.insert(std::pair<unsigned short,TextServerCacheInfo>(serverInfo.nodeId,cacheInfo));
 
         NetFunc func = std::bind(&Data716Process::respTextNetConnectResult,this,
                                  std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
@@ -302,7 +302,7 @@ void Data716Process::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &pa
  * @param[in] connected 是否建立连接
  * @param[in] socketId 建立连接的socket访问标识
  */
-void Data716Process::respTextNetConnectResult(QString nodeId,bool connected,int socketId)
+void Data716Process::respTextNetConnectResult(unsigned short nodeId,bool connected,int socketId)
 {
     std::unique_lock<std::mutex> ul(textCacheMutex);
 
@@ -344,7 +344,7 @@ void Data716Process::cacheFileProtocol(Database * db,NodeServer serverInfo, Simp
         cacheInfo.serverInfo = serverInfo;
         cacheInfo.fileCache.push_back(fileIndo);
         cacheInfo.connStats = SCS_IN;
-        fileServerCache.insert(std::pair<QString,FileServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+        fileServerCache.insert(std::pair<unsigned short,FileServerCacheInfo>(serverInfo.nodeId,cacheInfo));
 
         NetFunc func = std::bind(&Data716Process::respFileNetConnectResult,this
                                  ,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
@@ -359,7 +359,7 @@ void Data716Process::cacheFileProtocol(Database * db,NodeServer serverInfo, Simp
  * @param[in] connected 是否建立连接
  * @param[in] socketId 建立连接的socket访问标识
  */
-void Data716Process::respFileNetConnectResult(QString nodeId, bool connected, int socketId)
+void Data716Process::respFileNetConnectResult(unsigned short nodeId, bool connected, int socketId)
 {
     std::unique_lock<std::mutex> ul(fileCacheMutex);
 

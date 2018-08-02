@@ -7,6 +7,7 @@
 #include <QDomDocument>
 
 #include "Util/rlog.h"
+#include "Util/scaleswitcher.h"
 #include "protocol/datastruct.h"
 
 XMLParse::XMLParse(QObject *parent):QObject(parent)
@@ -33,7 +34,7 @@ bool XMLParse::parseParaSettings(const QString &fileName,ParameterSettings::Para
         if(childEle.nodeName() == QStringLiteral("基本信息")){
             QDomNodeList nodeIds = childEle.elementsByTagName(QStringLiteral("本节点号"));
             if(nodeIds.size() == 1)
-                paraSettings->baseInfo.nodeId = nodeIds.at(0).toElement().text();
+                paraSettings->baseInfo.nodeId = ScaleSwitcher::fromHexToDec(nodeIds.at(0).toElement().text());
 
             QDomNodeList ips = childEle.elementsByTagName(QStringLiteral("本机IP地址"));
             if(ips.size() == 1)
@@ -41,11 +42,11 @@ bool XMLParse::parseParaSettings(const QString &fileName,ParameterSettings::Para
 
             QDomNodeList lons = childEle.elementsByTagName(QStringLiteral("本节点经度"));
             if(lons.size() == 1)
-                paraSettings->baseInfo.lon = lons.at(0).toElement().text();
+                paraSettings->baseInfo.lon = lons.at(0).toElement().text().toDouble();
 
             QDomNodeList lats = childEle.elementsByTagName(QStringLiteral("本节点纬度"));
             if(lats.size() == 1)
-                paraSettings->baseInfo.lat = lats.at(0).toElement().text();
+                paraSettings->baseInfo.lat = lats.at(0).toElement().text().toDouble();
 
         }else if(childEle.nodeName() == QStringLiteral("外发信息配置")){
            QDomNodeList outerMessageNodes = childEle.childNodes();
@@ -53,7 +54,7 @@ bool XMLParse::parseParaSettings(const QString &fileName,ParameterSettings::Para
                 QDomElement outerEle = outerMessageNodes.at(j).toElement();
                 if(!outerEle.isNull()){
                     ParameterSettings::OuterNetConfig conf;
-                    conf.nodeId = outerEle.attribute(QStringLiteral("节点号"));
+                    conf.nodeId = ScaleSwitcher::fromHexToDec(outerEle.attribute(QStringLiteral("节点号")));
                     conf.channel = outerEle.attribute(QStringLiteral("通道"));
                     conf.communicationMethod = static_cast<ParameterSettings::CommucationMethod>(outerEle.attribute(QStringLiteral("通信方式")).toInt());
                     conf.messageFormat = static_cast<ParameterSettings::MessageFormat>(outerEle.attribute(QStringLiteral("报文格式")).toInt());
@@ -130,7 +131,7 @@ bool XMLParse::parseParaSettings(const QString &fileName,ParameterSettings::Para
 
                     QDomNodeList nodeIds = node.elementsByTagName(QStringLiteral("节点号"));
                     if(nodeIds.size() == 1)
-                        messSource.nodeId = nodeIds.at(0).toElement().text();
+                        messSource.nodeId = ScaleSwitcher::fromHexToDec(nodeIds.at(0).toElement().text());
 
                     QDomNodeList ips = node.elementsByTagName(QStringLiteral("IP地址"));
                     if(ips.size() == 1)
@@ -185,7 +186,7 @@ bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::Ro
             QDomElement server = serverNodes.at(i).toElement();
             ParameterSettings::NodeServer ss;
             ss.localIp = server.attribute("ip");
-            ss.nodeId = server.attribute("nodeId");
+            ss.nodeId = ScaleSwitcher::fromHexToDec(server.attribute("nodeId"));
             ss.localPort = server.attribute("port");
             ss.communicationMethod = static_cast<ParameterSettings::CommucationMethod> (server.attribute("commethod").toInt());
             ss.messageFormat = static_cast<ParameterSettings::MessageFormat> (server.attribute("messageFormat").toInt());
@@ -199,8 +200,8 @@ bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::Ro
         for(int i = 0;i < clientNodes.size();i++){
             QDomElement client = clientNodes.at(i).toElement();
             ParameterSettings::NodeClient cl;
-            cl.nodeId = client.attribute("nodeId");
-            cl.serverNodeId = client.attribute("server");
+            cl.nodeId = ScaleSwitcher::fromHexToDec(client.attribute("nodeId"));
+            cl.serverNodeId = ScaleSwitcher::fromHexToDec(client.attribute("server"));
             routeSettings->clients.append(cl);
         }
     }

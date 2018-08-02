@@ -9,6 +9,7 @@
 #include "global.h"
 #include "user/user.h"
 #include "others/serialno.h"
+#include "Util/scaleswitcher.h"
 #include <QDebug>
 
 LocalMsgWrap::LocalMsgWrap()
@@ -40,8 +41,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
             TextRequest *textRequest = dynamic_cast<TextRequest *>(packet);
             if(textRequest)
             {
-                unit.dataUnit.wSourceAddr = textRequest->accountId.toInt();
-                unit.dataUnit.wDestAddr = textRequest->otherSideId.toInt();
+                unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec(textRequest->accountId);
+                unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec(textRequest->otherSideId);
                 unit.dataUnit.data = textRequest->sendData.toLocal8Bit();
                 unit.dataUnit.bPackType = T_DATA_AFFIRM;
                 unit.dataUnit.bPeserve = 0;
@@ -55,8 +56,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
             HistoryMessRequest *textRequest = dynamic_cast<HistoryMessRequest *>(packet);
             if(textRequest)
             {
-                unit.dataUnit.wSourceAddr = textRequest->accountId.toInt();
-                unit.dataUnit.wDestAddr = textRequest->accountId.toInt();
+                unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec(textRequest->accountId);
+                unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec(textRequest->accountId);
                 unit.dataUnit.usSerialNo = SERIALNO_FRASH;
                 unit.dataUnit.bPackType = T_DATA_NOAFFIRM;
                 unit.dataUnit.bPeserve = 0X80;
@@ -68,8 +69,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
             DataPackType *dataPackType = dynamic_cast<DataPackType *>(packet);
             if(dataPackType)
             {
-                unit.dataUnit.wSourceAddr = dataPackType->sourceId.toInt();
-                unit.dataUnit.wDestAddr = dataPackType->destId.toInt();
+                unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec(dataPackType->sourceId);
+                unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec(dataPackType->destId);
                 unit.dataUnit.bPackType = dataPackType->extendData.type495;
                 unit.dataUnit.usOrderNo = dataPackType->extendData.usOrderNo;
                 if(dataPackType->extendData.usSerialNo == 0)
@@ -80,7 +81,8 @@ void LocalMsgWrap::handleMsg(MsgPacket * packet, CommucationMethod method, Messa
                 {
                     unit.dataUnit.usSerialNo = dataPackType->extendData.usSerialNo;
                 }
-                unit.dataUnit.bPeserve = 0X80;
+                unit.dataUnit.data = dataPackType->extendData.data;
+                unit.dataUnit.bPeserve = 0;
             }
         }
         break;

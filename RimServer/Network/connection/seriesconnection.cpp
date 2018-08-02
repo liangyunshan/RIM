@@ -62,7 +62,7 @@ void SeriesConnectionManager::remove(std::shared_ptr<SeriesConnection> conn)
     }
 }
 
-void SeriesConnectionManager::remove(QString nodeId)
+void SeriesConnectionManager::remove(unsigned short nodeId)
 {
     std::unique_lock<std::mutex> ul(mutex);
 
@@ -76,7 +76,7 @@ void SeriesConnectionManager::remove(QString nodeId)
     }
 }
 
-void SeriesConnectionManager::remove(int sockdId)
+void SeriesConnectionManager::removeFd(int sockdId)
 {
     std::unique_lock<std::mutex> ul(mutex);
 
@@ -115,7 +115,7 @@ std::shared_ptr<SeriesConnection> SeriesConnectionManager::getConnection(int soc
     return nullptr;
 }
 
-std::shared_ptr<SeriesConnection> SeriesConnectionManager::getConnection(QString nodeId)
+std::shared_ptr<SeriesConnection> SeriesConnectionManager::getConnection(unsigned short nodeId)
 {
     std::lock_guard<std::mutex> lg(mutex);
 

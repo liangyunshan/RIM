@@ -293,7 +293,7 @@ void TransferFileItem::setFileName(const QString &file)
         QFileInfo tmpInfo(file);
         t_nameText = tmpInfo.fileName();
     }
-    d->fileNameLabel->setToolTip(t_nameText);
+    d->fileNameLabel->setToolTip(file);
     t_nameText = fontMetr.elidedText(t_nameText,Qt::ElideMiddle,t_maxWidth);
     d->fileNameLabel->setText(t_nameText);
 }

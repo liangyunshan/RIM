@@ -148,7 +148,8 @@ enum MsgCommand
 /*!
  * @brief 信息已读未读状态
  */
-enum Msg_Status{
+
+enum MsgStatus{
     MSG_READYREAD       = 0x00 ,    /*!< 信息已读 */
     MSG_NOTREAD         = 0x01 ,    /*!< 信息未读 */
     MSG_ARRIVE_SERVER   = 0x02 ,    /*!< 信息已到达服务器 */
@@ -986,8 +987,8 @@ class TextReply : public MsgPacket
 public:
     TextReply();
 #ifdef __LOCAL_CONTACT__
-    unsigned short wSourceAddr; /*!< 本节点号 */
-    unsigned short wDestAddr;   /*!< 目标节点号 */
+    QString wSourceAddr;        /*!< 本节点号 */
+    QString wDestAddr;          /*!< 目标节点号 */
 #endif
     QString textId;             /*!< 消息唯一标识 */
     TextReplyType applyType;    /*!< 消息回执类型 @link TextApplyType @endlink */
@@ -1150,7 +1151,7 @@ class DataPackType : public MsgPacket
 public:
     DataPackType();
     ExtendData extendData;          /*!< 可扩充数据信息，包含网络层相关信息 */
-    QString sourceId;              /*!< 用户账号 */
+    QString sourceId;               /*!< 用户账号 */
     QString destId;                 /*!< 目标账号 */
 };
 

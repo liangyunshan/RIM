@@ -79,6 +79,58 @@ FileRecvDesc *TcpClient::getFile(QString fileId)
     return NULL;
 }
 
+#ifdef __LOCAL_CONTACT__
+
+bool TcpClient::addFileId(RecvFileTypeId fileId)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+
+    QDB2051::FileType pType;
+    if(queryFiletype(fileId,pType))
+        return true;
+
+    fileTypeVecs.push_back(fileId);
+
+    return true;
+}
+
+void TcpClient::removeFileId(RecvFileTypeId fileId)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+
+    auto beg = fileTypeVecs.begin();
+    while(beg != fileTypeVecs.end()){
+        if(*beg == fileId){
+           beg = fileTypeVecs.erase(beg);
+           continue;
+        }
+        beg++;
+    }
+}
+
+/*!
+ * @brief 根据指定的FileTypeId查询信息类型
+ * @param[in] fileId 待查询Id
+ * @param[in/out] pType 对应文件类型
+ * @return 存在返回true，不存在返回false
+ */
+bool TcpClient::queryFiletype(RecvFileTypeId &fileId, QDB2051::FileType &pType)
+{
+    std::lock_guard<std::recursive_mutex> lg(fileTypeMutex);
+    auto findex = std::find_if(fileTypeVecs.begin(),fileTypeVecs.end(),[&](RecvFileTypeId & existFileId){
+        return existFileId == fileId;
+    });
+
+    if(findex == fileTypeVecs.end())
+        return false;
+
+    pType = (*findex).filetype;
+
+    return true;
+}
+
+#endif
+
 TcpClient::TcpClient()
 {
     memset(cIp,0,32);

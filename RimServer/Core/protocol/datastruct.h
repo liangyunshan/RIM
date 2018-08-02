@@ -58,7 +58,7 @@ struct CommandParameter
 {
     CommandParameter()
     {
-        serviceType = SERVICE_TEXT;
+        serviceType = SERVICE_FILE;
         transMode = TRANS_NET;
         dbType = DB_MYSQL;
         parseResult = PARSE_ERROR;
@@ -128,10 +128,10 @@ enum MessageFormat{
  *  @brief  基本信息
  */
 struct BaseInfo{
-    QString nodeId;             /*!< 本节点号 */
+    unsigned short nodeId;      /*!< 本节点号 */
     QString localIp;            /*!< 本机IP地址 */
-    QString lon;                /*!< 节点经度 */
-    QString lat;                /*!< 节点纬度 */
+    double lon;                 /*!< 节点经度 */
+    double lat;                 /*!< 节点纬度 */
 };
 
 /*!
@@ -149,7 +149,7 @@ struct NetParamSetting{
  */
 struct MessSource{
     QString nodeName;           /*!< 节点名 */
-    QString nodeId;             /*!< 节点号 */
+    unsigned short nodeId;      /*!< 节点号 */
     QString ip;                 /*!< ip地址 */
     unsigned short encryption;  /*!< 加密标识 */
     unsigned short priority;    /*!< 发送优先级 */
@@ -190,7 +190,7 @@ struct CommucationControl{
  *  @brief  外发信息配置条目
  */
 struct OuterNetConfig{
-    QString nodeId;                           /*!< 节点号 */
+    unsigned short nodeId;                    /*!< 节点号 */
     QString channel;                          /*!< 通道 */
     CommucationMethod communicationMethod;    /*!< 通信方式 */
     MessageFormat messageFormat;              /*!< 报文格式 */
@@ -212,7 +212,7 @@ struct ParaSettings{
  */
 struct NodeServer
 {
-    QString nodeId;             /*!< 本节点号 */
+    unsigned short nodeId;      /*!< 本节点号 */
     QString localIp;            /*!< 本机IP地址 */
     QString localPort;          /*!< 本机监听端口号 */
     CommucationMethod communicationMethod;    /*!< 通信方式 */
@@ -224,8 +224,8 @@ struct NodeServer
  */
 struct NodeClient
 {
-    QString nodeId;             /*!< 本节点号 */
-    QString serverNodeId;       /*!< 所属服务器节点 */
+    unsigned short nodeId;             /*!< 本节点号 */
+    unsigned short serverNodeId;       /*!< 所属服务器节点 */
 };
 
 /*!

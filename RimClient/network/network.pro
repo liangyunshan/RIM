@@ -39,7 +39,7 @@ INCLUDEPATH += $$PWD/multitransmits/
 
 win32-msvc2013{
     LIBS+= ../Lib/Util.lib
-    LIBS+= ../Lib/DDS.lib
+#    LIBS+= ../Lib/DDS.lib
 }
 
 win32-g++{
@@ -63,7 +63,7 @@ SOURCES += \
     multitransmits/tcptransmit.cpp \
     win32net/msgsender.cpp \
     win32net/msgreceive.cpp \
-    multitransmits/ddstransmit.cpp \
+#    multitransmits/ddstransmit.cpp \
     wraprule/dds_wraprule.cpp \
     wraprule/qdb21_wraprule.cpp \
     wraprule/qdb61a_wraprule.cpp \
@@ -88,7 +88,7 @@ HEADERS +=\
     multitransmits/tcptransmit.h \
     win32net/msgreceive.h \
     win32net/msgsender.h \
-    multitransmits/ddstransmit.h \
+#    multitransmits/ddstransmit.h \
     3rdhead/DDS.h \
     wraprule/dds_wraprule.h \
     wraprule/qdb21_wraprule.h \

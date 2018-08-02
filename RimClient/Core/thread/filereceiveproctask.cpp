@@ -71,19 +71,23 @@ void FileReceiveProcTask::run()
 
 void FileReceiveProcTask::validateRecvData(const RecvUnit &data)
 {
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"file data.extendData.usSerialNo:"<<data.extendData.usSerialNo
-          <<"\n";
     ProtocolPackage package;
 #ifdef __LOCAL_CONTACT__
 
+    //可能是第一包数据，也可能就一包数据
     bool result = false;
-    switch(data.extendData.method){
-        case C_TCP:
-            result = RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,package);
-            break;
-        default:
-            break;
+
+    if(data.extendData.wOffset == 0){
+        switch(data.extendData.method){
+            case C_TCP:
+                result = RSingleton<ClientNetwork::TCP_WrapRule>::instance()->unwrap(data.data,package);
+                break;
+            default:
+                break;
+        }
+    }else{
+        result = true;
+        package.data = data.data;
     }
 
     if(result){
@@ -93,6 +97,9 @@ void FileReceiveProcTask::validateRecvData(const RecvUnit &data)
         package.usOrderNo = data.extendData.usOrderNo;
         package.wOffset = data.extendData.wOffset;
         package.dwPackAllLen = data.extendData.dwPackAllLen;
+        package.cFileType = data.extendData.fileType;
+        package.wSourceAddr = data.extendData.wSourceAddr;
+        package.wDestAddr = data.extendData.wDestAddr;
 
         RSingleton<MsgParseFactory>::instance()->getDataParse()->processData(package);
     }
