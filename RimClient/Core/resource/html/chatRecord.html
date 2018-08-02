@@ -248,6 +248,15 @@
             cursor: pointer;
         }
 
+        span.openFolderBtn {
+            float: right;
+            height:30px;
+            line-height: 30px;
+            margin-right: 10px;
+            color:#009BDB;
+            cursor: pointer;
+        }
+
         /*字体图标样式*/
         .iconfont{
             font-size: 16px;
@@ -293,10 +302,6 @@
         {
              bridge = channel.objects.bridge;
         });
-
-        //window.onmousewheel = document.onmousewheel = scrollFunc;
-        //document.onmousewheel = scrollFunc;
-        window.onmousewheel = scrollFunc;
     }
 
     var input = document.getElementById('msg_input');//查找缓存
@@ -436,11 +441,11 @@
                 stateSpan.setAttribute('id',stateID);
                 if(readState === 0)
                 {
-                    stateSpan.innerHTML = '未读'
+                    stateSpan.innerHTML = '未送达'
                 }
                 else
                 {
-                    stateSpan.innerHTML = '已读'
+                    stateSpan.innerHTML = '已送达'
                 }
             }
             //添加内容
@@ -511,11 +516,11 @@
                 stateSpan.setAttribute('id',stateID);
                 if(readState === 0)
                 {
-                    stateSpan.innerHTML = '未读'
+                    stateSpan.innerHTML = '未送达'
                 }
                 else
                 {
-                    stateSpan.innerHTML = '已读'
+                    stateSpan.innerHTML = '已送达'
                 }
             }
             //添加内容
@@ -553,6 +558,116 @@
             newDiv.scrollIntoView();
         }
 
+    }
+
+    function appendImgRecord(messageTarget,imgPath,avatarPath) {
+        if(imgPath === '')
+        {
+
+        }
+        else
+        {
+            //初始化容器
+            var content_container = document.getElementById('content');
+            var newDiv = document.createElement('div');
+            newDiv.className = 'dialogContainer';
+            var newDialog = document.createElement('div');
+            //头像信息
+            var avatarContainer = document.createElement('img');
+            avatarContainer.setAttribute('src',avatarPath);
+            avatarContainer.setAttribute('class','avatarPic');
+            // 图片信息
+            var imgMesContainer = document.createElement('div');
+            var imgMsg = document.createElement('img');
+            imgMsg.setAttribute('src',imgPath);
+            imgMesContainer.appendChild(imgMsg);
+
+            //添加内容
+            newDiv.appendChild(avatarContainer);
+            newDialog.appendChild(imgMesContainer);
+            newDiv.appendChild(newDialog);
+
+            content_container.appendChild(newDiv);
+            var div = document.createElement('div');
+            div.style = 'clear:both';
+            content_container.appendChild(div);
+            if(messageTarget === 0)
+            {
+                newDialog.className = 'msgContent right dialog_me';
+            }
+            else
+            {
+                newDialog.className = 'msgContent left dialog_others';
+                avatarContainer.className = 'avatarPic left';
+            }
+            // 设置消息内图片样式
+            var imgSeter = document.getElementById('content').getElementsByClassName('msgContent');
+            for (var i=0;i<imgSeter.length;i++)
+            {
+                var imgBox = imgSeter[i].getElementsByTagName('img');
+                for (var j=0;j<imgBox.length;j++)
+                {
+                    imgBox[j].classList.add('imgMesContainer'); // 添加非重置
+                }
+            }
+
+            newDiv.scrollIntoView(false);
+        }
+    }
+
+    function prependImgRecord(messageTarget,imgPath,avatarPath) {
+        if(imgPath === '')
+        {
+
+        }
+        else
+        {
+            //初始化容器
+            var content_container = document.getElementById('content');
+            var newDiv = document.createElement('div');
+            newDiv.className = 'dialogContainer';
+            var newDialog = document.createElement('div');
+            //头像信息
+            var avatarContainer = document.createElement('img');
+            avatarContainer.setAttribute('src',avatarPath);
+            avatarContainer.setAttribute('class','avatarPic');
+            // 图片信息
+            var imgMesContainer = document.createElement('div');
+            var imgMsg = document.createElement('img');
+            imgMsg.setAttribute('src',imgPath);
+            imgMesContainer.appendChild(imgMsg);
+
+            //添加内容
+            newDiv.appendChild(avatarContainer);
+            newDialog.appendChild(imgMesContainer);
+            newDiv.appendChild(newDialog);
+
+            var div = document.createElement('div');
+            div.style = 'clear:both';
+            content_container.insertBefore(div,content_container.childNodes[0]);
+            content_container.insertBefore(newDiv,content_container.childNodes[0]);
+            if(messageTarget === 0)
+            {
+                newDialog.className = 'msgContent right dialog_me';
+            }
+            else
+            {
+                newDialog.className = 'msgContent left dialog_others';
+                avatarContainer.className = 'avatarPic left';
+            }
+            // 设置消息内图片样式
+            var imgSeter = document.getElementById('content').getElementsByClassName('msgContent');
+            for (var i=0;i<imgSeter.length;i++)
+            {
+                var imgBox = imgSeter[i].getElementsByTagName('img');
+                for (var j=0;j<imgBox.length;j++)
+                {
+                    imgBox[j].classList.add('imgMesContainer'); // 添加非重置
+                }
+            }
+
+            newDiv.scrollIntoView(false);
+        }
     }
 
     // 设置提醒消息
@@ -607,7 +722,7 @@
         contentContainer.insertBefore(noticeContainer,contentContainer.childNodes[0]);
         noticeContainer.scrollIntoView();
     }
-    // 收/发文件夹消息
+    // 向后插入收/发文件夹消息
     function appendFile(target,filePath,avatarPath,resultType) {
         // 初始化容器
         var content_container = document.getElementById('content');
@@ -618,9 +733,7 @@
         var avatarContainer = document.createElement('img');
         avatarContainer.setAttribute('src',avatarPath);
         avatarContainer.setAttribute('class','avatarPic');
-        // 根据路径获得文件名称
-        var fileArr = filePath.split('\\');
-        var fileName = fileArr[fileArr.length - 1];
+
         var content_container = document.getElementById('content');
         // 文件夹内元素
         var fileContainer = document.createElement('div');
@@ -637,16 +750,20 @@
         fileNameBox.setAttribute('class','fileNameBox');
         var noticeBox = document.createElement('div');
         noticeBox.setAttribute('class','fileNoticeBox');
-        if (resultType === 0)
+        if (target === 0)
         {
-            noticeBox.innerHTML = '<i class="iconfont icon-cuowu"></i><span>文件发送失败！</span>';
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功发送文件</span>';
         }
-        if (resultType === 1)
+        if (target === 1)
         {
-            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>发送成功!</span>';
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功存至'+filePath+'</span>';
         }
         // 文件详情
-        fileNameBox.innerHTML = fileName;
+        // 根据路径获得文件名称
+        bridge.getTargetName(filePath,function(fileName){
+            fileNameBox.innerHTML = fileName;
+        });//FIXME LYS
+
         fileDetail.appendChild(fileNameBox);
         fileDetail.appendChild(noticeBox);
         // 文件信息
@@ -654,11 +771,23 @@
         fileInfo.appendChild(fileDetail);
         fileContainer.appendChild(fileInfo);
         // 操作
-        var openFile = openFileBtn()
-        openFile.addEventListener('click',function () {
-            window.open(filePath);
-        })
+        bridge.targetIsDir(filePath,function(t_result){
+            if(t_result === false)
+            {
+                var openFolder = openFolderBtn();
+                /*bridge.getTargetDir(filePath,function(folderPath){
+                    openFolder.setAttribute('dirPath',folderPath);
+                    fileManipulate.appendChild(openFolder);
+                });*/
+                openFolder.setAttribute('dirPath',filePath);
+                fileManipulate.appendChild(openFolder);
+            }
+        });
+
+        var openFile = openFileBtn();
+        openFile.setAttribute('fullPath',filePath);
         fileManipulate.appendChild(openFile);
+
         fileContainer.appendChild(fileManipulate);
         // 会话容器绑定
         newDialog.appendChild(fileContainer);
@@ -667,29 +796,121 @@
         content_container.appendChild(newDiv);
         if(target === 0)
         {
-            newDialog.className = 'msgContent right';
+            newDialog.className = 'msgContent right dialog_me';
         }
         else
         {
-            newDialog.className = 'msgContent left';
+            newDialog.className = 'msgContent left dialog_others';
             avatarContainer.className = 'avatarPic left'
         }
         newDiv.scrollIntoView(false);
     }
-    // 文件夹消息操作按钮生产
+
+    function prependFile(target,filePath,avatarPath,resultType) {
+        // 初始化容器
+        var content_container = document.getElementById('content');
+        var newDiv = document.createElement('div');
+        newDiv.className = 'dialogContainer';
+        var newDialog = document.createElement('div');
+        //头像信息
+        var avatarContainer = document.createElement('img');
+        avatarContainer.setAttribute('src',avatarPath);
+        avatarContainer.setAttribute('class','avatarPic');
+
+        var content_container = document.getElementById('content');
+        // 文件夹内元素
+        var fileContainer = document.createElement('div');
+        fileContainer.setAttribute('class','fileContainer');
+        var fileInfo = document.createElement('div');
+        fileInfo.setAttribute('class','fileInfo');
+        var fileManipulate = document.createElement('div');
+        fileManipulate.setAttribute('class','fileManipulate');
+        var fileIcon = document.createElement('i');
+        fileIcon.setAttribute('class','iconfont icon-icon_folder');
+        var fileDetail = document.createElement('div');
+        fileDetail.setAttribute('class','fileDetail');
+        var fileNameBox = document.createElement('span');
+        fileNameBox.setAttribute('class','fileNameBox');
+        var noticeBox = document.createElement('div');
+        noticeBox.setAttribute('class','fileNoticeBox');
+        if (target === 0)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功发送文件</span>';
+        }
+        if (target === 1)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>成功存至'+filePath+'</span>';
+        }
+        // 文件详情
+        // 根据路径获得文件名称
+        bridge.getTargetName(filePath,function(fileName){
+            fileNameBox.innerHTML = fileName;
+        });//FIXME LYS
+
+        fileDetail.appendChild(fileNameBox);
+        fileDetail.appendChild(noticeBox);
+        // 文件信息
+        fileInfo.appendChild(fileIcon);
+        fileInfo.appendChild(fileDetail);
+        fileContainer.appendChild(fileInfo);
+        // 操作
+        bridge.targetIsDir(filePath,function(t_result){
+            if(t_result === false)
+            {
+                var openFolder = openFolderBtn();
+                /*bridge.getTargetDir(filePath,function(folderPath){
+                    openFolder.setAttribute('dirPath',folderPath);
+                    fileManipulate.appendChild(openFolder);
+                });*/
+                openFolder.setAttribute('dirPath',filePath);
+                fileManipulate.appendChild(openFolder);
+            }
+        });
+
+        var openFile = openFileBtn();
+        openFile.setAttribute('fullPath',filePath);
+        fileManipulate.appendChild(openFile);
+
+        fileContainer.appendChild(fileManipulate);
+        // 会话容器绑定
+        newDialog.appendChild(fileContainer);
+        newDiv.appendChild(avatarContainer);
+        newDiv.appendChild(newDialog);
+        content_container.insertBefore(newDiv,content_container.childNodes[0]);
+        if(target === 0)
+        {
+            newDialog.className = 'msgContent right dialog_me';
+        }
+        else
+        {
+            newDialog.className = 'msgContent left dialog_others';
+            avatarContainer.className = 'avatarPic left'
+        }
+        newDiv.scrollIntoView(false);
+    }
+    // 文件消息打开操作按钮生产
     function openFileBtn(){
         var openFile = document.createElement('span');
         openFile.innerHTML = '打开';
         openFile.setAttribute('class','openFileBtn');
         return openFile
     }
-    // 点击头像展示消息
+
+    // 文件消息打开所在文件夹操作按钮生产
+    function openFolderBtn(){
+        var openFolder = document.createElement('span');
+        openFolder.innerHTML = '打开文件夹';
+        openFolder.setAttribute('class','openFolderBtn');
+        return openFolder
+    }
+
+    //html与C++交互
     document.getElementById('main').addEventListener('click',function (ev) {
         var target = ev.target;
         var resTarget = hasClass(target,'avatarPic');
         if(resTarget)
         {
-
+            //点击头像展示消息
         }
 
         var sendVoice = hasClass(target,'icon-sound_right');
@@ -707,13 +928,29 @@
             var t_recvPath = target.getAttribute('voicePath');
             bridge.receiveText(t_recvPath);
         }
+
+        var openFile = hasClass(target,'openFileBtn');
+        if(openFile)
+        {
+            //打开目标文件
+            var t_fullPath = target.getAttribute('fullPath');
+            bridge.openFile(t_fullPath);
+        }
+
+        var openFolder = hasClass(target,'openFolderBtn');
+        if(openFolder)
+        {
+            //打开所在文件夹
+            var t_folderPath = target.getAttribute('dirPath');
+            bridge.openFolder(t_folderPath);
+        }
     })
     // 显示消息读取状态
     function setMesReadState(stateID) {
         var stateSpan = document.getElementById(stateID);
         if (stateSpan != null)
         {
-            stateSpan.innerHTML = '已读'
+            stateSpan.innerHTML = '已送达'
         }
         else
         {
@@ -792,7 +1029,7 @@
         {
             stateSpan = document.createElement('span');
             stateSpan.setAttribute('class','stateSpan');
-            stateSpan.innerHTML = '未读'
+            stateSpan.innerHTML = '未送达'
         }
 
         if(messageTarget === 0)
@@ -872,7 +1109,7 @@
         {
             stateSpan = document.createElement('span');
             stateSpan.setAttribute('class','stateSpan');
-            stateSpan.innerHTML = '未读'
+            stateSpan.innerHTML = '未送达'
         }
         if(messageTarget === 0)
         {
@@ -963,5 +1200,6 @@
             bridge.getMoreRecord();
         }
     }
+
     </script>
 </html>
