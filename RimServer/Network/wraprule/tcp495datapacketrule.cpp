@@ -40,7 +40,6 @@ void TCP495DataPacketRule::bindContext(IocpContext * context, unsigned long recv
 
     ioContext->getPakcet()[recvLen] = 0;
     int lastRecvBuffSize = ioContext->getClient()->getHalfPacketBuff().size();
-
     if(lastRecvBuffSize > 0)
     {
         int tmpBuffLen = lastRecvBuffSize + recvLen + 1;
@@ -313,12 +312,15 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 {
     QDB495_SendPackage packet;
     memset((char *)&packet,0,sizeof(QDB495_SendPackage));
+    QDB495_SendPackage packetOrigin;
+    memset((char *)&packetOrigin,0,sizeof(QDB495_SendPackage));
 
     if(recvLen >= sizeof(QDB495_SendPackage))
     {
         int processLen = 0;
         do
         {
+            memcpy((char *)&packetOrigin,recvData+processLen,sizeof(QDB495_SendPackage));
             memcpy((char *)&packet,recvData+processLen,sizeof(QDB495_SendPackage));
             processLen += sizeof(QDB495_SendPackage);
             //[1]数据头部分正常
@@ -466,8 +468,6 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                     else
                     {
                         //[1.1.3.1]【信息被截断】
-                        memcpy(&packet,recvData + processLen,leftLen);
-
                         std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                         ioContext->getClient()->getHalfPacketBuff().clear();
                         ioContext->getClient()->getHalfPacketBuff().append(recvData + processLen,leftLen);
@@ -482,9 +482,8 @@ void TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
 
                     std::unique_lock<std::mutex> ul(ioContext->getClient()->BuffMutex());
                     ioContext->getClient()->getHalfPacketBuff().clear();
-                    ioContext->getClient()->getHalfPacketBuff().append((char *)&packet,sizeof(QDB495_SendPackage));
+                    ioContext->getClient()->getHalfPacketBuff().append((char *)&packetOrigin,sizeof(QDB495_SendPackage));
                     ioContext->getClient()->getHalfPacketBuff().append(recvData+processLen,leftLen);
-
                     processLen += leftLen;
                     break;
                 }
