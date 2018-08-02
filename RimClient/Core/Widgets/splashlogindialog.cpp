@@ -36,9 +36,11 @@
 #include "netsettings.h"
 #include "messdiapatch.h"
 #include "Util/rlog.h"
+#include "Util/scaleswitcher.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "../network/netglobal.h"
 #include "others/serialno.h"
+
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -449,7 +451,12 @@ void SplashLoginDialog::respTextConnect(bool flag)
             request.extendData.usSerialNo = SERIALNO_FRASH;
             request.sourceId = G_User->BaseInfo().accountId;
             request.destId = request.sourceId;
-            request.extendData.data = G_User->BaseInfo().accountId.toLatin1();
+            char addr[4];
+            addr[0] = 0;
+            addr[1] = 1;
+            ushort ad = ScaleSwitcher::fromHexToDec(request.sourceId);
+            memcpy(addr+2,(char*)&ad,2);
+            request.extendData.data = QByteArray(addr,4);
             RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
         }
     }
@@ -489,15 +496,15 @@ void SplashLoginDialog::respFileConnect(bool flag)
 
     if(flag){
         //TODO:测试接入原有服务器，注释文件服务器的注册报 尚超 20180726
-//        DataPackType request;
-//        request.msgType = MSG_CONTROL;
-//        request.msgCommand = MSG_TCP_TRANS;
-//        request.extendData.type495 = T_DATA_REG;
-//        request.extendData.usOrderNo = O_2051;
-//        request.extendData.usSerialNo = SERIALNO_FRASH;
-//        request.sourceId = G_User->BaseInfo().accountId;
-//        request.destId = request.sourceId;
-//        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
+        DataPackType request;
+        request.msgType = MSG_CONTROL;
+        request.msgCommand = MSG_TCP_TRANS;
+        request.extendData.type495 = T_DATA_REG;
+        request.extendData.usOrderNo = O_2051;
+        request.extendData.usSerialNo = SERIALNO_FRASH;
+        request.sourceId = G_User->BaseInfo().accountId;
+        request.destId = request.sourceId;
+        RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
     }
 }
 

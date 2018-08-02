@@ -142,7 +142,10 @@ void Data716Process::processTextApply(ProtocolPackage &data)
  */
 void Data716Process::processFileData(const ProtocolPackage &data)
 {
-    QString fUUID = QString("%1_%2_%3").arg(data.wSourceAddr).arg(data.wDestAddr).arg(data.usSerialNo);
+    QString fUUID = QString("%1_%2_%3")
+            .arg(QString::number(data.wSourceAddr,16))
+            .arg(QString::number(data.wDestAddr,16))
+            .arg(data.usSerialNo);
     std::shared_ptr<FileDesc> fileDesc = RSingleton<FileManager>::instance()->get716File(fUUID);
     if(fileDesc.get() == nullptr)
     {
@@ -154,8 +157,8 @@ void Data716Process::processFileData(const ProtocolPackage &data)
         fileDesc->itemKind = (int)data.cFileType;
         fileDesc->bPackType = data.bPackType;
         fileDesc->fileName = QString::fromLocal8Bit(data.cFilename);
-        fileDesc->accountId = QString::number(data.wSourceAddr);
-        fileDesc->otherId = QString::number(data.wDestAddr);
+        fileDesc->accountId = QString::number(data.wSourceAddr,16);
+        fileDesc->otherId = QString::number(data.wDestAddr,16);
         fileDesc->usOrderNo = data.usOrderNo;
         fileDesc->usSerialNo = data.usSerialNo;
         fileDesc->fileId = fUUID;
