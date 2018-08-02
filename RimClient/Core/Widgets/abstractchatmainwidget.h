@@ -77,6 +77,8 @@ public:
     void updateMsgRecord();
     void setNextDateTime(QDateTime);
     void setChatChannel(QWebChannel *channel);
+    void openTargetFile(QString filePath);
+    void openTargetFolder(QString filePath);
 
 protected:
     void keyPressEvent(QKeyEvent *e);
@@ -135,6 +137,8 @@ private:
     void prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void appendVoiceMsg(QString recordFileName,MsgTarget source = RECV);
     void prependVoiceMsg(QString recordFileName,MsgTarget source = RECV);
+    void appendImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
+    void prependImageMsg(const ChatInfoUnit &unitMsg, MsgTarget source = RECV);
     void appendChatNotice(QString content,NoticeType type = NONOTICE);
     void prependChatNotice(QString content,NoticeType type = NONOTICE);
     void appendChatTimeNote(QDateTime content,TimeFormat format = TIME);
