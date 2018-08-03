@@ -23,6 +23,8 @@ public:
 
 private:
     bool checkHead495Only(const PacketType_495 type);
+    bool checkHead495Only(RecvUnit unit);
+    bool checkHeadHave21(RecvUnit unit);
 };
 
 #endif

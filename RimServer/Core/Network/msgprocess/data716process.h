@@ -26,9 +26,12 @@ public:
     Data716Process();
 
     void processText(Database * db,int sockId,ProtocolPackage & data);
-    void processUserRegist(Database * db,int sockId,ProtocolPackage & data);
-
     void processFileData(Database * db,int sockId,ProtocolPackage & data);
+
+    void processTranspondData(Database * db,int sockId,ProtocolPackage & data);
+    void processUserRegist(Database * db,int sockId,unsigned short wSourceAddr);
+    void processUserUnRegist(Database * db,int sockId,unsigned short wSourceAddr);
+    void processDllTestText(Database * db,int sockId,ProtocolPackage & data);
 
 private:
     /*!
