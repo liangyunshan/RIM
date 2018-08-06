@@ -243,12 +243,10 @@ void ChatPersonWidget::recvChatAudio(QString fileName)
  */
 void ChatPersonWidget::showRecentlyChatMsg(uint count)
 {
-     MQ_D(ChatPersonWidget);
+    MQ_D(ChatPersonWidget);
 
     uint start = 0;
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
-
-    RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
 }
 
 /*!
@@ -342,8 +340,6 @@ void ChatPersonWidget::autoQueryRecord()
 {
     MQ_D(ChatPersonWidget);
 
-    d->isLoadFinished = true;
-
     int t_notifyCount = RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
 
     if(t_notifyCount)
@@ -359,8 +355,17 @@ void ChatPersonWidget::autoQueryRecord()
     }
     else
     {
-        showRecentlyChatMsg(3);
+        if(d->isLoadFinished)
+        {
+            showRecentlyChatMsg(t_notifyCount);
+        }
+        else
+        {
+            showRecentlyChatMsg(3);
+        }
     }
+
+    d->isLoadFinished = true;
 }
 
 void ChatPersonWidget::showMaximizedWindow(bool flag)

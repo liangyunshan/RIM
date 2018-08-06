@@ -29,8 +29,8 @@
 #include "media/mediaplayer.h"
 #include "thread/filerecvtask.h"
 #include "Util/rutil.h"
-
 #include "chatpersonwidget.h"
+#include "notifywindow.h"
 
 #include "toolbox/toolbox.h"
 using namespace ProtocolType;
@@ -505,6 +505,7 @@ void PanelPersonPage::showOrCreateChatWindow(UserClient *client)
 
     if(client->chatPersonWidget)
     {
+        client->chatPersonWidget->autoQueryRecord();
         client->chatPersonWidget->respshowChat();
     }
     else

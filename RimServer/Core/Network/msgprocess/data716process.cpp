@@ -117,22 +117,35 @@ void Data716Process::processText(Database *db, int sockId, ProtocolPackage &data
  * @param[in] sockId 网络连接
  * @param[in] data 数据信息描述
  */
-void Data716Process::processUserRegist(Database *db, int sockId, ProtocolPackage &data)
+void Data716Process::processUserRegist(Database *db, int sockId, unsigned short wSourceAddr)
 {
     TcpClient * tmpClient = TcpClientManager::instance()->getClient(sockId);
     if(tmpClient){
-        if((OnlineStatus)tmpClient->getOnLineState() == STATUS_OFFLINE){
-            tmpClient->setAccount(QString::number(data.wSourceAddr));
-            tmpClient->setOnLineState(STATUS_ONLINE);
-            QList<ProtocolPackage> historyMsg;
-            if(RSingleton<SQLProcess>::instance()->loadChat716Cache(db,data.wSourceAddr,historyMsg)){
-                std::for_each(historyMsg.begin(),historyMsg.end(),[&](ProtocolPackage & data){
-                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(sockId,data);
-                });
-            }
-        }else{
-            tmpClient->setOnLineState(STATUS_OFFLINE);
+        qDebug()<<QString::number(wSourceAddr).sprintf("UserRegist:0x%4x",wSourceAddr);
+        tmpClient->setAccount(QString::number(wSourceAddr));
+        tmpClient->setOnLineState(STATUS_ONLINE);
+        QList<ProtocolPackage> historyMsg;
+        if(RSingleton<SQLProcess>::instance()->loadChat716Cache(db,wSourceAddr,historyMsg)){
+            std::for_each(historyMsg.begin(),historyMsg.end(),[&](ProtocolPackage & data){
+                RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(sockId,data);
+            });
         }
+    }
+}
+
+/*!
+ * @brief 处理用户注销
+ * @param[in] db 数据库连接
+ * @param[in] sockId 网络连接
+ * @param[in] data 数据信息描述
+ */
+void Data716Process::processUserUnRegist(Database *db, int sockId, unsigned short wSourceAddr)
+{
+    TcpClient * tmpClient = TcpClientManager::instance()->getClient(sockId);
+    if(tmpClient)
+    {
+        qDebug()<<QString::number(wSourceAddr).sprintf("UserUnRegist:0x%4x",wSourceAddr);
+        tmpClient->setOnLineState(STATUS_OFFLINE);
     }
 }
 
@@ -262,6 +275,41 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
             }
             client->removeFile(fUUID);
         }
+    }
+}
+
+/*!
+ * @brief 处理没有21结构体的转发信息
+ * @param[in] db 数据库连接
+ * @param[in] sockId 网络连接
+ * @param[in] data 数据信息描述
+ */
+void Data716Process::processTranspondData(Database *db, int sockId, ProtocolPackage &data)
+{
+    switch(data.bPackType)
+    {
+    case WM_DATA_REG:
+        {
+            //解析注册地址
+            unsigned short wSourceAddr = 0;
+            memcpy(&wSourceAddr,data.data.data()+2,2);
+            if(wSourceAddr == 0)
+            {
+                processUserUnRegist(db,sockId,data.wSourceAddr);
+            }
+            else
+            {
+                processUserRegist(db,sockId,wSourceAddr);
+            }
+
+        }
+        break;
+    default:
+        {
+            data.usOrderNo = 0;
+            processText(db,sockId,data);
+        }
+        break;
     }
 }
 

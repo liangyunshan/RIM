@@ -3,6 +3,8 @@
 #include "rsingleton.h"
 #include "../msgprocess/data716process.h"
 #include "Network/wraprule/tcp_wraprule.h"
+#include "Network/wraprule/qdb21_wraprule.h"
+using namespace QDB21;
 
 #include <QDebug>
 
@@ -37,9 +39,10 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
         packData.wDestAddr = unit.extendData.wDestAddr;
 
         //单独495协议
-        if(checkHead495Only(unit.extendData.type495))
+        if(checkHead495Only(unit))
         {
-            RSingleton<Data716Process>::instance()->processUserRegist(db,unit.extendData.sockId,packData);
+            packData.data = unit.data,packData;
+            RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
         }
         else
         {
@@ -83,6 +86,30 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
 bool Binary716_MsgParse::checkHead495Only(const PacketType_495 type)
 {
     return (type == T_DATA_REG);
+}
+
+bool Binary716_MsgParse::checkHead495Only(RecvUnit unit)
+{
+    if(checkHeadHave21(unit))
+    {
+        return false;
+    }
+    return true;
+}
+
+bool Binary716_MsgParse::checkHeadHave21(RecvUnit unit)
+{
+    if(unit.data.size()<QDB21_Head_Length)
+    {
+        return false;
+    }
+    QDB21::QDB21_Head header;
+    memcpy(&header,unit.data.data(),QDB21_Head_Length);
+    if(header.usDestAddr == unit.extendData.wDestAddr)
+    {
+        return true;
+    }
+    return false;
 }
 
 #endif

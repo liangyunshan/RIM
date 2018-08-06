@@ -270,7 +270,6 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(SplashLoginDialog);
 
-    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -300,12 +299,14 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget = new ChatPersonWidget();
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
                 client->chatPersonWidget->setOuterNetConfig(client->netConfig);
+#endif
                 client->chatPersonWidget->initChatRecord();
             }
             else
             {
-                client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+                client->chatPersonWidget->autoQueryRecord();
             }
             client->chatPersonWidget->respshowChat();
         }
@@ -321,7 +322,14 @@ void SplashLoginDialog::openChatDialog(QString accountId)
    {
        client->chatPersonWidget = new ChatPersonWidget();
        client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+       client->chatPersonWidget->setOuterNetConfig(client->netConfig);
+#endif
        client->chatPersonWidget->initChatRecord();
+   }
+   else
+   {
+       client->chatPersonWidget->autoQueryRecord();
    }
 
    client->chatPersonWidget->respshowChat();

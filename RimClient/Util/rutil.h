@@ -54,15 +54,14 @@ public:
     static QImage convertToGray(const QImage &);
 
     static void setRelativeImgPath(QString &targetHtml,QString userID);
-
     static void setAbsoulteImgPath(QString targetHtml, QString userID);
 
+    static void StringToHtml(QString &targetHtml);
     static void escapeSingleQuote(QString &targetHtml);
-
+    static void escapeBracketsQuote(QString &targetHtml);
+    static void escapeLFQuote(QString &targetHtml);
     static void removeEccapeSingleQuote(QString &targetHtml);
-
     static void escapeDoubleQuote(QString &targetHtml);
-
     static void removeEccapeDoubleQuote(QString &targetHtml);
 
     static void showInExplorer(QString &pathIn);
