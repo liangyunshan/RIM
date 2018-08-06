@@ -141,7 +141,6 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, IocpContextSender sendFunc)
             }
 
             QByteArray originalData = dunit.dataUnit.data;
-
             for(unsigned int i = 0; i < totalIndex; i++)
             {
                 packet.wOffset = ScaleSwitcher::htons(i);
@@ -151,7 +150,6 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, IocpContextSender sendFunc)
 
                 dunit.dataUnit.data.clear();
                 dunit.dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
-
                 packet.wPackLen = ScaleSwitcher::htons(sliceLen);
                 unsigned short currPackTotalLen = sliceLen + sizeof(QDB495_SendPackage);
 
