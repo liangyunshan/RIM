@@ -388,6 +388,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
         UserBaseInfo baseInfo;
         baseInfo.accountId = G_ParaSettings->baseInfo.nodeId;
         baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
+        baseInfo.isSystemIcon = true;
 
         G_User = new User(baseInfo);
     }
@@ -395,14 +396,6 @@ void SplashLoginDialog::respTextConnect(bool flag)
     if(G_User){
         G_User->setTextOnline(flag);
         G_User->setLogin(flag);
-
-        if(!d->trayIcon)
-        {
-            d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
-            d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
-            d->trayIcon->setModel(SystemTrayIcon::System_Main);
-        }
 
         if(!d->trayIcon)
         {
@@ -503,15 +496,21 @@ void SplashLoginDialog::respFileConnect(bool flag)
     }
 
     if(flag){
-        //TODO:测试接入原有服务器，注释文件服务器的注册报 尚超 20180726
+        //TODO:如果接入原有服务器，注释文件服务器的注册报 尚超 20180807
         DataPackType request;
         request.msgType = MSG_CONTROL;
         request.msgCommand = MSG_TCP_TRANS;
         request.extendData.type495 = T_DATA_REG;
-        request.extendData.usOrderNo = O_2051;
+        request.extendData.usOrderNo = O_NONE;
         request.extendData.usSerialNo = SERIALNO_FRASH;
         request.sourceId = G_User->BaseInfo().accountId;
         request.destId = request.sourceId;
+        char addr[4];
+        addr[0] = 0;
+        addr[1] = 1;
+        ushort ad = ScaleSwitcher::fromHexToDec(request.sourceId);
+        memcpy(addr+2,(char*)&ad,2);
+        request.extendData.data = QByteArray(addr,4);
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
     }
 }

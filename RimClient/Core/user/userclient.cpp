@@ -242,25 +242,33 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         t_unit.dtime        = t_Time;
         t_unit.dateTime     = RUtil::addMSecsToEpoch(t_Time).toString("yyyyMMdd hh:mm:ss");
         t_unit.serialNo     = fileProgress.serialNo.toUShort();
-        t_unit.contents     = fileProgress.fileFullPath;
+        QFileInfo fileinfo(fileProgress.fileFullPath);
+        t_unit.contents     = fileinfo.absoluteFilePath();
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
 
         if(fileProgress.transType == TRANS_RECV)
         {
-            if(chatPersonWidget != NULL && !chatPersonWidget->isVisible())
+            if(chatPersonWidget)
             {
-                NotifyInfo  info;
-                info.identityId = RUtil::UUID();
-                info.msgCommand = MSG_TEXT_FILE;
-                info.accountId = fileProgress.srcNodeId;
-                info.nickName = fileProgress.srcNodeId;
-                info.type = NotifyUser;
-                info.stype = OperatePerson;
-                info.isSystemIcon = simpleUserInfo.isSystemIcon;
-                info.iconId = simpleUserInfo.iconId;
+                if(!chatPersonWidget->isVisible())
+                {
+                    NotifyInfo  info;
+                    info.identityId = RUtil::UUID();
+                    info.msgCommand = MSG_TEXT_FILE;
+                    info.accountId = fileProgress.srcNodeId;
+                    info.nickName = fileProgress.srcNodeId;
+                    info.type = NotifyUser;
+                    info.stype = OperatePerson;
+                    info.isSystemIcon = simpleUserInfo.isSystemIcon;
+                    info.iconId = simpleUserInfo.iconId;
 
-                RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
-                RSingleton<NotifyWindow>::instance()->showMe();
+                    RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
+                    RSingleton<NotifyWindow>::instance()->showMe();
+                }
+                else
+                {
+                    RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
+                }
             }
         }
         else

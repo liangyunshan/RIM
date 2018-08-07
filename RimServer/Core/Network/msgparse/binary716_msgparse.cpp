@@ -38,42 +38,49 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
         packData.wSourceAddr = unit.extendData.wSourceAddr;
         packData.wDestAddr = unit.extendData.wDestAddr;
 
-        //单独495协议
-        if(checkHead495Only(unit))
-        {
-            packData.data = unit.data,packData;
-            RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
+        //文本信息
+        if(unit.extendData.type == SOCKET_TEXT){
+            if(checkHead495Only(unit)){
+                //单独495协议
+                packData.data = unit.data,packData;
+                packData.usOrderNo = 0;
+            }else{
+                RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData);
+            }
+
+            if(packData.cFileType == QDB2051::F_NO_SUFFIX){
+                switch(unit.extendData.type495){
+                case T_DATA_AFFIRM:
+                case T_DATA_NOAFFIRM:
+                    RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
+                    break;
+                case T_DATA_REG:
+                    {
+                        RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
+                    }
+                    break;
+                default:
+                    {
+                        RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
+                    }
+                    break;
+                }
+            }
         }
-        else
-        {
-            //文本信息
-            if(unit.extendData.type == SOCKET_TEXT){
+        //文件信息
+        else if(unit.extendData.type == SOCKET_FILE){
+            //可能是第一包数据，也可能就一包数据
+            if(unit.extendData.wOffset == 0){
                 if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
-                    if(packData.cFileType == QDB2051::F_NO_SUFFIX){
-                        switch(unit.extendData.type495){
-                            case T_DATA_AFFIRM:
-                            case T_DATA_NOAFFIRM:
-                                RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
-                                break;
-                            default:break;
-                        }
-                    }
-                }
-            }
-            //文件信息
-            else if(unit.extendData.type == SOCKET_FILE){
-                //可能是第一包数据，也可能就一包数据
-                if(unit.extendData.wOffset == 0){
-                    if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
 
-                    }
-                }else{
-                    packData.data = unit.data;
                 }
-
-                RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
+            }else{
+                packData.data = unit.data;
             }
+
+            RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
         }
+
     }
 }
 

@@ -1223,7 +1223,9 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
 
 //    RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
     RUtil::StringToHtml(t_localHtml);
-
+#ifdef __LOCAL_CONTACT__
+    t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
+#else
     if(source == RECV)
     {
         t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
@@ -1232,6 +1234,7 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     {
         t_headPath = G_User->getIconAbsoultePath(G_User->BaseInfo().isSystemIcon,G_User->BaseInfo().iconId);
     }
+#endif
 
     if(unitMsg.contentType == MSG_TEXT_TEXT)
     {

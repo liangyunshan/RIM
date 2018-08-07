@@ -246,6 +246,10 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
     MQ_D(ChatPersonWidget);
 
     uint start = 0;
+    if(count == 0)
+    {
+        return ;
+    }
     RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(d->m_userInfo.accountId,start,count);
 }
 
@@ -255,7 +259,11 @@ void ChatPersonWidget::showRecentlyChatMsg(uint count)
  */
 void ChatPersonWidget::recvTransFile(const FileTransProgress &grocess)
 {
-    emit sendFileTransProgress(grocess);
+    MQ_D(ChatPersonWidget);
+    if(d->isLoadFinished)
+    {
+        emit sendFileTransProgress(grocess);
+    }
 }
 
 bool ChatPersonWidget::eventFilter(QObject *watched, QEvent *event)
@@ -341,6 +349,9 @@ void ChatPersonWidget::autoQueryRecord()
     MQ_D(ChatPersonWidget);
 
     int t_notifyCount = RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"checkNotifyExist:"<<t_notifyCount<<d->isLoadFinished
+          <<"\n";
 
     if(t_notifyCount)
     {
