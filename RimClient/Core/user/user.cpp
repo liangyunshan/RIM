@@ -8,6 +8,7 @@
 #include "Util/rutil.h"
 #include "util/rsingleton.h"
 #include "Util/imagemanager.h"
+#include "Util/rlog.h"
 
 User::User(const UserBaseInfo &baseInfo):userBaseInfo(baseInfo),chatDatabase(nullptr),userSettings(nullptr),fileOnLine(false),textOnLine(false)
 {
