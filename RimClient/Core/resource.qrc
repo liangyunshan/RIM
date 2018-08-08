@@ -97,6 +97,9 @@
         <file>resource/icon/Close-tab.png</file>
         <file>resource/icon/Close-tab-hover.png</file>
         <file>resource/icon/Tool_Chat_Record.png</file>
+        <file>resource/icon/Tool_Chat_QuickOrder.png</file>
+        <file>resource/icon/settings_add.png</file>
+        <file>resource/icon/settings_delete.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

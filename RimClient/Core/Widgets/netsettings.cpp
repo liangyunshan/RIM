@@ -65,13 +65,14 @@ private:
         void initWidget(){
             ipTextLabel = new QLabel(this);
             ipTextLabel->setText(QObject::tr("Ip Address"));
-            ipEdit = new RIPWidget();
+            ipEdit = new RIPWidget(this);
 
             portTextLabel = new QLabel(this);
             portTextLabel->setText(QObject::tr("Port"));
             portEdit = new QLineEdit(this);
             QIntValidator * portValidator = new QIntValidator(1024,65535);
             portEdit->setValidator(portValidator);
+            portEdit->setAlignment(Qt::AlignCenter);
 
             QGridLayout * gridLayout = new QGridLayout;
             gridLayout->addWidget(ipTextLabel,0,0,1,1);

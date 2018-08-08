@@ -184,7 +184,8 @@ SOURCES += \
     Widgets/chat/transferfilelistbox.cpp\
     thread/file716sendtask.cpp \
     others/serialno.cpp \
-    Widgets/ripwidget.cpp
+    Widgets/ripwidget.cpp \
+    Widgets/rquickorderwidget.cpp
 
 
 HEADERS  += \
@@ -308,7 +309,8 @@ HEADERS  += \
     Widgets/chat/transferfilelistbox.h\
     thread/file716sendtask.h \
     others/serialno.h \
-    Widgets/ripwidget.h
+    Widgets/ripwidget.h \
+    Widgets/rquickorderwidget.h
 
 DISTFILES += \
     Widgets/Widgets.pri

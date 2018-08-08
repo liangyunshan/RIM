@@ -51,6 +51,7 @@
 #include "../thread/file716sendtask.h"
 #include "../network/netglobal.h"
 #include "../others/serialno.h"
+#include "rquickorderwidget.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -90,6 +91,7 @@ protected:
     SetFontWidget *fontWidget;              //字体工具栏
     ChatAudioArea * chatAudioArea;          //录音工具栏
     RToolButton * shakeButt;                //窗口抖动按钮
+    RToolButton * quickOrderButt;           //快捷信息发送按钮
     RToolButton * msgNoticeButt;            //消息提醒设置按钮
     RToolButton *recordButt;                //消息记录按钮
     ToolBar * chatToolBar;                  //信息输入窗口工具栏
@@ -198,6 +200,12 @@ void AbstractChatMainWidgetPrivate::initWidget()
     fileTransButt->setToolTip(QObject::tr("FileTrans"));
     QObject::connect(fileTransButt,SIGNAL(clicked(bool)),q_ptr,SLOT(sendTargetFiles(bool)));
 
+    //快捷信息面板显示按钮
+    quickOrderButt = new RToolButton();
+    quickOrderButt->setObjectName(Constant::Tool_Chat_QuickOrder);
+    quickOrderButt->setToolTip(QObject::tr("Show Quick Order panel"));
+    QObject::connect(quickOrderButt,SIGNAL(clicked(bool)),q_ptr,SLOT(showQuickOrderWidget(bool)));
+
     QMenu * screenShotMenu = new QMenu(q_ptr);
     screenShotMenu->setObjectName(this->windowId + "ScreenShotMenu");
     screenShotMenu->addAction(G_pScreenShotAction);
@@ -229,6 +237,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
     chatToolBar->appendToolButton(msgNoticeButt);
     chatToolBar->appendToolButton(audioButt);
     chatToolBar->appendToolButton(fileTransButt);
+    chatToolBar->appendToolButton(quickOrderButt);
     chatToolBar->addStretch(1);
     chatToolBar->appendToolButton(recordButt);
 
@@ -287,7 +296,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     //聊天窗口右边栏（显示消息记录、发送文件子窗口）
     rightSideWidget = new QTabWidget(q_ptr);
     rightSideWidget->setMinimumWidth(300);
-//    rightSideWidget->setVisible(false);
     rightSideWidget->setTabsClosable(true);
     rightSideWidget->setStyleSheet("QTabWidget::pane{"
                                         "border-top:1px solid #C4C4C3;"
@@ -324,7 +332,6 @@ void AbstractChatMainWidgetPrivate::initWidget()
     mainLayout->addWidget(rightWidget);
     q_ptr->setLayout(mainLayout);
 }
-
 
 AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
     d_ptr(new AbstractChatMainWidgetPrivate(this)),
@@ -450,6 +457,9 @@ void AbstractChatMainWidget::setChatChannel(QWebChannel *channel)
  */
 void AbstractChatMainWidget::openTargetFile(QString filePath)
 {
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<filePath
+          <<"\n";
     QProcess::execute(QString("explorer %1").arg(QDir::toNativeSeparators(filePath)));
 }
 
@@ -549,6 +559,21 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     {
         return ;
     }
+#ifdef __LOCAL_CONTACT__
+    sendMsg(d->chatInputArea->toPlainText());
+#else
+    QString t_simpleHtml = QString("");
+    d->chatInputArea->extractPureHtml(t_simpleHtml);
+    sendMsg(t_simpleHtml);
+#endif
+}
+
+/*!
+ * @brief 发送文字
+ */
+void AbstractChatMainWidget::sendMsg(QString str)
+{
+    MQ_D(AbstractChatMainWidget);
 
     //向历史会话记录列表插入一条记录
     HistoryChatRecord record;
@@ -571,12 +596,10 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     t_unit.msgstatus = ProtocolType::MSG_NOTREAD;
 #ifdef __LOCAL_CONTACT__
     t_unit.serialNo = SERIALNO_FRASH;
-    t_unit.contents = d->chatInputArea->toPlainText();
+    t_unit.contents = str;
 #else
     t_unit.serialNo = record.dtime;
-    QString t_simpleHtml = QString("");
-    d->chatInputArea->extractPureHtml(t_simpleHtml);
-    QString t_sendHtml = t_simpleHtml;
+    QString t_sendHtml = str;
     RUtil::escapeSingleQuote(t_sendHtml);
     RUtil::escapeDoubleQuote(t_sendHtml);
     t_unit.contents = t_sendHtml;   //将转义处理后的内容存储到数据库中
@@ -604,7 +627,7 @@ void AbstractChatMainWidget::sendMsg(bool flag)
 #ifdef __LOCAL_CONTACT__
     request->otherSideId = d->netconfig.nodeId;
     request->textId = QString::number(t_unit.serialNo);
-    request->sendData = d->chatInputArea->toPlainText();
+    request->sendData = str;
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request,d->netconfig.communicationMethod,d->netconfig.messageFormat);
 
 #else
@@ -613,7 +636,6 @@ void AbstractChatMainWidget::sendMsg(bool flag)
     request->sendData = t_sendHtml;     //FIXME LYS-20180608
     RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(request);
 #endif
-
 }
 
 /*!
@@ -877,6 +899,35 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
     foreach(QString fileName,files)
     {
         dealDropFile(fileName);
+    }
+}
+
+/*!
+ * @brief 显示快捷信息回复界面
+ */
+void AbstractChatMainWidget::showQuickOrderWidget(bool)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    QStringList list = RQuickOrderWidget::instance()->getOrderList();
+    QMenu *menu = new QMenu();
+    foreach(QString order,list)
+    {
+        QAction* orderAction = new QAction(order);
+        menu->addAction(orderAction);
+        QObject::connect(orderAction,SIGNAL(triggered()),this,SLOT(sendQuickOrde()));
+    }
+    d->quickOrderButt->setMenu(menu);
+    d->quickOrderButt->showMenu();
+    delete menu;
+}
+
+void AbstractChatMainWidget::sendQuickOrde()
+{
+    QAction *action = (QAction *)sender();
+    if(action)
+    {
+        sendMsg(action->text());//单独发送文字
     }
 }
 

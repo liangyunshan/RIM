@@ -68,6 +68,7 @@ const char USER_GroupDirName[] = "Group";
 const char USER_DBDirName[] = "ChatLog";                    //保存聊天记录
 const char USER_DBFileName[] = "chatlog.db";                //聊天对话记录文件名
 const char USER_ConfigName[] = "userconfg.ini";             //当前用户配置文件名
+const char QuickOrder_ConfigName[] = "quickorder";      //当前用户配置文件名
 
 /*!
  * @note 系统配置信息
@@ -199,6 +200,7 @@ const char Tool_Chat_FileTrans[] = "Tool_Chat_FileTrans";                       
 const char Tool_Chat_Audio[] = "Tool_Chat_Audio";                                               //语音
 const char Tool_Chat_MsgNotice[] = "Tool_Chat_MsgNotice";                                       //消息提醒设置
 const char Tool_Chat_Record[] = "Tool_Chat_Record";                                             //聊天记录
+const char Tool_Chat_QuickOrder[] = "Tool_Chat_QuickOrder";                                             //聊天记录
 
 const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复
 

@@ -93,7 +93,6 @@ void ChatPersonWidgetPrivate::initWidget()
     /**********窗口控制区_顶部***************/
     windowToolBar = new ToolBar(contentWidget);
     windowToolBar->setContentsMargins(5,0,0,0);
-
     windowToolBar->setToolFlags(ToolBar::TOOL_ACTION);
     QObject::connect(windowToolBar,SIGNAL(minimumWindow()),q_ptr,SLOT(showMinimized()));
     QObject::connect(windowToolBar,SIGNAL(closeWindow()),q_ptr,SLOT(hide()));
@@ -349,10 +348,6 @@ void ChatPersonWidget::autoQueryRecord()
     MQ_D(ChatPersonWidget);
 
     int t_notifyCount = RSingleton<NotifyWindow>::instance()->checkNotifyExist(d->m_userInfo.accountId);
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"checkNotifyExist:"<<t_notifyCount<<d->isLoadFinished
-          <<"\n";
-
     if(t_notifyCount)
     {
         if(t_notifyCount > 20)
