@@ -256,7 +256,7 @@ bool TCP495DataPacketRule::wrap(SendUnit &dunit, ByteSender sendFunc)
             dunit.dataUnit.data.append(originalData.mid(sendDataLen,sliceLen));
 
             packet.wPackLen = ScaleSwitcher::htons(sliceLen);
-            unsigned short currPackTotalLen = packet.wPackLen + sizeof(QDB495_SendPackage);
+            unsigned short currPackTotalLen = sliceLen + sizeof(QDB495_SendPackage);
 
             memset(sendBuff,0,TCP_SEND_BUFF);
             memcpy(sendBuff,(char *)&packet,sizeof(QDB495_SendPackage));
