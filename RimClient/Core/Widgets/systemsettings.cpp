@@ -591,6 +591,7 @@ void SystemSettings::respFileSetting()
  */
 void SystemSettings::respQuickOrder()
 {
+    RQuickOrderWidget::instance()->raise();
     RQuickOrderWidget::instance()->showNormal();
 }
 

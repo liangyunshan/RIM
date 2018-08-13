@@ -68,7 +68,7 @@ const char USER_GroupDirName[] = "Group";
 const char USER_DBDirName[] = "ChatLog";                    //保存聊天记录
 const char USER_DBFileName[] = "chatlog.db";                //聊天对话记录文件名
 const char USER_ConfigName[] = "userconfg.ini";             //当前用户配置文件名
-const char QuickOrder_ConfigName[] = "quickorder";      //当前用户配置文件名
+const char QuickOrder_ConfigName[] = "quickorder.ini";      //当前用户配置文件名
 
 /*!
  * @note 系统配置信息

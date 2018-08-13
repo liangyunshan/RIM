@@ -909,7 +909,7 @@ void AbstractChatMainWidget::showQuickOrderWidget(bool)
 {
     MQ_D(AbstractChatMainWidget);
 
-    QStringList list = RQuickOrderWidget::instance()->getOrderList();
+    QStringList list = RQuickOrderWidget::instance()->getCurrOrderList();
     QMenu *menu = new QMenu();
     foreach(QString order,list)
     {
