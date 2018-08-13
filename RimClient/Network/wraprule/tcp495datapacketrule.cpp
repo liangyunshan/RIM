@@ -304,7 +304,6 @@ bool TCP495DataPacketRule::recvData(const char *recvData, int recvLen)
                                     {
                                         buff->isCompleted = true;
 
-                                        RecvUnit result;
                                         result.extendData.sliceNum = packet.wOffset + 1;
 
                                         int userPrtocolLen = sizeof(QDB21::QDB21_Head) + sizeof(QDB2051::QDB2051_Head);
