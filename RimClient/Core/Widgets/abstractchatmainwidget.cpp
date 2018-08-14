@@ -921,6 +921,7 @@ void AbstractChatMainWidget::showQuickOrderWidget(bool)
     }
     menu->addSeparator();
     QAction* panelAction = new QAction(tr("Open panel"));
+    panelAction->setIcon(QIcon(":/icon/resource/icon/icon_quickorder_panel.png"));
     menu->addAction(panelAction);
     QObject::connect(panelAction,SIGNAL(triggered()),this,SLOT(openQuickOrdePanel()));
     d->quickOrderButt->setMenu(menu);
@@ -932,6 +933,7 @@ void AbstractChatMainWidget::showQuickOrderWidget(bool)
         delete orderAction;
         orderAction = NULL;
     }
+    QObject::disconnect(panelAction,SIGNAL(triggered()),this,SLOT(openQuickOrdePanel()));
 }
 
 void AbstractChatMainWidget::sendQuickOrde()

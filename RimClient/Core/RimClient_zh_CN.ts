@@ -34,28 +34,28 @@
         <translation>命令面板</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1145"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1147"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1146"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1148"/>
         <source>Image</source>
         <translation>图片</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1147"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1149"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1148"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1150"/>
         <source>message record</source>
         <translation>消息记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="963"/>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1160"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="965"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1162"/>
         <source>Transfer Files</source>
         <translation>传送文件</translation>
     </message>
@@ -1518,8 +1518,8 @@
         <location filename="Widgets/chataudioarea.cpp" line="57"/>
         <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
         <location filename="Widgets/netsettings.cpp" line="146"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="223"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="224"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="230"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="231"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1750,93 +1750,106 @@
         <translation type="vanished">-</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="94"/>
         <source>Group template</source>
-        <translation>命令模板</translation>
+        <translation type="vanished">命令模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="106"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="115"/>
         <source>Clone</source>
         <translation>克隆</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="107"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="116"/>
         <source>Clone group</source>
         <translation>克隆将当前的命令模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="111"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="112"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="120"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="121"/>
         <source>Add new group</source>
-        <translation>添加模板</translation>
+        <translation>添加</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="116"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="117"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="125"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="126"/>
         <source>Delete group</source>
-        <translation>删除模板</translation>
+        <translation>删除</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="133"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="141"/>
         <source>group orders</source>
         <translation>模板内命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="149"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="175"/>
         <source>&lt;-</source>
-        <translation>移动</translation>
+        <translation>&lt;&lt;添加</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="150"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="176"/>
         <source>move order to group</source>
         <translation>将右侧选中的命令添加到当前打开的命令列表中</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="154"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="180"/>
         <source>X</source>
-        <translation>删除</translation>
+        <translation>删除&gt;&gt;</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="155"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="181"/>
         <source>delete from group</source>
         <translation>将左侧选中的命令从列表中移除</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="159"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="160"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="190"/>
+        <source>All Order</source>
+        <translation>所有命令</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="151"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="152"/>
         <source>MoveUp</source>
         <translation>向上</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="164"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="165"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="88"/>
+        <source>Order Groups</source>
+        <translation>命令模板</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="103"/>
+        <source>currOpenGroupName</source>
+        <translation>当前模板</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="156"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="157"/>
         <source>MoveDown</source>
         <translation>向下</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="178"/>
         <source>AllOrders</source>
-        <translation>全部命令</translation>
+        <translation type="vanished">全部命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="188"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="202"/>
         <source>Add Order</source>
-        <translation>添加命令</translation>
+        <translation>添加</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="189"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="203"/>
         <source>Add New Order</source>
         <translation>添加一个新的快捷命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="193"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="194"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="207"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="208"/>
         <source>Delete Order</source>
-        <translation>删除命令</translation>
+        <translation>删除</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="218"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="219"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="225"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="226"/>
         <source>OK</source>
         <translation>确认</translation>
     </message>
@@ -1937,7 +1950,7 @@
 <context>
     <name>RQuickOrderWidget</name>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="289"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="296"/>
         <source>QuickOrderSetting</source>
         <translation>快捷命令设置</translation>
     </message>
@@ -1950,58 +1963,62 @@
         <translation type="vanished">错误</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="440"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="447"/>
         <source>information</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="441"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="448"/>
         <source>Ui data has changed,sure change?</source>
         <translation>是否保存修改？</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="463"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="470"/>
         <source>NewGroup_%1</source>
         <translation>新建命令组_%1</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="507"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="514"/>
         <source>Clone</source>
         <translation>克隆</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="528"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="535"/>
         <source>default</source>
         <translation>默认分组</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="810"/>
-        <source>CurrGroup: %1</source>
-        <oldsource>CurrGroup:%1</oldsource>
-        <translation>当前模板: %1</translation>
+        <location filename="Widgets/rquickorderwidget.cpp" line="817"/>
+        <source>Group: %1</source>
+        <translation>当前:%1</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="918"/>
+        <source>CurrGroup: %1</source>
+        <oldsource>CurrGroup:%1</oldsource>
+        <translation type="vanished">当前: %1</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="925"/>
         <source>Check</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="919"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="926"/>
         <source>ComeBack</source>
         <translation>回撤</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="920"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="927"/>
         <source>Go On</source>
         <translation>前进</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="921"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="928"/>
         <source>Stay</source>
         <translation>原地待命</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="929"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="936"/>
         <source>DefaultGroup</source>
         <translation>默认分组</translation>
     </message>

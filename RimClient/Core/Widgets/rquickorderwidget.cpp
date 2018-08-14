@@ -70,17 +70,26 @@ protected:
 
 void RQuickOrderWidgetPrivate::initWidget()
 {
+    q_ptr->setFixedSize(700,500);
     contentWidget = new QWidget(q_ptr);
     contentWidget->setObjectName("RQuickOrderWidget");
-    contentWidget->setMinimumSize(600,400);
 
     QVBoxLayout *verticalLayout_6 = new QVBoxLayout(contentWidget);
     verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
     verticalLayout_6->setContentsMargins(10,2,10,2);
+    verticalLayout_6->setSpacing(10);
 
     QHBoxLayout *horizontalLayout_up = new QHBoxLayout();
     horizontalLayout_up->setObjectName(QString::fromUtf8("horizontalLayout_up"));
     horizontalLayout_up->setContentsMargins(2,5,2,5);
+
+    QGroupBox *widget_groups = new QGroupBox(contentWidget);
+    widget_groups->setObjectName(QString::fromUtf8("widget_groups"));
+    widget_groups->setTitle(QObject::tr("Order Groups"));
+    QHBoxLayout *horizontalLayout_groups = new QHBoxLayout(widget_groups);
+    horizontalLayout_groups->setContentsMargins(10,2,10,2);
+    horizontalLayout_groups->setObjectName(QString::fromUtf8("horizontalLayout_groups"));
+    widget_groups->setLayout(horizontalLayout_groups);
 
     //命令组列表视图
     QWidget *widget = new QWidget(contentWidget);
@@ -89,17 +98,17 @@ void RQuickOrderWidgetPrivate::initWidget()
     QVBoxLayout *verticalLayout_3 = new QVBoxLayout(widget);
     verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
     verticalLayout_3->setContentsMargins(2,2,2,2);
-    QLabel *label_3 = new QLabel(widget);
-    label_3->setObjectName(QString::fromUtf8("label_3"));
-    label_3->setText(QObject::tr("Group template"));
-    verticalLayout_3->addWidget(label_3);
+    currOpenGroupName = new QLabel(widget);
+    currOpenGroupName->setObjectName(QString::fromUtf8("currOpenGroupName"));
+    currOpenGroupName->setText(QObject::tr("currOpenGroupName"));
+    verticalLayout_3->addWidget(currOpenGroupName);
     QVBoxLayout *verticalLayout = new QVBoxLayout();
     verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
     listView_Groups = new QListView(widget);
     listView_Groups->setObjectName(QString::fromUtf8("listView_Groups"));
     verticalLayout->addWidget(listView_Groups);
     QHBoxLayout *horizontalLayout = new QHBoxLayout();
-    horizontalLayout->setContentsMargins(5,2,5,2);
+    horizontalLayout->setContentsMargins(2,2,2,2);
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
     pb_Clone_Group = new RButton(widget);
     pb_Clone_Group->setObjectName(QString::fromUtf8("pb_Clone_Group"));
@@ -116,10 +125,9 @@ void RQuickOrderWidgetPrivate::initWidget()
     pb_Delete_Group->setText(QObject::tr("Delete group"));
     pb_Delete_Group->setToolTip(QObject::tr("Delete group"));
     horizontalLayout->addWidget(pb_Delete_Group);
-
     verticalLayout->addLayout(horizontalLayout);
     verticalLayout_3->addLayout(verticalLayout);
-    horizontalLayout_up->addWidget(widget);
+    horizontalLayout_groups->addWidget(widget);
 
     //打开的当前命令组列表视图
     QWidget *widget_OpenGroup = new QWidget(contentWidget);
@@ -128,14 +136,29 @@ void RQuickOrderWidgetPrivate::initWidget()
     QVBoxLayout *verticalLayout_OpenGroup = new QVBoxLayout(widget_OpenGroup);
     verticalLayout_OpenGroup->setObjectName(QString::fromUtf8("verticalLayout_OpenGroup"));
     verticalLayout_OpenGroup->setContentsMargins(2,2,2,2);
-    currOpenGroupName = new QLabel(widget_OpenGroup);
-    currOpenGroupName->setObjectName(QString::fromUtf8("currOpenGroupName"));
-    currOpenGroupName->setText(QObject::tr("group orders"));
-    verticalLayout_OpenGroup->addWidget(currOpenGroupName);
+    QLabel *label_openGroup = new QLabel(widget_OpenGroup);
+    label_openGroup->setObjectName(QString::fromUtf8("label_openGroup"));
+    label_openGroup->setText(QObject::tr("group orders"));
+    verticalLayout_OpenGroup->addWidget(label_openGroup);
     listView_OpenGroup = new QListView(widget_OpenGroup);
     listView_OpenGroup->setObjectName(QString::fromUtf8("listView_OpenGroup"));
     verticalLayout_OpenGroup->addWidget(listView_OpenGroup);
-    horizontalLayout_up->addWidget(widget_OpenGroup);
+    QHBoxLayout *horizontalLayout_move = new QHBoxLayout();
+    horizontalLayout_move->setContentsMargins(2,2,2,2);
+    horizontalLayout_move->setObjectName(QString::fromUtf8("horizontalLayout_move"));
+    pb_MoveUp = new RButton(widget_OpenGroup);
+    pb_MoveUp->setObjectName(QString::fromUtf8("pb_MoveUp"));
+    pb_MoveUp->setText(QObject::tr("MoveUp"));
+    pb_MoveUp->setToolTip(QObject::tr("MoveUp"));
+    horizontalLayout_move->addWidget(pb_MoveUp);
+    pb_MoveDown = new RButton(widget_OpenGroup);
+    pb_MoveDown->setObjectName(QString::fromUtf8("pb_MoveDown"));
+    pb_MoveDown->setText(QObject::tr("MoveDown"));
+    pb_MoveDown->setToolTip(QObject::tr("MoveDown"));
+    horizontalLayout_move->addWidget(pb_MoveDown);
+    verticalLayout_OpenGroup->addLayout(horizontalLayout_move);
+    horizontalLayout_groups->addWidget(widget_OpenGroup);
+    horizontalLayout_up->addWidget(widget_groups);
 
     //移动按钮区域
     QFrame *frame = new QFrame(contentWidget);
@@ -144,6 +167,9 @@ void RQuickOrderWidgetPrivate::initWidget()
     frame->setFrameShadow(QFrame::Raised);
     QVBoxLayout *verticalLayout_2 = new QVBoxLayout(frame);
     verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+    verticalLayout_2->setContentsMargins(2,2,2,2);
+    QSpacerItem *verticalSpacer_up = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    verticalLayout_2->addItem(verticalSpacer_up);
     pb_Move_toCurr = new RButton(frame);
     pb_Move_toCurr->setObjectName(QString::fromUtf8("pb_Move_toCurr"));
     pb_Move_toCurr->setText(QObject::tr("<-"));
@@ -154,41 +180,29 @@ void RQuickOrderWidgetPrivate::initWidget()
     pb_delete_FromCurr->setText(QObject::tr("X"));
     pb_delete_FromCurr->setToolTip(QObject::tr("delete from group"));
     verticalLayout_2->addWidget(pb_delete_FromCurr);
-    pb_MoveUp = new RButton(frame);
-    pb_MoveUp->setObjectName(QString::fromUtf8("pb_MoveUp"));
-    pb_MoveUp->setText(QObject::tr("MoveUp"));
-    pb_MoveUp->setToolTip(QObject::tr("MoveUp"));
-    verticalLayout_2->addWidget(pb_MoveUp);
-    pb_MoveDown = new RButton(frame);
-    pb_MoveDown->setObjectName(QString::fromUtf8("pb_MoveDown"));
-    pb_MoveDown->setText(QObject::tr("MoveDown"));
-    pb_MoveDown->setToolTip(QObject::tr("MoveDown"));
-    verticalLayout_2->addWidget(pb_MoveDown);
+    QSpacerItem *verticalSpacer_down = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    verticalLayout_2->addItem(verticalSpacer_down);
     horizontalLayout_up->addWidget(frame);
 
-    //全部命令区域
-    QWidget *widget_AllOrder = new QWidget(contentWidget);
+    //全部命令区域    
+    QGroupBox *widget_AllOrder = new QGroupBox(contentWidget);
     widget_AllOrder->setMaximumWidth(220);
+    widget_AllOrder->setTitle(QObject::tr("All Order"));
     widget_AllOrder->setObjectName(QString::fromUtf8("widget_AllOrder"));
     QVBoxLayout *verticalLayout_AllOrder = new QVBoxLayout(widget_AllOrder);
     verticalLayout_AllOrder->setObjectName(QString::fromUtf8("verticalLayout_AllOrder"));
-    verticalLayout_AllOrder->setContentsMargins(2,2,2,2);
-    QLabel *label_AllOrder = new QLabel(widget_AllOrder);
-    label_AllOrder->setObjectName(QString::fromUtf8("label_AllOrder"));
-    label_AllOrder->setText(QObject::tr("AllOrders"));
-    verticalLayout_AllOrder->addWidget(label_AllOrder);
+    verticalLayout_AllOrder->setContentsMargins(10,5,10,5);
     listView_AllOrder = new QListView(widget_AllOrder);
-//    listView_AllOrder->setMaximumWidth(80);
     listView_AllOrder->setObjectName(QString::fromUtf8("listView_AllOrder"));
     verticalLayout_AllOrder->addWidget(listView_AllOrder);
     QHBoxLayout *horizontalLayout_AllOrder = new QHBoxLayout();
     horizontalLayout_AllOrder->setObjectName(QString::fromUtf8("horizontalLayout_AllOrder"));
-    pb_Add_ToAllOrder = new RButton(widget);
+    pb_Add_ToAllOrder = new RButton(widget_AllOrder);
     pb_Add_ToAllOrder->setObjectName(QString::fromUtf8("pb_Add_ToAllOrder"));
     pb_Add_ToAllOrder->setText(QObject::tr("Add Order"));
     pb_Add_ToAllOrder->setToolTip(QObject::tr("Add New Order"));
     horizontalLayout_AllOrder->addWidget(pb_Add_ToAllOrder);
-    pb_Delete_FromAllOrder = new RButton(widget);
+    pb_Delete_FromAllOrder = new RButton(widget_AllOrder);
     pb_Delete_FromAllOrder->setObjectName(QString::fromUtf8("pb_Delete_FromAllOrder"));
     pb_Delete_FromAllOrder->setText(QObject::tr("Delete Order"));
     pb_Delete_FromAllOrder->setToolTip(QObject::tr("Delete Order"));
@@ -198,13 +212,6 @@ void RQuickOrderWidgetPrivate::initWidget()
     verticalLayout_AllOrder->addLayout(horizontalLayout_AllOrder);
     horizontalLayout_up->addWidget(widget_AllOrder);
     verticalLayout_6->addLayout(horizontalLayout_up);
-
-    //界面底部水平分隔线
-    QFrame *line = new QFrame(contentWidget);
-    line->setObjectName(QString::fromUtf8("line"));
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    verticalLayout_6->addWidget(line);
 
     //界面底部确认取消按钮
     QHBoxLayout *horizontalLayout_2 = new QHBoxLayout();
@@ -807,7 +814,14 @@ void RQuickOrderWidget::updateCurrOrderListView()
     MQ_D(RQuickOrderWidget);
 
     d->m_pOpenGroupModel->clear();
-    d->currOpenGroupName->setText(tr("CurrGroup: %1").arg(m_groupList_Temp.currGroupName));
+
+    QString showGroupName = m_groupList_Temp.currGroupName;
+    if(showGroupName.size()>=14)
+    {
+        showGroupName = showGroupName.left(9) + "..." + showGroupName.right(2);
+    }
+    d->currOpenGroupName->setText(tr("Group: %1").arg(showGroupName));
+    d->currOpenGroupName->setToolTip(m_groupList_Temp.currGroupName);
 
     foreach(OrderGroup *group,m_groupList_Temp.groupList)
     {
@@ -944,6 +958,9 @@ void RQuickOrderWidget::readSettings()
     updateAllOrderListView();
 }
 
+/*!
+ * @brief 将界面的命令数据写入到本地配置文件
+ */
 void RQuickOrderWidget::updateAllOrderToFile()
 {
     if(m_pUserSettings==NULL)
@@ -1063,9 +1080,9 @@ void RQuickOrderWidget::clearGroupsToFile()
     settings->endGroup();
     settings->remove(QUICKORDER_SETTINGS_GROUP);
 
-    for(int i=0;i<groupCount;i++)
+    for(int groupIndex=1;groupIndex<=groupCount;groupIndex++)
     {
-        QString section = QString("%1_%2").arg(QUICKORDER_SETTINGS_GROUP).arg(i);
+        QString section = QString("%1_%2").arg(QUICKORDER_SETTINGS_GROUP).arg(groupIndex);
         settings->remove(section);
     }
 }
