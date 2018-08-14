@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QSettings>
 #include <QList>
+#include <QMessageBox>
 
 #include "head.h"
 #include "protocol/datastruct.h"
@@ -27,6 +28,7 @@
 #include "global.h"
 #include "user/user.h"
 #include "util/rsingleton.h"
+#include "widget/rbutton.h"
 
 static RQuickOrderWidget * m_gRQuickOrderWidget=NULL;
 
@@ -51,37 +53,39 @@ protected:
     QListView *listView_AllOrder;
 
     QWidget * contentWidget;
-    QToolButton *pb_Add_Group;
-    QToolButton *pb_Delete_Group;
-    QToolButton *pb_Clone_Group;
-    QToolButton *pb_Add_ToAllOrder;
-    QToolButton *pb_Delete_FromAllOrder;
-    QToolButton *pb_Move_toCurr;
-    QToolButton *pb_delete_FromCurr;
-    QToolButton *pb_MoveUp;
-    QToolButton *pb_MoveDown;
-    QToolButton *pb_OK;
-    QToolButton *pb_Cancel;
+    RButton *pb_Add_Group;
+    RButton *pb_Delete_Group;
+    RButton *pb_Clone_Group;
+    RButton *pb_Add_ToAllOrder;
+    RButton *pb_Delete_FromAllOrder;
+    RButton *pb_Move_toCurr;
+    RButton *pb_delete_FromCurr;
+    RButton *pb_MoveUp;
+    RButton *pb_MoveDown;
+    RButton *pb_OK;
+    RButton *pb_Cancel;
+
+    QLabel *currOpenGroupName;
 };
 
 void RQuickOrderWidgetPrivate::initWidget()
 {
     contentWidget = new QWidget(q_ptr);
     contentWidget->setObjectName("RQuickOrderWidget");
-    contentWidget->setMinimumSize(500,500);
+    contentWidget->setMinimumSize(600,400);
 
     QVBoxLayout *verticalLayout_6 = new QVBoxLayout(contentWidget);
     verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
-    verticalLayout_6->setContentsMargins(2,2,2,2);
+    verticalLayout_6->setContentsMargins(10,2,10,2);
 
     QHBoxLayout *horizontalLayout_up = new QHBoxLayout();
     horizontalLayout_up->setObjectName(QString::fromUtf8("horizontalLayout_up"));
-    horizontalLayout_up->setContentsMargins(2,2,2,2);
+    horizontalLayout_up->setContentsMargins(2,5,2,5);
 
     //命令组列表视图
     QWidget *widget = new QWidget(contentWidget);
     widget->setObjectName(QString::fromUtf8("widget"));
-    widget->setMaximumSize(QSize(200, 16777215));
+    widget->setMaximumWidth(220);
     QVBoxLayout *verticalLayout_3 = new QVBoxLayout(widget);
     verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
     verticalLayout_3->setContentsMargins(2,2,2,2);
@@ -95,38 +99,39 @@ void RQuickOrderWidgetPrivate::initWidget()
     listView_Groups->setObjectName(QString::fromUtf8("listView_Groups"));
     verticalLayout->addWidget(listView_Groups);
     QHBoxLayout *horizontalLayout = new QHBoxLayout();
+    horizontalLayout->setContentsMargins(5,2,5,2);
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-    pb_Clone_Group = new QToolButton(widget);
+    pb_Clone_Group = new RButton(widget);
     pb_Clone_Group->setObjectName(QString::fromUtf8("pb_Clone_Group"));
     pb_Clone_Group->setText(QObject::tr("Clone"));
     pb_Clone_Group->setToolTip(QObject::tr("Clone group"));
     horizontalLayout->addWidget(pb_Clone_Group);
-    pb_Add_Group = new QToolButton(widget);
+    pb_Add_Group = new RButton(widget);
     pb_Add_Group->setObjectName(QString::fromUtf8("pb_Add_Group"));
     pb_Add_Group->setText(QObject::tr("Add new group"));
     pb_Add_Group->setToolTip(QObject::tr("Add new group"));
     horizontalLayout->addWidget(pb_Add_Group);
-    pb_Delete_Group = new QToolButton(widget);
+    pb_Delete_Group = new RButton(widget);
     pb_Delete_Group->setObjectName(QString::fromUtf8("pb_Delete_Group"));
     pb_Delete_Group->setText(QObject::tr("Delete group"));
     pb_Delete_Group->setToolTip(QObject::tr("Delete group"));
     horizontalLayout->addWidget(pb_Delete_Group);
-    QSpacerItem *horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    horizontalLayout->addItem(horizontalSpacer);
+
     verticalLayout->addLayout(horizontalLayout);
     verticalLayout_3->addLayout(verticalLayout);
     horizontalLayout_up->addWidget(widget);
 
     //打开的当前命令组列表视图
     QWidget *widget_OpenGroup = new QWidget(contentWidget);
+    widget_OpenGroup->setMaximumWidth(220);
     widget_OpenGroup->setObjectName(QString::fromUtf8("widget_OpenGroup"));
     QVBoxLayout *verticalLayout_OpenGroup = new QVBoxLayout(widget_OpenGroup);
     verticalLayout_OpenGroup->setObjectName(QString::fromUtf8("verticalLayout_OpenGroup"));
     verticalLayout_OpenGroup->setContentsMargins(2,2,2,2);
-    QLabel *label = new QLabel(widget_OpenGroup);
-    label->setObjectName(QString::fromUtf8("label"));
-    label->setText(QObject::tr("group orders"));
-    verticalLayout_OpenGroup->addWidget(label);
+    currOpenGroupName = new QLabel(widget_OpenGroup);
+    currOpenGroupName->setObjectName(QString::fromUtf8("currOpenGroupName"));
+    currOpenGroupName->setText(QObject::tr("group orders"));
+    verticalLayout_OpenGroup->addWidget(currOpenGroupName);
     listView_OpenGroup = new QListView(widget_OpenGroup);
     listView_OpenGroup->setObjectName(QString::fromUtf8("listView_OpenGroup"));
     verticalLayout_OpenGroup->addWidget(listView_OpenGroup);
@@ -139,22 +144,22 @@ void RQuickOrderWidgetPrivate::initWidget()
     frame->setFrameShadow(QFrame::Raised);
     QVBoxLayout *verticalLayout_2 = new QVBoxLayout(frame);
     verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
-    pb_Move_toCurr = new QToolButton(frame);
+    pb_Move_toCurr = new RButton(frame);
     pb_Move_toCurr->setObjectName(QString::fromUtf8("pb_Move_toCurr"));
     pb_Move_toCurr->setText(QObject::tr("<-"));
     pb_Move_toCurr->setToolTip(QObject::tr("move order to group"));
     verticalLayout_2->addWidget(pb_Move_toCurr);
-    pb_delete_FromCurr = new QToolButton(frame);
+    pb_delete_FromCurr = new RButton(frame);
     pb_delete_FromCurr->setObjectName(QString::fromUtf8("pb_delete_FromCurr"));
     pb_delete_FromCurr->setText(QObject::tr("X"));
     pb_delete_FromCurr->setToolTip(QObject::tr("delete from group"));
     verticalLayout_2->addWidget(pb_delete_FromCurr);
-    pb_MoveUp = new QToolButton(frame);
+    pb_MoveUp = new RButton(frame);
     pb_MoveUp->setObjectName(QString::fromUtf8("pb_MoveUp"));
     pb_MoveUp->setText(QObject::tr("MoveUp"));
     pb_MoveUp->setToolTip(QObject::tr("MoveUp"));
     verticalLayout_2->addWidget(pb_MoveUp);
-    pb_MoveDown = new QToolButton(frame);
+    pb_MoveDown = new RButton(frame);
     pb_MoveDown->setObjectName(QString::fromUtf8("pb_MoveDown"));
     pb_MoveDown->setText(QObject::tr("MoveDown"));
     pb_MoveDown->setToolTip(QObject::tr("MoveDown"));
@@ -163,6 +168,7 @@ void RQuickOrderWidgetPrivate::initWidget()
 
     //全部命令区域
     QWidget *widget_AllOrder = new QWidget(contentWidget);
+    widget_AllOrder->setMaximumWidth(220);
     widget_AllOrder->setObjectName(QString::fromUtf8("widget_AllOrder"));
     QVBoxLayout *verticalLayout_AllOrder = new QVBoxLayout(widget_AllOrder);
     verticalLayout_AllOrder->setObjectName(QString::fromUtf8("verticalLayout_AllOrder"));
@@ -172,16 +178,17 @@ void RQuickOrderWidgetPrivate::initWidget()
     label_AllOrder->setText(QObject::tr("AllOrders"));
     verticalLayout_AllOrder->addWidget(label_AllOrder);
     listView_AllOrder = new QListView(widget_AllOrder);
+//    listView_AllOrder->setMaximumWidth(80);
     listView_AllOrder->setObjectName(QString::fromUtf8("listView_AllOrder"));
     verticalLayout_AllOrder->addWidget(listView_AllOrder);
     QHBoxLayout *horizontalLayout_AllOrder = new QHBoxLayout();
     horizontalLayout_AllOrder->setObjectName(QString::fromUtf8("horizontalLayout_AllOrder"));
-    pb_Add_ToAllOrder = new QToolButton(widget);
+    pb_Add_ToAllOrder = new RButton(widget);
     pb_Add_ToAllOrder->setObjectName(QString::fromUtf8("pb_Add_ToAllOrder"));
     pb_Add_ToAllOrder->setText(QObject::tr("Add Order"));
     pb_Add_ToAllOrder->setToolTip(QObject::tr("Add New Order"));
     horizontalLayout_AllOrder->addWidget(pb_Add_ToAllOrder);
-    pb_Delete_FromAllOrder = new QToolButton(widget);
+    pb_Delete_FromAllOrder = new RButton(widget);
     pb_Delete_FromAllOrder->setObjectName(QString::fromUtf8("pb_Delete_FromAllOrder"));
     pb_Delete_FromAllOrder->setText(QObject::tr("Delete Order"));
     pb_Delete_FromAllOrder->setToolTip(QObject::tr("Delete Order"));
@@ -192,17 +199,26 @@ void RQuickOrderWidgetPrivate::initWidget()
     horizontalLayout_up->addWidget(widget_AllOrder);
     verticalLayout_6->addLayout(horizontalLayout_up);
 
+    //界面底部水平分隔线
+    QFrame *line = new QFrame(contentWidget);
+    line->setObjectName(QString::fromUtf8("line"));
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    verticalLayout_6->addWidget(line);
+
     //界面底部确认取消按钮
     QHBoxLayout *horizontalLayout_2 = new QHBoxLayout();
     horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
+    horizontalLayout_2->setContentsMargins(0,0,5,5);
+    horizontalLayout_2->setSpacing(5);
     QSpacerItem *horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
     horizontalLayout_2->addItem(horizontalSpacer_2);
-    pb_OK = new QToolButton(contentWidget);
+    pb_OK = new RButton(contentWidget);
     pb_OK->setObjectName(QString::fromUtf8("pb_OK"));
     pb_OK->setText(QObject::tr("OK"));
     pb_OK->setToolTip(QObject::tr("OK"));
     horizontalLayout_2->addWidget(pb_OK);
-    pb_Cancel = new QToolButton(contentWidget);
+    pb_Cancel = new RButton(contentWidget);
     pb_Cancel->setObjectName(QString::fromUtf8("pb_Cancel"));
     pb_Cancel->setText(QObject::tr("Cancel"));
     pb_Cancel->setToolTip(QObject::tr("Cancel"));
@@ -216,6 +232,7 @@ void RQuickOrderWidgetPrivate::initWidget()
     listView_Groups->setModel(m_pGroupsModel);
     m_pOpenGroupModel = new QStandardItemModel();
     listView_OpenGroup->setModel(m_pOpenGroupModel);
+    listView_OpenGroup->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_pAllOrderModel = new QStandardItemModel();
     listView_AllOrder->setModel(m_pAllOrderModel);
 
@@ -237,9 +254,9 @@ void RQuickOrderWidgetPrivate::initWidget()
             q_ptr,SLOT(clickMoveDownInCurrGroup(bool)));
 
     QObject::connect(pb_Add_ToAllOrder,SIGNAL(clicked(bool)),
-            q_ptr,SLOT(addItemToAllOrder(bool)));
+            q_ptr,SLOT(clickAddNewOrder(bool)));
     QObject::connect(pb_Delete_FromAllOrder,SIGNAL(clicked(bool)),
-            q_ptr,SLOT(deleteItemFromAllOrder(bool)));
+            q_ptr,SLOT(clickDeleteOrder(bool)));
 
     QObject::connect(pb_OK,SIGNAL(clicked(bool)),
             q_ptr,SLOT(clickOKButton(bool)));
@@ -248,6 +265,10 @@ void RQuickOrderWidgetPrivate::initWidget()
 
     QObject::connect(listView_Groups,SIGNAL(clicked(QModelIndex)),
             q_ptr,SLOT(groupItemClick(QModelIndex)));
+    QObject::connect(m_pAllOrderModel,SIGNAL(itemChanged(QStandardItem*)),
+            q_ptr,SLOT(allOrderItemChanged(QStandardItem*)));
+    QObject::connect(m_pGroupsModel,SIGNAL(itemChanged(QStandardItem*)),
+            q_ptr,SLOT(groupItemChanged(QStandardItem*)));
 }
 
 RQuickOrderWidget::RQuickOrderWidget(QWidget *parent) :
@@ -298,6 +319,7 @@ void RQuickOrderWidget::addOrder(QString order)
     MQ_D(RQuickOrderWidget);
 
     QStandardItem *item = new QStandardItem(order);
+    item->setToolTip(order);
     d->m_pAllOrderModel->appendRow(item);
 
     m_allOrderList_Temp.orderlist.append(order);
@@ -369,9 +391,18 @@ QStringList RQuickOrderWidget::getGroupsNameList()
     return list;
 }
 
+/*!
+ * @brief 获取当前设置的所有组和对应的命令
+ * @return 所有组和每组包含的命令
+ */
 QStringList RQuickOrderWidget::getAllGroupsOrderList()
 {
     QStringList list ;
+    foreach(OrderGroup *group,m_groupList.groupList)
+    {
+        list.append(group->groupName);
+        list.append(group->orderlist);
+    }
     return list;
 }
 
@@ -383,7 +414,7 @@ void RQuickOrderWidget::closeEvent(QCloseEvent *event)
 {
     if(event->type() == QEvent::Close)
     {
-        emit setComplete(getOrderList());
+        clickCancelButton(true);
     }
 }
 
@@ -392,8 +423,6 @@ void RQuickOrderWidget::closeEvent(QCloseEvent *event)
  */
 void RQuickOrderWidget::clickOKButton(bool)
 {
-    MQ_D(RQuickOrderWidget);
-
     syncTempToReal();
     updateAllOrderToFile();
     updateGroupsToFile();
@@ -406,9 +435,24 @@ void RQuickOrderWidget::clickOKButton(bool)
  */
 void RQuickOrderWidget::clickCancelButton(bool)
 {
-    rollbackTempFromReal();
-    resetGroupsListView();
-
+    if(m_groupList != m_groupList_Temp || m_allOrderList != m_allOrderList_Temp)
+    {
+        QMessageBox::StandardButton button = QMessageBox::information(this,tr("information"),
+                                 tr("Ui data has changed,sure change?"),
+                                 QMessageBox::Ok|QMessageBox::No);
+        if(button == QMessageBox::Ok)
+        {
+            syncTempToReal();
+            updateAllOrderToFile();
+            updateGroupsToFile();
+        }
+        else
+        {
+            rollbackTempFromReal();
+            updateAllOrderListView();
+            resetGroupsListView();
+        }
+    }
     this->close();
 }
 
@@ -426,7 +470,26 @@ void RQuickOrderWidget::clickDeleteGroup(bool)
     QStandardItem *item = d->m_pGroupsModel->itemFromIndex(d->listView_Groups->currentIndex());
     if(item)
     {
+        foreach(OrderGroup *group,m_groupList_Temp.groupList)
+        {
+            if(group->groupName == item->text() )
+            {
+                delete group;
+                m_groupList_Temp.groupList.removeOne(group);
+                break;
+            }
+        }
         d->m_pGroupsModel->removeRow(d->listView_Groups->currentIndex().row());
+    }
+
+    QStandardItem *curritem = d->m_pGroupsModel->itemFromIndex(d->listView_Groups->currentIndex());
+    if(curritem)
+    {
+        setCurrGroup(curritem->text());
+    }
+    else
+    {
+        setCurrGroup(QString(""));
     }
 }
 
@@ -437,8 +500,15 @@ void RQuickOrderWidget::clickCloneGroup(bool)
     QStandardItem *item = d->m_pGroupsModel->itemFromIndex(d->listView_Groups->currentIndex());
     if(item)
     {
-         QStandardItem *newitem = new QStandardItem(QString("%1_%2").arg(item->text()).arg(tr("Clone")));
-         d->m_pGroupsModel->appendRow(newitem);
+        foreach(OrderGroup *group,m_groupList_Temp.groupList)
+        {
+            if(group->groupName == m_groupList_Temp.currGroupName)
+            {
+                addNewGroup(QString("%1_%2").arg(item->text()).arg(tr("Clone")),
+                            group->orderlist);
+                break;
+            }
+        }
     }
 }
 
@@ -451,10 +521,20 @@ void RQuickOrderWidget::clickMoveToCurrGroup(bool)
     {
         if(!orderIsExitedInOpenGroup(item->text()))
         {
-            QStandardItem *newitem = new QStandardItem(item->text());
-            d->m_pOpenGroupModel->appendRow(newitem);
-
-            updateOpenGroup();
+            if(m_groupList_Temp.groupList.count()==0)
+            {
+                QStringList list;
+                list.append(item->text());
+                addNewGroup(tr("default"),list);
+            }
+            else
+            {
+                QStandardItem *newitem = new QStandardItem(item->text());
+                newitem->setToolTip(item->text());
+                d->m_pOpenGroupModel->appendRow(newitem);
+                d->listView_OpenGroup->setCurrentIndex(newitem->index());
+                updateOpenGroup();
+            }
         }
     }
 }
@@ -484,6 +564,7 @@ void RQuickOrderWidget::clickMoveUpInCurrGroup(bool)
             QStandardItem *newitem = new QStandardItem(item->text());
             d->m_pOpenGroupModel->removeRow(currRow);
             d->m_pOpenGroupModel->insertRow(currRow-1,newitem);
+            d->listView_OpenGroup->setCurrentIndex(newitem->index());
 
             updateOpenGroup();
         }
@@ -503,6 +584,7 @@ void RQuickOrderWidget::clickMoveDownInCurrGroup(bool)
             QStandardItem *newitem = new QStandardItem(item->text());
             d->m_pOpenGroupModel->removeRow(currRow);
             d->m_pOpenGroupModel->insertRow(currRow+1,newitem);
+            d->listView_OpenGroup->setCurrentIndex(newitem->index());
 
             updateOpenGroup();
         }
@@ -519,6 +601,7 @@ void RQuickOrderWidget::updateOpenGroup()
         if(currGroup->groupName == m_groupList_Temp.currGroupName)
         {
             currGroup->orderlist.clear();
+            break;
         }
     }
 
@@ -535,7 +618,7 @@ void RQuickOrderWidget::updateOpenGroup()
 /*!
  * @brief 添加一条新的命令条目
  */
-void RQuickOrderWidget::addItemToAllOrder(bool)
+void RQuickOrderWidget::clickAddNewOrder(bool)
 {
     addOrder(QString::number(AllOrderCount()));
 }
@@ -543,14 +626,29 @@ void RQuickOrderWidget::addItemToAllOrder(bool)
 /*!
  * @brief 删除选中的命令条目
  */
-void RQuickOrderWidget::deleteItemFromAllOrder(bool)
+void RQuickOrderWidget::clickDeleteOrder(bool)
 {
     MQ_D(RQuickOrderWidget);
 
     QStandardItem *item = d->m_pAllOrderModel->itemFromIndex(d->listView_AllOrder->currentIndex());
     if(item)
     {
+        QString deleteOrder = item->text();
+        m_allOrderList_Temp.orderlist.removeOne(deleteOrder);
         d->m_pAllOrderModel->removeRow(d->listView_AllOrder->currentIndex().row());
+
+        int orderIndex = -1;
+        foreach(OrderGroup *group,m_groupList_Temp.groupList)
+        {
+            orderIndex = group->orderlist.indexOf(deleteOrder);
+            if(orderIndex>=0)
+            {
+                group->orderlist.removeOne(deleteOrder);
+            }
+            orderIndex = -1;
+        }
+
+        updateCurrOrderListView();
     }
 }
 
@@ -561,10 +659,69 @@ void RQuickOrderWidget::groupItemClick(const QModelIndex &index)
     QStandardItem *item = d->m_pGroupsModel->itemFromIndex(index);
     if(item)
     {
-        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-               <<""<<item->text()<<" clicked"
-              <<"\n";
         setCurrGroup(item->text());
+    }
+}
+
+/*!
+ * @brief 组别列表单元内容发生变化
+ * @param item 产生变化的单元条目
+ */
+void RQuickOrderWidget::groupItemChanged(QStandardItem *item)
+{
+    if(item)
+    {
+        QString preOrder = item->toolTip();
+        if(preOrder == item->text())
+        {
+            return ;
+        }
+        foreach(OrderGroup *group,m_groupList_Temp.groupList)
+        {
+            if(group->groupName == preOrder)
+            {
+                group->groupName = item->text();
+                m_groupList_Temp.currGroupName = item->text();
+                break;
+            }
+        }
+        item->setToolTip(item->text());
+        setCurrGroup(m_groupList_Temp.currGroupName);
+    }
+}
+
+/*!
+ * @brief 所有命令显示列表中条目内容产生变化的槽函数
+ * @param item 产生变化的单元条目
+ */
+void RQuickOrderWidget::allOrderItemChanged(QStandardItem *item)
+{
+    if(item)
+    {
+        QString preOrder = item->toolTip();
+        if(preOrder == item->text())
+        {
+            return ;
+        }
+        int index = m_allOrderList_Temp.orderlist.indexOf(preOrder);
+        if(index>=0)
+        {
+            m_allOrderList_Temp.orderlist.replace(index,item->text());
+
+            int orderIndex = -1;
+            foreach(OrderGroup *group,m_groupList_Temp.groupList)
+            {
+                orderIndex = group->orderlist.indexOf(preOrder);
+                if(orderIndex>=0)
+                {
+                    group->orderlist.replace(orderIndex,item->text());
+                }
+                orderIndex = -1;
+            }
+            item->setToolTip(item->text());
+
+            updateCurrOrderListView();
+        }
     }
 }
 
@@ -573,6 +730,7 @@ void RQuickOrderWidget::addNewGroup(QString groupName, QStringList orders)
     MQ_D(RQuickOrderWidget);
 
     QStandardItem *item = new QStandardItem(groupName);
+    item->setToolTip(groupName);
     d->m_pGroupsModel->appendRow(item);
     d->listView_Groups->setCurrentIndex(item->index());
 
@@ -592,6 +750,7 @@ void RQuickOrderWidget::addOrderToOpenGroup(QStringList orders)
     foreach(QString order,orders)
     {
         QStandardItem *item = new QStandardItem(order);
+        item->setToolTip(order);
         d->m_pOpenGroupModel->appendRow(item);
     }
 }
@@ -618,6 +777,11 @@ void RQuickOrderWidget::setCurrGroup(QString groupName)
 {
     MQ_D(RQuickOrderWidget);
 
+    if(groupName.isEmpty())
+    {
+        m_groupList_Temp.currGroupName = groupName;
+        updateCurrOrderListView();
+    }
     for(int row=0;row<d->m_pGroupsModel->rowCount();row++)
     {
         QStandardItem *item = d->m_pGroupsModel->item(row);
@@ -626,7 +790,7 @@ void RQuickOrderWidget::setCurrGroup(QString groupName)
             if(item->text() == groupName)
             {
                 d->listView_Groups->setCurrentIndex(item->index());
-                m_groupList_Temp.currGroupName = item->text();
+                m_groupList_Temp.currGroupName = groupName;
 
                 updateCurrOrderListView();
                 break;
@@ -643,9 +807,7 @@ void RQuickOrderWidget::updateCurrOrderListView()
     MQ_D(RQuickOrderWidget);
 
     d->m_pOpenGroupModel->clear();
-    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
-           <<"m_groupList_Temp.currGroupName:"<<m_groupList_Temp.currGroupName
-          <<"\n";
+    d->currOpenGroupName->setText(tr("CurrGroup: %1").arg(m_groupList_Temp.currGroupName));
 
     foreach(OrderGroup *group,m_groupList_Temp.groupList)
     {
@@ -737,8 +899,6 @@ void RQuickOrderWidget::setOrderFilePath(QString path)
 
 bool RQuickOrderWidget::orderIsExitedInOpenGroup(QString orderin)
 {
-    MQ_D(RQuickOrderWidget);
-
     QStringList list = getOpenGroupOrderList();
     foreach(QString order,list)
     {
@@ -766,8 +926,6 @@ void RQuickOrderWidget::createDefaultAllOrder()
  */
 void RQuickOrderWidget::createDefaultGroup()
 {
-    MQ_D(RQuickOrderWidget);
-
     addNewGroup(tr("DefaultGroup"),getOrderList());
 }
 
@@ -945,5 +1103,15 @@ void RQuickOrderWidget::rollbackTempFromReal()
 {
     m_allOrderList_Temp = m_allOrderList;
     m_groupList_Temp = m_groupList;
+}
+
+/*!
+ * @brief 检测用户对界面的操作
+ * @return 如果操作产生了变化，返回true，没有变化返回false
+ */
+bool RQuickOrderWidget::checkUserOperations()
+{
+
+    return false;
 }
 

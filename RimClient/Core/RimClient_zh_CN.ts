@@ -29,28 +29,33 @@
         <translation>All (*.*)</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1124"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="923"/>
+        <source>Open panel</source>
+        <translation>命令面板</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1145"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1125"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1146"/>
         <source>Image</source>
         <translation>图片</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1126"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1147"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1127"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1148"/>
         <source>message record</source>
         <translation>消息记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="942"/>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1139"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="963"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1160"/>
         <source>Transfer Files</source>
         <translation>传送文件</translation>
     </message>
@@ -1513,8 +1518,8 @@
         <location filename="Widgets/chataudioarea.cpp" line="57"/>
         <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
         <location filename="Widgets/netsettings.cpp" line="146"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="205"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="206"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="223"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="224"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
@@ -1745,93 +1750,93 @@
         <translation type="vanished">-</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="88"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="94"/>
         <source>Group template</source>
         <translation>命令模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="99"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="106"/>
         <source>Clone</source>
         <translation>克隆</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="100"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="107"/>
         <source>Clone group</source>
         <translation>克隆将当前的命令模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="104"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="105"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="111"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="112"/>
         <source>Add new group</source>
-        <translation>添加组</translation>
+        <translation>添加模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="109"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="110"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="116"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="117"/>
         <source>Delete group</source>
-        <translation>删除组</translation>
+        <translation>删除模板</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="126"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="133"/>
         <source>group orders</source>
         <translation>模板内命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="142"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="149"/>
         <source>&lt;-</source>
         <translation>移动</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="143"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="150"/>
         <source>move order to group</source>
         <translation>将右侧选中的命令添加到当前打开的命令列表中</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="147"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="154"/>
         <source>X</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="148"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="155"/>
         <source>delete from group</source>
         <translation>将左侧选中的命令从列表中移除</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="152"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="153"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="159"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="160"/>
         <source>MoveUp</source>
         <translation>向上</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="157"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="158"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="164"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="165"/>
         <source>MoveDown</source>
         <translation>向下</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="170"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="178"/>
         <source>AllOrders</source>
         <translation>全部命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="179"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="188"/>
         <source>Add Order</source>
         <translation>添加命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="180"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="189"/>
         <source>Add New Order</source>
         <translation>添加一个新的快捷命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="184"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="185"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="193"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="194"/>
         <source>Delete Order</source>
         <translation>删除命令</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="200"/>
-        <location filename="Widgets/rquickorderwidget.cpp" line="201"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="218"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="219"/>
         <source>OK</source>
         <translation>确认</translation>
     </message>
@@ -1932,7 +1937,7 @@
 <context>
     <name>RQuickOrderWidget</name>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="260"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="289"/>
         <source>QuickOrderSetting</source>
         <translation>快捷命令设置</translation>
     </message>
@@ -1945,29 +1950,68 @@
         <translation type="vanished">错误</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="380"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="440"/>
+        <source>information</source>
+        <translation>提示</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="441"/>
+        <source>Ui data has changed,sure change?</source>
+        <translation>是否保存修改？</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="463"/>
         <source>NewGroup_%1</source>
         <translation>新建命令组_%1</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="402"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="507"/>
         <source>Clone</source>
         <translation>克隆</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="505"/>
+        <location filename="Widgets/rquickorderwidget.cpp" line="528"/>
+        <source>default</source>
+        <translation>默认分组</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="810"/>
+        <source>CurrGroup: %1</source>
+        <oldsource>CurrGroup:%1</oldsource>
+        <translation>当前模板: %1</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="918"/>
         <source>Check</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="506"/>
-        <source>CommeBack</source>
+        <location filename="Widgets/rquickorderwidget.cpp" line="919"/>
+        <source>ComeBack</source>
         <translation>回撤</translation>
     </message>
     <message>
-        <location filename="Widgets/rquickorderwidget.cpp" line="507"/>
-        <source>GoOn</source>
+        <location filename="Widgets/rquickorderwidget.cpp" line="920"/>
+        <source>Go On</source>
         <translation>前进</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="921"/>
+        <source>Stay</source>
+        <translation>原地待命</translation>
+    </message>
+    <message>
+        <location filename="Widgets/rquickorderwidget.cpp" line="929"/>
+        <source>DefaultGroup</source>
+        <translation>默认分组</translation>
+    </message>
+    <message>
+        <source>CommeBack</source>
+        <translation type="vanished">回撤</translation>
+    </message>
+    <message>
+        <source>GoOn</source>
+        <translation type="vanished">前进</translation>
     </message>
 </context>
 <context>
@@ -2056,72 +2100,72 @@
     <name>SetKeySequenceDialog</name>
     <message>
         <location filename="Widgets/setkeysequencedialog.cpp" line="47"/>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="55"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="54"/>
         <source>KeySequenceSettings</source>
         <translation>快捷键设置</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="170"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="171"/>
         <source>SetKeySequenceDialog</source>
         <translation>设置全局快捷键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="171"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="172"/>
         <source>set global KeySequence</source>
         <translation>全局热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="172"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="173"/>
         <source>can click to change hotkey</source>
         <translation>你可以通过点击选择需要修改的热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="174"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="175"/>
         <source>function describ</source>
         <translation>功能描述</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="176"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="177"/>
         <source>hot key</source>
         <translation>热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="178"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="179"/>
         <source>KeySequence status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="179"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="180"/>
         <source>ResetDefaultKey</source>
         <translation>恢复默认热键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="180"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="181"/>
         <source>quik hotkey set</source>
         <translation>加速键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="181"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="182"/>
         <source>chat dialog send msg</source>
         <translation>会话窗口中发送消息</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="182"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="183"/>
         <source>rdbutt_Ctrl_Enter</source>
         <translation>按Ctrl + Enter键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="183"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="184"/>
         <source>rdbutt_Enter</source>
         <translation>按Enter键</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="195"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="196"/>
         <source>normal</source>
         <translation>正常</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="196"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="197"/>
         <source>error</source>
         <translation>失准</translation>
     </message>
@@ -2130,12 +2174,12 @@
         <translation type="vanished">屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="199"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="200"/>
         <source>Chat_Close_Window</source>
         <translation>关闭窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/setkeysequencedialog.cpp" line="211"/>
+        <location filename="Widgets/setkeysequencedialog.cpp" line="212"/>
         <source>key_Button_Chat_Shot</source>
         <translation>截屏</translation>
     </message>

@@ -123,6 +123,7 @@ private slots:
     void sendTargetFiles(bool);
     void showQuickOrderWidget(bool);
     void sendQuickOrde();
+    void openQuickOrdePanel();
     void updateTransFileTab();
     void cancelTransfer(QString);
     void updateTransFileStatus(FileTransProgress);

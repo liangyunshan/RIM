@@ -38,6 +38,24 @@ struct OrderGroup{
         this->orderlist = group.orderlist;
         return *this;
     }
+
+    inline bool operator == (const OrderGroup& group) const
+    {
+        if(this->groupName != group.groupName)
+        {
+            return false;
+        }
+        if(this->orderlist != group.orderlist)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool operator != (const OrderGroup& group) const
+    {
+        return !(*this == group);
+    }
 };
 
 struct OrderGroupList{
@@ -56,6 +74,31 @@ struct OrderGroupList{
         }
         return *this;
     }
+
+    inline bool operator == (const OrderGroupList& list) const
+    {
+        if(this->currGroupName != list.currGroupName)
+        {
+            return false;
+        }
+        if(this->groupList.count() != list.groupList.count())
+        {
+            return false;
+        }
+        for(int index = 0;index<this->groupList.count();index++)
+        {
+            if(*(this->groupList.at(index)) != *(list.groupList.at(index)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    inline bool operator != (const OrderGroupList& list) const
+    {
+        return !(*this == list);
+    }
 };
 
 struct AllOrderList{
@@ -65,6 +108,16 @@ struct AllOrderList{
     {
         this->orderlist = list.orderlist;
         return *this;
+    }
+
+    inline bool operator == (const AllOrderList& list) const
+    {
+        return this->orderlist==list.orderlist;
+    }
+
+    inline bool operator != (const AllOrderList& list) const
+    {
+        return !(*this == list);
     }
 };
 
@@ -103,9 +156,11 @@ private slots:
     void clickMoveUpInCurrGroup(bool);
     void clickMoveDownInCurrGroup(bool);
     void updateOpenGroup();
-    void addItemToAllOrder(bool);
-    void deleteItemFromAllOrder(bool);
+    void clickAddNewOrder(bool);
+    void clickDeleteOrder(bool);
     void groupItemClick(const QModelIndex &index);
+    void groupItemChanged(QStandardItem*item);
+    void allOrderItemChanged(QStandardItem*item);
 
 private:
     RQuickOrderWidgetPrivate * d_ptr;
@@ -145,6 +200,7 @@ private:
     void createIniFile();
     void syncTempToReal();
     void rollbackTempFromReal();
+    bool checkUserOperations();
 
 };
 

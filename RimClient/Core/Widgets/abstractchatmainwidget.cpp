@@ -911,15 +911,27 @@ void AbstractChatMainWidget::showQuickOrderWidget(bool)
 
     QStringList list = RQuickOrderWidget::instance()->getCurrOrderList();
     QMenu *menu = new QMenu();
+    QList<QAction*> actionList;
     foreach(QString order,list)
     {
         QAction* orderAction = new QAction(order);
         menu->addAction(orderAction);
         QObject::connect(orderAction,SIGNAL(triggered()),this,SLOT(sendQuickOrde()));
+        actionList.append(orderAction);
     }
+    menu->addSeparator();
+    QAction* panelAction = new QAction(tr("Open panel"));
+    menu->addAction(panelAction);
+    QObject::connect(panelAction,SIGNAL(triggered()),this,SLOT(openQuickOrdePanel()));
     d->quickOrderButt->setMenu(menu);
     d->quickOrderButt->showMenu();
     delete menu;
+    foreach(QAction *orderAction,actionList)
+    {
+        QObject::disconnect(orderAction,SIGNAL(triggered()),this,SLOT(sendQuickOrde()));
+        delete orderAction;
+        orderAction = NULL;
+    }
 }
 
 void AbstractChatMainWidget::sendQuickOrde()
@@ -929,6 +941,15 @@ void AbstractChatMainWidget::sendQuickOrde()
     {
         sendMsg(action->text());//单独发送文字
     }
+}
+
+/*!
+ * @brief 打开快捷设置面板
+ */
+void AbstractChatMainWidget::openQuickOrdePanel()
+{
+    RQuickOrderWidget::instance()->raise();
+    RQuickOrderWidget::instance()->showNormal();
 }
 
 /*!
