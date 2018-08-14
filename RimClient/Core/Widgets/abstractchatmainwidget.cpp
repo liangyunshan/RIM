@@ -1007,6 +1007,12 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
     }
     if(d->fileList)
     {
+        if(progress.transStatus == FileTransStatus::TransError)
+        {
+            QString note = tr("Trans File Error:\n%1").arg(progress.fileFullPath);
+            RUtil::StringToHtml(note);
+            appendChatNotice(note,FAULT);
+        }
         d->fileList->SetTransStatus(progress);
     }
 }

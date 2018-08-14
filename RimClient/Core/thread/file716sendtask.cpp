@@ -377,6 +377,7 @@ void File716SendTask::processFileData()
                 if(error){
                     (*iter).reset();
                     iter = sendList.erase(iter);
+                    progress.transStatus = TransError;
                     MessDiapatch::instance()->onFileTransStatusChanged(progress);
                 }else{
                     iter++;

@@ -321,5 +321,10 @@ void TransferFileListBox::SetTransStatus(const FileTransProgress &progress)
             removeItem(t_item);
             emit transferStatusChanged();
         }
+        else if(progress.transStatus == FileTransStatus::TransError)
+        {
+            removeItem(t_item);
+            emit transferStatusChanged();
+        }
     }
 }
