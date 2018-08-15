@@ -16,7 +16,7 @@ std::mutex SendMutex;
 std::condition_variable SendConVariable;
 
 using namespace ParameterSettings;
-extern OuterNetConfig QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result);
 
 FileSendManager::FileSendManager()
 {
@@ -117,19 +117,19 @@ void FileSendQueueThread::processFileData()
             }else{
                 SendUnit unit;
                 unit.sockId = (*iter).socketId;
-                unit.dataUnit.wSourceAddr = fptr->accountId.toInt();
-                unit.dataUnit.wDestAddr = fptr->otherId.toInt();
+                unit.dataUnit.pack495.sourceAddr = fptr->accountId.toInt();
+                unit.dataUnit.pack495.destAddr = fptr->otherId.toInt();
                 fptr->read(unit.dataUnit.data);
-                unit.dataUnit.bPackType = T_DATA_AFFIRM;
-                unit.dataUnit.bPeserve = 0;
-                unit.dataUnit.usSerialNo = fptr->usSerialNo;
-                unit.dataUnit.usOrderNo = O_2051;
-                unit.dataUnit.cDate = 0;
-                unit.dataUnit.cTime = 0;
-                unit.dataUnit.cFileType = QDB2051::F_BINARY;
-                unit.dataUnit.cFilename = fptr->fileName.toLocal8Bit();
-                unit.dataUnit.dwPackAllLen = fptr->dwPackAllLen;
-                unit.dataUnit.wOffset = fptr->sliceNum;
+                unit.dataUnit.pack495.packType = T_DATA_AFFIRM;
+                unit.dataUnit.pack495.peserve = 0;
+                unit.dataUnit.pack495.serialNo = fptr->serialNo;
+                unit.dataUnit.orderNo = O_2051;
+                unit.dataUnit.date = 0;
+                unit.dataUnit.time = 0;
+                unit.dataUnit.fileType = QDB2051::F_BINARY;
+                unit.dataUnit.filename = fptr->fileName.toLocal8Bit();
+                unit.dataUnit.pack495.packAllLen = fptr->dwPackAllLen;
+                unit.dataUnit.pack495.offset = fptr->sliceNum;
 
                 if((*iter).method == ParameterSettings::C_NetWork && (*iter).format == ParameterSettings::M_205){
                     unit.method = C_UDP;
@@ -197,10 +197,10 @@ void FileSendQueueThread::prepareSendTask()
                     task.socketId = fileInfo.sockId;
                     task.fptr = ptr;
                     bool result = false;
-                    OuterNetConfig config = QueryNodeDescInfo(ptr->otherId.toUShort(),result);
+                    NodeClient client = QueryNodeDescInfo(ptr->otherId.toUShort(),result);
                     if(result){
-                        task.format = config.messageFormat;
-                        task.method = config.communicationMethod;
+                        task.format = client.messageFormat;
+                        task.method = client.communicationMethod;
                     }
                     sendList.push_back(task);
                 }

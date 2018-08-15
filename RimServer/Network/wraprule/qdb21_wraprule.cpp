@@ -15,15 +15,15 @@ void QDB21_WrapRule::wrap(ProtocolPackage & data)
 {
     QDB21_Head qdb21_Head;
     memset(&qdb21_Head,0,sizeof(QDB21_Head));
-    qdb21_Head.usDestAddr = data.wDestAddr;
-    qdb21_Head.usSourceAddr = data.wSourceAddr;
-    qdb21_Head.cTypeNum =1;
-    qdb21_Head.ulPackageLen = sizeof(QDB21_Head) + data.data.size();
-    qdb21_Head.usOrderNo = data.usOrderNo;
-    qdb21_Head.usSerialNo = data.usSerialNo;
+    qdb21_Head.destAddr = data.pack495.destAddr;
+    qdb21_Head.sourceAddr = data.pack495.sourceAddr;
+    qdb21_Head.typeNum =1;
+    qdb21_Head.packageLen = sizeof(QDB21_Head) + data.data.size();
+    qdb21_Head.orderNo = data.orderNo;
+    qdb21_Head.serialNo = data.pack495.serialNo;
 
-    wrapTime(qdb21_Head.cDate,data.cDate,4);
-    wrapTime(qdb21_Head.cTime,data.cTime,3);
+    wrapTime(qdb21_Head.date,data.date,4);
+    wrapTime(qdb21_Head.time,data.time,3);
 
     data.data.prepend((char*)&qdb21_Head,sizeof(QDB21_Head));
 }
@@ -37,14 +37,17 @@ bool QDB21_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
     memset(&qdb21_Head,0,QDB21_Head_Length);
     memcpy(&qdb21_Head,data.data(),QDB21_Head_Length);
 
-    result.data = data.right(data.size() - QDB21_Head_Length);
-    result.wDestAddr = qdb21_Head.usDestAddr;
-    result.wSourceAddr = qdb21_Head.usSourceAddr;
-    result.usSerialNo = qdb21_Head.usSerialNo;
-    result.usOrderNo = qdb21_Head.usOrderNo;
+    if(qdb21_Head.sourceAddr != result.pack495.sourceAddr || qdb21_Head.destAddr != result.pack495.destAddr)
+        return false;
 
-    unwrapTime(result.cDate,qdb21_Head.cDate,4);
-    unwrapTime(result.cTime,qdb21_Head.cTime,3);
+    result.data = data.right(data.size() - QDB21_Head_Length);
+    result.pack495.destAddr = qdb21_Head.destAddr;
+    result.pack495.sourceAddr = qdb21_Head.sourceAddr;
+    result.pack495.serialNo = qdb21_Head.serialNo;
+    result.orderNo = qdb21_Head.orderNo;
+
+    unwrapTime(result.date,qdb21_Head.date,4);
+    unwrapTime(result.time,qdb21_Head.time,3);
 
     return true;
 }
