@@ -27,17 +27,25 @@
 #include "global.h"
 #include "user/user.h"
 #include "constants.h"
+#include <QAction>
+#include <QMenu>
 
 #include <QDebug>
 
 #define SHOTIMAGE_WIDTH 80                  //截图显示宽度
 #define SHOTIMAGE_HEIGHT 80                 //截图显示高度
 
+int count = 0;
+
 BaseTextEdit::BaseTextEdit(QWidget *parent):
     QTextEdit(parent)
 {
     this->setStyleSheet("border:0px;border-radius:3px;");
     this->installEventFilter(this);
+
+    m_pCopyAction = new QAction(this);
+    m_pCopyAction->setText(tr("paste"));
+    connect(m_pCopyAction,SIGNAL(triggered(bool)),this,SLOT(pasteData(bool)));
 }
 
 bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
@@ -48,47 +56,7 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
         {
             if(!this->isReadOnly())
             {
-                QClipboard *clipboard = QApplication::clipboard();
-                const QMimeData *mimeData = clipboard->mimeData();
-
-                if(mimeData->hasHtml())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasHtml()";
-                    this->textCursor().insertHtml(mimeData->html());
-                }
-                else if(mimeData->hasText())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasText()";
-                    if(!mimeData->hasUrls())
-                    {
-                        this->textCursor().insertText(mimeData->text());
-                    }
-                }
-                if(mimeData->hasImage())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasImage()";
-                    QImage image = qvariant_cast<QImage>(mimeData->imageData());
-
-                    insertCopyImage(image);
-                }
-
-                if(mimeData->hasColor())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasColor()";
-                }
-
-                if(mimeData->hasUrls())
-                {
-                    QList<QUrl> urlList = mimeData->urls();
-                    for(int index=0;index<urlList.count();index++)
-                    {
-                        QString fileName = urlList.at(index).toLocalFile();
-                        if(!fileName.isEmpty())
-                        {
-                            emit sigDropFile(fileName);
-                        }
-                    }
-                }
+                pasteData(true);
                 return true;
             }
         }
@@ -209,6 +177,61 @@ void BaseTextEdit::dragEnterEvent(QDragEnterEvent *e)
 void BaseTextEdit::dropEvent(QDropEvent *e)
 {
     const QMimeData *mimeData = e->mimeData();
+    if(mimeData->hasUrls())
+    {
+        QList<QUrl> urlList = mimeData->urls();
+        for(int index=0;index<urlList.count();index++)
+        {
+            QString fileName = urlList.at(index).toLocalFile();
+            if(!fileName.isEmpty())
+            {
+                emit sigDropFile(fileName);
+            }
+        }
+    }
+}
+
+void BaseTextEdit::contextMenuEvent(QContextMenuEvent *e)
+{
+    QMenu menu;
+    menu.addAction(m_pCopyAction);
+    menu.exec(e->globalPos());
+}
+
+void BaseTextEdit::pasteData(bool)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+
+    if(mimeData->hasHtml())
+    {
+        qDebug() << "Ctrl + V mimeData->hasHtml()";
+        m_tempEdit.clear();
+        m_tempEdit.insertHtml(mimeData->html());
+        this->textCursor().insertText(m_tempEdit.toPlainText());
+        m_tempEdit.clear();
+    }
+    else if(mimeData->hasText())
+    {
+        qDebug() << "Ctrl + V mimeData->hasText()";
+        if(!mimeData->hasUrls())
+        {
+            this->textCursor().insertText(mimeData->text());
+        }
+    }
+    if(mimeData->hasImage())
+    {
+        qDebug() << "Ctrl + V mimeData->hasImage()";
+        QImage image = qvariant_cast<QImage>(mimeData->imageData());
+
+        insertCopyImage(image);
+    }
+
+    if(mimeData->hasColor())
+    {
+        qDebug() << "Ctrl + V mimeData->hasColor()";
+    }
+
     if(mimeData->hasUrls())
     {
         QList<QUrl> urlList = mimeData->urls();

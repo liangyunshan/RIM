@@ -29,16 +29,22 @@ public:
     bool isVaiablePlaintext();
     int imageCount();
 
-Q_SIGNALS:
-    void sigDropFile(QString);
-
 protected:
     bool eventFilter(QObject *, QEvent *);
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
+    void contextMenuEvent(QContextMenuEvent *e);
+
+Q_SIGNALS:
+    void sigDropFile(QString);
+
+private slots:
+    void pasteData(bool);
 
 private:
     QStringList m_inputImgs;
+    QTextEdit m_tempEdit;
+    QAction *m_pCopyAction;
 };
 
 #endif // BASETEXTEDIT_H
