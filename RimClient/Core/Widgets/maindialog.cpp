@@ -231,13 +231,10 @@ void MainDialog::resizeEvent(QResizeEvent *)
     updateWidgetGeometry();
 }
 
-void MainDialog::closeEvent(QCloseEvent *)
+void MainDialog::closeEvent(QCloseEvent *event)
 {
-    writeSettings();
-    //Yang 延时退出，否则ini文件无法被更新至本地
-    QTimer::singleShot(50,qApp,SLOT(quit()));
+    return Widget::closeEvent(event);
 }
-
 
 void MainDialog::leaveEvent(QEvent *event)
 {
@@ -284,6 +281,8 @@ void MainDialog::closeWindow()
 {
     if(G_User->systemSettings()->exitSystem)
     {
+        writeSettings();
+        emit quitApp();
         //TODO:填写注销报文
         this->close();
     }

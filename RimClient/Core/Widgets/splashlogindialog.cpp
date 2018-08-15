@@ -48,6 +48,7 @@ class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDia
 private:
     explicit SplashLoginDialogPrivate(SplashLoginDialog * q):q_ptr(q),
     trayIcon(nullptr),mainDialog(nullptr){
+        loginTrayIcon = NULL;
         initWidget();
     }
 
@@ -68,6 +69,7 @@ private:
     QLabel * tcpFlowServerIp1;           /*!< 串联服务器IP地址1 */
 
     SystemTrayIcon * trayIcon;
+    SystemTrayIcon * loginTrayIcon;
     MainDialog * mainDialog;
 };
 
@@ -152,6 +154,17 @@ void SplashLoginDialogPrivate::initWidget()
     toolBar->appendToolButton(minSize);
     toolBar->appendToolButton(closeButt);
 
+    if(!loginTrayIcon)
+    {
+        loginTrayIcon = new SystemTrayIcon();
+        loginTrayIcon->setModel(SystemTrayIcon::System_Login);
+        loginTrayIcon->setVisible(true);
+        QObject::connect(loginTrayIcon,SIGNAL(showLoginPanel()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+        QObject::connect(loginTrayIcon,SIGNAL(quitApp()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+    }
+
     QObject::connect(loginButt,SIGNAL(pressed()),q_ptr,SLOT(prepareNetConnect()));
 
     q_ptr->setContentWidget(contentWidget);
@@ -219,9 +232,10 @@ void SplashLoginDialog::resizeEvent(QResizeEvent *)
     d->toolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - WINDOW_MARGIN_SIZE * 3,d->toolBar->size().height());
 }
 
-void SplashLoginDialog::closeEvent(QCloseEvent *)
+void SplashLoginDialog::closeEvent(QCloseEvent *event)
 {
-    qApp->exit();
+    dealQuitApp();
+    QTimer::singleShot(100,qApp,SLOT(quit()));
 }
 
 bool SplashLoginDialog::eventFilter(QObject *watched, QEvent *event)
@@ -399,8 +413,14 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         if(!d->trayIcon)
         {
+            disconnect(d->loginTrayIcon,SIGNAL(showLoginPanel()),
+                       this,SLOT(dealShowLoginPanel()));
+            disconnect(d->loginTrayIcon,SIGNAL(quitApp()),
+                       this,SLOT(dealQuitApp()));
+            d->loginTrayIcon->deleteLater();
+            d->loginTrayIcon=NULL;
+
             d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
             d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
             d->trayIcon->setModel(SystemTrayIcon::System_Main);
         }
@@ -411,6 +431,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
             connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+            QObject::connect(d->trayIcon,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
+            QObject::connect(d->mainDialog,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
         }
 
         if(flag)
@@ -555,6 +579,32 @@ void SplashLoginDialog::loadLocalSettings()
     }else{
         d->tcpFlowServerIp1->clear();
     }
+}
+
+/*!
+ * @brief 处理系统托盘发送的“显示主面板”
+ */
+void SplashLoginDialog::dealShowLoginPanel()
+{
+    this->raise();
+    this->showNormal();
+}
+
+void SplashLoginDialog::dealQuitApp()
+{
+    MQ_D(SplashLoginDialog);
+
+    if(d->trayIcon)
+    {
+        d->trayIcon->deleteLater();
+        d->trayIcon=NULL;
+    }
+    if(d->loginTrayIcon)
+    {
+        d->loginTrayIcon->deleteLater();
+        d->loginTrayIcon=NULL;
+    }
+    this->close();
 }
 
 #endif

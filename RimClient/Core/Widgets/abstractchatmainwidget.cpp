@@ -1013,6 +1013,12 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
             RUtil::StringToHtml(note);
             appendChatNotice(note,FAULT);
         }
+        else if(progress.transStatus == FileTransStatus::TransCancel)
+        {
+            QString note = tr("Trans File Cancel:\n%1").arg(progress.fileFullPath);
+            RUtil::StringToHtml(note);
+            appendChatNotice(note,NORMAL);
+        }
         d->fileList->SetTransStatus(progress);
     }
 }

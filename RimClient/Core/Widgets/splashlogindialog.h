@@ -45,6 +45,8 @@ private slots:
     void closeWindow();
     void prepareNetConnect();
     void loadLocalSettings();
+    void dealShowLoginPanel();
+    void dealQuitApp();
 
     /**********文本网络连接**********/
     void respTextConnect(bool flag);

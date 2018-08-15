@@ -67,7 +67,7 @@ void SystemTrayIconPrivate::initWidget()
     exitAction = new QAction(QObject::tr("Exit"),trayLoginMenu);
     exitAction->setIcon(QIcon(Constant::ICON_SIGN24));
 
-    QObject::connect(mainPanelAction,SIGNAL(triggered()),q_ptr,SIGNAL(showMainPanel()));
+    QObject::connect(mainPanelAction,SIGNAL(triggered()),q_ptr,SLOT(dealShowMainPanel()));
     QObject::connect(exitAction,SIGNAL(triggered()),q_ptr,SIGNAL(quitApp()));
 
     trayLoginMenu->addSeparator();
@@ -289,6 +289,22 @@ void SystemTrayIcon::removeAll()
         stopBliking();
         d->blinkingIcon = QIcon(RSingleton<ImageManager>::instance()->getWindowIcon());
         setIcon(d->blinkingIcon);
+    }
+}
+
+/*!
+ * @brief 根据当前托盘模式显示对应的主界面
+ */
+void SystemTrayIcon::dealShowMainPanel()
+{
+    MQ_D(SystemTrayIcon);
+    if(d->systemModel == SystemTrayIcon::System_Login)
+    {
+        emit showLoginPanel();
+    }
+    else if(d->systemModel == SystemTrayIcon::System_Main)
+    {
+        emit showMainPanel();
     }
 }
 

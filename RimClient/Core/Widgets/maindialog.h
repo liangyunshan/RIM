@@ -42,6 +42,9 @@ public:
     void blockAutoHidePanel();
     void unblockAutoHidePanel();
 
+signals:
+    void quitApp();
+
 protected:
     void resizeEvent(QResizeEvent * );
     void closeEvent(QCloseEvent * event);
