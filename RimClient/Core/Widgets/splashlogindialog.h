@@ -47,6 +47,7 @@ private slots:
     void loadLocalSettings();
     void dealShowLoginPanel();
     void dealQuitApp();
+    void sendTestSelfPeriod();
 
     /**********文本网络连接**********/
     void respTextConnect(bool flag);
@@ -59,7 +60,6 @@ private slots:
 
 private:
     void enableInput(bool flag);
-    void addRegistNode(QByteArray & data, unsigned short nodeNums...);
 
 private:
     SplashLoginDialogPrivate * d_ptr;

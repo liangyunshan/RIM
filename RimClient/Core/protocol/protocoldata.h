@@ -142,7 +142,7 @@ enum MsgCommand
     MSG_FILE_DATA = 0xB3,                              /*!< 传输正文 */
 
 /***TCP头部信息报文******/
-    MSG_TCP_TRANS = 0xC1                               /*!< 客户端注册报文 */
+    MSG_TCP_TRANS = 0xC1                               /*!< 495报文 */
 };
 
 /*!

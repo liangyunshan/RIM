@@ -185,7 +185,8 @@ SOURCES += \
     thread/file716sendtask.cpp \
     others/serialno.cpp \
     Widgets/ripwidget.cpp \
-    Widgets/rquickorderwidget.cpp
+    Widgets/rquickorderwidget.cpp \
+    Network/msgprocess/format495function.cpp
 
 
 HEADERS  += \
@@ -310,7 +311,8 @@ HEADERS  += \
     thread/file716sendtask.h \
     others/serialno.h \
     Widgets/ripwidget.h \
-    Widgets/rquickorderwidget.h
+    Widgets/rquickorderwidget.h \
+    Network/msgprocess/format495function.h
 
 DISTFILES += \
     Widgets/Widgets.pri

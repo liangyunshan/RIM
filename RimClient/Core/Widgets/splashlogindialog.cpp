@@ -42,6 +42,7 @@
 #include "Network/msgwrap/wrapfactory.h"
 #include "../network/netglobal.h"
 #include "others/serialno.h"
+#include "Network/msgprocess/format495function.h"
 
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
@@ -73,6 +74,7 @@ private:
     SystemTrayIcon * trayIcon;
     SystemTrayIcon * loginTrayIcon;
     MainDialog * mainDialog;
+    QTimer *m_pTimer_TestSelf;           /*!< 发送测试自身在线报文定时器*/
 };
 
 void SplashLoginDialogPrivate::initWidget()
@@ -166,6 +168,8 @@ void SplashLoginDialogPrivate::initWidget()
         QObject::connect(loginTrayIcon,SIGNAL(quitApp()),
                          q_ptr,SLOT(dealShowLoginPanel()));
     }
+    m_pTimer_TestSelf = new QTimer(q_ptr);
+    QObject::connect(m_pTimer_TestSelf,SIGNAL(timeout()),q_ptr,SLOT(sendTestSelfPeriod()));
 
     QObject::connect(loginButt,SIGNAL(pressed()),q_ptr,SLOT(prepareNetConnect()));
 
@@ -469,43 +473,16 @@ void SplashLoginDialog::respTextConnect(bool flag)
         d->mainDialog->show();
         d->mainDialog->raise();//FIXME LYS-20180719 修复窗口显示被遮挡问题
 
-        if(flag){
-            DataPackType request;
-            request.msgType = MSG_CONTROL;
-            request.msgCommand = MSG_TCP_TRANS;
-            request.extendData.type495 = T_DATA_REG;
-            request.extendData.usOrderNo = O_NONE;
-            request.extendData.usSerialNo = SERIALNO_FRASH;
-            request.sourceId = G_User->BaseInfo().accountId;
-            request.destId = request.sourceId;
-            //同时注册多个地址(暂时为一个)
-            addRegistNode(request.extendData.data,1,ScaleSwitcher::fromHexToDec(request.sourceId));
-            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        if(flag)
+        {
+            Format495Function::sendRegistPack();
+            if(!d->m_pTimer_TestSelf->isActive())
+            {
+                d->m_pTimer_TestSelf->start(1000*10);
+            }
         }
     }
     enableInput(true);
-}
-
-/*!
- * @brief 添加注册节点
- * @param[in/out] data 保存格式化后的结果信息
- * @param[in] addr 待一并注册的地址信息
- */
-void SplashLoginDialog::addRegistNode(QByteArray & data,unsigned short nodeNums...)
-{
-    if(nodeNums <= 0)
-        return;
-
-    data.append((char)0);
-    data.append((unsigned char)nodeNums);
-
-    std::va_list list;
-    va_start(list,nodeNums);
-    for(unsigned short i = 0; i < nodeNums;i++){
-        unsigned short tmpNode = va_arg(list,unsigned short);
-        data.append((char *)&tmpNode,sizeof(unsigned short));
-    }
-    va_end(list);
 }
 
 void SplashLoginDialog::respTextSocketError()
@@ -613,9 +590,9 @@ void SplashLoginDialog::dealShowLoginPanel()
 void SplashLoginDialog::dealQuitApp()
 {
     MQ_D(SplashLoginDialog);
-
     if(d->trayIcon)
     {
+        Format495Function::sendUnRegistPack();
         d->trayIcon->deleteLater();
         d->trayIcon=NULL;
     }
@@ -625,6 +602,14 @@ void SplashLoginDialog::dealQuitApp()
         d->loginTrayIcon=NULL;
     }
     this->close();
+}
+
+/*!
+ * @brief 周期发送测试报
+ */
+void SplashLoginDialog::sendTestSelfPeriod()
+{
+    Format495Function::sendTestSelfOnlinePack();
 }
 
 #endif
