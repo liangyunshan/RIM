@@ -2008,18 +2008,18 @@ bool SQLProcess::saveChat716Cache(Database *db, ProtocolPackage &packageData)
     DataTable::RChat716Cache chatCache;
 
     RPersistence rpc(chatCache.table);
-    rpc.insert(chatCache.sourceAddr,QString::number(packageData.wSourceAddr));
-    rpc.insert(chatCache.destAddr,QString::number(packageData.wDestAddr));
-    rpc.insert(chatCache.packType,packageData.bPackType);
-    rpc.insert(chatCache.reserve,packageData.bPeserve);
-    rpc.insert(chatCache.fileType,packageData.cFileType);
-    rpc.insert(chatCache.fileName,packageData.cFilename);
+    rpc.insert(chatCache.sourceAddr,QString::number(packageData.pack495.sourceAddr));
+    rpc.insert(chatCache.destAddr,QString::number(packageData.pack495.destAddr));
+    rpc.insert(chatCache.packType,packageData.pack495.packType);
+    rpc.insert(chatCache.reserve,packageData.pack495.peserve);
+    rpc.insert(chatCache.fileType,packageData.fileType);
+    rpc.insert(chatCache.fileName,packageData.filename);
     rpc.insert(chatCache.data,packageData.data);
 
-    rpc.insert(chatCache.serialNo,packageData.usSerialNo);
-    rpc.insert(chatCache.orderNo,packageData.usOrderNo);
-    rpc.insert(chatCache.date,packageData.cDate);
-    rpc.insert(chatCache.time,packageData.cTime);
+    rpc.insert(chatCache.serialNo,packageData.pack495.serialNo);
+    rpc.insert(chatCache.orderNo,packageData.orderNo);
+    rpc.insert(chatCache.date,packageData.date);
+    rpc.insert(chatCache.time,packageData.time);
 
     QSqlQuery query(db->sqlDatabase());
     if(query.exec(rpc.sql())){
@@ -2048,17 +2048,17 @@ bool SQLProcess::loadChat716Cache(Database *db, unsigned short nodeId, QList<Pro
     if(query.exec(rst.sql())){
         while(query.next()){
             ProtocolPackage package;
-            package.wSourceAddr = query.value(chatCache.sourceAddr).toString().toUShort();
-            package.wDestAddr = query.value(chatCache.destAddr).toString().toUShort();
-            package.bPackType = query.value(chatCache.packType).toInt();
-            package.bPeserve = query.value(chatCache.reserve).toInt();
-            package.cFileType = query.value(chatCache.fileType).toInt();
-            package.cFilename = query.value(chatCache.fileName).toByteArray();
+            package.pack495.sourceAddr = query.value(chatCache.sourceAddr).toString().toUShort();
+            package.pack495.destAddr = query.value(chatCache.destAddr).toString().toUShort();
+            package.pack495.packType = query.value(chatCache.packType).toInt();
+            package.pack495.peserve = query.value(chatCache.reserve).toInt();
+            package.fileType = query.value(chatCache.fileType).toInt();
+            package.filename = query.value(chatCache.fileName).toByteArray();
             package.data = query.value(chatCache.data).toByteArray();
-            package.usSerialNo = query.value(chatCache.serialNo).toString().toUShort();
-            package.usOrderNo = query.value(chatCache.orderNo).toString().toUShort();
-            package.cDate = query.value(chatCache.date).toInt();
-            package.cTime = query.value(chatCache.time).toInt();
+            package.pack495.serialNo = query.value(chatCache.serialNo).toString().toUShort();
+            package.orderNo = query.value(chatCache.orderNo).toString().toUShort();
+            package.date = query.value(chatCache.date).toInt();
+            package.time = query.value(chatCache.time).toInt();
             historyResult.push_back(package);
         }
 
@@ -2090,9 +2090,9 @@ bool SQLProcess::add716File(Database *db, ServerNetwork::FileRecvDesc *desc,int 
     rpc.insert(rfile.md5,desc->md5);
     rpc.insert(rfile.sourceAddr,desc->accountId);
     rpc.insert(rfile.destAddr,desc->otherId);
-    rpc.insert(rfile.packType,desc->bPackType);
-    rpc.insert(rfile.serialNo,desc->usSerialNo);
-    rpc.insert(rfile.orderNo,desc->usOrderNo);
+    rpc.insert(rfile.packType,desc->packType);
+    rpc.insert(rfile.serialNo,desc->serialNo);
+    rpc.insert(rfile.orderNo,desc->orderNo);
     rpc.insert(rfile.date,desc->cdate);
     rpc.insert(rfile.time,desc->ctime);
     rpc.insert(rfile.fileSize,desc->size);
@@ -2171,9 +2171,9 @@ bool SQLProcess::get716File(Database *db, int fileId, std::shared_ptr<ServerNetw
         desc->md5 = query.value(rfile.md5).toString();
         desc->accountId = query.value(rfile.sourceAddr).toString();
         desc->otherId = query.value(rfile.destAddr).toString();
-        desc->bPackType = query.value(rfile.packType).toInt();
-        desc->usSerialNo = query.value(rfile.serialNo).toString().toUShort();
-        desc->usOrderNo = query.value(rfile.orderNo).toString().toUShort();
+        desc->packType = query.value(rfile.packType).toInt();
+        desc->serialNo = query.value(rfile.serialNo).toString().toUShort();
+        desc->orderNo = query.value(rfile.orderNo).toString().toUShort();
         desc->cdate = query.value(rfile.date).toInt();
         desc->ctime = query.value(rfile.time).toInt();
         desc->size = query.value(rfile.fileSize).toLongLong();

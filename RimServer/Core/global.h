@@ -17,7 +17,6 @@ extern QString G_FILE_UPLOAD_PATH;             /*!< 文件上传保存的路径 
 extern DBFeature G_DB_FEATURE;                 /*!< 当前数据库驱动支持的功能 */
 
 #ifdef __LOCAL_CONTACT__
-extern ParameterSettings::ParaSettings* G_ParaSettings;     /*!< 本地参数配置 */
 extern ParameterSettings::RouteSettings* G_RouteSettings;   /*!< 路由配置信息 */
 #endif
 }

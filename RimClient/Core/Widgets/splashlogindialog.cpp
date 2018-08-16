@@ -2,6 +2,8 @@
 
 #ifdef __LOCAL_CONTACT__
 
+#include <cstdarg>
+
 #include <QTimer>
 #include <QPixmap>
 #include <QDir>
@@ -476,16 +478,34 @@ void SplashLoginDialog::respTextConnect(bool flag)
             request.extendData.usSerialNo = SERIALNO_FRASH;
             request.sourceId = G_User->BaseInfo().accountId;
             request.destId = request.sourceId;
-            char addr[4];
-            addr[0] = 0;
-            addr[1] = 1;
-            ushort ad = ScaleSwitcher::fromHexToDec(request.sourceId);
-            memcpy(addr+2,(char*)&ad,2);
-            request.extendData.data = QByteArray(addr,4);
+            //同时注册多个地址(暂时为一个)
+            addRegistNode(request.extendData.data,1,ScaleSwitcher::fromHexToDec(request.sourceId));
             RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
         }
     }
     enableInput(true);
+}
+
+/*!
+ * @brief 添加注册节点
+ * @param[in/out] data 保存格式化后的结果信息
+ * @param[in] addr 待一并注册的地址信息
+ */
+void SplashLoginDialog::addRegistNode(QByteArray & data,unsigned short nodeNums...)
+{
+    if(nodeNums <= 0)
+        return;
+
+    data.append((char)0);
+    data.append((unsigned char)nodeNums);
+
+    std::va_list list;
+    va_start(list,nodeNums);
+    for(unsigned short i = 0; i < nodeNums;i++){
+        unsigned short tmpNode = va_arg(list,unsigned short);
+        data.append((char *)&tmpNode,sizeof(unsigned short));
+    }
+    va_end(list);
 }
 
 void SplashLoginDialog::respTextSocketError()

@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "global.h"
 #include "file/xmlparse.h"
+#include "broadcastnode.h"
 
 #ifdef Q_OS_WIN
 #pragma  comment(lib,"ws2_32.lib")
@@ -277,6 +278,16 @@ void readSettings(QSettings * settings,SettingConfig & localConfig)
 
     settings->endGroup();
 
+    //[3]服务器广播发送
+    settings->beginGroup(Constant::TRANS_SETTING);
+    if(!settings->contains(Constant::BROADCAST_DEST_NODE))
+    {
+        settings->setValue(Constant::BROADCAST_DEST_NODE,RSingleton<BroadcastNode>::instance()->getDefaultNode());
+    }
+
+    RSingleton<BroadcastNode>::instance()->parseData(settings->value(Constant::BROADCAST_DEST_NODE).toString());
+    settings->endGroup();
+
     settings->sync();
 }
 
@@ -365,16 +376,8 @@ int main(int argc, char *argv[])
         readSettings(settings,settingConfig);
 
 #ifdef __LOCAL_CONTACT__
-        RGlobal::G_ParaSettings = new ParameterSettings::ParaSettings;
-        QString localConfigName = configFullPath + QDir::separator() + QStringLiteral("参数配置.txt");
-        if(!RSingleton<XMLParse>::instance()->parseParaSettings(localConfigName,RGlobal::G_ParaSettings)){
-            QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Paramter settings read failed,system exit!"),
-                                 QMessageBox::Yes,QMessageBox::Yes);
-            exit(-1);
-        }
-
         RGlobal::G_RouteSettings = new ParameterSettings::RouteSettings;
-        localConfigName = configFullPath + QDir::separator() + QStringLiteral("路由表.txt");
+        QString localConfigName = configFullPath + QDir::separator() + QStringLiteral("路由表.txt");
         if(!RSingleton<XMLParse>::instance()->parseRouteSettings(localConfigName,RGlobal::G_RouteSettings)){
             QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Route settings read failed,system exit!"),
                                  QMessageBox::Yes,QMessageBox::Yes);

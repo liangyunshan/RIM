@@ -59,6 +59,7 @@ private slots:
 
 private:
     void enableInput(bool flag);
+    void addRegistNode(QByteArray & data, unsigned short nodeNums...);
 
 private:
     SplashLoginDialogPrivate * d_ptr;
