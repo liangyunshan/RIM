@@ -20,6 +20,8 @@
 #include <QTextCursor>
 #include <QCryptographicHash>
 #include <QMetaClassInfo>
+#include <QTextDocumentFragment>
+#include <QTextBlock>
 
 #include "Util/rutil.h"
 #include "util/rsingleton.h"
@@ -44,8 +46,14 @@ BaseTextEdit::BaseTextEdit(QWidget *parent):
     this->installEventFilter(this);
 
     m_pCopyAction = new QAction(this);
-    m_pCopyAction->setText(tr("paste"));
-    connect(m_pCopyAction,SIGNAL(triggered(bool)),this,SLOT(pasteData(bool)));
+    m_pCopyAction->setText(tr("copy"));
+    connect(m_pCopyAction,SIGNAL(triggered(bool)),this,SLOT(copySelectData(bool)));
+    m_pPasteAction = new QAction(this);
+    m_pPasteAction->setText(tr("paste"));
+    connect(m_pPasteAction,SIGNAL(triggered(bool)),this,SLOT(pasteData(bool)));
+    m_pSelectAllAction = new QAction(this);
+    m_pSelectAllAction->setText(tr("select all"));
+    connect(m_pSelectAllAction,SIGNAL(triggered(bool)),this,SLOT(selectAllData(bool)));
 }
 
 bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
@@ -194,10 +202,36 @@ void BaseTextEdit::dropEvent(QDropEvent *e)
 void BaseTextEdit::contextMenuEvent(QContextMenuEvent *e)
 {
     QMenu menu;
+    if(this->textCursor().hasSelection())
+    {
+        m_pCopyAction->setEnabled(true);
+    }
+    else
+    {
+        m_pCopyAction->setEnabled(false);
+    }
     menu.addAction(m_pCopyAction);
+    menu.addAction(m_pPasteAction);
+    menu.addAction(m_pSelectAllAction);
     menu.exec(e->globalPos());
 }
 
+/*!
+ * @brief 复制
+ */
+void BaseTextEdit::copySelectData(bool)
+{
+    QVariant data= this->textCursor().document()
+            ->resource(QTextDocument::ImageResource,QUrl("image"));
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<data
+          <<"\n";
+    this->copy();
+}
+
+/*!
+ * @brief 粘贴
+ */
 void BaseTextEdit::pasteData(bool)
 {
     QClipboard *clipboard = QApplication::clipboard();
@@ -244,4 +278,12 @@ void BaseTextEdit::pasteData(bool)
             }
         }
     }
+}
+
+/*!
+ * @brief 全选
+ */
+void BaseTextEdit::selectAllData(bool)
+{
+    this->selectAll();
 }

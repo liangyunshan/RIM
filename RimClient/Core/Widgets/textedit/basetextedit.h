@@ -39,12 +39,16 @@ Q_SIGNALS:
     void sigDropFile(QString);
 
 private slots:
+    void copySelectData(bool);
     void pasteData(bool);
+    void selectAllData(bool);
 
 private:
     QStringList m_inputImgs;
     QTextEdit m_tempEdit;
     QAction *m_pCopyAction;
+    QAction *m_pPasteAction;
+    QAction *m_pSelectAllAction;
 };
 
 #endif // BASETEXTEDIT_H

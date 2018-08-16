@@ -139,9 +139,19 @@
         <translation type="vanished">%1 - %2</translation>
     </message>
     <message>
-        <location filename="Widgets/textedit/basetextedit.cpp" line="47"/>
+        <location filename="Widgets/textedit/basetextedit.cpp" line="49"/>
+        <source>copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <location filename="Widgets/textedit/basetextedit.cpp" line="52"/>
         <source>paste</source>
         <translation>粘贴</translation>
+    </message>
+    <message>
+        <location filename="Widgets/textedit/basetextedit.cpp" line="55"/>
+        <source>select all</source>
+        <translation>全选</translation>
     </message>
 </context>
 <context>
