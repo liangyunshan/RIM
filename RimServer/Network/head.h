@@ -68,17 +68,18 @@ namespace QDB495{
 #define WM_SERVER_BUSY      21  //服务器忙
 
 struct QDB495_SendPackage{
-    unsigned char bVersion;
-    unsigned char bPackType;
-    unsigned short wPackLen;            /*!< 不包含495传输头 */
-    unsigned char bPriority;
-    unsigned char bPeserve;
-    unsigned short wSerialNo;
-    unsigned short wCheckout;
-    unsigned short wOffset;             /*!< 分片序号 */
-    unsigned long dwPackAllLen;         /*!< (sizeof(21)+sizeof(2051)+文件名长度)+数据体，此处无法直接获得文件的长度!! */
-    unsigned short wDestAddr;
-    unsigned short wSourceAddr;
+    unsigned char version;
+    unsigned char packType;
+    unsigned short packLen;            /*!< 不包含495传输头 */
+    unsigned char priority;
+    unsigned char peserve;             /*!< 95保留字，用于扩展内部状态控制 */
+                                       /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
+    unsigned short serialNo;           /*!< 流水号 */
+    unsigned short checkout;
+    unsigned short offset;             /*!< 分片序号 文件数据偏移量,默认从0开始，若不是从0开始则直接丢弃 */
+    unsigned long packAllLen;          /*!< (sizeof(21)+sizeof(2051)+文件名长度)+数据体，此处无法直接获得文件的长度!! */
+    unsigned short destAddr;
+    unsigned short sourceAddr;
 };
 
 #define QDB495_SendPackage_Length sizeof(QDB495_SendPackage)
@@ -87,14 +88,14 @@ struct QDB495_SendPackage{
 
 namespace QDB21{
 struct QDB21_Head{
-    unsigned short usDestAddr;
-    unsigned short usSourceAddr;
-    unsigned long ulPackageLen;
-    char cDate[4];
-    char cTime[3];
-    char cTypeNum;
-    unsigned short usSerialNo;
-    unsigned short usOrderNo;
+    unsigned short destAddr;
+    unsigned short sourceAddr;
+    unsigned long  packageLen;
+    char date[4];
+    char time[3];
+    char typeNum;
+    unsigned short serialNo;          /*!< 流水号，与495层保持一致 */
+    unsigned short orderNo;           /*!< 协议类型， @link OrderNoType @endlink */
 };//20字节长度
 
 #define QDB21_Head_Length sizeof(QDB21_Head)
@@ -103,11 +104,12 @@ struct QDB21_Head{
 namespace QDB2051{
 
 struct QDB2051_Head{
-    unsigned long ulPackageLen;
-    unsigned short usDestSiteNo;
-    unsigned long ulDestDeviceNo;
-    char cFileType;
-    char cFilenameLen;      //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
+    unsigned long packageLen;
+    unsigned short destSiteNo;
+    unsigned long destDeviceNo;
+    char fileType;
+    char filenameLen;      //在文件类型为0 和 1 时，由ASCII字符、汉字等组成的文本信息内容；在其他情况下，可以理解为二进制数据流
+    //若为发送文件，后面还跟cFilenameLen长度的文件名
 };
 
 /*!
@@ -125,12 +127,12 @@ enum FileType{
 namespace QDB2048
 {
 struct QDB2048_Head{
-    unsigned long ulPackageLen;
-    unsigned short usDestSiteNo;
-    unsigned long ulDestDeviceNo;
-    unsigned short usSerialNo;
-    unsigned short usOrderNo;
-    unsigned short usErrorType;
+    unsigned long packageLen;
+    unsigned short destSiteNo;
+    unsigned long destDeviceNo;
+    unsigned short serialNo;
+    unsigned short orderNo;
+    unsigned short errorType;
 };
 
 #define QDB2048_Head_Length sizeof(QDB2048_Head)
@@ -151,64 +153,6 @@ enum OrderNoType{
 };
 
 /*!
- *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
- *  @warning 【若此结构发生变动，同步修改SQL/Datatable/RChat716Cache类】
- *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
- *  @author shangchao
- */
-struct ProtocolPackage
-{
-    unsigned short wSourceAddr;     /*!< 本节点号(10进制) */
-    unsigned short wDestAddr;       /*!< 目标节点号(10进制) */
-    unsigned char bPackType;        /*!< 报文类型 */
-    unsigned char bPeserve;         /*!< 95保留字，用于扩展内部状态控制 */
-                                    /*!< 0X00 标准正文 0X80 自有格式，暂为json格式*/
-    unsigned short usSerialNo;      /*!< 流水号*/
-    unsigned short usOrderNo;       /*!< 协议号*/
-    unsigned short wOffset;         /*!< 文件数据偏移量,默认从0开始，若不是从0开始则直接丢弃 */
-    unsigned long dwPackAllLen;     /*!< 数据总长度 */
-    int cDate;                      /*!< 日期，4字节 */
-    int cTime;                      /*!< 时间 低3字节 */
-    char cFileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
-    QByteArray cFilename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
-    QByteArray data;                /*!< 正文内容 */
-
-    ProtocolPackage()
-    {
-        wSourceAddr = 0;
-        wDestAddr = 0;
-        bPackType = 0;
-        bPeserve = 0;
-        usSerialNo = 0;
-        usOrderNo = 3;
-        cFileType = 0;
-        bPeserve = 0;
-        cDate = 0;
-        cTime = 0;
-    }
-
-    ProtocolPackage(QByteArray dataArray){
-        this->data = dataArray;
-    }
-
-    ProtocolPackage operator=(const ProtocolPackage & package)
-    {
-        this->wSourceAddr = package.wSourceAddr;
-        this->wDestAddr = package.wDestAddr;
-        this->bPackType = package.bPackType;
-        this->cFileType = package.cFileType;
-        this->cFilename = package.cFilename;
-        this->bPeserve = package.bPeserve;
-        this->usSerialNo = package.usSerialNo;
-        this->usOrderNo = package.usOrderNo;
-        this->data = package.data;
-        this->cDate = package.cDate;
-        this->cTime = package.cTime;
-        return *this;
-    }
-};
-
-/*!
  *  @brief 传输方式
  *  @details 数据从本机出去的方式包含TCP、UDP、总线，至于北斗等方式，也是UDP传输至中间某一台位后，再转发。
  */
@@ -217,6 +161,49 @@ enum CommMethod{
     C_UDP,      /*!< UDP方式 */
     C_TCP,      /*!< TCP方式 */
     C_BUS       /*!< 总线方式 */
+};
+
+
+/*!
+ *  @brief 对数据进行协议组包的时候，必须要用到的外部描述信息集合
+ *  @warning 【若此结构发生变动，同步修改SQL/Datatable/RChat716Cache类】
+ *  @details 填写协议头部信息时，像包长这类的字段信息可以实时获取，但是像站点等类型的信息的无法在实时组包的时候获取
+ *  @author shangchao
+ */
+struct ProtocolPackage
+{
+    QDB495::QDB495_SendPackage pack495; /*!< 495通讯头 */
+    CommMethod method;             /*!< 接收方式 */
+    unsigned short orderNo;        /*!< 协议号*/
+    int date;                      /*!< 日期，4字节 */
+    int time;                      /*!< 时间 低3字节 */
+    char fileType;                 /*!< 正文文件类型  0无文件后缀，1文本文件，2二进制文件 */
+    QByteArray filename;           /*!< 文件名 如果发送的是文件，填写文件名，在接收完成时文件还原为该名称 */
+    QByteArray data;               /*!< 正文内容 */
+
+    ProtocolPackage()
+    {
+        orderNo = 0;
+        fileType = 0;
+        date = 0;
+        time = 0;
+    }
+
+    ProtocolPackage(QByteArray dataArray){
+        this->data = dataArray;
+    }
+
+    ProtocolPackage operator=(const ProtocolPackage & package)
+    {
+        this->pack495 = package.pack495;
+        this->fileType = package.fileType;
+        this->filename = package.filename;
+        this->orderNo = package.orderNo;
+        this->data = package.data;
+        this->date = package.date;
+        this->time = package.time;
+        return *this;
+    }
 };
 
 /*!
@@ -267,18 +254,15 @@ enum PacketType_495{
  */
 struct ExtendData
 {
+    ExtendData(){
+        orderNo = sockId = sliceNum = 0;
+    }
+    SOCKET sockId;                  /*!< 客户端Socket标识Id */
     CommMethod method;              /*!< 接收方式 */
     SocketOperateType type;         /*!< 请求类型 */
-    SOCKET sockId;                  /*!< 客户端Socket标识Id */
-    PacketType_495 type495;         /*!< 495信息类型 */
-    unsigned char bPeserve;         /*!< 495保留字 */
-    unsigned short usSerialNo;      /*!< 流水号 */
-    unsigned short usOrderNo;       /*!< 编码代号 */
-    unsigned short wOffset;         /*!< 分片序号 */
-    unsigned long dwPackAllLen;     /*!< 数据总长度(分片数量*495头+数据长度) */
+    QDB495::QDB495_SendPackage pack495; /*!< 495通讯头 */
+    unsigned short orderNo;         /*!< 编码代号 */
     unsigned short sliceNum;        /*!< 分片数量 */
-    unsigned short wSourceAddr;     /*!< 源节点号 */
-    unsigned short wDestAddr;       /*!< 目的节点号 */
 };
 
 /*!

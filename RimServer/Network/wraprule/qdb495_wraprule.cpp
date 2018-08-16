@@ -18,16 +18,16 @@ void QDB495_WrapRule::wrap(ProtocolPackage & data)
     QDB495_SendPackage SendPackage;
     memset(&SendPackage,0,sizeof(QDB495_SendPackage));
 
-    SendPackage.bVersion = 1;
-    SendPackage.bPackType = WM_DATA_NOAFFIRM;
-    SendPackage.wPackLen = data.data.size();
-    SendPackage.wOffset = 1;
-    SendPackage.dwPackAllLen = data.data.size();
-    SendPackage.wDestAddr = data.wDestAddr;
-    SendPackage.wSourceAddr = data.wSourceAddr ;
-    SendPackage.wSerialNo = QTime::currentTime().msecsTo(QTime(0,0,0,0))
-                            +SendPackage.wDestAddr
-                            +SendPackage.wSourceAddr;
+    SendPackage.version = 1;
+    SendPackage.packType = WM_DATA_NOAFFIRM;
+    SendPackage.packLen = data.data.size();
+    SendPackage.offset = 1;
+    SendPackage.packAllLen = data.data.size();
+    SendPackage.destAddr = data.pack495.destAddr;
+    SendPackage.sourceAddr = data.pack495.sourceAddr ;
+    SendPackage.serialNo = QTime::currentTime().msecsTo(QTime(0,0,0,0))
+                            +SendPackage.destAddr
+                            +SendPackage.sourceAddr;
 
 
     data.data.prepend((char*)&SendPackage,sizeof(QDB495_SendPackage));
@@ -42,9 +42,9 @@ bool QDB495_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
     memcpy(&SendPackage,data.data(),QDB495_SendPackage_Length);
 
     result.data = data.right(data.size() - QDB495_SendPackage_Length);
-    result.bPackType = SendPackage.bPackType;
-    result.wDestAddr = SendPackage.wDestAddr;
-    result.wSourceAddr = SendPackage.wSourceAddr;
+    result.pack495.packType = SendPackage.packType;
+    result.pack495.destAddr = SendPackage.destAddr;
+    result.pack495.sourceAddr = SendPackage.sourceAddr;
 
     return true;
 }

@@ -226,6 +226,10 @@ struct NodeClient
 {
     unsigned short nodeId;             /*!< 本节点号 */
     unsigned short serverNodeId;       /*!< 所属服务器节点 */
+    QString channel;                          /*!< 通道 */
+    CommucationMethod communicationMethod;    /*!< 通信方式 */
+    MessageFormat messageFormat;              /*!< 报文格式 */
+    QString distributeMessageType;            /*!< 下发报文类别 */
 };
 
 /*!
@@ -234,6 +238,7 @@ struct NodeClient
  *  @warning 此信息一定要配置准确和及时更新，否则会出现信息不可达的问题。
  */
 struct RouteSettings{
+    BaseInfo baseInfo;               /*!< 基本信息 */
     QVector<NodeServer> servers;     /*!< 服务器节点配置 */
     QVector<NodeClient> clients;     /*!< 客户端节点配置 */
 };
