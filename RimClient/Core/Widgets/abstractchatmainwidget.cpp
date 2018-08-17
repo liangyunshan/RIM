@@ -1018,7 +1018,7 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
         if(progress.transStatus == FileTransStatus::TransError)
         {
             QFileInfo info(progress.fileFullPath);
-            QString note = tr("Trans File Error (%1):\n %2")
+            QString note = tr("Trans File Error (%1): %2")
                     .arg(RUtil::formatFileSize(info.size()))
                     .arg(progress.fileFullPath);
             RUtil::StringToHtml(note);
@@ -1027,7 +1027,7 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
         else if(progress.transStatus == FileTransStatus::TransCancel)
         {
             QFileInfo info(progress.fileFullPath);
-            QString note = tr("Trans File Cancel (%1):\n %2")
+            QString note = tr("Trans File Cancel (%1): %2")
                     .arg(RUtil::formatFileSize(info.size()))
                     .arg(progress.fileFullPath);
             RUtil::StringToHtml(note);

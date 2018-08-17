@@ -292,7 +292,7 @@ void TransferFileListBox::SetTransStatus(const FileTransProgress &progress)
     bool ret = false;
     foreach (t_item, d->fileItems)
     {
-        if(t_item->taskSerialNo() == progress.serialNo)
+        if(t_item->fileName() == progress.fileFullPath)
         {
             ret = true;
             break;

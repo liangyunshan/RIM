@@ -42,7 +42,7 @@ public:
 
 private:
     std::list<SenderFileDesc> fileList;
-    std::mutex mutex;
+    QMutex fileListMutex;
 };
 
 /*!

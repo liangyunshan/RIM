@@ -229,6 +229,11 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
 {
 #ifdef __LOCAL_CONTACT__
 
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<fileProgress.transStatus<<chatPersonWidget
+          <<fileProgress.fileFullPath
+          <<"\n";
+
     if(fileProgress.transStatus == TransSuccess)
     {
         //存储消息至数据库

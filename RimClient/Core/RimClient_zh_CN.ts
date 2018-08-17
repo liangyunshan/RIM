@@ -35,15 +35,17 @@
     </message>
     <message>
         <location filename="Widgets/abstractchatmainwidget.cpp" line="1021"/>
-        <source>Trans File Error (%1):
- %2</source>
-        <translation>文件传输失败 (%1)\n%2</translation>
+        <source>Trans File Error (%1): %2</source>
+        <oldsource>Trans File Error (%1):
+ %2</oldsource>
+        <translation>文件传输失败 (%1):%2</translation>
     </message>
     <message>
         <location filename="Widgets/abstractchatmainwidget.cpp" line="1030"/>
-        <source>Trans File Cancel (%1):
- %2</source>
-        <translation>你取消了文件传输 (%1)\n%2</translation>
+        <source>Trans File Cancel (%1): %2</source>
+        <oldsource>Trans File Cancel (%1):
+ %2</oldsource>
+        <translation>你取消了文件传输 (%1):%2</translation>
     </message>
     <message>
         <source>send range is 10</source>
