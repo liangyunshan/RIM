@@ -57,6 +57,7 @@
 #include "widget/rcomboboxitem.h"
 #include "thread/chatmsgprocess.h"
 #include "chatpersonwidget.h"
+#include "../file/globalconfigfile.h"
 
 class LoginDialogPrivate : public QObject,public GlobalData<LoginDialog>
 {
@@ -296,7 +297,6 @@ LoginDialog::LoginDialog(QWidget *parent) :
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
 
     createTrayMenu();
-    loadLocalSettings();
 
     connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
@@ -330,7 +330,7 @@ void LoginDialog::respTextConnect(bool flag)
 
     if(!flag)
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
         LoginRequest * request = new LoginRequest();
@@ -356,7 +356,7 @@ void LoginDialog::respTextSocketError()
         G_User->setTextOnline(false);
     }
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+    RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
@@ -370,7 +370,7 @@ void LoginDialog::respFileConnect(bool flag)
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
     }else{
 #ifndef __LOCAL_CONTACT__
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.port);
+        RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.fileServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.fileServer.port);
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
 #endif
@@ -382,7 +382,7 @@ void LoginDialog::respFileSocketError()
     G_User->setFileOnline(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
 #ifndef __LOCAL_CONTACT__
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.fileServer.ip.toLocal8Bit().data(),G_NetSettings.fileServer.port);
+    RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.fileServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.fileServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
 #endif
 }
@@ -390,7 +390,7 @@ void LoginDialog::respFileSocketError()
 void LoginDialog::login()
 {
 #ifndef __NO_SERVER__
-    G_NetSettings.connectedTextIpPort = G_NetSettings.textServer;
+    Global::G_GlobalConfigFile->netSettings.connectedTextIpPort = Global::G_GlobalConfigFile->netSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
 
@@ -434,22 +434,10 @@ void LoginDialog::createTrayMenu()
     MQ_D(LoginDialog);
     d->trayIcon = new SystemTrayIcon();
     d->trayIcon->setModel(SystemTrayIcon::System_Login);
-    d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+    d->trayIcon->setVisible(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
 
     connect(d->trayIcon,SIGNAL(quitApp()),this,SLOT(closeWindow()));
     connect(d->trayIcon,SIGNAL(showMainPanel()),this,SLOT(showNormal()));
-}
-
-void LoginDialog::loadLocalSettings()
-{
-    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
-
-    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
-
-    RUtil::globalSettings()->endGroup();
 }
 
 int LoginDialog::isContainUser()
@@ -778,8 +766,10 @@ void LoginDialog::recvLoginResponse(ResponseLogin status, LoginResponse response
         }
 
         //TODO 对文件服务器进行重连、状态显示等操作
+#ifndef __LOCAL_CONTACT__
         FileNetConnector::instance()->initialize();
         FileNetConnector::instance()->connect();
+#endif
 
         G_User->setTextOnline(true);
         G_User->setLogin(true);
@@ -1204,7 +1194,7 @@ void LoginDialog::onMessage(MessageType type)
     {
         case MESS_SETTINGS:
             {
-                d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+                d->trayIcon->setVisible(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
                 break;
             }
         case MESS_NOTIFY_WINDOWS:

@@ -3,9 +3,23 @@
 #include <QAction>
 #include "others/serialno.h"
 
-ParameterSettings::ParaSettings* G_ParaSettings;   /*!< 本地参数配置 */
+namespace Global {
 
-NetworkSettings G_NetSettings;                     /*!< 网络配置信息 */
+std::queue<RecvUnit> G_TextRecvBuffs;
+std::mutex G_TextRecvMutex;
+std::condition_variable  G_TextRecvCondition;
+
+std::queue<RecvUnit> G_FileRecvBuffs;
+std::mutex G_FileRecvMutex;
+std::condition_variable  G_FileRecvCondition;
+
+GlobalConfigFile * G_GlobalConfigFile;              /*!< 系统配置文件解析 */
+
+#ifdef __LOCAL_CONTACT__
+ParameterSettings::ParaSettings* G_ParaSettings;   /*!< 本地参数配置 */
+#endif
+}
+
 
 //TODO
 QString G_ScreenShotKeySequence;

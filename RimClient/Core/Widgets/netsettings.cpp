@@ -25,6 +25,7 @@
 #include "messdiapatch.h"
 #include "Network/netconnector.h"
 #include "ripwidget.h"
+#include "../file/globalconfigfile.h"
 
 class NetSettingsPrivate : public GlobalData<NetSettings>
 {
@@ -94,9 +95,10 @@ private:
     QWidget * contentWidget;
 
     IpSettingContainer * textServerIp;
-    IpSettingContainer * fileServerIp;
 #ifdef __LOCAL_CONTACT__
     IpSettingContainer * tandemServerIp1;
+#else
+    IpSettingContainer * fileServerIp;
 #endif
     RButton * saveButton;
     RButton * closeButton;
@@ -127,13 +129,13 @@ void NetSettingsPrivate::initWidget()
     QLabel * tandemLabel = new QLabel(mainWidget);
     tandemLabel->setText(QObject::tr("Tandem Server"));
     tandemServerIp1 = new IpSettingContainer;
-#endif
+#else
 
     /*******************文件服务器地址*************************/
     QLabel * fileLabel = new QLabel(mainWidget);
     fileLabel->setText(QObject::tr("File Server"));
     fileServerIp = new IpSettingContainer;
-
+#endif
     /***************按钮区******************/
     QWidget * bottomWidget = new QWidget(contentWidget);
 
@@ -161,10 +163,10 @@ void NetSettingsPrivate::initWidget()
 #ifdef __LOCAL_CONTACT__
     gridLayout->addWidget(tandemLabel,2,1,1,1);
     gridLayout->addWidget(tandemServerIp1,3,1,1,5);
-#endif
-
-    gridLayout->addWidget(fileLabel,4,1,1,1);
+#else
     gridLayout->addWidget(fileServerIp,5,1,1,5);
+    gridLayout->addWidget(fileLabel,4,1,1,1);
+#endif
 
     gridLayout->setRowStretch(6,5);
     gridLayout->addWidget(bottomWidget,7,0,1,7);
@@ -206,18 +208,15 @@ NetSettings::~NetSettings()
 void NetSettings::initLocalSettings()
 {
     MQ_D(NetSettings);
-    QSettings * settings =  RUtil::globalSettings();
-
-    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    d->textServerIp->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString(),
-                                  settings->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toString());
+    d->textServerIp->setIpAndPort(Global::G_GlobalConfigFile->netSettings.textServer.ip,
+                                  QString::number(Global::G_GlobalConfigFile->netSettings.textServer.port));
 #ifdef __LOCAL_CONTACT__
-    d->tandemServerIp1->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString(),
-                                     settings->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toString());
+    d->tandemServerIp1->setIpAndPort(Global::G_GlobalConfigFile->netSettings.tandemServer.ip,
+                                     QString::number(Global::G_GlobalConfigFile->netSettings.tandemServer.port));
+#else
+    d->fileServerIp->setIpAndPort(Global::G_GlobalConfigFile->netSettings.fileServer.ip,
+                                     Global::G_GlobalConfigFile->netSettings.fileServer.ip);
 #endif
-    d->fileServerIp->setIpAndPort(settings->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString(),
-                                     settings->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toString());
-    RUtil::globalSettings()->endGroup();
 }
 
 void NetSettings::enableMoveable(bool flag)
@@ -247,19 +246,20 @@ void NetSettings::updateSettings()
         RMessageBox::warning(this,tr("Warning"),tr("trandem ip address is error!"),RMessageBox::Yes);
         return;
     }
-#endif
-
+#else
     if(d->fileServerIp->getIp().size() <= 0 || d->fileServerIp->getPort().size() <= 0 || !d->fileServerIp->isValidIp()
            || !d->fileServerIp->isValidPort() ){
         RMessageBox::warning(this,tr("Warning"),tr("file address is error!"),RMessageBox::Yes);
         return;
     }
+#endif
 
 
-    if(G_NetSettings.textServer.ip != d->textServerIp->getIp() ||
-            G_NetSettings.textServer.port != d->textServerIp->getPort().toUShort())
+    if(Global::G_GlobalConfigFile->netSettings.textServer.ip != d->textServerIp->getIp() ||
+            Global::G_GlobalConfigFile->netSettings.textServer.port != d->textServerIp->getPort().toUShort())
     {
-        if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedTextIpPort == G_NetSettings.textServer){
+        if(Global::G_GlobalConfigFile->netSettings.connectedTextIpPort.isConnected()
+                && Global::G_GlobalConfigFile->netSettings.connectedTextIpPort == Global::G_GlobalConfigFile->netSettings.textServer){
             int result = RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
                 TextNetConnector::instance()->disConnect();
@@ -268,15 +268,16 @@ void NetSettings::updateSettings()
             }
         }
 
-        G_NetSettings.textServer.ip = d->textServerIp->getIp();
-        G_NetSettings.textServer.port = d->textServerIp->getPort().toUShort();
+        Global::G_GlobalConfigFile->netSettings.textServer.ip = d->textServerIp->getIp();
+        Global::G_GlobalConfigFile->netSettings.textServer.port = d->textServerIp->getPort().toUShort();
     }
 
 #ifdef __LOCAL_CONTACT__
-    if(G_NetSettings.tandemServer.ip != d->tandemServerIp1->getIp() ||
-            G_NetSettings.tandemServer.port != d->tandemServerIp1->getPort().toUShort())
+    if(Global::G_GlobalConfigFile->netSettings.tandemServer.ip != d->tandemServerIp1->getIp() ||
+            Global::G_GlobalConfigFile->netSettings.tandemServer.port != d->tandemServerIp1->getPort().toUShort())
     {
-        if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedTextIpPort == G_NetSettings.tandemServer){
+        if(Global::G_GlobalConfigFile->netSettings.connectedTextIpPort.isConnected()
+                && Global::G_GlobalConfigFile->netSettings.connectedTextIpPort == Global::G_GlobalConfigFile->netSettings.tandemServer){
             int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
                 TextNetConnector::instance()->disConnect();
@@ -284,15 +285,16 @@ void NetSettings::updateSettings()
                 return;
             }
         }
-        G_NetSettings.tandemServer.ip = d->tandemServerIp1->getIp();
-        G_NetSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
+        Global::G_GlobalConfigFile->netSettings.tandemServer.ip = d->tandemServerIp1->getIp();
+        Global::G_GlobalConfigFile->netSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
     }
-#endif
+#else
 
-    if(G_NetSettings.fileServer.ip != d->fileServerIp->getIp() ||
-            G_NetSettings.fileServer.port != d->fileServerIp->getPort().toUShort())
+    if(Global::G_GlobalConfigFile->netSettings.fileServer.ip != d->fileServerIp->getIp() ||
+            Global::G_GlobalConfigFile->netSettings.fileServer.port != d->fileServerIp->getPort().toUShort())
     {
-        if(G_NetSettings.connectedFileIpPort.isConnected() && G_NetSettings.connectedFileIpPort == G_NetSettings.fileServer){
+        if(Global::G_GlobalConfigFile->netSettings.connectedFileIpPort.isConnected()
+                && Global::G_GlobalConfigFile->netSettings.connectedFileIpPort == Global::G_GlobalConfigFile->netSettings.fileServer){
             int result =  RMessageBox::information(this,tr("information"),tr("Network will be reseted? "),RMessageBox::Yes|RMessageBox::No);
             if(result == RMessageBox::Yes){
                 FileNetConnector::instance()->disConnect();
@@ -301,22 +303,23 @@ void NetSettings::updateSettings()
             }
         }
 
-        G_NetSettings.fileServer.ip = d->fileServerIp->getIp();
-        G_NetSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
+        Global::G_GlobalConfigFile->netSettings.fileServer.ip = d->fileServerIp->getIp();
+        Global::G_GlobalConfigFile->netSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
     }
-
-    QSettings * settings =  RUtil::globalSettings();
-    settings->beginGroup(Constant::SYSTEM_NETWORK);
-    settings->setValue(Constant::SYSTEM_NETWORK_TEXT_IP,d->textServerIp->getIp());
-    settings->setValue(Constant::SYSTEM_NETWORK_TEXT_PORT,d->textServerIp->getPort());
-
-    settings->setValue(Constant::SYSTEM_NETWORK_FILE_IP,d->fileServerIp->getIp());
-    settings->setValue(Constant::SYSTEM_NETWORK_FILE_PORT,d->fileServerIp->getPort());
-#ifdef __LOCAL_CONTACT__
-    settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_IP1,d->tandemServerIp1->getIp());
-    settings->setValue(Constant::SYSTEM_NETWORK_TANDEM_PORT1,d->tandemServerIp1->getPort());
 #endif
-    settings->endGroup();
+
+    Global::G_GlobalConfigFile->netSettings.textServer.ip = d->textServerIp->getIp();
+    Global::G_GlobalConfigFile->netSettings.textServer.port = d->textServerIp->getPort().toUShort();
+
+#ifdef __LOCAL_CONTACT__
+    Global::G_GlobalConfigFile->netSettings.tandemServer.ip = d->tandemServerIp1->getIp();
+    Global::G_GlobalConfigFile->netSettings.tandemServer.port = d->tandemServerIp1->getPort().toUShort();
+#else
+    Global::G_GlobalConfigFile->netSettings.fileServer.ip = d->fileServerIp->getIp();
+    Global::G_GlobalConfigFile->netSettings.fileServer.port = d->fileServerIp->getPort().toUShort();
+#endif
+
+    Global::G_GlobalConfigFile->sysc();
 
     emit ipInfoUpdated();
     RMessageBox::information(this,tr("Information"),tr("Save changes successfully!"),RMessageBox::Yes);

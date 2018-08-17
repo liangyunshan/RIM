@@ -24,14 +24,15 @@ namespace ClientNetwork{
 
 class BaseTransmit;
 
-class NETWORKSHARED_EXPORT RecveiveTask : public RTask
+class NETWORKSHARED_EXPORT DataRecveiveTask : public RTask
 {
     Q_OBJECT
 public:
-    explicit RecveiveTask(QObject *parent = 0);
-    virtual ~RecveiveTask();
+    explicit DataRecveiveTask(QObject *parent = 0);
+    virtual ~DataRecveiveTask();
 
     void bindTransmit(std::shared_ptr<BaseTransmit> trans);
+    void registDataHandle(DataHandler handler);
 
     void startMe();
     void stopMe();
@@ -41,33 +42,12 @@ signals:
 
 protected:
     void run();
-    virtual void processData(RecvUnit & data)=0;
+    void processData(RecvUnit & data);
 
 protected:
     QString errorString;
     std::shared_ptr<BaseTransmit> transmit;
-};
-
-class NETWORKSHARED_EXPORT TextReceive : public RecveiveTask
-{
-    Q_OBJECT
-public:
-    explicit TextReceive(QObject *parent = 0);
-    ~TextReceive();
-
-private:
-    void processData(RecvUnit &data);
-};
-
-class NETWORKSHARED_EXPORT FileReceive : public RecveiveTask
-{
-    Q_OBJECT
-public:
-    explicit FileReceive(QObject * parent = 0);
-    ~FileReceive();
-
-private:
-    void processData(RecvUnit & data);
+    DataHandler  dataHandler;
 };
 
 } //ClientNetwork

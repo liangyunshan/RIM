@@ -30,7 +30,7 @@ class TCP495DataPacketRule  : public WrapRule
 public:
     explicit TCP495DataPacketRule();
 
-    void registTextHandler(Handler * dataHandler);
+    void registDataHandler(Handler * dataHandler);
     void bindContext(IocpContext * context,unsigned long recvLen);
 
     bool wrap(SendUnit &dunit, IocpContextSender sendFunc);
@@ -49,8 +49,8 @@ private:
 
     IocpContext * ioContext;              /*!< 当前处理的客户端信息 */
     Handler * textHandler;                /*!< 数据处理器 */
-    QByteArray lastRecvBuff;              //断包接收缓冲区
-    QHash<int,PacketBuff*> packetBuffs;   //多包缓冲区
+    QByteArray lastRecvBuff;              /*!< 断包接收缓冲区 */
+    QHash<int,PacketBuff*> packetBuffs;   /*!< 多包缓冲区 */
 };
 
 }

@@ -4,6 +4,7 @@
 #include <QString>
 #include "protocol/datastruct.h"
 using namespace Datastruct;
+class GlobalConfigFile;
 
 namespace ParameterSettings{
     struct ParaSettings;
@@ -19,6 +20,8 @@ extern DBFeature G_DB_FEATURE;                 /*!< 当前数据库驱动支持�
 #ifdef __LOCAL_CONTACT__
 extern ParameterSettings::RouteSettings* G_RouteSettings;   /*!< 路由配置信息 */
 #endif
+
+extern GlobalConfigFile * G_GlobalConfigFile;
 }
 
 #endif // GLOBAL_H

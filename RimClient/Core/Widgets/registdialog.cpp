@@ -22,6 +22,7 @@
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"
 #include "global.h"
+#include "../file/globalconfigfile.h"
 
 using namespace ProtocolType;
 
@@ -244,7 +245,8 @@ void RegistDialog::respConnect(bool flag)
     }
     else
     {
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),
+                   Global::G_GlobalConfigFile->netSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to server error!"),RMessageBox::Yes);
     }
 }

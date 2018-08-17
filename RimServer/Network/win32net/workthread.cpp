@@ -23,7 +23,7 @@ WorkThread::WorkThread(SharedIocpData *data):
     dataPacketRule = std::make_shared<TCPDataPacketRule>();
 #endif
     Handler * handler = new SockTextDataHandler();
-    dataPacketRule->registTextHandler(handler);
+    dataPacketRule->registDataHandler(handler);
 }
 
 unsigned  __stdcall iocpProc(LPVOID v)

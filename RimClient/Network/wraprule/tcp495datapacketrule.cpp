@@ -155,6 +155,14 @@ bool TCP495DataPacketRule::wrap(ProtocolPackage &dataUnit, std::function<int (co
     return false;
 }
 
+/*!
+ * @brief 利用495协议对接收数据进行解包
+ * @details 解析数据时，因TCP会产生粘包现象，因此本地读取的断包数据会保存至下一次数据到来时一并处理。
+ * @param[in] data 已接收数据区
+ * @param[in] length 实际接收数据长度
+ * @param[in] recvDataFunc 接收解析后回调函数
+ * @return 是否解析处理成功
+ */
 bool TCP495DataPacketRule::unwrap(const char *data, const int length, DataHandler recvDataFunc)
 {
     dhandler = recvDataFunc;

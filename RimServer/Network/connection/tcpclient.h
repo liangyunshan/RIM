@@ -47,7 +47,6 @@ struct PacketBuff
      * @brief 获取缓存接收的分段数据
      * @note 将缓存接收的数据重新组装，拼接成新的数据；并在拼接后的数据头部插入协议头(21+2051) \n
      * @param[in] container 数据容器
-     * @param[in] perPacketOffset 截取每个分段的起始点
      */
     void packDataWidthPrtocol(QByteArray & container){
         if(isCompleted && recvSize > 0)
@@ -106,7 +105,11 @@ enum FileTransState
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():fileTransState(FILE_ERROR),fileHeadLen(0){}
+    FileRecvDesc():fileTransState(FILE_ERROR)
+#ifdef __LOCAL_CONTACT__
+      ,fileHeadLen(0)
+#endif
+    {}
 
     ~FileRecvDesc(){
         destory();

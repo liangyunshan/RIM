@@ -55,8 +55,10 @@ private slots:
     void respTransmitError(QString errorMsg);
 
     /**********文件网络连接**********/
+#ifndef __LOCAL_CONTACT__
     void respFileConnect(bool flag);
     void respFileSocketError();
+#endif
 
 private:
     void enableInput(bool flag);

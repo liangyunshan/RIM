@@ -24,8 +24,7 @@ namespace ClientNetwork
 {
 class TextSender;
 class FileSender;
-class TextReceive;
-class FileReceive;
+class DataRecveiveTask;
 }
 
 namespace ClientNetwork {
@@ -69,6 +68,10 @@ protected:
 
     void run();
 
+    void handleTextOnly(RecvUnit &data);
+    void handleTextAndFile(RecvUnit &data);
+    void handleFileOnly(RecvUnit &data);
+
 protected slots:
     virtual void respSocketError(CommMethod method)=0;
 
@@ -111,9 +114,11 @@ private:
     static TextNetConnector * netConnector;
 
     std::shared_ptr<ClientNetwork::TextSender> msgSender;
-    std::map<CommMethod,std::shared_ptr<ClientNetwork::TextReceive>> msgReceives;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::DataRecveiveTask>> msgReceives;
+
 };
 
+#ifndef __LOCAL_CONTACT__
 class FileNetConnector : public SuperConnector
 {
     Q_OBJECT
@@ -138,7 +143,9 @@ private:
     static FileNetConnector * netConnector;
 
     std::shared_ptr<ClientNetwork::FileSender> msgSender;
-    std::map<CommMethod,std::shared_ptr<ClientNetwork::FileReceive>> msgReceives;
+    std::map<CommMethod,std::shared_ptr<ClientNetwork::DataRecveiveTask>> msgReceives;
 };
+
+#endif
 
 #endif // NETCONNECTOR_H

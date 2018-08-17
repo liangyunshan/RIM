@@ -182,8 +182,10 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
         break;
     case APPLY_RECEIPT:
         {
+#ifdef __LOCAL_CONTACT__
             //更新数据库->更新聊天界面
             RSingleton<ChatMsgProcess>::instance()->appendC2CUpdateMsgStatusTask(reply.wSourceAddr,reply.textId.toUInt());
+#endif
         }
         break;
     default:
