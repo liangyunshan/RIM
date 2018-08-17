@@ -65,6 +65,7 @@ public:
     static void removeEccapeDoubleQuote(QString &targetHtml);
 
     static void showInExplorer(QString &pathIn);
+    static QString formatFileSize(int byteSize);
 
 private:
     static QSettings * gSettings;

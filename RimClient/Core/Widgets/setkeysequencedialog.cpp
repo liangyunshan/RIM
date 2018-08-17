@@ -32,6 +32,7 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include "Util/rutil.h"
+#include "widget/rbutton.h"
 
 const int UI_USER_BASIC_WIDTH = 500 ;
 const int UI_USER_BASIC_HEIGHT = 450 ;
@@ -43,9 +44,7 @@ SetKeySequenceDialog::SetKeySequenceDialog(QWidget *parent):
     loadSetting();
 
     setWindowFlags(windowFlags() & ~Qt::Tool);
-//    setAttribute(Qt::WA_DeleteOnClose,true);
     setWindowTitle(tr("KeySequenceSettings"));
-//    setWindowIcon(QIcon(RSingleton<ImageManager>::instance()->getWindowIcon(ImageManager::NORMAL)));
 
     ToolBar * bar = enableToolBar(true);
     enableDefaultSignalConection(true);
@@ -90,14 +89,15 @@ void SetKeySequenceDialog::initWidget()
     contentWidget->resize(UI_USER_BASIC_WIDTH, UI_USER_BASIC_HEIGHT);
 
     QVBoxLayout * contentLayout = new QVBoxLayout;
-    contentLayout->setContentsMargins(0,0,0,0);
-    contentLayout->setSpacing(0);
+    contentLayout->setContentsMargins(5,5,5,10);
+    contentLayout->setSpacing(5);
 
     contentWidget->setLayout(contentLayout);
 
     groupBox_2 = new QGroupBox(contentWidget);
     groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
     verticalLayout_3 = new QVBoxLayout(groupBox_2);
+
     verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
     label_3 = new QLabel(groupBox_2);
     label_3->setObjectName(QString::fromUtf8("label_3"));
@@ -120,10 +120,11 @@ void SetKeySequenceDialog::initWidget()
     verticalLayout_3->addWidget(tblw_KeyList);
 
     horizontalLayout = new QHBoxLayout();
+    horizontalLayout->setContentsMargins(0,0,0,0);
     horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-    butt_ResetDefaultKey = new QPushButton(groupBox_2);
+    horizontalLayout->setContentsMargins(5,2,5,2);
+    butt_ResetDefaultKey = new RButton(groupBox_2);
     butt_ResetDefaultKey->setObjectName(QString::fromUtf8("butt_ResetDefaultKey"));
-
     horizontalLayout->addWidget(butt_ResetDefaultKey);
 
     horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);

@@ -42,6 +42,7 @@
 #include "Network/msgwrap/wrapfactory.h"
 #include "../network/netglobal.h"
 #include "others/serialno.h"
+#include "Network/msgprocess/format495function.h"
 #include "../file/globalconfigfile.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
@@ -50,6 +51,7 @@ class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDia
 private:
     explicit SplashLoginDialogPrivate(SplashLoginDialog * q):q_ptr(q),
     trayIcon(nullptr),mainDialog(nullptr){
+        loginTrayIcon = NULL;
         initWidget();
     }
 
@@ -70,7 +72,9 @@ private:
     QLabel * tcpFlowServerIp1;           /*!< 串联服务器IP地址1 */
 
     SystemTrayIcon * trayIcon;
+    SystemTrayIcon * loginTrayIcon;
     MainDialog * mainDialog;
+    QTimer *m_pTimer_TestSelf;           /*!< 发送测试自身在线报文定时器*/
 };
 
 void SplashLoginDialogPrivate::initWidget()
@@ -154,6 +158,19 @@ void SplashLoginDialogPrivate::initWidget()
     toolBar->appendToolButton(minSize);
     toolBar->appendToolButton(closeButt);
 
+    if(!loginTrayIcon)
+    {
+        loginTrayIcon = new SystemTrayIcon();
+        loginTrayIcon->setModel(SystemTrayIcon::System_Login);
+        loginTrayIcon->setVisible(true);
+        QObject::connect(loginTrayIcon,SIGNAL(showLoginPanel()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+        QObject::connect(loginTrayIcon,SIGNAL(quitApp()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+    }
+    m_pTimer_TestSelf = new QTimer(q_ptr);
+    QObject::connect(m_pTimer_TestSelf,SIGNAL(timeout()),q_ptr,SLOT(sendTestSelfPeriod()));
+
     QObject::connect(loginButt,SIGNAL(pressed()),q_ptr,SLOT(prepareNetConnect()));
 
     q_ptr->setContentWidget(contentWidget);
@@ -222,9 +239,10 @@ void SplashLoginDialog::resizeEvent(QResizeEvent *)
     d->toolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - WINDOW_MARGIN_SIZE * 3,d->toolBar->size().height());
 }
 
-void SplashLoginDialog::closeEvent(QCloseEvent *)
+void SplashLoginDialog::closeEvent(QCloseEvent *event)
 {
-    qApp->exit();
+    dealQuitApp();
+    QTimer::singleShot(100,qApp,SLOT(quit()));
 }
 
 bool SplashLoginDialog::eventFilter(QObject *watched, QEvent *event)
@@ -402,8 +420,13 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         if(!d->trayIcon)
         {
+            disconnect(d->loginTrayIcon,SIGNAL(showLoginPanel()),
+                       this,SLOT(dealShowLoginPanel()));
+            disconnect(d->loginTrayIcon,SIGNAL(quitApp()),
+                       this,SLOT(dealQuitApp()));
+            d->loginTrayIcon->deleteLater();
+            d->loginTrayIcon=NULL;
             d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
             d->trayIcon->setVisible(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
             d->trayIcon->setModel(SystemTrayIcon::System_Main);
         }
@@ -414,6 +437,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
             connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+            QObject::connect(d->trayIcon,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
+            QObject::connect(d->mainDialog,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
         }
 
         if(flag)
@@ -447,43 +474,13 @@ void SplashLoginDialog::respTextConnect(bool flag)
         d->mainDialog->show();
         d->mainDialog->raise();//FIXME LYS-20180719 修复窗口显示被遮挡问题
 
-        if(flag){
-            DataPackType request;
-            request.msgType = MSG_CONTROL;
-            request.msgCommand = MSG_TCP_TRANS;
-            request.extendData.type495 = T_DATA_REG;
-            request.extendData.usOrderNo = O_NONE;
-            request.extendData.usSerialNo = SERIALNO_FRASH;
-            request.sourceId = G_User->BaseInfo().accountId;
-            request.destId = request.sourceId;
-            //同时注册多个地址(暂时为一个)
-            addRegistNode(request.extendData.data,1,ScaleSwitcher::fromHexToDec(request.sourceId));
-            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        Format495Function::sendRegistPack();
+        if(!d->m_pTimer_TestSelf->isActive())
+        {
+            d->m_pTimer_TestSelf->start(1000*10);
         }
     }
     enableInput(true);
-}
-
-/*!
- * @brief 添加注册节点
- * @param[in/out] data 保存格式化后的结果信息
- * @param[in] addr 待一并注册的地址信息
- */
-void SplashLoginDialog::addRegistNode(QByteArray & data,unsigned short nodeNums...)
-{
-    if(nodeNums <= 0)
-        return;
-
-    data.append((char)0);
-    data.append((unsigned char)nodeNums);
-
-    std::va_list list;
-    va_start(list,nodeNums);
-    for(unsigned short i = 0; i < nodeNums;i++){
-        unsigned short tmpNode = va_arg(list,unsigned short);
-        data.append((char *)&tmpNode,sizeof(unsigned short));
-    }
-    va_end(list);
 }
 
 void SplashLoginDialog::respTextSocketError()
@@ -568,6 +565,40 @@ void SplashLoginDialog::loadLocalSettings()
     }else{
         d->tcpFlowServerIp1->clear();
     }
+}
+
+/*!
+ * @brief 处理系统托盘发送的“显示主面板”
+ */
+void SplashLoginDialog::dealShowLoginPanel()
+{
+    this->raise();
+    this->showNormal();
+}
+
+void SplashLoginDialog::dealQuitApp()
+{
+    MQ_D(SplashLoginDialog);
+    if(d->trayIcon)
+    {
+        Format495Function::sendUnRegistPack();
+        d->trayIcon->deleteLater();
+        d->trayIcon=NULL;
+    }
+    if(d->loginTrayIcon)
+    {
+        d->loginTrayIcon->deleteLater();
+        d->loginTrayIcon=NULL;
+    }
+    this->close();
+}
+
+/*!
+ * @brief 周期发送测试报
+ */
+void SplashLoginDialog::sendTestSelfPeriod()
+{
+    Format495Function::sendTestSelfOnlinePack();
 }
 
 #endif
