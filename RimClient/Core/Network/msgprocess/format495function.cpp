@@ -9,6 +9,7 @@
 #include "Network/msgwrap/wrapfactory.h"
 
 #include <cstdarg>
+#include <QFileInfo>
 
 Format495Function::Format495Function()
 {
@@ -127,4 +128,27 @@ void Format495Function::addRegistNode(QByteArray & data,unsigned short nodeNums.
         data.append((char *)&tmpNode,sizeof(unsigned short));
     }
     va_end(list);
+}
+
+/*!
+ * @brief 判断文件是否可以通过495链路发送
+ * @param filePath 文件绝对路径
+ * @return  判断结果为true:文件可以被发送 false:文件不能发送
+ */
+bool Format495Function::checkFileCanbeSend(QString filePath)
+{
+    QFileInfo info(filePath);
+    return checkFileCanbeSend(info.size());
+}
+
+/*!
+ * @brief 判断数据是否可以通过495链路发送
+ * @param fileSize 数据大小
+ * @return 判断结果为true:数据可以被发送 false:数据不能发送
+ */
+bool Format495Function::checkFileCanbeSend(int fileSize)
+{
+    if( fileSize<=(MAX_PACKET * 65535) )
+        return true;
+    return false;
 }

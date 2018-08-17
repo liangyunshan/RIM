@@ -4,70 +4,89 @@
 <context>
     <name>AbstractChatMainWidget</name>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="751"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="672"/>
+        <source>%1 size out of range</source>
+        <translation>%1 文件大小超出范围</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="759"/>
         <source>warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="751"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="759"/>
         <source>Other window is recording,please try later!</source>
         <translation>其它对话框正在录音,请稍后再试!</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="893"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="901"/>
         <source>Select one or more files to open</source>
         <translation>选择发送文件</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="894"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="902"/>
         <source>./</source>
         <translation>./</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="895"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="903"/>
         <source>All (*.*)</source>
         <translation>All (*.*)</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="923"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1021"/>
+        <source>Trans File Error (%1):
+ %2</source>
+        <translation>文件传输失败 (%1)\n%2</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1030"/>
+        <source>Trans File Cancel (%1):
+ %2</source>
+        <translation>你取消了文件传输 (%1)\n%2</translation>
+    </message>
+    <message>
+        <source>send range is 10</source>
+        <translation type="vanished">一次最大传输10个文件</translation>
+    </message>
+    <message>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="931"/>
         <source>Open panel</source>
         <translation>命令面板</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1012"/>
         <source>Trans File Error:
 %1</source>
-        <translation>文件传输失败:\n%1</translation>
+        <translation type="vanished">文件传输失败:\n%1</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1018"/>
         <source>Trans File Cancel:
 %1</source>
-        <translation>文件传输任务取消:\n%1</translation>
+        <translation type="vanished">文件传输任务取消:\n%1</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1159"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1173"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1160"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1174"/>
         <source>Image</source>
         <translation>图片</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1161"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1175"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1162"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1176"/>
         <source>message record</source>
         <translation>消息记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="965"/>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="1174"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="973"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="1188"/>
         <source>Transfer Files</source>
         <translation>传送文件</translation>
     </message>
@@ -823,12 +842,12 @@
         <location filename="Widgets/logindialog.cpp" line="375"/>
         <location filename="Widgets/logindialog.cpp" line="386"/>
         <location filename="Widgets/registdialog.cpp" line="248"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="267"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="396"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="499"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="504"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="519"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="549"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="273"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="402"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="496"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="501"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="516"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="546"/>
         <location filename="main.cpp" line="123"/>
         <source>Warning</source>
         <translation>警告</translation>
@@ -844,7 +863,7 @@
         <translation>日志记录模块初始化失败!</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="170"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="171"/>
         <source>Font</source>
         <translation>字体工具栏</translation>
     </message>
@@ -853,42 +872,42 @@
         <translation type="vanished">字体颜色</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="177"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="178"/>
         <source>Emoji</source>
         <translation>选择表情</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="182"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="183"/>
         <source>Shake window</source>
         <translation>发送抖动窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="188"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="189"/>
         <source>Image</source>
         <translation>发送图像</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="193"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="194"/>
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="200"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="201"/>
         <source>FileTrans</source>
         <translation>文件传输</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="206"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="207"/>
         <source>Show Quick Order panel</source>
         <translation>快捷命令设置</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="218"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="219"/>
         <source>NoticeSet</source>
         <translation>提醒设置</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="223"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="224"/>
         <source>Audio</source>
         <translation>语音</translation>
     </message>
@@ -901,17 +920,17 @@
         <translation type="vanished">截图时隐藏当前窗口</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="228"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="229"/>
         <source>Record data</source>
         <translation>聊天记录</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="261"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="262"/>
         <source>Close window</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="Widgets/abstractchatmainwidget.cpp" line="269"/>
+        <location filename="Widgets/abstractchatmainwidget.cpp" line="270"/>
         <source>Send message</source>
         <translation>发送</translation>
     </message>
@@ -925,7 +944,7 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="247"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="146"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="150"/>
         <source>Min</source>
         <translation>最小化</translation>
     </message>
@@ -933,7 +952,7 @@
         <location filename="Widgets/editpersoninfowindow.cpp" line="252"/>
         <location filename="Widgets/logindialog.cpp" line="250"/>
         <location filename="Widgets/registgroupdialog.cpp" line="211"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="149"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="153"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -1349,7 +1368,7 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="185"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="108"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="112"/>
         <source>Sin in</source>
         <translation>登 陆</translation>
     </message>
@@ -1376,23 +1395,23 @@
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="244"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="143"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="147"/>
         <source>System Setting</source>
         <translation>系统设置</translation>
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="334"/>
         <location filename="Widgets/logindialog.cpp" line="360"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="396"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="499"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="402"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="496"/>
         <source>Connect to text server error!</source>
         <translation>连接信息服务器失败!</translation>
     </message>
     <message>
         <location filename="Widgets/logindialog.cpp" line="375"/>
         <location filename="Widgets/logindialog.cpp" line="386"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="519"/>
-        <location filename="Widgets/splashlogindialog.cpp" line="549"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="516"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="546"/>
         <source>Connect to file server error!</source>
         <translation>连接文件服务器失败!</translation>
     </message>
@@ -1526,22 +1545,22 @@
         <translation>发送</translation>
     </message>
     <message>
-        <location filename="Widgets/chat/transferfileitem.cpp" line="117"/>
+        <location filename="Widgets/chat/transferfileitem.cpp" line="118"/>
         <source>To off-line send</source>
         <translation>转离线发送</translation>
     </message>
     <message>
-        <location filename="Widgets/chat/transferfileitem.cpp" line="122"/>
+        <location filename="Widgets/chat/transferfileitem.cpp" line="123"/>
         <source>Recvive</source>
         <translation>接收</translation>
     </message>
     <message>
-        <location filename="Widgets/chat/transferfileitem.cpp" line="127"/>
+        <location filename="Widgets/chat/transferfileitem.cpp" line="128"/>
         <source>Save as</source>
         <translation>另存为</translation>
     </message>
     <message>
-        <location filename="Widgets/chat/transferfileitem.cpp" line="132"/>
+        <location filename="Widgets/chat/transferfileitem.cpp" line="133"/>
         <location filename="Widgets/chataudioarea.cpp" line="57"/>
         <location filename="Widgets/modifyremarkwindow.cpp" line="76"/>
         <location filename="Widgets/netsettings.cpp" line="146"/>
@@ -1743,18 +1762,18 @@
         <translation>选择气泡</translation>
     </message>
     <message>
-        <location filename="Widgets/splashlogindialog.cpp" line="97"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="101"/>
         <source>Server Ip</source>
         <translation>服务器IP</translation>
     </message>
     <message>
-        <location filename="Widgets/splashlogindialog.cpp" line="102"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="106"/>
         <source>Tandem Server IP</source>
         <oldsource>Tandem Server Ip</oldsource>
         <translation>串联服务器IP</translation>
     </message>
     <message>
-        <location filename="Widgets/splashlogindialog.cpp" line="267"/>
+        <location filename="Widgets/splashlogindialog.cpp" line="273"/>
         <source>Paramter settings read failed,system exit!</source>
         <translation>参数配置文件读取失败,系统退出!</translation>
     </message>

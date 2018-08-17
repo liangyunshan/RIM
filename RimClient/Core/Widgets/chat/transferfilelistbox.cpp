@@ -289,14 +289,16 @@ void TransferFileListBox::SetTransStatus(const FileTransProgress &progress)
     MQ_D(TransferFileListBox);
 
     TransferFileItem *t_item = NULL;
+    bool ret = false;
     foreach (t_item, d->fileItems)
     {
         if(t_item->taskSerialNo() == progress.serialNo)
         {
+            ret = true;
             break;
         }
     }
-    if(t_item)
+    if(t_item && ret)
     {
         t_item->setFinishedSize(progress.readySendBytes);
         t_item->setFileSize(progress.totleBytes);

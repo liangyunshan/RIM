@@ -52,6 +52,7 @@
 #include "../network/netglobal.h"
 #include "../others/serialno.h"
 #include "rquickorderwidget.h"
+#include "Network/msgprocess/format495function.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -666,6 +667,13 @@ void AbstractChatMainWidget::dealDropFile(QString fileName)
 {
     MQ_D(AbstractChatMainWidget);
 
+    if(!Format495Function::checkFileCanbeSend(fileName))
+    {
+        QString note = tr("%1 size out of range").arg(QFileInfo(fileName).fileName());
+        appendChatNotice(note,FAULT);
+        return ;
+    }
+
     TransferFileItem *item = appendTransferFile(fileName,TRANS_SEND);
     SenderFileDesc fileDesc;
     fileDesc.srcNodeId = G_User->BaseInfo().accountId;
@@ -1009,13 +1017,19 @@ void AbstractChatMainWidget::updateTransFileStatus(FileTransProgress progress)
     {
         if(progress.transStatus == FileTransStatus::TransError)
         {
-            QString note = tr("Trans File Error:\n%1").arg(progress.fileFullPath);
+            QFileInfo info(progress.fileFullPath);
+            QString note = tr("Trans File Error (%1):\n %2")
+                    .arg(RUtil::formatFileSize(info.size()))
+                    .arg(progress.fileFullPath);
             RUtil::StringToHtml(note);
             appendChatNotice(note,FAULT);
         }
         else if(progress.transStatus == FileTransStatus::TransCancel)
         {
-            QString note = tr("Trans File Cancel:\n%1").arg(progress.fileFullPath);
+            QFileInfo info(progress.fileFullPath);
+            QString note = tr("Trans File Cancel (%1):\n %2")
+                    .arg(RUtil::formatFileSize(info.size()))
+                    .arg(progress.fileFullPath);
             RUtil::StringToHtml(note);
             appendChatNotice(note,NORMAL);
         }

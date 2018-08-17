@@ -11,6 +11,8 @@
 #include "../messdiapatch.h"
 #include "Util/scaleswitcher.h"
 #include "Network/network_global.h"
+#include <QMutex>
+#include <QMutexLocker>
 
 std::mutex SendMutex;
 std::condition_variable SendConVariable;
@@ -75,7 +77,7 @@ bool FileSendManager::addFile(SenderFileDesc &fileInfo)
 
     fileList.push_back(fileInfo);
     SendConVariable.notify_one();
-qDebug()<<"Add_File:"<<fileList.size()<<"__"<<fileInfo.fullFilePath;
+qDebug()<<"Add_File curr fileList size:"<<fileList.size()<<"__serialNo"<<fileInfo.serialNo;
     return true;
 }
 
@@ -88,8 +90,14 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
 {
     std::unique_lock<std::mutex> ul(mutex);
     auto findIndex = std::find_if(fileList.begin(),fileList.end(),[&](const SenderFileDesc & fdesc)->bool{
+        qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+               <<""<<fileInfo.destNodeId << fdesc.destNodeId << fileInfo.fullFilePath<<fdesc.fullFilePath
+              <<"\n";
         return (fileInfo.destNodeId == fdesc.destNodeId && fileInfo.fullFilePath == fdesc.fullFilePath);
     });
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<"**********"<<(findIndex != fileList.end())
+          <<"\n";
 
     FileTransProgress progress;
     progress.transType = TRANS_SEND;
@@ -135,7 +143,7 @@ SenderFileDesc FileSendManager::getFile()
         fileList.pop_front();
     }
 
-qDebug()<<"Get_FIle:"<<fileList.size()<<"__"<<info.fullFilePath;
+qDebug()<<"Get_FIle curr fileList size:"<<fileList.size()<<"__serialNo:"<<info.serialNo;
 
     return info;
 }
@@ -244,7 +252,7 @@ bool File716SendTask::removaAllTransmit()
  */
 std::shared_ptr<FileSendDesc> File716SendTask::removeTask(QString No)
 {
-    std::lock_guard<std::mutex> lg(sendFileMutex);
+    QMutexLocker lock(&sendFileMutex);
     std::list<std::shared_ptr<FileSendDesc>>::iterator iter = sendList.begin();
     while(iter != sendList.end()){
         if(No.toUShort() == (*iter)->usSerialNo)
@@ -305,6 +313,7 @@ void File716SendTask::processFileData()
         progress.transType = TRANS_SEND;
         while(iter != sendList.end()){
             if((*iter)->isSendOver()){
+                QMutexLocker lock(&sendFileMutex);
                 qDebug()<<"Send over:"<<(*iter)->fileName;
 
                 progress.srcNodeId = (*iter)->accountId;
@@ -312,11 +321,13 @@ void File716SendTask::processFileData()
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
                 progress.transStatus = TransSuccess;
+                progress.serialNo = QString::number((*iter)->usSerialNo);
 
                 (*iter).reset();
                 iter = sendList.erase(iter);
                 MessDiapatch::instance()->onFileTransStatusChanged(progress);
             }else{
+                QMutexLocker lock(&sendFileMutex);
                 SendUnit unit;
                 unit.dataUnit.wSourceAddr = ScaleSwitcher::fromHexToDec((*iter)->accountId);
                 unit.dataUnit.wDestAddr = ScaleSwitcher::fromHexToDec((*iter)->otherSideId);
@@ -337,6 +348,7 @@ void File716SendTask::processFileData()
                 progress.readySendBytes = (*iter)->readLen;
                 progress.fileFullPath = (*iter)->fullPath ;
                 progress.totleBytes = (*iter)->dwPackAllLen;
+                progress.serialNo = QString::number((*iter)->usSerialNo);
 
                 if((*iter)->method == ParameterSettings::C_NetWork && (*iter)->format == ParameterSettings::M_205){
                     unit.method = C_UDP;

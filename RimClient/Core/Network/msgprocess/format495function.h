@@ -14,6 +14,8 @@ public:
     static void sendTestResultPack(QString destId);
 
     static void addRegistNode(QByteArray & data, unsigned short nodeNums...);
+    static bool checkFileCanbeSend(QString filePath);
+    static bool checkFileCanbeSend(int fileSize);
 };
 
 #endif // FORMAT495FUNCTION_H
