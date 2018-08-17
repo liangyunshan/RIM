@@ -25,6 +25,7 @@
 #include "global.h"
 #include "file/xmlparse.h"
 #include "broadcastnode.h"
+#include "file/globalconfigfile.h"
 
 #ifdef Q_OS_WIN
 #pragma  comment(lib,"ws2_32.lib")
@@ -330,6 +331,28 @@ void printProgramInfo(CommandParameter & result,QString ip,unsigned short port)
            ,serviceType.toLocal8Bit().data(),transType.toLocal8Bit().data(),dbType.toLocal8Bit().data(),ip.toLocal8Bit().data(),port);
 }
 
+//启动文本发送线程
+void startTextSendThread(const SettingConfig & setting)
+{
+    for(int i = 0; i< setting.textSendProcCount;i++)
+    {
+        SendTextProcessThread * thread = new SendTextProcessThread;
+        thread->start();
+    }
+}
+
+//启动文件发送线程
+void startFileSendThread(const SettingConfig & setting)
+{
+    for(int i = 0; i< setting.textSendProcCount;i++)
+    {
+#ifdef __LOCAL_CONTACT__
+        FileSendQueueThread * thread = new FileSendQueueThread;
+        thread->startMe();
+#endif
+    }
+}
+
 int main(int argc, char *argv[])
 {
     SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
@@ -367,7 +390,14 @@ int main(int argc, char *argv[])
         QSettings * settings = new QSettings(configFullPath+"/config.ini",QSettings::IniFormat);
         RUtil::setGlobalSettings(settings);
 
-        if(!RSingleton<RLog>::instance()->init())
+        RGlobal::G_GlobalConfigFile = new GlobalConfigFile;
+        RGlobal::G_GlobalConfigFile->setSettings(settings);
+        if(!RGlobal::G_GlobalConfigFile->parseFile()){
+            QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("System INI file parsed false!"),QMessageBox::Yes,QMessageBox::Yes);
+            return -1;
+        }
+
+        if(!RSingleton<RLog>::instance()->init(RGlobal::G_GlobalConfigFile->logConfig))
         {
             QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Log module initialization failure!"),QMessageBox::Yes,QMessageBox::Yes);
         }
@@ -387,7 +417,9 @@ int main(int argc, char *argv[])
 
         RGlobal::G_SERVICE_TYPE = commandResult.serviceType;
 
+#ifndef __LOCAL_CONTACT__
         if(RGlobal::G_SERVICE_TYPE == SERVICE_FILE)
+#endif
         {
             QDir fileDir(settingConfig.uploadFilePath);
             if(!fileDir.mkpath(settingConfig.uploadFilePath))
@@ -443,21 +475,20 @@ int main(int argc, char *argv[])
         }
 
         //【3】启动文本发送处理线程
-        if(commandResult.serviceType == SERVICE_TEXT){
-            for(int i = 0; i< settingConfig.textSendProcCount;i++)
-            {
-                SendTextProcessThread * thread = new SendTextProcessThread;
-                thread->start();
-            }
+        if(commandResult.serviceType == SERVICE_TEXT)
+        {
+            startTextSendThread(settingConfig);
+#ifdef __LOCAL_CONTACT__
+            startFileSendThread(settingConfig);
+#endif
         }
         else if(commandResult.serviceType == SERVICE_FILE)
         {
-            for(int i = 0; i< settingConfig.textSendProcCount;i++)
-            {
-                FileSendQueueThread * thread = new FileSendQueueThread;
-                thread->startMe();
-            }
+            startFileSendThread(settingConfig);
         }
+
+        Widget widget;
+        widget.show();
 
         return a.exec();
     }

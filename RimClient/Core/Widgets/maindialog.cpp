@@ -45,6 +45,7 @@
 #include "sql/sqlprocess.h"
 #include "screenshot.h"
 #include "Network/msgwrap/wrapfactory.h"
+#include "../file/globalconfigfile.h"
 
 #define PANEL_MARGIN 20
 #define PANEL_HIDEMARGIN 1
@@ -581,11 +582,13 @@ void MainDialog::procRecvServerTextReply(TextReply reply)
     //TODO 尚超：因为需要实现信息的已读和未读状态控制，我们计划将信息从数据库中读取出来后，将对应流水号的状态修改为已读，同时更新数据库
     //从内存缓存中读取流水号的方法已经不适应现有的已读未读状态控制的场景
     //如果需要翻看以前的代码，请使用版本管理工具查看
+#ifdef __LOCAL_CONTACT__
      UserClient * client = RSingleton<UserManager>::instance()->client(reply.wSourceAddr);
      if(client && client->chatPersonWidget != NULL)
      {
          client->procRecvServerTextReply(reply);
      }
+#endif
 }
 
 /*!
@@ -759,20 +762,18 @@ void MainDialog::initSqlDatabase()
 {
     QSharedPointer<DatabaseManager> db_ptr(new DatabaseManager());
 
-    QString type = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_TYPE,Constant::DEFAULT_SQL_TYPE).toString();
-    QString hostName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_HOSTNAME,Constant::DEFAULT_SQL_HOST).toString();
-    QString databaseName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_DATABASE,Constant::DEFAULT_SQL_DATABASE).toString();
-    QString userName = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_USER,Constant::DEFAULT_SQL_USER).toString();
-    int port = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_PORT,Constant::DEFAULT_SQL_PORT).toString().toInt();
+    QString type = Global::G_GlobalConfigFile->databaseConfigInfo.type;
+    QString hostName = Global::G_GlobalConfigFile->databaseConfigInfo.hostName;
+    QString databaseName = Global::G_GlobalConfigFile->databaseConfigInfo.databaseName;
+    QString userName = Global::G_GlobalConfigFile->databaseConfigInfo.userName;
+    int port = Global::G_GlobalConfigFile->databaseConfigInfo.port;
 
-    bool useInnerPass = RUtil::getGlobalValue(Constant::SYSTEM_DB,Constant::SYSTEM_DB_INNER_PASSWORD,Constant::DEFAULT_SQL_INNER_PASS).toBool();
+    bool useInnerPass = Global::G_GlobalConfigFile->databaseConfigInfo.useInnerPass;
     QString password;
     if(useInnerPass){
         password = Constant::DEFAULT_SQL_PASSWORD;
     }else{
-        RUtil::globalSettings()->beginGroup(Constant::SYSTEM_DB);
-        password = RUtil::globalSettings()->value(Constant::SYSTEM_DB_PASS,"").toString();
-        RUtil::globalSettings()->endGroup();
+        password = Global::G_GlobalConfigFile->databaseConfigInfo.password;
     }
 
     if(db_ptr->testSupportDB(type)){

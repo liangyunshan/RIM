@@ -27,6 +27,7 @@
 #include "widget/rmessagebox.h"
 #include "setkeysequencedialog.h"
 #include "user/user.h"
+#include "../file/globalconfigfile.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
 {
@@ -406,7 +407,7 @@ void SystemSettingsPrivate::localSettings()
     encryptionCheckBox->setChecked(G_User->systemSettings()->encryptionCheck);
     compressCheckBox->setChecked(G_User->systemSettings()->compressCheck);
 
-    systemTrayIcon->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,false).toBool());
+    systemTrayIcon->setChecked(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
 }
 
 #define SYSTEM_USER_BASIC_WIDTH 380
@@ -488,9 +489,10 @@ void SystemSettings::respExitSystem(bool flag)
 
 void SystemSettings::respSystemTrayIcon(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_TRAYICON,flag);
+    Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible = flag;
     G_User->systemSettings()->trayIcon = flag;
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
+    Global::G_GlobalConfigFile->sysc();
 }
 
 void SystemSettings::respHidePanel(bool flag)

@@ -10,5 +10,8 @@ DBFeature G_DB_FEATURE;                 /*!< 当前数据库驱动支持的功�
 #ifdef __LOCAL_CONTACT__
 ParameterSettings::RouteSettings* G_RouteSettings;   /*!< 路由配置信息 */
 #endif
+
+GlobalConfigFile * G_GlobalConfigFile;
+
 }
 

@@ -31,6 +31,8 @@ using namespace ProtocolType;
 #include "Widgets/splashlogindialog.h"
 #include "Widgets/chat/transferfileitem.h"
 
+#include "file/globalconfigfile.h"
+
 #include <Dbghelp.h>
 #pragma comment( lib, "DbgHelp")
 
@@ -45,6 +47,7 @@ using namespace ProtocolType;
            [+]skin
            [+]sound
            config.xml
+           路由表.xml
       [+]lib
            *.lib
       [+]users
@@ -114,11 +117,18 @@ int main(int argc, char *argv[])
     QSettings * settings = new QSettings(configFullPath+"/config.ini",QSettings::IniFormat);
     RUtil::setGlobalSettings(settings);
 
+    Global::G_GlobalConfigFile = new GlobalConfigFile;
+    Global::G_GlobalConfigFile->setSettings(settings);
+    if(!Global::G_GlobalConfigFile->parseFile()){
+        RMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("System INI file parsed false!"),RMessageBox::Yes,RMessageBox::Yes);
+        return -1;
+    }
+
     RUtil::createDir(configFullPath);
     RUtil::createDir(qApp->applicationDirPath()  + QDir::separator() + QString(Constant::PATH_UserPath));
     RUtil::createDir(configFullPath + QString(Constant::CONFIG_StylePath));
 
-    if(!RSingleton<RLog>::instance()->init())
+    if(!RSingleton<RLog>::instance()->init(Global::G_GlobalConfigFile->logConfig))
     {
         RMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Log module initialization failure!"),RMessageBox::Yes,RMessageBox::Yes);
     }
@@ -182,8 +192,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<GroupingCommandResponse>("GroupingCommandResponse");
     qRegisterMetaType<CommMethod>("CommMethod");
     qRegisterMetaType<FileTransProgress>("FileTransProgress");
+#ifdef __LOCAL_CONTACT__
     qRegisterMetaType<FileRecvDesc>("FileRecvDesc");
-//    qRegisterMetaType<TransferFileItem>("TransferFileItem");
+#endif
 
     RSingleton<TaskManager>::instance()->initTask();
 

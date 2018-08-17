@@ -33,7 +33,7 @@ void FileReceiveProcTask::startMe()
     }
     else
     {
-        G_FileRecvCondition.notify_one();
+        Global::G_FileRecvCondition.notify_one();
     }
 }
 
@@ -41,25 +41,25 @@ void FileReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_FileRecvCondition.notify_one();
+    Global::G_FileRecvCondition.notify_one();
 }
 
 void FileReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(runningFlag && G_FileRecvBuffs.empty())
+        while(runningFlag && Global::G_FileRecvBuffs.empty())
         {
-            std::unique_lock<std::mutex> ul(G_FileRecvMutex);
-            G_FileRecvCondition.wait(ul);
+            std::unique_lock<std::mutex> ul(Global::G_FileRecvMutex);
+            Global::G_FileRecvCondition.wait(ul);
         }
 
-        if(runningFlag && G_FileRecvBuffs.size() > 0)
+        if(runningFlag && Global::G_FileRecvBuffs.size() > 0)
         {
-            G_FileRecvMutex.lock();
-            RecvUnit array = G_FileRecvBuffs.front();
-            G_FileRecvBuffs.pop();
-            G_FileRecvMutex.unlock();
+            Global::G_FileRecvMutex.lock();
+            RecvUnit array = Global::G_FileRecvBuffs.front();
+            Global::G_FileRecvBuffs.pop();
+            Global::G_FileRecvMutex.unlock();
 
             if(array.data.size() > 0)
             {
