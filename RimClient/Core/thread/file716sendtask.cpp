@@ -30,19 +30,19 @@ ParameterSettings::OuterNetConfig QueryNodeDescInfo(QString nodeId,bool & result
     std::lock_guard<std::mutex> lg(QueryNodeMutex);
     result = false;
 
-    auto findIndex = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),
+    auto findIndex = std::find_if(Global::G_ParaSettings->outerNetConfig.begin(),Global::G_ParaSettings->outerNetConfig.end(),
                  [&nodeId](const ParameterSettings::OuterNetConfig & config){
         if(config.nodeId == nodeId)
             return true;
         return false;
     });
 
-    if(findIndex != G_ParaSettings->outerNetConfig.end()){
+    if(findIndex != Global::G_ParaSettings->outerNetConfig.end()){
         result = true;
         return *findIndex;
     }
 
-    if(nodeId == G_ParaSettings->baseInfo.nodeId){
+    if(nodeId == Global::G_ParaSettings->baseInfo.nodeId){
         result = true;
         ParameterSettings::OuterNetConfig localConfig;
         localConfig.nodeId = nodeId;
@@ -109,6 +109,7 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
     else
     {
         //TODO：将正在传输中的任务终止，removeTask方法需要修改
+#ifdef __LOCAL_CONTACT__
         std::shared_ptr<FileSendDesc> desc = File716SendTask::instance()->removeTask(fileInfo.serialNo);
         if(desc)
         {
@@ -121,8 +122,8 @@ bool FileSendManager::deleteFile(SenderFileDesc &fileInfo)
             MessDiapatch::instance()->onFileTransStatusChanged(progress);
             return true;
         }
+#endif
     }
-
     return false;
 }
 

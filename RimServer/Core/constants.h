@@ -36,6 +36,11 @@ const char FILE_PORT[] = "FileServicePort";
 const char TEXT_IP[] = "TextServiceIp";
 const char FILE_IP[] = "FileServiceIp";
 
+//日志模块
+const char LOG_LOG[] = "log";
+const char LOG_LOG_RECORDFILE[] = "log2File";
+const char LOG_LOG_LEVEL[] = "logLevel";
+
 const char FileServerSetting[] = "FileServer";
 const char UPLOAD_FILE_PATH [] = "UploadFilePath";
 

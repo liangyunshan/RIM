@@ -17,6 +17,7 @@
 #include "widget/rmessagebox.h"
 #include "netsettings.h"
 #include "Network/msgwrap/wrapfactory.h"
+#include "../file/globalconfigfile.h"
 
 #define PANEL_BOTTOM_TOOL_WIDTH 20
 #define PANEL_BOTTOM_TOOL_HEIGHT 40
@@ -104,11 +105,11 @@ void PanelBottomToolBarPrivate::initWidget()
     QMenu * netConnectMenu = ActionManager::instance()->createMenu(Constant::MENU_PANEL_BOTTOM_NETCONNECTOR);
     netConnectButton->setMenu(netConnectMenu);
     netConnectButton->setPopupMode(QToolButton::InstantPopup);
-
+#ifndef __LOCAL_CONTACT__
     RToolButton * fileServerButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_FILESERVER,q_ptr,SLOT(viewFileServerState()));
     fileServerButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     fileServerButton->setToolTip(QObject::tr("File server"));
-
+#endif
     RToolButton * notifyButton = ActionManager::instance()->createToolButton(Constant::TOOL_PANEL_NOTIFY,q_ptr,SLOT(showNotifyWindow()));
     notifyButton->setFixedSize(PANEL_BOTTOM_TOOL_WIDTH,PANEL_BOTTOM_TOOL_HEIGHT);
     notifyButton->setToolTip(QObject::tr("Notify windows"));
@@ -245,17 +246,23 @@ void PanelBottomToolBar::updateNetConnectorInfo()
         };
 
         //文本服务器
-        QVector<IpPort> ips = G_NetSettings.validTextIps();
-        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_TEXT,G_NetSettings.connectedTextIpPort));
+        QVector<IpPort> ips = Global::G_GlobalConfigFile->netSettings.validTextIps();
+        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_TEXT,Global::G_GlobalConfigFile->netSettings.connectedTextIpPort));
 
         netConnectMenu->addSeparator();
 
         //文件服务器
-        ips = G_NetSettings.validFileIps();
-        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_FILE,G_NetSettings.connectedFileIpPort));
+#ifndef __LOCAL_CONTACT__
+        ips = Global::G_GlobalConfigFile->netSettings.validFileIps();
+        std::for_each(ips.begin(),ips.end(),std::bind(func,std::placeholders::_1,SERVER_FILE,Global::G_GlobalConfigFile->netSettings.connectedFileIpPort));
+#endif
     }
 
-    if(G_NetSettings.connectedTextIpPort.isConnected() && G_NetSettings.connectedFileIpPort.isConnected()){
+    if(Global::G_GlobalConfigFile->netSettings.connectedTextIpPort.isConnected()
+#ifndef __LOCAL_CONTACT__
+     && Global::G_GlobalConfigFile->netSettings.connectedFileIpPort.isConnected()
+#endif
+            ){
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->setToolTip(tr("Network connected"));
         ActionManager::instance()->action(Constant::ACTION_PANEL_BOTTOM_NETSETTING)->setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
         ActionManager::instance()->toolButton(Constant::TOOL_PANEL_NETWORK)->QToolButton::setIcon(QPixmap(":/icon/resource/icon/Tool_Panel_Network_OK.png"));
@@ -280,25 +287,27 @@ void PanelBottomToolBar::respChangeConnector(bool)
        QStringList connectorInfo = toolButt->property(IP_DATA).toString().split(":");
        if(connectorInfo.size() == 2){
             if(ipType == SERVER_TEXT){
-                if(G_NetSettings.connectedTextIpPort.isConnected()){
+                if(Global::G_GlobalConfigFile->netSettings.connectedTextIpPort.isConnected()){
                     RMessageBox::warning(this,QObject::tr("warning"),tr("Text Network established!"),RMessageBox::Yes);
                 }else{
                     RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
                                              .arg(connectorInfo.at(1)),RMessageBox::Yes);
 
-                    G_NetSettings.connectedTextIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
+                    Global::G_GlobalConfigFile->netSettings.connectedTextIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
                     TextNetConnector::instance()->connect();
                 }
             }else if(ipType == SERVER_FILE){
-                if(G_NetSettings.connectedFileIpPort.isConnected()){
+#ifndef __LOCAL_CONTACT__
+                if(Global::G_GlobalConfigFile->netSettings.connectedFileIpPort.isConnected()){
                     RMessageBox::warning(this,QObject::tr("warning"),tr("File Network established!"),RMessageBox::Yes);
                 }else{
                     RMessageBox::information(this,QObject::tr("information"),tr("Attempt to connect %1:%2").arg(connectorInfo.at(0))
                                              .arg(connectorInfo.at(1)),RMessageBox::Yes);
 
-                    G_NetSettings.connectedFileIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
+                    Global::G_GlobalConfigFile->netSettings.connectedFileIpPort = IpPort(connectorInfo.at(0),connectorInfo.at(1).toUShort());
                     FileNetConnector::instance()->connect();
                 }
+#endif
             }
        }
     }
@@ -335,6 +344,7 @@ void PanelBottomToolBar::updateNetConnector()
 
 }
 
+#ifndef __LOCAL_CONTACT__
 void PanelBottomToolBar::viewFileServerState()
 {
     if(!G_User->isFileOnLine()){
@@ -345,6 +355,7 @@ void PanelBottomToolBar::viewFileServerState()
         //TODO 20180503 检测文件服务器连接状态
     }
 }
+#endif
 
 void PanelBottomToolBar::networkIsConnected(bool connected)
 {

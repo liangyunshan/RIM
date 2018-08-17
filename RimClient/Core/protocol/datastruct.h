@@ -186,85 +186,6 @@ struct SystemSettingKey
     bool compressCheck;
 };
 
-struct IpPort{
-
-    IpPort(){
-        port = 0;
-        connected = false;
-    }
-
-    IpPort(QString ip,unsigned short port){
-        this->ip = ip;
-        this->port = port;
-        connected = false;
-    }
-
-    IpPort(const IpPort & otherSide){
-        this->ip = otherSide.ip;
-        this->port = otherSide.port;
-        this->connected = otherSide.connected;
-    }
-
-    IpPort operator=(const IpPort & otherSide){
-        if(this != &otherSide){
-            this->ip = otherSide.ip;
-            this->port = otherSide.port;
-            this->connected = otherSide.connected;
-        }
-
-        return *this;
-    }
-
-    bool isValid(){return (ip.size() > 0 && port > 0);}
-    void setConnected(bool flag){connected = flag;}
-    bool isConnected(){return connected;}
-
-    bool operator== (const IpPort & otherSide){
-        if(ip != otherSide.ip || port != otherSide.port){
-            return false;
-        }
-        return true;
-    }
-
-    QString ip;
-    unsigned short port;
-
-    bool connected;
-};
-
-/*!
- *  @brief 网络配置信息
- */
-struct NetworkSettings{
-
-    QVector<IpPort> validTextIps(){
-        QVector<IpPort> ipCollects;
-
-        if(textServer.isValid())
-            ipCollects.append(textServer);
-
-        if(tandemServer.isValid())
-            ipCollects.append(tandemServer);
-
-        return ipCollects;
-    }
-
-    QVector<IpPort> validFileIps(){
-        QVector<IpPort> ipCollects;
-
-        if(fileServer.isValid())
-            ipCollects.append(fileServer);
-
-        return ipCollects;
-    }
-
-    IpPort textServer;              //主服务器
-    IpPort tandemServer;            //串联服务器
-    IpPort fileServer;              //文件服务器
-
-    IpPort connectedTextIpPort;         //保存正在连接的文本网络地址信息(要么为textServer，要么为tandemServer)
-    IpPort connectedFileIpPort;         //保存正在连接的文件网络地址信息
-};
 
 /*!
  *  @brief 待发送至服务器的文件描述
@@ -510,19 +431,6 @@ enum ParseType{
 };//聊天数据包解析类型,替换图形为字符串数据
 
 typedef QList<ChatInfoUnit> ChatInfoUnitList;
-
-const QString _Sql_UserList_TableName_ = "UserList";
-const QString _Sql_UserList_UserId_ = "UserId";
-const QString _Sql_UserList_UserName_ = "UserName";
-
-const QString _Sql_User_TableName_ = "User_";
-const QString _Sql_User_UserId_ = "UserId";
-const QString _Sql_User_UserName_ = "UserName";
-const QString _Sql_User_Userhead_ = "Userhead";
-const QString _Sql_User_RecordTime_ = "RecordTime";
-const QString _Sql_User_RecordContents_ = "RecordContents";
-const QString _Sql_User_RecordTxt_ = "RecordTxt";
-const QString _Sql_User_Rowid_ = "rowid";
 
 const unsigned short DefaultQueryRow = 3;  //默认查找的记录数
 

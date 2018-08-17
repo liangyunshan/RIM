@@ -310,7 +310,7 @@ void PanelPersonPage::updateFriendListAdapter()
     groupData->isDefault = true;
     groupData->index = 0;
 
-    std::for_each(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&groupData](const ParameterSettings::OuterNetConfig & user){
+    std::for_each(Global::G_ParaSettings->outerNetConfig.begin(),Global::G_ParaSettings->outerNetConfig.end(),[&groupData](const ParameterSettings::OuterNetConfig & user){
         SimpleUserInfo * userInfo = new SimpleUserInfo();
         userInfo->accountId = user.nodeId;
         userInfo->nickName = user.nodeId;
@@ -1136,11 +1136,11 @@ ToolItem * PanelPersonPage::ceateItem(SimpleUserInfo * userInfo,ToolPage * page)
     client->toolItem = item;
 
 #ifdef __LOCAL_CONTACT__
-    if(G_ParaSettings){
-        QVector<ParameterSettings::OuterNetConfig>::iterator iter = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&userInfo](const ParameterSettings::OuterNetConfig & outerConfig){
+    if(Global::G_ParaSettings){
+        QVector<ParameterSettings::OuterNetConfig>::iterator iter = std::find_if(Global::G_ParaSettings->outerNetConfig.begin(),Global::G_ParaSettings->outerNetConfig.end(),[&userInfo](const ParameterSettings::OuterNetConfig & outerConfig){
             return outerConfig.nodeId == userInfo->accountId;
         });
-        if(iter != G_ParaSettings->outerNetConfig.end()){
+        if(iter != Global::G_ParaSettings->outerNetConfig.end()){
             client->netConfig = *iter;
         }
     }

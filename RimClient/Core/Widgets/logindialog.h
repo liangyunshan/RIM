@@ -85,14 +85,10 @@ private slots:
 
 private:
     void createTrayMenu();
-    void loadLocalSettings();
     int isContainUser();
     void resetDefaultInput();
     void resetDefaultPixmap();
     void enableInput(bool flag);
-
-    //95
-    //
 
 private:
     LoginDialogPrivate * d_ptr;

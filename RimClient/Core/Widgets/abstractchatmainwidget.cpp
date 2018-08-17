@@ -51,6 +51,7 @@
 #include "../thread/file716sendtask.h"
 #include "../network/netglobal.h"
 #include "../others/serialno.h"
+#include "../file/globalconfigfile.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
@@ -873,6 +874,11 @@ void AbstractChatMainWidget::sendTargetFiles(bool)
                               tr("All (*.*)"));
     if(files.isEmpty())
         return ;
+
+    if(files.size() > Global::G_GlobalConfigFile->transSetting.maxTransFileOnce){
+        RMessageBox::warning(this,tr("warning"),tr("Transfer files size greater than %1.").arg(Global::G_GlobalConfigFile->transSetting.maxTransFileOnce),RMessageBox::Yes);
+        return;
+    }
 
     foreach(QString fileName,files)
     {

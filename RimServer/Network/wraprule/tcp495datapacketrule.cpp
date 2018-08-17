@@ -25,7 +25,7 @@ TCP495DataPacketRule::TCP495DataPacketRule():
     SendPackId = qrand()%1024;
 }
 
-void TCP495DataPacketRule::registTextHandler(Handler *dataHandler)
+void TCP495DataPacketRule::registDataHandler(Handler *dataHandler)
 {
     textHandler = dataHandler;
 }
