@@ -70,7 +70,9 @@ SOURCES += main.cpp\
     Network/msgparse/binary716_msgparse.cpp \
     Network/msgprocess/data716process.cpp \
     thread/netconnector.cpp \
-    thread/filesendqueuethread.cpp
+    thread/filesendqueuethread.cpp \
+    broadcastnode.cpp \
+    file/globalconfigfile.cpp
 
 HEADERS  += widget.h \
     rsingleton.h \
@@ -104,7 +106,9 @@ HEADERS  += widget.h \
     Network/msgparse/binary716_msgparse.h \
     Network/msgprocess/data716process.h \
     thread/netconnector.h \
-    thread/filesendqueuethread.h
+    thread/filesendqueuethread.h \
+    broadcastnode.h \
+    file/globalconfigfile.h
 
 FORMS    += widget.ui
 

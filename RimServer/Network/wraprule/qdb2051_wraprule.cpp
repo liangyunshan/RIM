@@ -16,20 +16,20 @@ void QDB2051_WrapRule::wrap(ProtocolPackage & package)
 {
     QDB2051_Head qdb21_2051;
     memset(&qdb21_2051,0,sizeof(QDB2051_Head));
-    qdb21_2051.cFileType = package.cFileType;
-    qdb21_2051.cFilenameLen = package.cFilename.length();
-    qdb21_2051.ulDestDeviceNo = package.wDestAddr;
-    qdb21_2051.usDestSiteNo = package.wDestAddr;
-    qdb21_2051.ulPackageLen = sizeof(qdb21_2051.ulPackageLen)
-                            + sizeof(qdb21_2051.usDestSiteNo)
-                            + sizeof(qdb21_2051.ulDestDeviceNo)
-                            + sizeof(qdb21_2051.cFileType)
-                            + sizeof(qdb21_2051.cFilenameLen)
-                            + qdb21_2051.cFilenameLen
+    qdb21_2051.fileType = package.fileType;
+    qdb21_2051.filenameLen = package.filename.length();
+    qdb21_2051.destDeviceNo = package.pack495.destAddr;
+    qdb21_2051.destSiteNo = package.pack495.destAddr;
+    qdb21_2051.packageLen = sizeof(qdb21_2051.packageLen)
+                            + sizeof(qdb21_2051.destSiteNo)
+                            + sizeof(qdb21_2051.destDeviceNo)
+                            + sizeof(qdb21_2051.fileType)
+                            + sizeof(qdb21_2051.filenameLen)
+                            + qdb21_2051.filenameLen
                             + package.data.size();
 
-    package.data.prepend(package.cFilename);
-    package.data.prepend((char*)&qdb21_2051,qdb21_2051.ulPackageLen-package.data.size());
+    package.data.prepend(package.filename);
+    package.data.prepend((char*)&qdb21_2051,qdb21_2051.packageLen-package.data.size());
 }
 
 bool QDB2051_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
@@ -42,11 +42,11 @@ bool QDB2051_WrapRule::unwrap(const QByteArray & data,ProtocolPackage & result)
     memcpy(&qdb21_2051,data.data(),sizeof(QDB2051_Head));
 
     int realsize = 0;
-    realsize = data.size() - sizeof(QDB2051_Head) - (int)qdb21_2051.cFilenameLen;
+    realsize = data.size() - sizeof(QDB2051_Head) - (int)qdb21_2051.filenameLen;
 
-    result.cFileType = qdb21_2051.cFileType;
-    if(qdb21_2051.cFilenameLen > 0){
-        result.cFilename.append(data.data()+sizeof(QDB2051_Head),qdb21_2051.cFilenameLen);
+    result.fileType = qdb21_2051.fileType;
+    if(qdb21_2051.filenameLen > 0){
+        result.filename.append(data.data()+sizeof(QDB2051_Head),qdb21_2051.filenameLen);
     }
     result.data = data.right(realsize);
     return true;

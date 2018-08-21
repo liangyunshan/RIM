@@ -35,12 +35,18 @@ public:
     };
     Q_FLAG(RLOG_LEVEL)
 
+    struct LogConfig
+    {
+        bool isRecord2File;     /*!< 是否记录到文件 */
+        int level;              /*!< 记录日志等级，大于等于此level的日志将被记录 */
+    };
+
     RLog();
 
     void setLogLevel(const RLog::RLOG_LEVEL & level);
     RLog::RLOG_LEVEL getLogLevel(){return logLevel;}
 
-    static bool init();
+    static bool init(RLog::LogConfig & logConfig);
 
     static void log(RLOG_LEVEL nLevel,const char * fileDesc,const char * functionDesc, int lineNum,const char* data, ...);
 

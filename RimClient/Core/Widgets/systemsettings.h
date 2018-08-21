@@ -76,6 +76,7 @@ private slots:
     void respShortCut();
     void respSoundSetting();
     void respFileSetting();
+    void respQuickOrder();
 
 private:
     SystemSettingsPrivate * d_ptr;

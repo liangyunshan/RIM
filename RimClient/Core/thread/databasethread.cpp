@@ -71,7 +71,7 @@ void DatabaseThread::run()
 //                        unit.user.id    = query.value(_Sql_User_UserId_).toInt();
 //                        unit.user.name  = query.value(_Sql_User_UserName_).toString();
 //                        unit.user.head  = query.value(_Sql_User_Userhead_).toString();
-                        unit.contents   = query.value(_Sql_User_RecordContents_).toString();
+//                        unit.contents   = query.value(_Sql_User_RecordContents_).toString();
                         list.append(unit);
                     }
                     emit resultReady(0,list);

@@ -22,11 +22,11 @@ void TaskManager::initTask()
     //文本线程
     addTask(TEXT_NET_CONC,shared_ptr<ClientNetwork::RTask>(new TextNetConnector()));
     addTask(MSG_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new MsgReceiveProcTask()));
+    addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
 
+#ifndef __LOCAL_CONTACT__
     //文件线程
     addTask(FILE_NET_CONC,shared_ptr<ClientNetwork::RTask>(new FileNetConnector()));
-    addTask(FILE_RECV_PROC,shared_ptr<ClientNetwork::RTask>(new FileReceiveProcTask()));
-#ifndef __LOCAL_CONTACT__
     addTask(FILE_RECV,shared_ptr<ClientNetwork::RTask>(new FileRecvTask()));
 #else
     addTask(FILE_SEND_PROC,shared_ptr<ClientNetwork::RTask>(new File716SendTask()));

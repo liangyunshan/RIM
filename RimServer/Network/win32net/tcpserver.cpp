@@ -43,7 +43,7 @@ TcpClientManager *TcpServer::clientManager()
 
 bool TcpServer::startMe(const char *ip, unsigned short port)
 {
-   if(ip == NULL || port <= 1024)
+   if(ip == NULL || port < 1024)
    {
        RLOG_ERROR("ip or port is invalid!");
        return false;

@@ -45,6 +45,9 @@ private slots:
     void closeWindow();
     void prepareNetConnect();
     void loadLocalSettings();
+    void dealShowLoginPanel();
+    void dealQuitApp();
+    void sendTestSelfPeriod();
 
     /**********文本网络连接**********/
     void respTextConnect(bool flag);
@@ -52,8 +55,10 @@ private slots:
     void respTransmitError(QString errorMsg);
 
     /**********文件网络连接**********/
+#ifndef __LOCAL_CONTACT__
     void respFileConnect(bool flag);
     void respFileSocketError();
+#endif
 
 private:
     void enableInput(bool flag);

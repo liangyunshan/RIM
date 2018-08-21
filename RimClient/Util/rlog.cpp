@@ -34,20 +34,10 @@ void RLog::setLogLevel(const RLog::RLOG_LEVEL &level)
     logLevel = level;
 }
 
-bool RLog::init()
+bool RLog::init(LogConfig &logConfig)
 {
-    if(!RUtil::globalSettings()->value("log/log2File").isValid())
-    {
-        RUtil::globalSettings()->setValue("log/log2File",isRecord2File);
-    }
-    isRecord2File = RUtil::globalSettings()->value("log/log2File").toBool();
-
-    if(!RUtil::globalSettings()->value("log/logLevel").isValid())
-    {
-        RUtil::globalSettings()->setValue("log/logLevel",(int)logLevel);
-    }
-
-    logLevel = (RLog::RLOG_LEVEL)RUtil::globalSettings()->value("log/logLevel").toInt();
+    isRecord2File = logConfig.isRecord2File;
+    logLevel = (RLog::RLOG_LEVEL)logConfig.level;
 
     QString logDir = qApp->applicationDirPath() +  QString(PATH_LogPath);
     if(RUtil::createDir(logDir))

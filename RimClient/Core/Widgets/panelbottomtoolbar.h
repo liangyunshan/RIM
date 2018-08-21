@@ -42,7 +42,9 @@ private slots:
     void updateNetSettingInstance(QObject *);
     void showNotifyWindow();
     void updateNetConnector();
+#ifndef __LOCAL_CONTACT__
     void viewFileServerState();
+#endif
     void updateNetConnectorInfo();
     void respChangeConnector(bool);
 

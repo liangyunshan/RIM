@@ -23,7 +23,7 @@ WorkThread::WorkThread(SharedIocpData *data):
     dataPacketRule = std::make_shared<TCPDataPacketRule>();
 #endif
     Handler * handler = new SockTextDataHandler();
-    dataPacketRule->registTextHandler(handler);
+    dataPacketRule->registDataHandler(handler);
 }
 
 unsigned  __stdcall iocpProc(LPVOID v)
@@ -113,7 +113,7 @@ void WorkThread::handleAccept(IocpContext *ioData)
     TcpClient * client = ioData->getClient();
     client->setPort(remoteAddr->sin_port);
     client->setIp(inet_ntoa(remoteAddr->sin_addr));
-qDebug()<<"Client:"<<client->socket();
+
     serverSharedData->m_clientManager->addClient(client);
 
     NetUtil::crateIocp(client->socket(), serverSharedData, (DWORD)client);

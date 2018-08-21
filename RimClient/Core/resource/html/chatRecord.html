@@ -302,6 +302,8 @@
         {
              bridge = channel.objects.bridge;
         });
+
+        window.onmousewheel = scrollFunc;
     }
 
     var input = document.getElementById('msg_input');//查找缓存
@@ -1193,7 +1195,7 @@
     }
 
     var scrollFunc = function (e) {
-        e = e || window.event;
+        e = e || window.event; 
         if (getDocumentTop() == 0 && e.wheelDelta >= 120)
         {
             //当滚动条在顶部后鼠标滚轮滚动

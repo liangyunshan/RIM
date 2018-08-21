@@ -31,12 +31,12 @@ OuterNetConfig QueryNodeConfig(unsigned short nodeId,bool & success )
 {
     success = false;
 
-    if(G_ParaSettings){
-        auto index = std::find_if(G_ParaSettings->outerNetConfig.begin(),G_ParaSettings->outerNetConfig.end(),[&nodeId](const OuterNetConfig & conf){
+    if(Global::G_ParaSettings){
+        auto index = std::find_if(Global::G_ParaSettings->outerNetConfig.begin(),Global::G_ParaSettings->outerNetConfig.end(),[&nodeId](const OuterNetConfig & conf){
             return nodeId == ScaleSwitcher::fromHexToDec(const_cast<QString&>(conf.nodeId));
         });
 
-        if(index != G_ParaSettings->outerNetConfig.end()){
+        if(index != Global::G_ParaSettings->outerNetConfig.end()){
             success = true;
             return (*index);
         }
@@ -95,7 +95,7 @@ void Data716Process::processText(const ProtocolPackage &data)
     response.isEncryption = 0;
     response.isCompress = 0;
     response.textType = TEXT_NORAML;
-    response.sendData = QString::fromLocal8Bit( data.data );
+    response.sendData = QString::fromLocal8Bit(data.data);
 
     MessDiapatch::instance()->onRecvText(response);
 }

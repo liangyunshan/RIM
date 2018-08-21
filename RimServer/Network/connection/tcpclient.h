@@ -47,7 +47,6 @@ struct PacketBuff
      * @brief 获取缓存接收的分段数据
      * @note 将缓存接收的数据重新组装，拼接成新的数据；并在拼接后的数据头部插入协议头(21+2051) \n
      * @param[in] container 数据容器
-     * @param[in] perPacketOffset 截取每个分段的起始点
      */
     void packDataWidthPrtocol(QByteArray & container){
         if(isCompleted && recvSize > 0)
@@ -106,7 +105,11 @@ enum FileTransState
  */
 struct FileRecvDesc
 {
-    FileRecvDesc():fileTransState(FILE_ERROR),fileHeadLen(0){}
+    FileRecvDesc():fileTransState(FILE_ERROR)
+#ifdef __LOCAL_CONTACT__
+      ,fileHeadLen(0)
+#endif
+    {}
 
     ~FileRecvDesc(){
         destory();
@@ -197,9 +200,9 @@ struct FileRecvDesc
 #ifdef __LOCAL_CONTACT__
     int cdate;                           /*!< 日期 */
     int ctime;                           /*!< 时间 */
-    unsigned short usSerialNo;           /*!< 流水号*/
-    unsigned short usOrderNo;            /*!< 协议号*/
-    unsigned char bPackType;             /*!< 报文类型 */
+    unsigned short serialNo;           /*!< 流水号*/
+    unsigned short orderNo;            /*!< 协议号*/
+    unsigned char packType;             /*!< 报文类型 */
     int fileHeadLen;                     /*!< sizeof(21)+sizeof(2051)+fileNameLength */
 #endif
 };
@@ -314,9 +317,9 @@ struct FileSendDesc
     int sliceNum;                        /*!< 记录调用read次数，用于表示数据索引 */
     int cdate;                           /*!< 日期 */
     int ctime;                           /*!< 时间 */
-    unsigned short usSerialNo;           /*!< 流水号*/
-    unsigned short usOrderNo;            /*!< 协议号*/
-    unsigned char bPackType;             /*!< 报文类型 */
+    unsigned short serialNo;           /*!< 流水号*/
+    unsigned short orderNo;            /*!< 协议号*/
+    unsigned char packType;             /*!< 报文类型 */
     unsigned long dwPackAllLen;          /*!< 待发送文件总大小 */
 #endif
 };
@@ -327,21 +330,21 @@ struct FileSendDesc
  */
 struct RecvFileTypeId
 {
-    RecvFileTypeId():wSourceAddr(0),wDestAddr(0),usSerialNo(0){}
-    RecvFileTypeId(unsigned short source,unsigned short dest,unsigned short serialNo,QDB2051::FileType ftype = QDB2051::F_NO_SUFFIX):wSourceAddr(source),
-        wDestAddr(dest),usSerialNo(serialNo),filetype(ftype){}
+    RecvFileTypeId():sourceAddr(0),destAddr(0),serialNo(0){}
+    RecvFileTypeId(unsigned short source,unsigned short dest,unsigned short serialNo,QDB2051::FileType ftype = QDB2051::F_NO_SUFFIX):sourceAddr(source),
+        destAddr(dest),serialNo(serialNo),filetype(ftype){}
 
     bool operator== (const RecvFileTypeId & others){
         if(this == &others)
             return true;
 
-        return (this->wSourceAddr == others.wSourceAddr && this->wDestAddr == others.wDestAddr
-                && this->usSerialNo == others.usSerialNo);
+        return (this->sourceAddr == others.sourceAddr && this->destAddr == others.destAddr
+                && this->serialNo == others.serialNo);
     }
 
-    unsigned short wSourceAddr;     /*!< 源节点号 */
-    unsigned short wDestAddr;       /*!< 目的节点号 */
-    unsigned short usSerialNo;      /*!< 流水号 */
+    unsigned short sourceAddr;     /*!< 源节点号 */
+    unsigned short destAddr;       /*!< 目的节点号 */
+    unsigned short serialNo;      /*!< 流水号 */
     QDB2051::FileType filetype;     /*!< 文件类型 */
 };
 #endif
@@ -434,6 +437,7 @@ public:
     TcpClient *  getClient(int sock);
     TcpClient *  getClient(QString accountId);
     ClientList   getClients(QString accountId);
+    ClientList   getClients();
     TcpClient *  addClient(int sockId, char* ip, unsigned short port);
 
     int counts();
@@ -441,7 +445,7 @@ public:
 private:
     static TcpClientManager * manager;
 
-    std::list<TcpClient *> clientList;
+    ClientList clientList;
     std::mutex mutex;
 };
 

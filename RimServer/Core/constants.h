@@ -18,7 +18,7 @@ const char Date_Simple[] = "yyyy-MM-dd";
 /*文件路径*/
 const char AppShortName[] = "Rim";
 const char ApplicationName[] = "RimServer";
-const char Version[] = "1.0.0";
+const char Version[] = "1.1.0";
 const char PATH_UserPath[] = "/../users";
 const char PATH_ImagePath[] = "/../image";
 const char PATH_ConfigPath[] = "/../config";
@@ -36,8 +36,16 @@ const char FILE_PORT[] = "FileServicePort";
 const char TEXT_IP[] = "TextServiceIp";
 const char FILE_IP[] = "FileServiceIp";
 
+//日志模块
+const char LOG_LOG[] = "log";
+const char LOG_LOG_RECORDFILE[] = "log2File";
+const char LOG_LOG_LEVEL[] = "logLevel";
+
 const char FileServerSetting[] = "FileServer";
 const char UPLOAD_FILE_PATH [] = "UploadFilePath";
+
+const char TRANS_SETTING[] = "TransSetting";
+const char BROADCAST_DEST_NODE[] = "BroadcastNodes";
 
 /*图片*/
 const char ICON_LOKC24[] = ":/icon/resource/icon/icon_lock.png";

@@ -2,6 +2,8 @@
 
 #ifdef __LOCAL_CONTACT__
 
+#include <cstdarg>
+
 #include <QTimer>
 #include <QPixmap>
 #include <QDir>
@@ -40,7 +42,8 @@
 #include "Network/msgwrap/wrapfactory.h"
 #include "../network/netglobal.h"
 #include "others/serialno.h"
-
+#include "Network/msgprocess/format495function.h"
+#include "../file/globalconfigfile.h"
 
 class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDialog>
 {
@@ -48,6 +51,7 @@ class SplashLoginDialogPrivate : public QObject,public GlobalData<SplashLoginDia
 private:
     explicit SplashLoginDialogPrivate(SplashLoginDialog * q):q_ptr(q),
     trayIcon(nullptr),mainDialog(nullptr){
+        loginTrayIcon = NULL;
         initWidget();
     }
 
@@ -68,7 +72,9 @@ private:
     QLabel * tcpFlowServerIp1;           /*!< 串联服务器IP地址1 */
 
     SystemTrayIcon * trayIcon;
+    SystemTrayIcon * loginTrayIcon;
     MainDialog * mainDialog;
+    QTimer *m_pTimer_TestSelf;           /*!< 发送测试自身在线报文定时器*/
 };
 
 void SplashLoginDialogPrivate::initWidget()
@@ -152,6 +158,19 @@ void SplashLoginDialogPrivate::initWidget()
     toolBar->appendToolButton(minSize);
     toolBar->appendToolButton(closeButt);
 
+    if(!loginTrayIcon)
+    {
+        loginTrayIcon = new SystemTrayIcon();
+        loginTrayIcon->setModel(SystemTrayIcon::System_Login);
+        loginTrayIcon->setVisible(true);
+        QObject::connect(loginTrayIcon,SIGNAL(showLoginPanel()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+        QObject::connect(loginTrayIcon,SIGNAL(quitApp()),
+                         q_ptr,SLOT(dealShowLoginPanel()));
+    }
+    m_pTimer_TestSelf = new QTimer(q_ptr);
+    QObject::connect(m_pTimer_TestSelf,SIGNAL(timeout()),q_ptr,SLOT(sendTestSelfPeriod()));
+
     QObject::connect(loginButt,SIGNAL(pressed()),q_ptr,SLOT(prepareNetConnect()));
 
     q_ptr->setContentWidget(contentWidget);
@@ -175,9 +194,10 @@ SplashLoginDialog::SplashLoginDialog(QWidget *parent):
     connect(MessDiapatch::instance(),SIGNAL(textConnected(bool)),this,SLOT(respTextConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(textSocketError()),this,SLOT(respTextSocketError()));
     connect(MessDiapatch::instance(),SIGNAL(transmitsInitialError(QString)),this,SLOT(respTransmitError(QString)));
-
+#ifndef __LOCAL_CONTACT__
     connect(MessDiapatch::instance(),SIGNAL(fileConnected(bool)),this,SLOT(respFileConnect(bool)));
     connect(MessDiapatch::instance(),SIGNAL(fileSocketError()),this,SLOT(respFileSocketError()));
+#endif
 
     QTimer::singleShot(0,this,SLOT(initResource()));
 }
@@ -199,7 +219,7 @@ void SplashLoginDialog::onMessage(MessageType type)
     {
         case MESS_SETTINGS:
             {
-                d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+                d->trayIcon->setVisible(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
                 break;
             }
         case MESS_NOTIFY_WINDOWS:
@@ -219,9 +239,10 @@ void SplashLoginDialog::resizeEvent(QResizeEvent *)
     d->toolBar->setGeometry(WINDOW_MARGIN_SIZE,0,width() - WINDOW_MARGIN_SIZE * 3,d->toolBar->size().height());
 }
 
-void SplashLoginDialog::closeEvent(QCloseEvent *)
+void SplashLoginDialog::closeEvent(QCloseEvent *event)
 {
-    qApp->exit();
+    dealQuitApp();
+    QTimer::singleShot(100,qApp,SLOT(quit()));
 }
 
 bool SplashLoginDialog::eventFilter(QObject *watched, QEvent *event)
@@ -247,9 +268,9 @@ void SplashLoginDialog::initResource()
 {
     MQ_D(SplashLoginDialog);
 
-    G_ParaSettings = new ParameterSettings::ParaSettings;
+    Global::G_ParaSettings = new ParameterSettings::ParaSettings;
     QString localConfigName = qApp->applicationDirPath() + QString(Constant::PATH_ConfigPath) + QDir::separator() + QStringLiteral("参数配置.txt");
-    if(!RSingleton<XMLParse>::instance()->parse(localConfigName,G_ParaSettings)){
+    if(!RSingleton<XMLParse>::instance()->parse(localConfigName,Global::G_ParaSettings)){
         RMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Paramter settings read failed,system exit!"),
                              RMessageBox::Yes,RMessageBox::Yes);
         exit(-1);
@@ -258,7 +279,7 @@ void SplashLoginDialog::initResource()
     //初始化传输链路!!!
     TextNetConnector::instance()->initialize();
 
-    d->nodeLabel->setText(G_ParaSettings->baseInfo.nodeId);
+    d->nodeLabel->setText(Global::G_ParaSettings->baseInfo.nodeId);
 }
 
 /*!
@@ -270,7 +291,6 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
 {
     MQ_D(SplashLoginDialog);
 
-    Q_UNUSED(notifyCount);
     if(info.type == NotifySystem)
     {
         ResponseFriendApply reqType = (ResponseFriendApply)info.ofriendResult;
@@ -300,12 +320,14 @@ void SplashLoginDialog::viewSystemNotify(NotifyInfo info,int notifyCount)
             {
                 client->chatPersonWidget = new ChatPersonWidget();
                 client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
                 client->chatPersonWidget->setOuterNetConfig(client->netConfig);
+#endif
                 client->chatPersonWidget->initChatRecord();
             }
             else
             {
-                client->chatPersonWidget->showRecentlyChatMsg(notifyCount);
+                client->chatPersonWidget->autoQueryRecord();
             }
             client->chatPersonWidget->respshowChat();
         }
@@ -321,7 +343,14 @@ void SplashLoginDialog::openChatDialog(QString accountId)
    {
        client->chatPersonWidget = new ChatPersonWidget();
        client->chatPersonWidget->setUserInfo(client->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+       client->chatPersonWidget->setOuterNetConfig(client->netConfig);
+#endif
        client->chatPersonWidget->initChatRecord();
+   }
+   else
+   {
+       client->chatPersonWidget->autoQueryRecord();
    }
 
    client->chatPersonWidget->respshowChat();
@@ -360,7 +389,7 @@ void SplashLoginDialog::prepareNetConnect()
     MQ_D(SplashLoginDialog);
 
     Q_UNUSED(d);
-    G_NetSettings.connectedTextIpPort = G_NetSettings.textServer;
+    Global::G_GlobalConfigFile->netSettings.connectedTextIpPort = Global::G_GlobalConfigFile->netSettings.textServer;
     TextNetConnector::instance()->connect();
     enableInput(false);
 }
@@ -370,7 +399,7 @@ void SplashLoginDialog::respTextConnect(bool flag)
     MQ_D(SplashLoginDialog);
     if(!flag){
         RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
     }else{
         RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_OK);
@@ -378,8 +407,9 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
     if(G_User == nullptr){
         UserBaseInfo baseInfo;
-        baseInfo.accountId = G_ParaSettings->baseInfo.nodeId;
-        baseInfo.nickName = G_ParaSettings->baseInfo.nodeId;
+        baseInfo.accountId = Global::G_ParaSettings->baseInfo.nodeId;
+        baseInfo.nickName = Global::G_ParaSettings->baseInfo.nodeId;
+        baseInfo.isSystemIcon = true;
 
         G_User = new User(baseInfo);
     }
@@ -390,17 +420,14 @@ void SplashLoginDialog::respTextConnect(bool flag)
 
         if(!d->trayIcon)
         {
+            disconnect(d->loginTrayIcon,SIGNAL(showLoginPanel()),
+                       this,SLOT(dealShowLoginPanel()));
+            disconnect(d->loginTrayIcon,SIGNAL(quitApp()),
+                       this,SLOT(dealQuitApp()));
+            d->loginTrayIcon->deleteLater();
+            d->loginTrayIcon=NULL;
             d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
-            d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
-            d->trayIcon->setModel(SystemTrayIcon::System_Main);
-        }
-
-        if(!d->trayIcon)
-        {
-            d->trayIcon = new SystemTrayIcon();
-            d->trayIcon->setModel(SystemTrayIcon::System_Login);
-            d->trayIcon->setVisible(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,true).toBool());
+            d->trayIcon->setVisible(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
             d->trayIcon->setModel(SystemTrayIcon::System_Main);
         }
 
@@ -410,6 +437,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(showSystemNotifyInfo(NotifyInfo,int)),this,SLOT(viewSystemNotify(NotifyInfo,int)));
             connect(RSingleton<NotifyWindow>::instance(),SIGNAL(ignoreAllNotifyInfo()),d->trayIcon,SLOT(removeAll()));
             connect(d->trayIcon,SIGNAL(showNotifyInfo(QString)),RSingleton<NotifyWindow>::instance(),SLOT(viewNotify(QString)));
+            QObject::connect(d->trayIcon,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
+            QObject::connect(d->mainDialog,SIGNAL(quitApp()),
+                             this,SLOT(dealQuitApp()));
         }
 
         if(flag)
@@ -421,12 +452,13 @@ void SplashLoginDialog::respTextConnect(bool flag)
             d->mainDialog->setLogInState(STATUS_OFFLINE);
         }
 
+#ifndef __LOCAL_CONTACT__
         if(!G_User->isFileOnLine()){
-            G_NetSettings.connectedFileIpPort = G_NetSettings.fileServer;
+            Global::G_GlobalConfigFile->netSettings.connectedFileIpPort = Global::G_GlobalConfigFile->netSettings.fileServer;
             FileNetConnector::instance()->initialize();
             FileNetConnector::instance()->connect();
         }
-
+#endif
         unsigned short seriNo = SerialNo::instance()->getSqlSerialNo();
         if(seriNo == 0)
         {
@@ -442,22 +474,10 @@ void SplashLoginDialog::respTextConnect(bool flag)
         d->mainDialog->show();
         d->mainDialog->raise();//FIXME LYS-20180719 修复窗口显示被遮挡问题
 
-        if(flag){
-            DataPackType request;
-            request.msgType = MSG_CONTROL;
-            request.msgCommand = MSG_TCP_TRANS;
-            request.extendData.type495 = T_DATA_REG;
-            request.extendData.usOrderNo = O_NONE;
-            request.extendData.usSerialNo = SERIALNO_FRASH;
-            request.sourceId = G_User->BaseInfo().accountId;
-            request.destId = request.sourceId;
-            char addr[4];
-            addr[0] = 0;
-            addr[1] = 1;
-            ushort ad = ScaleSwitcher::fromHexToDec(request.sourceId);
-            memcpy(addr+2,(char*)&ad,2);
-            request.extendData.data = QByteArray(addr,4);
-            RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495);
+        Format495Function::sendRegistPack();
+        if(!d->m_pTimer_TestSelf->isActive())
+        {
+            d->m_pTimer_TestSelf->start(1000*10);
         }
     }
     enableInput(true);
@@ -468,9 +488,9 @@ void SplashLoginDialog::respTextSocketError()
     if(G_User){
         G_User->setTextOnline(false);
     }
-    G_NetSettings.connectedTextIpPort.setConnected(false);
+    Global::G_GlobalConfigFile->netSettings.connectedTextIpPort.setConnected(false);
     RSingleton<Subject>::instance()->notify(MESS_TEXT_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+    RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to text server error!"),RMessageBox::Yes);
 }
 
@@ -479,6 +499,7 @@ void SplashLoginDialog::respTransmitError(QString errorMsg)
     RMessageBox::warning(this,QObject::tr("Warning"),errorMsg,RMessageBox::Yes);
 }
 
+#ifndef __LOCAL_CONTACT__
 void SplashLoginDialog::respFileConnect(bool flag)
 {
     if(G_User){
@@ -489,21 +510,27 @@ void SplashLoginDialog::respFileConnect(bool flag)
     {
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_OK);
     }else{
-        RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+        RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
         RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
         RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
     }
 
     if(flag){
-        //TODO:测试接入原有服务器，注释文件服务器的注册报 尚超 20180726
+        //TODO:如果接入原有服务器，注释文件服务器的注册报 尚超 20180807
         DataPackType request;
         request.msgType = MSG_CONTROL;
         request.msgCommand = MSG_TCP_TRANS;
         request.extendData.type495 = T_DATA_REG;
-        request.extendData.usOrderNo = O_2051;
+        request.extendData.usOrderNo = O_NONE;
         request.extendData.usSerialNo = SERIALNO_FRASH;
         request.sourceId = G_User->BaseInfo().accountId;
         request.destId = request.sourceId;
+        char addr[4];
+        addr[0] = 0;
+        addr[1] = 1;
+        ushort ad = ScaleSwitcher::fromHexToDec(request.sourceId);
+        memcpy(addr+2,(char*)&ad,2);
+        request.extendData.data = QByteArray(addr,4);
         RSingleton<WrapFactory>::instance()->getMsgWrap()->handleMsg(&request,C_TongKong,M_495,SERVER_FILE);
     }
 }
@@ -512,11 +539,12 @@ void SplashLoginDialog::respFileSocketError()
 {
     if(G_User)
         G_User->setFileOnline(false);
-    G_NetSettings.connectedFileIpPort.setConnected(false);
+    Global::G_GlobalConfigFile->netSettings.connectedFileIpPort.setConnected(false);
     RSingleton<Subject>::instance()->notify(MESS_FILE_NET_ERROR);
-    RLOG_ERROR("Connect to server %s:%d error!",G_NetSettings.textServer.ip.toLocal8Bit().data(),G_NetSettings.textServer.port);
+    RLOG_ERROR("Connect to server %s:%d error!",Global::G_GlobalConfigFile->netSettings.textServer.ip.toLocal8Bit().data(),Global::G_GlobalConfigFile->netSettings.textServer.port);
     RMessageBox::warning(this,QObject::tr("Warning"),QObject::tr("Connect to file server error!"),RMessageBox::Yes);
 }
+#endif
 
 void SplashLoginDialog::enableInput(bool flag)
 {
@@ -528,26 +556,49 @@ void SplashLoginDialog::enableInput(bool flag)
 void SplashLoginDialog::loadLocalSettings()
 {
     MQ_D(SplashLoginDialog);
-    RUtil::globalSettings()->beginGroup(Constant::SYSTEM_NETWORK);
-    G_NetSettings.textServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_IP,Constant::DEFAULT_NETWORK_TEXT_IP).toString();
-    G_NetSettings.textServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TEXT_PORT,Constant::DEFAULT_NETWORK_TEXT_PORT).toUInt();
-
-    G_NetSettings.tandemServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_IP1,"").toString();
-    G_NetSettings.tandemServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_TANDEM_PORT1,"").toUInt();
-
-    G_NetSettings.fileServer.ip = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_IP,Constant::DEFAULT_NETWORK_FILE_IP).toString();
-    G_NetSettings.fileServer.port = RUtil::globalSettings()->value(Constant::SYSTEM_NETWORK_FILE_PORT,Constant::DEFAULT_NETWORK_FILE_PORT).toUInt();
-
-    RUtil::globalSettings()->endGroup();
 
     QString ipTemplate("%1:%2");
-    d->tcpServerIp->setText(ipTemplate.arg(G_NetSettings.textServer.ip).arg(G_NetSettings.textServer.port));
+    d->tcpServerIp->setText(ipTemplate.arg(Global::G_GlobalConfigFile->netSettings.textServer.ip).arg(Global::G_GlobalConfigFile->netSettings.textServer.port));
 
-    if(G_NetSettings.tandemServer.ip.size() > 0){
-        d->tcpFlowServerIp1->setText(ipTemplate.arg(G_NetSettings.tandemServer.ip).arg(G_NetSettings.tandemServer.port));
+    if(Global::G_GlobalConfigFile->netSettings.tandemServer.ip.size() > 0){
+        d->tcpFlowServerIp1->setText(ipTemplate.arg(Global::G_GlobalConfigFile->netSettings.tandemServer.ip).arg(Global::G_GlobalConfigFile->netSettings.tandemServer.port));
     }else{
         d->tcpFlowServerIp1->clear();
     }
+}
+
+/*!
+ * @brief 处理系统托盘发送的“显示主面板”
+ */
+void SplashLoginDialog::dealShowLoginPanel()
+{
+    this->raise();
+    this->showNormal();
+}
+
+void SplashLoginDialog::dealQuitApp()
+{
+    MQ_D(SplashLoginDialog);
+    if(d->trayIcon)
+    {
+        Format495Function::sendUnRegistPack();
+        d->trayIcon->deleteLater();
+        d->trayIcon=NULL;
+    }
+    if(d->loginTrayIcon)
+    {
+        d->loginTrayIcon->deleteLater();
+        d->loginTrayIcon=NULL;
+    }
+    this->close();
+}
+
+/*!
+ * @brief 周期发送测试报
+ */
+void SplashLoginDialog::sendTestSelfPeriod()
+{
+    Format495Function::sendTestSelfOnlinePack();
 }
 
 #endif

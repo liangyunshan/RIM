@@ -74,6 +74,7 @@ public:
 signals:
     void lockPanel();
     void showMainPanel();
+    void showLoginPanel();
     void quitApp();
     void showNotifyInfo(QString id);
 
@@ -81,6 +82,7 @@ private slots:
     void respIconActivated(QSystemTrayIcon::ActivationReason reason);
     void switchNotifyImage();
     void removeAll();
+    void dealShowMainPanel();
 
 private:
     /*!

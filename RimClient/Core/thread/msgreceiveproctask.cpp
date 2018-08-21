@@ -9,6 +9,7 @@
 
 #include "../Network/wraprule/tcp_wraprule.h"
 #include "network/wraprule/wraprule.h"
+#include "global.h"
 
 MsgReceiveProcTask::MsgReceiveProcTask(QObject *parent):
     ClientNetwork::RTask(parent)
@@ -34,7 +35,7 @@ void MsgReceiveProcTask::startMe()
     }
     else
     {
-        G_TextRecvCondition.notify_one();
+        Global::G_TextRecvCondition.notify_one();
     }
 }
 
@@ -42,18 +43,18 @@ void MsgReceiveProcTask::run()
 {
     while(runningFlag)
     {
-        while(runningFlag && G_TextRecvBuffs.empty())
+        while(runningFlag && Global::G_TextRecvBuffs.empty())
         {
-            std::unique_lock<std::mutex> ul(G_TextRecvMutex);
-            G_TextRecvCondition.wait(ul);
+            std::unique_lock<std::mutex> ul(Global::G_TextRecvMutex);
+            Global::G_TextRecvCondition.wait(ul);
         }
 
-        if(runningFlag && G_TextRecvBuffs.size() > 0)
+        if(runningFlag && Global::G_TextRecvBuffs.size() > 0)
         {
-            G_TextRecvMutex.lock();
-            RecvUnit array = G_TextRecvBuffs.front();
-            G_TextRecvBuffs.pop();
-            G_TextRecvMutex.unlock();
+            Global::G_TextRecvMutex.lock();
+            RecvUnit array = Global::G_TextRecvBuffs.front();
+            Global::G_TextRecvBuffs.pop();
+            Global::G_TextRecvMutex.unlock();
 
             if(array.data.size() > 0)
             {
@@ -96,5 +97,5 @@ void MsgReceiveProcTask::stopMe()
 {
     RTask::stopMe();
     runningFlag = false;
-    G_TextRecvCondition.notify_one();
+    Global::G_TextRecvCondition.notify_one();
 }

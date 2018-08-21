@@ -45,7 +45,9 @@ public:
     void onRecvFileControl(SimpleFileItemRequest request);
     void onRecvFileRequest(FileItemRequest request);
     void onRecvFileData(QString fileId,QString fileName);
+#ifdef __LOCAL_CONTACT__
     void onRecvFileData(FileRecvDesc desc);
+#endif
 
     void onScreenChanged();
     void onAddHistoryItem(HistoryChatRecord &record);
@@ -83,8 +85,9 @@ signals:
     void recvFileControl(SimpleFileItemRequest control);
     void recvFileRequest(FileItemRequest control);
     void recvFileData(QString fileId,QString fileName);
+#ifdef __LOCAL_CONTACT__
     void recvFileData(FileRecvDesc desc);
-
+#endif
     void screenChange();
 
     void createHisotryItem(HistoryChatRecord);

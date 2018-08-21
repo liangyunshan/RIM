@@ -40,6 +40,8 @@ public:
 
     void onMessage(MessageType type);
     int checkNotifyExist(const QString accountId);
+    int checkNotifyExistItems(const QString accountId);
+    int checkNotifyIgnoreItems(const QString accountId);
 
 signals:
     void showWindow();
@@ -50,6 +52,7 @@ signals:
 private slots:
     void viewAll();
     void ignoreAll();
+    void saveIgnoreNotify();
     void viewNotify(ToolItem * item);
     void viewNotify(QString notifyId);
 

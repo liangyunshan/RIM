@@ -343,14 +343,46 @@ void RUtil::setAbsoulteImgPath(QString targetHtml, QString userID)
 }
 
 /*!
+ * @brief 将字符串转换为可显示的HTML源码
+ * @param targetHtml 需要转义处理的字符串
+ */
+void RUtil::StringToHtml(QString &targetHtml)
+{
+    escapeSingleQuote(targetHtml);
+    escapeBracketsQuote(targetHtml);
+    escapeLFQuote(targetHtml);
+}
+
+/*!
  * @brief RUtil::escapeQuote 将Html内容中的双引号、单引号进行转义
  * @param targetHtml 需要转义处理的Html内容
  */
 void RUtil::escapeSingleQuote(QString &targetHtml)
 {
     targetHtml = targetHtml.replace("\\","\\\\");
-    targetHtml = targetHtml.replace("\'","\\\'");
-    targetHtml = targetHtml.replace("\n","");
+    targetHtml = targetHtml.replace("\'","&qpos");
+}
+
+/*!
+ * @brief 转换尖括号为HTML可显示字符
+ * @param targetHtml 源字符串
+ */
+void RUtil::escapeBracketsQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("<","&lt;");
+    targetHtml = targetHtml.replace("<=","&le;");
+    targetHtml = targetHtml.replace(">","&gt;");
+    targetHtml = targetHtml.replace(">=","&ge;");
+}
+
+/*!
+ * @brief 转换回车符号为HTML可显示字符
+ * @param targetHtml 源字符串
+ */
+void RUtil::escapeLFQuote(QString &targetHtml)
+{
+    targetHtml = targetHtml.replace("\n","</br>");
+    targetHtml = targetHtml.replace(" ","&nbsp;");
 }
 
 /*!
@@ -427,3 +459,31 @@ void RUtil::showInExplorer(QString &pathIn)
     QProcess::startDetached(explorerPath, param);
 
 }
+
+/*!
+ * @brief 格式化显示文件大小
+ * @param byteSize 文件大小，单位字节
+ * @return 显示的文件大小
+ */
+QString RUtil::formatFileSize(int byteSize)
+{
+    QString t_fileSize = QString();
+    if(byteSize < 1024)
+    {
+        QString t_showSize = QString::number(byteSize,'f',2);
+        t_fileSize = QString("(%1B)").arg(t_showSize);
+    }
+    else if(byteSize >= 1024 && byteSize < 1024*1024)
+    {
+        QString t_showSize = QString::number(byteSize/1024,'f',2);
+        t_fileSize = QString("(%1KB)").arg(t_showSize);
+    }
+    else if(byteSize >= 1024*1024)
+    {
+        QString t_showSize = QString::number(byteSize/(1024*1024),'f',2);
+        t_fileSize = QString("(%1MB)").arg(t_showSize);
+    }
+    return t_fileSize;
+}
+
+

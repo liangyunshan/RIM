@@ -23,43 +23,49 @@ std::mutex QueryNodeMutex;
  * @param[in] result 查找结果，true表示查找成功，false表示查找失败
  * @return 所查找的节点号信息
  */
-OuterNetConfig QueryNodeDescInfo(unsigned short nodeId,bool & result){
+NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result){
     std::lock_guard<std::mutex> lg(QueryNodeMutex);
     result = false;
 
-    auto findIndex = std::find_if(RGlobal::G_ParaSettings->outerNetConfig.begin(),RGlobal::G_ParaSettings->outerNetConfig.end(),
-                 [&nodeId](const OuterNetConfig & config){
+    auto findIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),
+                 [&nodeId](const NodeClient & client){
 
-        if(config.nodeId == nodeId)
+        if(client.nodeId == nodeId)
             return true;
         return false;
     });
 
-    if(findIndex != RGlobal::G_ParaSettings->outerNetConfig.end()){
+    if(findIndex != RGlobal::G_RouteSettings->clients.end()){
         result = true;
         return *findIndex;
     }
 
-    if(nodeId == RGlobal::G_ParaSettings->baseInfo.nodeId){
+    if(nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
         result = true;
-        OuterNetConfig localConfig;
-        localConfig.nodeId = nodeId;
-        localConfig.communicationMethod = C_TongKong;
-        localConfig.messageFormat = M_495;
-        return localConfig;
+        NodeClient client;
+        client.nodeId = nodeId;
+        client.communicationMethod = C_TongKong;
+        client.messageFormat = M_495;
+        return client;
     }
 
-    return OuterNetConfig();
+    return NodeClient();
 }
 
 /*!
- * @brief 查询节点所属服务器节点
+ * @brief 根据客户端节点查询节点所属服务器节点
  * @param[in] nodeId 待查询的节点
  * @param[in] result 配置文件中是否存在当前服务器的父节点
  * @return 查找的服务器节点
  */
-NodeServer QueryServerDescInfo(unsigned short nodeId,bool & result){
+NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result){
     result = false;
+
+//    qDebug()<<"========start=========";
+//    std::for_each(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),[](const NodeClient & client){
+//        qDebug()<<"Client:"<<client.nodeId<<"__"<<client.serverNodeId;
+//    });
+//    qDebug()<<"========end=========";
 
     auto clientIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),[&nodeId](const NodeClient & client){
         return (client.nodeId == nodeId);
@@ -74,6 +80,27 @@ NodeServer QueryServerDescInfo(unsigned short nodeId,bool & result){
             result = true;
             return (*serverIndex);
         }
+    }
+
+    return NodeServer();
+}
+
+/*!
+ * @brief 根据服务器节点查询服务器详细信息
+ * @param[in] nodeId 待查询的服务器节点
+ * @param[in] result 配置文件中是否存在当前服务器节点
+ * @return 查找的服务器节点
+ */
+NodeServer QueryServerDescInfoByServerNodeId(unsigned short nodeId,bool & result){
+    result = false;
+
+    auto serverIndex = std::find_if(RGlobal::G_RouteSettings->servers.begin(),RGlobal::G_RouteSettings->servers.end(),[&nodeId](const NodeServer & server){
+        return (server.nodeId == nodeId);
+    });
+
+    if(serverIndex != RGlobal::G_RouteSettings->servers.end()){
+        result = true;
+        return (*serverIndex);
     }
 
     return NodeServer();
@@ -96,39 +123,48 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
     SendUnit sUnit;
     sUnit.sockId = sockId;
     sUnit.method = C_NONE;
-    sUnit.dataUnit = package;
     sUnit.localServer = inServer;
-
-    //[1]数据内容封装
-    sUnit.dataUnit.data = package.data;
-
-    //[2]添加数据传输协议头
-    sUnit.dataUnit.wSourceAddr = package.wSourceAddr;
-    sUnit.dataUnit.wDestAddr = package.wDestAddr;
+    sUnit.dataUnit = package;
 
     if(inServer){
         bool flag = false;
-        OuterNetConfig destConfig = QueryNodeDescInfo(package.wDestAddr,flag);
+        NodeClient nodeClient = QueryNodeDescInfo(package.pack495.destAddr,flag);
         if(flag){
-            if(destConfig.communicationMethod == C_NetWork && destConfig.messageFormat == M_205){
+            if(nodeClient.communicationMethod == C_NetWork && nodeClient.messageFormat == M_205){
                 sUnit.method = C_UDP;
-            }else if(destConfig.communicationMethod == C_TongKong && destConfig.messageFormat == M_495){
+            }else if(nodeClient.communicationMethod == C_TongKong && nodeClient.messageFormat == M_495){
                 sUnit.method = C_TCP;
+            }
+        }else{
+            if(package.method != C_NONE){
+                sUnit.method = package.method;
+            }else{
+                //TODO 错误记录
             }
         }
     }else{
         bool findServer = false;
-        NodeServer serverInfo = QueryServerDescInfo(package.wDestAddr,findServer);
+        NodeServer serverInfo = QueryServerDescInfoByClient(package.pack495.destAddr,findServer);
+
+        if(!findServer){
+            serverInfo = QueryServerDescInfoByServerNodeId(package.pack495.destAddr,findServer);
+        }
+
         if(findServer){
             if(serverInfo.communicationMethod == C_NetWork && serverInfo.messageFormat == M_205){
                 sUnit.method = C_UDP;
             }else if(serverInfo.communicationMethod == C_TongKong && serverInfo.messageFormat == M_495){
                 sUnit.method = C_TCP;
             }
+        }else{
+            if(package.method != C_NONE){
+                sUnit.method = package.method;
+            }else{
+                //TODO 错误记录
+            }
         }
     }
 
-    //[3]加入发送队列
     if(sUnit.method != C_NONE){
         std::unique_lock<std::mutex> ul(G_SendMutex);
         G_SendButts.push(sUnit);

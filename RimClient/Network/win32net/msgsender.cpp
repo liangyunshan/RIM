@@ -2,6 +2,7 @@
 
 #include "netglobal.h"
 #include "Util/rlog.h"
+#include <QDebug>
 
 namespace ClientNetwork{
 
@@ -66,7 +67,6 @@ TextSender::~TextSender()
 {
     stopMe();
     wait();
-//    removaAllTransmit();
 }
 
 void TextSender::startMe()
