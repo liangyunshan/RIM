@@ -60,6 +60,7 @@ private:
     RECT taskBarRect;
 
     ListBox * infoList;
+    QMap<QString,int> ignoreList;
     RButton * ignoreButt;
     RButton * viewAllButt;
     ToolBar * toolBar;
@@ -276,11 +277,26 @@ void NotifyWindow::onMessage(MessageType type)
 }
 
 /*!
- * @brief  检测目标id是否存在推送消息
+ * @brief  检测目标id是否存在未读取的信息，包括被忽略的信息
  * @param accountId 目标id
  * @return 与目标id存在的待推送消息条数
  */
 int NotifyWindow::checkNotifyExist(const QString accountId)
+{
+    MQ_D(NotifyWindow);
+
+    int t_count = 0;
+    t_count += checkNotifyIgnoreItems(accountId);
+    t_count += checkNotifyExistItems(accountId);
+    return t_count;
+}
+
+/*!
+ * @brief  检测目标id是否存在推送消息
+ * @param accountId 目标id
+ * @return 与目标id存在的待推送消息条数
+ */
+int NotifyWindow::checkNotifyExistItems(const QString accountId)
 {
     MQ_D(NotifyWindow);
 
@@ -305,6 +321,20 @@ int NotifyWindow::checkNotifyExist(const QString accountId)
     return t_count;
 }
 
+/*!
+ * @brief  检测目标id是否存在被忽略的推送消息
+ * @param accountId 目标id
+ * @return 与目标id存在的被忽略的推送消息条数
+ */
+int NotifyWindow::checkNotifyIgnoreItems(const QString accountId)
+{
+    MQ_D(NotifyWindow);
+
+    int t_count = d->ignoreList.value(accountId);
+    d->ignoreList.remove(accountId);
+    return t_count;
+}
+
 void NotifyWindow::viewAll()
 {
     MQ_D(NotifyWindow);
@@ -320,6 +350,8 @@ void NotifyWindow::ignoreAll()
 {
     MQ_D(NotifyWindow);
 
+    saveIgnoreNotify();
+
     hideMe();
     d->enableButt(d->ignoreButt,false);
     d->enableButt(d->viewAllButt,false);
@@ -327,6 +359,22 @@ void NotifyWindow::ignoreAll()
     d->systemNotifyInfos.clear();
     d->infoList->clear();
     emit ignoreAllNotifyInfo();
+}
+
+/*!
+ * @brief 保存被忽略的推送信息
+ */
+void NotifyWindow::saveIgnoreNotify()
+{
+    MQ_D(NotifyWindow);
+
+    int t_count = 0;
+    foreach (ToolItem * curItem, d->infoList->items())
+    {
+        t_count = curItem->getNotifyCount();
+        t_count += d->ignoreList.value(curItem->getName());
+        d->ignoreList.insert(curItem->getName(),t_count);
+    }
 }
 
 /*!
@@ -346,7 +394,6 @@ void NotifyWindow::viewNotify(ToolItem *item)
         if(iter != d->systemNotifyInfos.end()){
             d->systemNotifyInfos.erase(iter);
         }
-//        d->infoList->removeItem(item);
 
         if(d->infoList->count() <= 0){
             ignoreAll();

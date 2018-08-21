@@ -110,6 +110,14 @@
         <file>resource/icon/Pdf_File.png</file>
         <file>resource/icon/Unknown_File.png</file>
         <file>resource/icon/Xml_File.png</file>
+        <file>resource/icon/Tool_Chat_QuickOrder.png</file>
+        <file>resource/icon/settings_add.png</file>
+        <file>resource/icon/settings_delete.png</file>
+        <file>resource/icon/icon_quickorder_panel.png</file>
+        <file>resource/icon/icon_down.png</file>
+        <file>resource/icon/icon_left.png</file>
+        <file>resource/icon/icon_right.png</file>
+        <file>resource/icon/icon_up.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>

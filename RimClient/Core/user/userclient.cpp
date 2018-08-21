@@ -99,7 +99,14 @@ void UserClient::procRecvContent(TextRequest & response)
                 {
                     chatPersonWidget = new ChatPersonWidget();
                     chatPersonWidget->setUserInfo(simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
+                    chatPersonWidget->setOuterNetConfig(this->netConfig);
+#endif
                     chatPersonWidget->initChatRecord();
+                }
+                else
+                {
+                    chatPersonWidget->autoQueryRecord();
                 }
                 chatPersonWidget->respshowChat();
 
@@ -175,8 +182,10 @@ void UserClient::procRecvServerTextReply(TextReply & reply)
         break;
     case APPLY_RECEIPT:
         {
+#ifdef __LOCAL_CONTACT__
             //更新数据库->更新聊天界面
             RSingleton<ChatMsgProcess>::instance()->appendC2CUpdateMsgStatusTask(reply.wSourceAddr,reply.textId.toUInt());
+#endif
         }
         break;
     default:
@@ -222,6 +231,11 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
 {
 #ifdef __LOCAL_CONTACT__
 
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<fileProgress.transStatus<<chatPersonWidget
+          <<fileProgress.fileFullPath
+          <<"\n";
+
     if(fileProgress.transStatus == TransSuccess)
     {
         //存储消息至数据库
@@ -235,27 +249,38 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         t_unit.dtime        = t_Time;
         t_unit.dateTime     = RUtil::addMSecsToEpoch(t_Time).toString("yyyyMMdd hh:mm:ss");
         t_unit.serialNo     = fileProgress.serialNo.toUShort();
-        t_unit.contents     = fileProgress.fileFullPath;
+        QFileInfo fileinfo(fileProgress.fileFullPath);
+        t_unit.contents     = fileinfo.absoluteFilePath();
         RSingleton<ChatMsgProcess>::instance()->appendC2CStoreTask(simpleUserInfo.accountId,t_unit);
-        RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
 
         if(fileProgress.transType == TRANS_RECV)
         {
-            if(chatPersonWidget != NULL && !chatPersonWidget->isVisible())
+            if(chatPersonWidget)
             {
-                NotifyInfo  info;
-                info.identityId = RUtil::UUID();
-                info.msgCommand = MSG_TEXT_FILE;
-                info.accountId = fileProgress.srcNodeId;
-                info.nickName = fileProgress.srcNodeId;
-                info.type = NotifyUser;
-                info.stype = OperatePerson;
-                info.isSystemIcon = simpleUserInfo.isSystemIcon;
-                info.iconId = simpleUserInfo.iconId;
+                if(!chatPersonWidget->isVisible())
+                {
+                    NotifyInfo  info;
+                    info.identityId = RUtil::UUID();
+                    info.msgCommand = MSG_TEXT_FILE;
+                    info.accountId = fileProgress.srcNodeId;
+                    info.nickName = fileProgress.srcNodeId;
+                    info.type = NotifyUser;
+                    info.stype = OperatePerson;
+                    info.isSystemIcon = simpleUserInfo.isSystemIcon;
+                    info.iconId = simpleUserInfo.iconId;
 
-                RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
-                RSingleton<NotifyWindow>::instance()->showMe();
+                    RSingleton<NotifyWindow>::instance()->addNotifyInfo(info);
+                    RSingleton<NotifyWindow>::instance()->showMe();
+                }
+                else
+                {
+                    RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
+                }
             }
+        }
+        else
+        {
+            RSingleton<ChatMsgProcess>::instance()->appendC2CQueryTask(simpleUserInfo.accountId,0,1);
         }
     }
 
@@ -279,10 +304,16 @@ void UserClient::procTransFile(FileTransProgress fileProgress)
         {
             chatPersonWidget = new ChatPersonWidget();
             chatPersonWidget->setUserInfo(this->simpleUserInfo);
+#ifdef __LOCAL_CONTACT__
             chatPersonWidget->setOuterNetConfig(this->netConfig);
+#endif
             chatPersonWidget->initChatRecord();
         }
-        chatPersonWidget->show();
+        else
+        {
+            chatPersonWidget->autoQueryRecord();
+        }
+        chatPersonWidget->respshowChat();
         chatPersonWidget->recvTransFile(fileProgress);
 
         if(G_User->systemSettings()->soundAvailable && fileProgress.transType == TRANS_RECV)

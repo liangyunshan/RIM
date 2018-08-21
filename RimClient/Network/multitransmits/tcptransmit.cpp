@@ -64,6 +64,13 @@ bool TcpTransmit::startTransmit(SendUnit &unit, SendCallbackFunc func)
     return false;
 }
 
+/*!
+ * @brief 开始TCP数据接收
+ * @param[in] recvBuff 接收数据缓存区
+ * @param[in] recvBuffLen 最大接收长度
+ * @param[in] recvDataFunc 接收解析后处理函数
+ * @return 是否接收处理成功
+ */
 bool TcpTransmit::startRecv(char *recvBuff, int recvBuffLen, DataHandler recvDataFunc)
 {
     int recvLen = tcpSocket->recv(recvBuff,recvBuffLen);

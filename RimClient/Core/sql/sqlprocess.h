@@ -36,15 +36,6 @@ public:
     bool removeAllHistoryRecord(Database * db);
     bool topHistoryRecord(Database * db,QString recordId,bool isTop);
 
-    QString querryRecords(int userid, int currRow=0, int queryRows= DefaultQueryRow);
-    int queryTotalRecord(Database * db,int id);
-
-    bool queryUser(Database * db, int tgtUserId);
-    bool insertTgtUser(Database * db, int tgtUserId, QString name);
-    bool insertTableUserChatInfo(Database * db, ChatInfoUnit unit);
-
-    bool initTableUser_id(Database * db,SimpleUserInfo userInfo);
-
 private:
     unsigned short m_port;
     unsigned short m_QueryRow;

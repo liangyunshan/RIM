@@ -68,23 +68,28 @@ const char USER_GroupDirName[] = "Group";
 const char USER_DBDirName[] = "ChatLog";                    //保存聊天记录
 const char USER_DBFileName[] = "chatlog.db";                //聊天对话记录文件名
 const char USER_ConfigName[] = "userconfg.ini";             //当前用户配置文件名
+const char QuickOrder_ConfigName[] = "quickorder.ini";      //当前用户配置文件名
 
 /*!
  * @note 系统配置信息
  * @details 系统配置信息采用分组保存，在定义时需要指定分组的名称，变量的名称。
 */
+const char SETTING_GERNALE[] = "SystemSettings";
 const char SETTING_TRAYICON[] = "TrayIcon";
 
+//网络模块
 const char SYSTEM_NETWORK[] = "network";
 const char SYSTEM_NETWORK_TEXT_IP[] = "textip";
 const char SYSTEM_NETWORK_TEXT_PORT[] = "textport";
 #ifdef __LOCAL_CONTACT__
 const char SYSTEM_NETWORK_TANDEM_IP1[] = "tandemip1";
 const char SYSTEM_NETWORK_TANDEM_PORT1[] = "tandemport1";
-#endif
+#else
 const char SYSTEM_NETWORK_FILE_IP[] = "fileip";
 const char SYSTEM_NETWORK_FILE_PORT[] = "fileport";
+#endif
 
+//数据库模块
 const char SYSTEM_DB[] = "database";
 const char SYSTEM_DB_TYPE[] = "type";
 const char SYSTEM_DB_HOSTNAME[] = "host";
@@ -93,6 +98,16 @@ const char SYSTEM_DB_USER[] = "user";
 const char SYSTEM_DB_PASS[] = "password";
 const char SYSTEM_DB_PORT[] = "port";
 const char SYSTEM_DB_INNER_PASSWORD[] = "innerpassword";
+
+//日志模块
+const char LOG_LOG[] = "log";
+const char LOG_LOG_RECORDFILE[] = "log2File";
+const char LOG_LOG_LEVEL[] = "logLevel";
+
+//传输模块
+const char TRANS_SETTING[] = "TransSetting";
+const char TRANS_SETTING_MAX_FILE[] = "MaxTransFiles";          /*!< 最大文件传输数量 */
+const char TRANS_SETTING_MAX_PACKET[] = "MaxPacketLength";      /*!< 最大数据包长度 */
 
 /*!
  * @note 用户配置信息
@@ -199,6 +214,7 @@ const char Tool_Chat_FileTrans[] = "Tool_Chat_FileTrans";                       
 const char Tool_Chat_Audio[] = "Tool_Chat_Audio";                                               //语音
 const char Tool_Chat_MsgNotice[] = "Tool_Chat_MsgNotice";                                       //消息提醒设置
 const char Tool_Chat_Record[] = "Tool_Chat_Record";                                             //聊天记录
+const char Tool_Chat_QuickOrder[] = "Tool_Chat_QuickOrder";                                             //聊天记录
 
 const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                                         //聊天自动回复
 

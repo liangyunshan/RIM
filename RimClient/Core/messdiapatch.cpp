@@ -134,10 +134,12 @@ void MessDiapatch::onRecvFileData(QString fileId,QString fileName)
     emit recvFileData(fileId,fileName);
 }
 
+#ifdef __LOCAL_CONTACT__
 void MessDiapatch::onRecvFileData(FileRecvDesc desc)
 {
     emit recvFileData(desc);
 }
+#endif
 
 void MessDiapatch::onScreenChanged()
 {

@@ -42,7 +42,7 @@ public:
 
 private:
     std::list<SenderFileDesc> fileList;
-    std::mutex mutex;
+    QMutex fileListMutex;
 };
 
 /*!
@@ -160,7 +160,7 @@ private:
     static File716SendTask * recordTask;
 
     int maxTransferFiles;                                   /*!< 最大传输的文件数量 */
-    std::mutex sendFileMutex;
+    QMutex sendFileMutex;
     std::list<std::shared_ptr<FileSendDesc>> sendList;      /*!< 正在发送的文件信息 */
 
     std::mutex tranMutex;

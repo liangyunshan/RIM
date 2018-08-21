@@ -179,6 +179,27 @@ bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::Ro
 
     QDomElement rootDom = document.documentElement();
 
+    QDomNodeList baseInfoNode = rootDom.elementsByTagName("Baseinfo");
+    if(baseInfoNode.size() == 1){
+        QDomElement baseInfoElement = baseInfoNode.at(0).toElement();
+
+        QDomNodeList nodeIds = baseInfoElement.elementsByTagName(QStringLiteral("nodeId"));
+        if(nodeIds.size() == 1)
+            routeSettings->baseInfo.nodeId = ScaleSwitcher::fromHexToDec(nodeIds.at(0).toElement().text());
+
+        QDomNodeList ips = baseInfoElement.elementsByTagName(QStringLiteral("ip"));
+        if(ips.size() == 1)
+            routeSettings->baseInfo.localIp = ips.at(0).toElement().text();
+
+        QDomNodeList lons = baseInfoElement.elementsByTagName(QStringLiteral("lon"));
+        if(lons.size() == 1)
+            routeSettings->baseInfo.lon = lons.at(0).toElement().text().toDouble();
+
+        QDomNodeList lats = baseInfoElement.elementsByTagName(QStringLiteral("lat"));
+        if(lats.size() == 1)
+            routeSettings->baseInfo.lat = lats.at(0).toElement().text().toDouble();
+    }
+
     QDomNodeList serverNode = rootDom.elementsByTagName("Server");
     if(serverNode.size() == 1){
         QDomNodeList serverNodes = serverNode.at(0).toElement().childNodes();
@@ -202,6 +223,10 @@ bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::Ro
             ParameterSettings::NodeClient cl;
             cl.nodeId = ScaleSwitcher::fromHexToDec(client.attribute("nodeId"));
             cl.serverNodeId = ScaleSwitcher::fromHexToDec(client.attribute("server"));
+            cl.channel = client.attribute(QStringLiteral("channel"));
+            cl.communicationMethod = static_cast<ParameterSettings::CommucationMethod>(client.attribute(QStringLiteral("method")).toInt());
+            cl.messageFormat = static_cast<ParameterSettings::MessageFormat>(client.attribute(QStringLiteral("format")).toInt());
+            cl.distributeMessageType = client.attribute(QStringLiteral("8201"));
             routeSettings->clients.append(cl);
         }
     }

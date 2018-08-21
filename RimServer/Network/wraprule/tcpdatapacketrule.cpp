@@ -63,7 +63,7 @@ bool TCPDataPacketRule::wrap(const SendUnit &dataUnit, IocpContextSender sendFun
     return false;
 }
 
-void TCPDataPacketRule::registTextHandler(Handler *dataHandler)
+void TCPDataPacketRule::registDataHandler(Handler *dataHandler)
 {
     handler = dataHandler;
 }

@@ -1,12 +1,24 @@
 ﻿#include "binary716_msgparse.h"
 
-#include "rsingleton.h"
-#include "../msgprocess/data716process.h"
-#include "Network/wraprule/tcp_wraprule.h"
+#ifdef __LOCAL_CONTACT__
 
 #include <QDebug>
 
-#ifdef __LOCAL_CONTACT__
+#include "rsingleton.h"
+#include "../../protocol/datastruct.h"
+#include "../msgprocess/data716process.h"
+#include "Network/wraprule/tcp_wraprule.h"
+#include "Network/wraprule/qdb21_wraprule.h"
+#include "Network/connection/tcpclient.h"
+#include "../../protocol/protocoldata.h"
+#include "global.h"
+
+using namespace QDB21;
+using namespace ParameterSettings;
+using namespace ServerNetwork;
+
+extern NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result);
 
 Binary716_MsgParse::Binary716_MsgParse():
     DataParse()
@@ -26,50 +38,76 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
 {
     ProtocolPackage packData;
 
+    //【1】对未发送注册报的节点学习记录
+    TcpClient * client = TcpClientManager::instance()->getClient(unit.extendData.sockId);
+    if(client){
+        if(client->getAccount().size() == 0){
+            client->setAccount(QString::number(unit.extendData.pack495.sourceAddr));
+            client->setOnLineState(ProtocolType::STATUS_ONLINE);
+        }
+    }else{
+        return;
+    }
+
     if(unit.extendData.method == C_TCP)
     {
-        packData.bPackType = unit.extendData.type495;
-        packData.bPeserve = unit.extendData.bPeserve;
-        packData.wOffset = unit.extendData.wOffset;
-        packData.dwPackAllLen = unit.extendData.dwPackAllLen;
-        packData.usSerialNo = unit.extendData.usSerialNo;
-        packData.wSourceAddr = unit.extendData.wSourceAddr;
-        packData.wDestAddr = unit.extendData.wDestAddr;
+        packData.method = unit.extendData.method;
+        packData.pack495 = unit.extendData.pack495;
 
-        //单独495协议
-        if(checkHead495Only(unit.extendData.type495))
-        {
-            RSingleton<Data716Process>::instance()->processUserRegist(db,unit.extendData.sockId,packData);
-        }
-        else
-        {
-            //文本信息
-            if(unit.extendData.type == SOCKET_TEXT){
-                if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
-                    if(packData.cFileType == QDB2051::F_NO_SUFFIX){
-                        switch(unit.extendData.type495){
-                            case T_DATA_AFFIRM:
-                            case T_DATA_NOAFFIRM:
-                                RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
-                                break;
-                            default:break;
+        //文本信息
+        if(unit.extendData.type == SOCKET_TEXT){
+
+            //走正常21、2051协议解析，若解析失败则直接走转发
+            bool normalParsedMethod = false;
+
+            if(checkHead495Only(unit)){
+                normalParsedMethod = true;
+                packData.data = unit.data,packData;
+                packData.orderNo = 0;
+            }else{
+                normalParsedMethod = RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData);
+            }
+
+            if(normalParsedMethod && packData.fileType == QDB2051::F_NO_SUFFIX)
+            {
+                switch(static_cast<PacketType_495>(packData.pack495.packType)){
+                    case T_DATA_AFFIRM:
+                    case T_DATA_NOAFFIRM:
+                        RSingleton<Data716Process>::instance()->processText(db,unit.extendData.sockId,packData);
+                        break;
+                    case T_DATA_REG:
+                    case T_CONNECT_TEST:
+                        {
+                            RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
                         }
-                    }
+                        break;
+                    default:
+                        {
+                            RSingleton<Data716Process>::instance()->processTranspondData(db,unit.extendData.sockId,packData);
+                        }
+                        break;
                 }
             }
-            //文件信息
-            else if(unit.extendData.type == SOCKET_FILE){
-                //可能是第一包数据，也可能就一包数据
-                if(unit.extendData.wOffset == 0){
-                    if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
-
-                    }
-                }else{
-                    packData.data = unit.data;
-                }
-
-                RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
+            //495转发通道
+            else
+            {
+                packData.data = unit.data;
+                RSingleton<Data716Process>::instance()->processForwardData(db,unit.extendData.sockId,packData);
             }
+        }
+        //文件信息
+        else if(unit.extendData.type == SOCKET_FILE)
+        {
+            //可能是第一包数据，也可能就一包数据
+            if(unit.extendData.pack495.offset == 0){
+                if(RSingleton<ServerNetwork::TCP_WrapRule>::instance()->unwrap(unit.data,packData)){
+
+                }
+            }else{
+                packData.data = unit.data;
+            }
+
+            RSingleton<Data716Process>::instance()->processFileData(db,unit.extendData.sockId,packData);
         }
     }
 }
@@ -83,6 +121,30 @@ void Binary716_MsgParse::processData(Database *db, const RecvUnit &unit)
 bool Binary716_MsgParse::checkHead495Only(const PacketType_495 type)
 {
     return (type == T_DATA_REG);
+}
+
+bool Binary716_MsgParse::checkHead495Only(RecvUnit unit)
+{
+    if(checkHeadHave21(unit))
+    {
+        return false;
+    }
+    return true;
+}
+
+bool Binary716_MsgParse::checkHeadHave21(RecvUnit unit)
+{
+    if(unit.data.size()<QDB21_Head_Length)
+    {
+        return false;
+    }
+    QDB21::QDB21_Head header;
+    memcpy(&header,unit.data.data(),QDB21_Head_Length);
+    if(header.destAddr == unit.extendData.pack495.destAddr)
+    {
+        return true;
+    }
+    return false;
 }
 
 #endif

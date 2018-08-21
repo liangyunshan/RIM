@@ -27,6 +27,8 @@
 #include "widget/rmessagebox.h"
 #include "setkeysequencedialog.h"
 #include "user/user.h"
+#include "rquickorderwidget.h"
+#include "../file/globalconfigfile.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
 {
@@ -239,12 +241,18 @@ void SystemSettingsPrivate::initWidget()
     /****************快捷键设置********************/
     SystemSettingsPage * shortCutPage = new SystemSettingsPage(basicWidget);
     shortCutPage->setDescInfo(QObject::tr("Shortcut"));
-
     RButton * shortcutButt = new RButton();
     shortcutButt->setText(QObject::tr("Shortcut Setting"));
     QObject::connect(shortcutButt,SIGNAL(pressed()),q_ptr,SLOT(respShortCut()));
-
     shortCutPage->addItem(shortcutButt);
+
+    /****************快捷命令设置********************/
+    SystemSettingsPage * quickOrderPage = new SystemSettingsPage(basicWidget);
+    quickOrderPage->setDescInfo(QObject::tr("QuickOrder"));
+    RButton * quickOrderButt = new RButton();
+    quickOrderButt->setText(QObject::tr("QuickOrder Setting"));
+    QObject::connect(quickOrderButt,SIGNAL(pressed()),q_ptr,SLOT(respQuickOrder()));
+    quickOrderPage->addItem(quickOrderButt);
 
     //TODO:需要将界面的背景替换为统一的白色
     p_setKeySequenceDialog = new SetKeySequenceDialog();
@@ -279,6 +287,7 @@ void SystemSettingsPrivate::initWidget()
     basicLayout->addWidget(statePage);
     basicLayout->addWidget(sessionPage);
     basicLayout->addWidget(shortCutPage);
+    basicLayout->addWidget(quickOrderPage);
     basicLayout->addWidget(soundPage);
     basicLayout->addWidget(filePage);
 
@@ -406,7 +415,7 @@ void SystemSettingsPrivate::localSettings()
     encryptionCheckBox->setChecked(G_User->systemSettings()->encryptionCheck);
     compressCheckBox->setChecked(G_User->systemSettings()->compressCheck);
 
-    systemTrayIcon->setChecked(RUtil::globalSettings()->value(Constant::SETTING_TRAYICON,false).toBool());
+    systemTrayIcon->setChecked(Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible);
 }
 
 #define SYSTEM_USER_BASIC_WIDTH 380
@@ -488,9 +497,10 @@ void SystemSettings::respExitSystem(bool flag)
 
 void SystemSettings::respSystemTrayIcon(bool flag)
 {
-    RUtil::globalSettings()->setValue(Constant::SETTING_TRAYICON,flag);
+    Global::G_GlobalConfigFile->systemSetting.isTrayIconVisible = flag;
     G_User->systemSettings()->trayIcon = flag;
     RSingleton<Subject>::instance()->notify(MessageType::MESS_SETTINGS);
+    Global::G_GlobalConfigFile->sysc();
 }
 
 void SystemSettings::respHidePanel(bool flag)
@@ -576,5 +586,14 @@ void SystemSettings::respSoundSetting()
 void SystemSettings::respFileSetting()
 {
 
+}
+
+/*!
+ * @brief 设置快捷回复命令
+ */
+void SystemSettings::respQuickOrder()
+{
+    RQuickOrderWidget::instance()->raise();
+    RQuickOrderWidget::instance()->showNormal();
 }
 

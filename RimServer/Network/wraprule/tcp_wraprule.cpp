@@ -17,11 +17,11 @@ TCP_WrapRule::TCP_WrapRule():WrapRule()
 
 void TCP_WrapRule::wrap(ProtocolPackage &data)
 {
-    if(data.usOrderNo == O_2051)
+    if(data.orderNo == O_2051)
     {
         RSingleton<QDB2051_WrapRule>::instance()->wrap(data);
     }
-    else if(data.usOrderNo == O_2048)
+    else if(data.orderNo == O_2048)
     {
         RSingleton<QDB2048_WrapRule>::instance()->wrap(data);
     }
@@ -36,12 +36,12 @@ bool TCP_WrapRule::unwrap(const QByteArray &data, ProtocolPackage &result)
         return false;
     }
 
-    if(result.usOrderNo == O_2051)
+    if(result.orderNo == O_2051)
     {
         if(!RSingleton<QDB2051_WrapRule>::instance()->unwrap(result.data,result))
             return false;
     }
-    else if(result.usOrderNo == O_2048)
+    else if(result.orderNo == O_2048)
     {
         if(!RSingleton<QDB2048_WrapRule>::instance()->unwrap(result.data,result))
             return false;

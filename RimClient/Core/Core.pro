@@ -184,7 +184,12 @@ SOURCES += \
     Widgets/chat/transferfilelistbox.cpp\
     thread/file716sendtask.cpp \
     others/serialno.cpp \
-    Widgets/chat/historybridge.cpp
+    Widgets/chat/historybridge.cpp \
+    Widgets/ripwidget.cpp \
+    Widgets/rquickorderwidget.cpp \
+    Network/msgprocess/format495function.cpp \
+    Network/networksetting.cpp \
+    file/globalconfigfile.cpp
 
 
 HEADERS  += \
@@ -308,7 +313,12 @@ HEADERS  += \
     Widgets/chat/transferfilelistbox.h\
     thread/file716sendtask.h \
     others/serialno.h \
-    Widgets/chat/historybridge.h
+    Widgets/chat/historybridge.h \
+    Widgets/ripwidget.h \
+    Widgets/rquickorderwidget.h \
+    Network/msgprocess/format495function.h \
+    Network/networksetting.h \
+    file/globalconfigfile.h
 
 DISTFILES += \
     Widgets/Widgets.pri

@@ -239,6 +239,12 @@ ClientList TcpClientManager::getClients(QString accountId)
     return clients;
 }
 
+ClientList TcpClientManager::getClients()
+{
+    std::lock_guard<std::mutex> lg(mutex);
+    return clientList;
+}
+
 TcpClient *TcpClientManager::addClient(int sockId, char *ip, unsigned short port)
 {
     std::lock_guard<std::mutex> lg(mutex);

@@ -91,6 +91,7 @@ private slots:
     void enterSend();
     void dealDropFile(QString);
     void sendMsg(bool flag=true);
+    void sendMsg(QString str);
     void sendImg();
     void setSideVisible(bool flag=false);
 
@@ -114,6 +115,9 @@ private slots:
 
     void slot_RecvRUDpData(QByteArray data);
     void sendTargetFiles(bool);
+    void showQuickOrderWidget(bool);
+    void sendQuickOrde();
+    void openQuickOrdePanel();
     void updateTransFileTab();
     void cancelTransfer(QString);
     void updateTransFileStatus(FileTransProgress);

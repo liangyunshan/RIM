@@ -26,9 +26,12 @@ public:
     Data716Process();
 
     void processText(Database * db,int sockId,ProtocolPackage & data);
-    void processUserRegist(Database * db,int sockId,ProtocolPackage & data);
-
     void processFileData(Database * db,int sockId,ProtocolPackage & data);
+
+    void processTranspondData(Database * db,int sockId,ProtocolPackage & data);
+    void processDllTestText(Database * db,int sockId,ProtocolPackage & data);
+
+    void processForwardData(Database * db,int sockId,ProtocolPackage & data);
 
 private:
     /*!
@@ -61,6 +64,13 @@ private:
     };
 
 private:
+    void processInnerData(Database * db,int sockId,ProtocolPackage & data);
+    void processOuterData(Database * db,int sockId,ProtocolPackage & data,bool savedWhenOffline = true);
+
+    void processUserRegist(Database * db,int sockId,unsigned short sourceAddr);
+    void processUserUnRegist(Database * db,int sockId,unsigned short sourceAddr);
+    void processRouteChecking(Database * db, int sockId, unsigned short sourceAddr, unsigned short destAddr);
+
     void cacheMsgProtocol(ParameterSettings::NodeServer serverInfo, ProtocolPackage & package);
     void cacheFileProtocol(Database * db,ParameterSettings::NodeServer serverInfo, ParameterSettings::Simple716FileInfo & fileIndo);
 
@@ -69,9 +79,11 @@ private:
 
     void saveFile2Database(std::vector<ParameterSettings::Simple716FileInfo> &recvFileCache);
 
+    void addRegistNode(QByteArray & data,unsigned short nodeNums...);
+
 private:
     std::mutex textCacheMutex;
-    std::map<unsigned short,TextServerCacheInfo> textServerCache;
+    std::map<unsigned short,TextServerCacheInfo> textServerCache;       /*!< 跨服务器文字传输缓存 */
 
     std::mutex fileCacheMutex;
     std::map<unsigned short,FileServerCacheInfo> fileServerCache;
