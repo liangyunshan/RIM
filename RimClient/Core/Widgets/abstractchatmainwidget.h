@@ -16,6 +16,7 @@
 #include <QWidget>
 
 #include "observer.h"
+#include "../protocol/datastruct.h"
 #include "../protocol/protocoldata.h"
 
 struct ChatInfoUnit;
@@ -35,13 +36,6 @@ public:
     {
         SEND,   //发出信息
         RECV    //收到信息
-    };
-    enum NoticeType
-    {
-        FAULT,      //错误
-        NORMAL,     //正常
-        INFO,       //普通提示
-        NONOTICE    //无标识
     };
     enum MsgReadState
     {
@@ -128,6 +122,8 @@ private slots:
     void cancelTransfer(QString);
     void updateTransFileStatus(FileTransProgress);
     void updateMsgStatus(ushort serialNo);
+
+    void showAllHistoryRecord(const ChatInfoUnitList &);
 
 private:
     AbstractChatMainWidgetPrivate * d_ptr;

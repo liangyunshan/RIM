@@ -204,13 +204,6 @@
             height:70px;
             overflow: hidden;
         }
-        .iconfont.icon-icon_folder{
-            font-size: 40px;
-            float: left;
-            color: blue;
-            margin-top: 6px;
-            margin-left: 8px;
-        }
         .fileDetail {
             float: left;
             margin-left: 6px;
@@ -277,6 +270,41 @@
         .icon-sound_left{
             color:#85888A;
         }
+        .iconfont.icon-textFile{
+            font-size: 40px;
+            float: left;
+            color:RGB(121,136,173);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-folder{
+            font-size: 40px;
+            float: left;
+            color: RGB(247,179,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-yasuobao{
+            font-size: 40px;
+            float: left;
+            color: RGB(248,180,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-pdfFile{
+            font-size: 40px;
+            float: left;
+            color: RGB(242,102,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-xmlFile{
+            font-size: 40px;
+            float: left;
+            color: RGB(13,184,246);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
         /*语音信息样式*/
         .icon-sound_right{
             color:#85888A;
@@ -286,7 +314,35 @@
             color:#85888A;
             cursor:pointer;
         }
-    </style>
+        .exp_btn {
+            display: inline-block;
+            margin-left: 2px;
+            color:#fff;
+            cursor:pointer;
+            height:20px;
+            line-height: 20px;
+        }
+        .dialogContainer{
+            animation: 2s opacity2;
+            -webkit-animation: 2s opacity2;
+            -moz-animation: 2s opacity2;
+        }
+        @keyframes opacity2{
+            0%{opacity:0;transform: translate3d(0,-20%,0)}
+            50%{opacity:.8;transform: translate3d(0,0,0)}
+            100%{opacity:1;transform: translate3d(0,0,0)}
+        }
+        @-webkit-keyframes opacity2{
+            0%{opacity:0;transform: translate3d(0,-20%,0)}
+            50%{opacity:.8;transform: translate3d(0,0,0)}
+            100%{opacity:1;transform: translate3d(0,0,0)}
+        }
+        @-moz-keyframes opacity2{
+            0%{opacity:0;transform: translate3d(0,-20%,0)}
+            50%{opacity:.8;transform: translate3d(0,0,0)}
+            100%{opacity:1;transform: translate3d(0,0,0)}
+        }
+</style>
 </head>
 
 <body>
@@ -414,7 +470,14 @@
         }
     }
     // 接收消息，暴露参数
-    function appendMesRecord(messageTarget,textMessage,avatarPath,readState,stateID) {
+    function appendMesRecord(mesJson) {
+        var messageTarget,textMessage,avatarPath,readState,stateID;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        textMessage = obj.content;
+        avatarPath = obj.head;
+        readState = obj.state;
+        stateID = obj.stateID;
         if(textMessage === '')
         {
 
@@ -433,7 +496,25 @@
             // 文字信息
             var textMes = document.createElement('div');
             textMes.className = 'textMesContainer';
-            textMes.innerHTML = textMessage;
+            if(textMessage.length > 200)
+            {
+                var valInput = textMessage;
+                var valCut = valInput.substr(0,200);
+                textMes.innerHTML = valCut + '...';
+                var inputStorage = document.createElement('p');
+                inputStorage.innerHTML = valInput;
+                inputStorage.style.display = 'none';
+                var exp_btn = document.createElement('span')
+                exp_btn.innerHTML = '点击展开';
+                exp_btn.appendChild(inputStorage);
+                addClass(exp_btn,'exp_btn');
+                textMes.appendChild(exp_btn);
+            }
+            else
+            {
+                textMes.innerHTML = textMessage;
+            }
+
             // 读取状态容器
             var stateSpan;
             if(messageTarget === 0)
@@ -489,7 +570,14 @@
     }
 
     //向最前一条消息记录插入新的消息记录
-    function prependMesRecord(messageTarget,textMessage,avatarPath,readState,stateID) {
+    function prependMesRecord(mesJson) {
+        var messageTarget,textMessage,avatarPath,readState,stateID;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        textMessage = obj.content;
+        avatarPath = obj.head;
+        readState = obj.state;
+        stateID = obj.stateID;
         if(textMessage === '')
         {
 
@@ -506,9 +594,29 @@
             avatarContainer.setAttribute('src',avatarPath);
             avatarContainer.setAttribute('class','avatarPic');
             // 文字信息
+            //var textMes = document.createElement('div');
+            //textMes.className = 'textMesContainer';
+            //textMes.innerHTML = textMessage;
             var textMes = document.createElement('div');
             textMes.className = 'textMesContainer';
-            textMes.innerHTML = textMessage;
+            if(textMessage.length > 200)
+            {
+                var valInput = textMessage;
+                var valCut = valInput.substr(0,200);
+                textMes.innerHTML = valCut + '...';
+                var inputStorage = document.createElement('p');
+                inputStorage.innerHTML = valInput;
+                inputStorage.style.display = 'none';
+                var exp_btn = document.createElement('span')
+                exp_btn.innerHTML = '点击展开';
+                exp_btn.appendChild(inputStorage);
+                addClass(exp_btn,'exp_btn');
+                textMes.appendChild(exp_btn);
+            }
+            else
+            {
+                textMes.innerHTML = textMessage;
+            }
             // 读取状态容器
             var stateSpan;
             if(messageTarget === 0)
@@ -562,7 +670,12 @@
 
     }
 
-    function appendImgRecord(messageTarget,imgPath,avatarPath) {
+    function appendImgRecord(mesJson) {
+        var messageTarget,imgPath,avatarPath;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        imgPath = obj.content;
+        avatarPath = obj.head;
         if(imgPath === '')
         {
 
@@ -617,7 +730,12 @@
         }
     }
 
-    function prependImgRecord(messageTarget,imgPath,avatarPath) {
+    function prependImgRecord(mesJson) {
+        var messageTarget,imgPath,avatarPath;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        imgPath = obj.content;
+        avatarPath = obj.head;
         if(imgPath === '')
         {
 
@@ -725,7 +843,13 @@
         noticeContainer.scrollIntoView();
     }
     // 向后插入收/发文件夹消息
-    function appendFile(target,filePath,avatarPath,resultType) {
+    function appendFile(mesJson) {
+        var target,filePath,avatarPath,resultType;
+        var obj = JSON.parse(mesJson);
+        target = obj.target;
+        filePath = obj.content;
+        avatarPath = obj.head;
+        resultType = obj.result;
         // 初始化容器
         var content_container = document.getElementById('content');
         var newDiv = document.createElement('div');
@@ -745,7 +869,7 @@
         var fileManipulate = document.createElement('div');
         fileManipulate.setAttribute('class','fileManipulate');
         var fileIcon = document.createElement('i');
-        fileIcon.setAttribute('class','iconfont icon-icon_folder');
+        fileIcon.setAttribute('class','iconfont icon-folder');
         var fileDetail = document.createElement('div');
         fileDetail.setAttribute('class','fileDetail');
         var fileNameBox = document.createElement('span');
@@ -808,7 +932,13 @@
         newDiv.scrollIntoView(false);
     }
 
-    function prependFile(target,filePath,avatarPath,resultType) {
+    function prependFile(mesJson) {
+        var target,filePath,avatarPath,resultType;
+        var obj = JSON.parse(mesJson);
+        target = obj.target;
+        filePath = obj.content;
+        avatarPath = obj.head;
+        resultType = obj.result;
         // 初始化容器
         var content_container = document.getElementById('content');
         var newDiv = document.createElement('div');
@@ -828,7 +958,7 @@
         var fileManipulate = document.createElement('div');
         fileManipulate.setAttribute('class','fileManipulate');
         var fileIcon = document.createElement('i');
-        fileIcon.setAttribute('class','iconfont icon-icon_folder');
+        fileIcon.setAttribute('class','iconfont icon-folder');
         var fileDetail = document.createElement('div');
         fileDetail.setAttribute('class','fileDetail');
         var fileNameBox = document.createElement('span');
@@ -993,7 +1123,13 @@
         fontLink.setAttribute('href',t_value);
     }
     //发送语音消息
-    function appendVoiceMsg(messageTarget,voiceDuration,voicePath,avatarPath){
+    function appendVoiceMsg(mesJson){
+        var messageTarget,voiceDuration,voicePath,avatarPath;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        voiceDuration = obj.length;
+        voicePath = obj.content;
+        avatarPath = obj.head;
         //初始化容器
         var content_container = document.getElementById('content');
         var newDiv = document.createElement('div');
@@ -1014,7 +1150,7 @@
             soundIcon.className = 'iconfont icon-sound_left';
         }
         soundIcon.setAttribute('voicePath',voicePath);//LYS
-		
+
         var soundLength = document.createElement('span');
         soundLength.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
         var count = voiceDuration/2;
@@ -1022,7 +1158,7 @@
         {
             soundLength.innerHTML += '&nbsp;';
         }
-		
+
         var secondSpan = document.createElement('span');
         secondSpan.innerHTML = voiceDuration+'"';
         // 读取状态容器
@@ -1073,7 +1209,13 @@
     }
 
     //前置发送语音消息
-    function prependVoiceMsg(messageTarget,voiceDuration,voicePath,avatarPath){
+    function prependVoiceMsg(mesJson){
+        var messageTarget,voiceDuration,voicePath,avatarPath;
+        var obj = JSON.parse(mesJson);
+        messageTarget = obj.target;
+        voiceDuration = obj.length;
+        voicePath = obj.content;
+        avatarPath = obj.head;
         //初始化容器
         var content_container = document.getElementById('content');
         var newDiv = document.createElement('div');
@@ -1191,7 +1333,7 @@
             documentScrollHeight = document.documentElement.scrollHeight;
         }
         scrollHeight = (bodyScrollHeight - documentScrollHeight > 0) ? bodyScrollHeight : documentScrollHeight;
-            return scrollHeight;
+        return scrollHeight;
     }
 
     var scrollFunc = function (e) {
@@ -1202,6 +1344,29 @@
             bridge.getMoreRecord();
         }
     }
+
+    // 模拟点击切换文字高度
+    document.getElementById('content').addEventListener('click',function(ev) {
+        var targetContainer = ev.target;
+        if(hasClass(targetContainer, 'exp_btn'))
+        {
+            if(!hasClass(targetContainer,'flag'))
+            {
+                addClass(targetContainer, 'flag');
+                var inputStore = targetContainer.getElementsByTagName('p')[0];
+                targetContainer.parentNode.firstChild.nodeValue = inputStore.innerHTML;
+                targetContainer.innerHTML = '点击收起';
+                targetContainer.appendChild(inputStore);
+            }
+            else
+            {
+                removeClass(targetContainer, 'flag');
+                var valTxt = targetContainer.parentNode.firstChild.nodeValue;
+                targetContainer.firstChild.nodeValue = '点击展开';
+                targetContainer.parentNode.firstChild.nodeValue = valTxt.substr(0,200) + '...';
+            }
+        }
+    })
 
     </script>
 </html>

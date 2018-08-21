@@ -1,0 +1,906 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="./font/iconfont.css">
+    <script type="text/javascript" src="./qwebchannel.js"></script>
+    <style type="text/css">
+        *{font-size: 14px; padding:0; margin:0;}
+        html,body{
+            height: 100%;
+        }
+        /*主体结构样式*/
+        .main{
+            position: relative;
+            margin: 0 auto;
+            border: 0px solid steelblue;
+            overflow-x: hidden;
+            width:100%;
+            height:100%;
+        }
+
+        /*时间提示样式*/
+        .timeBox{
+            text-align: center;
+        }
+        span.theTime {
+            background-color: #fff;
+            padding: 0 20px
+        }
+        div.timeLineBox {
+            height:1px;
+            width: 80%;
+            margin: 0 auto;
+            position: relative;
+            z-index:-1;
+            top:-10px;
+            background:-webkit-radial-gradient(rgba(0,155,219,0.8) 5%, rgba(0,155,219,0.2) 15%, rgba(0,155,219,0.1) 60%);/* Safari 5.1 - 6.0 */
+            background: -o-radial-gradient(rgba(0,155,219,0.8) 5%, rgba(0,155,219,0.2) 15%, rgba(0,155,219,0.1) 60%); /* Opera 11.6 - 12.0 */
+            background: -moz-radial-gradient(rgba(0,155,219,0.8) 5%, rgba(0,155,219,0.2) 15%, rgba(0,155,219,0.1) 60%); /* Firefox 3.6 - 15 */
+            background: radial-gradient(rgba(0,155,219,0.8) 5%, rgba(0,155,219,0.2) 15%, rgba(0,155,219,0.1) 60%); /* 标准的语法 */
+        }
+        /*消息盒子样式*/
+        .content{
+            list-style: none;
+            width: auto;
+            height: 100%;
+            margin: 0px auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding:0 18px 0 0;
+        }
+        .msgContent{
+            width:auto;
+            max-width: 60%;
+            height: auto;
+            word-break: break-all;
+            margin: 5px;
+            padding: 3px;
+            border-radius: 5px;
+            text-align: left;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .msgContent span.textMesContainer {
+            display:block;
+        }
+
+        .dialogContainer:after {
+            content:"";
+            display:block;
+            clear:both;
+        }
+        .dialogContainer{
+            padding: 2px 8px;
+            margin-right: -18px;
+        }
+
+        /*消息图片样式*/
+        .imgMesContainer{
+            max-width: 200px;
+            max-height: 200px;
+            display:inline-block;
+        }
+
+        /*全屏样式*/
+        #main.fullScreen {
+            box-sizing: border-box;
+            width:100%;
+            height: 100%;
+            scroll-x:none;
+        }
+        #main.fullScreen .content{
+            height: 100%;
+        }
+
+        /*查看图片详情样式*/
+        #viewImg{
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.8);
+            width:100%;
+            height: 100%;
+            position: absolute;
+            top:0;
+            left: 0;
+            z-index: 1000;
+            text-align: center;
+            padding-top: 40px;
+        }
+        #viewImg .imgMesContainer{
+            width: auto;
+            height: auto;
+            max-width: 1000px;
+            max-height: 800px;
+        }
+        #closeMask {
+            position: absolute;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            border: 1px solid #fff;
+            color:#fff;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #closeMask:hover{
+            background: #CE5146;
+            border-color: #CE5146;
+        }
+        /*提示信息样式*/
+        div.noticeContainer{
+            margin-top: 6px;
+        }
+        div.noticeBox{
+            display: inline-block;
+            width:360px;
+            padding: 2px 10px;
+        }
+        /*.noticeBox span {
+            !*white-space: nowrap;*!
+        }*/
+
+        /*发送文件夹样式*/
+        .fileContainer{
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 1px;
+            margin: 2px;
+            width: 90%;
+            height: 100px;
+        }
+        .fileInfo{
+            width:auto;
+            width:100%;
+            height:70px;
+            overflow: hidden;
+        }
+        .fileDetail {
+            float: left;
+            margin-left: 6px;
+            margin-top: 6px;
+            min-width:200px;
+            max-width:70%;
+            height:60px;
+
+        }
+        .fileNameBox,.fileNoticeBox{
+            width:100%;
+            height: 20px;
+            line-height: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fileNameBox {
+            display: inline-block;
+            padding-left: 4px;
+            font-size: 14px;
+        }
+        .fileManipulate{
+            float: left;
+            width: 100%;
+            border-top:1px solid #ccc;
+        }
+        span.openFileBtn {
+            float: right;
+            height:30px;
+            line-height: 30px;
+            margin-right: 10px;
+            color:#009BDB;
+            cursor: pointer;
+        }
+        span.openFolderBtn {
+            float: right;
+            height:30px;
+            line-height: 30px;
+            margin-right: 10px;
+            color:#009BDB;
+            cursor: pointer;
+        }
+        span.forwardBtn {
+            float: right;
+            height:30px;
+            line-height: 30px;
+            margin-right: 10px;
+            color:#009BDB;
+            cursor: pointer;
+        }
+
+
+        /*字体图标样式*/
+        .iconfont{
+            font-size: 16px;
+            margin-right: 4px;
+        }
+        .icon-cuowu{
+            color:#E35850;
+        }
+        .icon-duihao2{
+            color:#5FB41B;
+        }
+        .icon-tishi{
+            color:#4EA9E9;
+        }
+        .icon-sound_right{
+            color:#85888A;
+            cursor:pointer;
+        }
+        .icon-sound_left{
+            color:#85888A;
+            cursor:pointer;
+        }
+        .iconfont.icon-textFile{
+            font-size: 40px;
+            float: left;
+            color:RGB(121,136,173);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-folder{
+            font-size: 40px;
+            float: left;
+            color: RGB(247,179,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-yasuobao{
+            font-size: 40px;
+            float: left;
+            color: RGB(248,180,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-pdfFile{
+            font-size: 40px;
+            float: left;
+            color: RGB(242,102,102);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+        .iconfont.icon-xmlFile{
+            font-size: 40px;
+            float: left;
+            color: RGB(13,184,246);
+            margin-top: 6px;
+            margin-left: 8px;
+        }
+
+        /*历史消息样式*/
+        .mesContent {
+            display: inline-block;
+            padding: 4px 0 4px 10px;
+        }
+        .othersMes .mesInfo{
+            color:RGB(0,110,254)
+        }
+        .myMes .mesInfo{
+            color:RGB(66,180,117)
+        }
+        .timeStamp{
+            padding-left: 6px;
+        }
+        .soundBox {
+            width: 100px;
+            height: 34px;
+            line-height: 34px;
+            padding-left: 4px;
+            border-radius: 4px;
+        }
+        .myMes .soundBox{
+            background: #77CDF8;
+            color: #fff;
+        }
+        .myMes .soundBox .icon-sound_left {
+            color: #fff;
+        }
+        .othersMes .soundBox {
+            background: #CDD7E2;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <div id="main" class="main">
+        <div id="content" class="content">
+            <div id="allHisContainer">
+
+            </div>
+
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+    var bridge;
+    window.onload = function(){
+        new QWebChannel(qt.webChannelTransport,function(channel)
+        {
+            bridge = channel.objects.hisBridge;
+        });
+
+        window.onmousewheel = scrollFunc;
+    }
+
+    //html与C++交互
+    document.getElementById('main').addEventListener('click',function (ev) {
+        var target = ev.target;
+
+        var openFile = hasClass(target,'openFileBtn');
+        if(openFile)
+        {
+            //打开目标文件
+            var t_fullPath = target.getAttribute('fullPath');
+            bridge.openTargetFile(t_fullPath);
+        }
+
+        var openFolder = hasClass(target,'openFolderBtn');
+        if(openFolder)
+        {
+            //打开所在文件夹
+            var t_folderPath = target.getAttribute('dirPath');
+            bridge.openTargetFolder(t_folderPath);
+        }
+
+        var transpondBtn = hasClass(target,'forwardBtn');
+        if(transpondBtn)
+        {
+            //转发文件
+            var t_filePath = target.getAttribute('dirPath');
+            bridge.transpondFile(t_filePath);
+        }
+
+    })
+
+    // 修改字体图标文件链接路径
+    function setAbsoulteFontIconHerf(herfValue){
+        var t_value = herfValue + '/font/iconfont.css';
+        var fontLink = document.getElementsByTagName('link')[0];
+        fontLink.setAttribute('href',t_value);
+    }
+
+    // 点击图片全屏显示，关闭后删除mask层
+    document.getElementById('main').addEventListener('dblclick',function (ev) {
+        var img = ev.target.tagName;
+        if(img === 'IMG')
+        {
+            var imgSrc = ev.target.src;
+            var mask = document.createElement('div');
+            var closeMask = document.createElement('span');
+            closeMask.innerHTML = '×';
+            closeMask.setAttribute('id','closeMask');
+            mask.setAttribute('id','viewImg');
+            var viewImg = document.createElement('img');
+            viewImg.setAttribute('src',imgSrc);
+            viewImg.className = 'imgMesContainer';
+            mask.appendChild(viewImg);
+            mask.appendChild(closeMask);
+            document.body.appendChild(mask);
+            closeMask.addEventListener('click',function () {
+            document.body.removeChild(mask);
+            })
+        }
+    })
+
+    // 追加文本历史消息-json
+    function appendTextHistory(textJson) {
+        //初始化容器
+        var userName,timeStamp,message,messageTarget;
+        var obj = JSON.parse(textJson);
+        userName = obj.name;
+        timeStamp = obj.time;
+        message = obj.message;
+        messageTarget = obj.target;
+        var mesBox = document.createElement('div')
+        if(messageTarget === 0)
+        {
+            addClass(mesBox, 'myMes');
+        }
+        else if(messageTarget === 1 )
+        {
+            addClass(mesBox, 'othersMes');
+        }
+        addClass(mesBox, 'dialogContainer');
+        // 用户信息
+        var mesInfo = document.createElement('div');
+        addClass(mesInfo, 'mesInfo');
+        var nameBox = document.createElement('span');
+        nameBox.innerHTML = userName;
+        addClass(nameBox, 'nameBox');
+        // 时间戳
+        var timeBox = document.createElement('span');
+        timeBox.innerHTML = timeStamp;
+        addClass(timeBox, 'timeStamp');
+        // 消息内容
+        var mesContent = document.createElement('div');
+        addClass(mesContent, 'mesContent');
+        mesContent.innerHTML = message;
+        mesInfo.appendChild(nameBox);
+        mesInfo.appendChild(timeBox);
+        mesBox.appendChild(mesInfo);
+        mesBox.appendChild(mesContent);
+        var hisContainer = document.getElementById('allHisContainer');
+        hisContainer.appendChild(mesBox);
+        mesBox.scrollIntoView();
+    }
+
+    // 追加图片历史消息-json
+    function appendImageHistory(imgJson){
+        var userName, timeStamp, picPath, messageTarget;
+        var obj = JSON.parse(textJson);
+        userName = obj.name;
+        timeStamp = obj.time;
+        picPath = obj.message;
+        messageTarget = obj.target;
+        // 初始化容器
+        var mesBox = document.createElement('div');
+        if(messageTarget === 0)
+        {
+            addClass(mesBox, 'myMes');
+        }
+        else if(messageTarget === 1 )
+        {
+            addClass(mesBox, 'othersMes');
+        }
+        addClass(mesBox, 'dialogContainer');
+        // 用户信息
+        var mesInfo = document.createElement('div');
+        addClass(mesInfo, 'mesInfo');
+        var nameBox = document.createElement('span');
+        nameBox.innerHTML = userName;
+        addClass(nameBox, 'nameBox');
+        // 时间戳
+        var timeBox = document.createElement('span');
+        timeBox.innerHTML = timeStamp;
+        addClass(timeBox, 'timeStamp');
+        // 消息内容
+        var imgContainer = document.createElement('img');
+        imgContainer.src = picPath;
+        // 嵌入容器
+        mesInfo.appendChild(nameBox);
+        mesInfo.appendChild(timeBox);
+        mesBox.appendChild(mesInfo);
+        mesBox.appendChild(imgContainer);
+        var hisContainer = document.getElementById('allHisContainer');
+        hisContainer.appendChild(mesBox);
+        mesBox.scrollIntoView();
+    }
+
+    //追加文件历史消息-json
+    function appendFileHistory(fileJson) {
+        var userName, filePath, fileName, fileType, timeStamp, messageTarget, resultType;
+        var obj = JSON.parse(fileJson);
+        userName = obj.name;
+        filePath = obj.filePath;
+        fileName = obj.fileName;
+        fileType = obj.fileType;
+        timeStamp = obj.time;
+        messageTarget = obj.target;
+        resultType = obj.resultType;
+        //obj.fileSize、obj.date
+
+        // 初始化容器
+        var mesBox = document.createElement('div');
+        if(messageTarget === 0)
+        {
+            addClass(mesBox, 'myMes');
+        }
+        else if(messageTarget === 1 )
+        {
+            addClass(mesBox, 'othersMes');
+        }
+        addClass(mesBox, 'dialogContainer')
+        // 用户信息
+        var mesInfo = document.createElement('div');
+        addClass(mesInfo, 'mesInfo');
+        var nameBox = document.createElement('span');
+        nameBox.innerHTML = userName;
+        addClass(nameBox, 'nameBox');
+        // 时间戳
+        var timeBox = document.createElement('span');
+        timeBox.innerHTML = timeStamp;
+        addClass(timeBox, 'timeStamp');
+        // 消息内容
+        var mesContent = document.createElement('div');
+        addClass(mesContent, 'mesContent');
+        // 文件夹内元素
+        var fileContainer = document.createElement('div');
+        fileContainer.setAttribute('class','fileContainer');
+        var fileInfo = document.createElement('div');
+        fileInfo.setAttribute('class','fileInfo');
+        var fileManipulate = document.createElement('div');
+        fileManipulate.setAttribute('class','fileManipulate');
+        //文件图标
+        var fileIcon = document.createElement('i');
+        //TODO LYS-20180801 根据文件路径判断文件类型，去掉fileType参数
+        if(fileType === 0)
+        {
+            fileIcon.setAttribute('class','iconfont icon-textFile');
+        }
+        else if(fileType === 2)
+        {
+            fileIcon.setAttribute('class','iconfont icon-folder');
+        }
+        else if(fileType === 1)
+        {
+            fileIcon.setAttribute('class','iconfont icon-yasuobao');
+        }
+
+        var fileDetail = document.createElement('div');
+        fileDetail.setAttribute('class','fileDetail');
+        var fileNameBox = document.createElement('span');
+        fileNameBox.setAttribute('class','fileNameBox');
+        var noticeBox = document.createElement('div');
+        noticeBox.setAttribute('class','fileNoticeBox');
+        if (resultType === 0)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-cuowu"></i><span>文件发送失败！</span>';
+        }
+        if (resultType === 1)
+        {
+            noticeBox.innerHTML = '<i class="iconfont icon-duihao2"></i><span>发送成功!</span>';
+        }
+        // 文件详情
+        fileNameBox.innerHTML = fileName;
+        fileDetail.appendChild(fileNameBox);
+        fileDetail.appendChild(noticeBox);
+        // 文件信息
+        fileInfo.appendChild(fileIcon);
+        fileInfo.appendChild(fileDetail);
+        fileContainer.appendChild(fileInfo);
+        // 操作
+        var openFile = openFileBtn()
+        openFile.setAttribute('fullPath',filePath);
+
+        var openFileFolder = openFileFolderBtn();
+        openFileFolder.setAttribute('dirPath',filePath);
+
+        var transpondFile = forwardFileBtn();
+        transpondFile.setAttribute('fullPath',filePath);
+        fileManipulate.appendChild(transpondFile);
+        fileManipulate.appendChild(openFileFolder);
+        fileManipulate.appendChild(openFile);
+        fileContainer.appendChild(fileManipulate);
+        // 嵌入容器
+        mesInfo.appendChild(nameBox)
+        mesInfo.appendChild(timeBox)
+        mesBox.appendChild(mesInfo)
+        // mesBox.appendChild(mesContent)
+        // 会话容器绑定
+        mesBox.appendChild(fileContainer);
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(mesBox)
+        fileContainer.scrollIntoView();
+    }
+
+    //追加语音历史消息-json
+    function appendVoiceHistory(voiceJson) {
+        var userName, timeStamp, voiceInfo, messageTarget;
+        var obj = JSON.parse(voiceJson);
+        userName = obj.name;
+        timeStamp = obj.time;
+        voicePath = obj.voice;
+        voiceLength = obj.length;
+        messageTarget = obj.target;
+        //初始化容器
+        var mesBox = document.createElement('div')
+        if(messageTarget === 0)
+        {
+            addClass(mesBox, 'myMes')
+        }
+        else if(messageTarget === 1 )
+        {
+            addClass(mesBox, 'othersMes')
+        }
+        addClass(mesBox, 'dialogContainer')
+        // 用户信息
+        var mesInfo = document.createElement('div')
+        addClass(mesInfo, 'mesInfo')
+        var nameBox = document.createElement('span')
+        nameBox.innerHTML = userName
+        addClass(nameBox, 'nameBox')
+        // 时间戳
+        var timeBox = document.createElement('span')
+        timeBox.innerHTML = timeStamp
+        addClass(timeBox, 'timeStamp')
+        // 消息内容
+        var soundBox = document.createElement('div')
+        addClass(soundBox, 'soundBox')
+        var soundIcon = document.createElement('i');
+        soundIcon.className = 'iconfont icon-sound_left';
+        soundIcon.setAttribute('voicePath',voicePath);
+        var secondSpan = document.createElement('span');
+        secondSpan.innerHTML = voiceLength + '”';
+        soundBox.appendChild(secondSpan);
+        soundBox.appendChild(soundIcon);
+        var mesContent = document.createElement('div')
+        addClass(mesContent, 'mesContent')
+        mesContent.appendChild(soundBox)
+        mesInfo.appendChild(nameBox)
+        mesInfo.appendChild(timeBox)
+        mesBox.appendChild(mesInfo)
+        mesBox.appendChild(mesContent)
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(mesBox)
+        mesBox.scrollIntoView();
+    }
+
+    //插入消息日期分隔线
+    function appendSeparateDate (date) {
+        var timeContainer = document.createElement('div');
+        var time = document.createElement('span');
+        var timeLineBox = document.createElement('div')
+        addClass(time, 'theTime')
+        addClass(timeLineBox, 'timeLineBox')
+        time.innerHTML = date;
+        timeContainer.appendChild(time);
+        timeContainer.appendChild(timeLineBox);
+        timeContainer.setAttribute('class','timeBox');
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(timeContainer)
+        timeContainer.scrollIntoView();
+    }
+
+    // ---文件夹消息操作打开按钮生产
+    function openFileBtn(){
+        var openFile = document.createElement('span');
+        openFile.innerHTML = '打开';
+        openFile.setAttribute('class','openFileBtn');
+        return openFile
+    }
+    // ---文件夹消息操作打开文件夹按钮生产
+    function openFileFolderBtn(){
+        var openFileFolder = document.createElement('span');
+        openFileFolder.innerHTML = '打开文件夹';
+        openFileFolder.setAttribute('class','openFolderBtn');
+        return openFileFolder
+    }
+    // ---文件夹消息操作转发按钮生产
+    function forwardFileBtn(){
+        var forwardFile = document.createElement('span');
+        forwardFile.innerHTML = '转发';
+        forwardFile.setAttribute('class','forwardBtn');
+        return forwardFile
+    }
+
+    // 发送提示消息
+    function appendNoticeHistory(noticeContent, noticeType) {
+        var noticeContainer = document.createElement('div');
+        noticeContainer.setAttribute('class','noticeContainer');
+        var noticeBox = document.createElement('div');
+        noticeBox.setAttribute('class','noticeBox');
+        var noticeIcon = document.createElement('i');
+        var noticeText = document.createElement('span');
+        noticeText.innerHTML = noticeContent;
+        if( noticeType === 0)
+        {
+            noticeIcon.className = 'iconfont icon-cuowu';
+        }
+        else if (noticeType === 1)
+        {
+            noticeIcon.className = 'iconfont icon-duihao2';
+        }
+        else if (noticeType === 2)
+        {
+            noticeIcon.className = 'iconfont icon-tishi';
+        }
+        noticeBox.appendChild(noticeIcon);
+        noticeBox.appendChild(noticeText);
+        noticeContainer.appendChild(noticeBox);
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(noticeContainer)
+        noticeContainer.scrollIntoView();
+    }
+    // 发送时间戳消息
+    // ---向后插入消息时间
+    function appendMessageTime () {
+        var theTime = getNowFormatDate();
+        var timeContainer = document.createElement('div');
+        var time = document.createElement('span');
+        var timeLineBox = document.createElement('div')
+        addClass(time, 'theTime')
+        addClass(timeLineBox, 'timeLineBox')
+        time.innerHTML = theTime;
+        timeContainer.appendChild(time);
+        timeContainer.appendChild(timeLineBox);
+        timeContainer.setAttribute('class','timeBox');
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(timeContainer)
+        timeContainer.scrollIntoView();
+    }
+    // ---向前插入消息时间
+    function prependMessageTime () {
+        var theTime = getNowFormatDate();
+        var timeContainer = document.createElement('div');
+        var time = document.createElement('span');
+        var timeLineBox = document.createElement('div')
+        addClass(time, 'theTime')
+        addClass(timeLineBox, 'timeLineBox')
+        time.innerHTML = theTime;
+        timeContainer.appendChild(time);
+        timeContainer.appendChild(timeLineBox);
+        timeContainer.setAttribute('class','timeBox');
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.insertBefore(timeContainer,hisContainer.childNodes[0]);
+        timeContainer.scrollIntoView();
+    }
+
+    // 发送语音消息
+    function sendHisVoice(userName, timeStamp, voiceInfo, messageTarget) {
+        //初始化容器
+        var mesBox = document.createElement('div')
+        if(messageTarget === 0)
+        {
+            addClass(mesBox, 'myMes')
+        }
+        else if(messageTarget === 1 )
+        {
+            addClass(mesBox, 'othersMes')
+        }
+        addClass(mesBox, 'dialogContainer')
+        // 用户信息
+        var mesInfo = document.createElement('div')
+        addClass(mesInfo, 'mesInfo')
+        var nameBox = document.createElement('span')
+        nameBox.innerHTML = userName
+        addClass(nameBox, 'nameBox')
+        // 时间戳
+        var timeBox = document.createElement('span')
+        timeBox.innerHTML = timeStamp
+        addClass(timeBox, 'timeStamp')
+        // 消息内容
+        var soundBox = document.createElement('div')
+        addClass(soundBox, 'soundBox')
+        var soundIcon = document.createElement('i');
+        soundIcon.className = 'iconfont icon-sound_left';
+        var secondSpan = document.createElement('span');
+        secondSpan.innerHTML = voiceInfo.length + '”';
+        soundBox.appendChild(secondSpan);
+        soundBox.appendChild(soundIcon);
+        var mesContent = document.createElement('div')
+        addClass(mesContent, 'mesContent')
+        mesContent.appendChild(soundBox)
+        mesInfo.appendChild(nameBox)
+        mesInfo.appendChild(timeBox)
+        mesBox.appendChild(mesInfo)
+        mesBox.appendChild(mesContent)
+        var hisContainer = document.getElementById('allHisContainer')
+        hisContainer.appendChild(mesBox)
+        mesBox.scrollIntoView();
+    }
+
+
+    // 获取当前时间
+    function getNowFormatDate() {
+        var date = new Date();
+        var seperator1 = "-";
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9)
+        {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9)
+        {
+            strDate = "0" + strDate;
+        }
+        var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        return currentdate;
+    }
+    // 添加class
+    function addClass(element, new_name) {
+        if (!element || !new_name) return false;
+        if (element.className)
+        {
+                var old_class_name = element.className;
+                element.className = old_class_name + " " + new_name;
+        }
+        else
+        {
+                element.className = new_name;
+        }
+        return true;
+    }
+    // 移除class
+    function removeClass(element, class_name) {
+        if(!element || !class_name) return false;
+        if (!element.className) return false;
+        var all_names = element.className.split(" ");
+        for (var i = 0; i < all_names.length; i++)
+        {
+            if (all_names[i] === class_name)
+            {
+                all_names.splice(i, 1);
+                element.className = "";
+                for (var j = 0; j < all_names.length; j++)
+                {
+                    element.className += " ";
+                    element.className += all_names[j];
+                }
+                return true;
+            }
+        }
+    }
+    // 判断是否有class
+    function hasClass(obj,cls){
+        var obj_class = obj.className,//获取class的内容；
+        obj_class_lst = obj_class.split(/\s+/);//通过split空字符将cls转换成数组
+        x = 0;
+        for(x in obj_class_lst)
+        {
+            if ( obj_class_lst[x] == cls )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function removeAllRecord(){
+        //消息容器
+        var container = document.getElementById('allHisContainer');
+        var records = container.childNodes;
+        for (var i=records.length-1;i>=0;i--)
+        {
+            content_container.removeChild(records[i]);
+        }
+    }
+    //处理滚动到底部拉取更多消息记录到顶部
+    //文档高度
+    function getDocumentTop() {
+        var scrollTop = 0, bodyScrollTop = 0, documentScrollTop = 0;
+        if (document.body)
+        {
+            bodyScrollTop = document.body.scrollTop;
+        }
+        if (document.documentElement)
+        {
+            documentScrollTop = document.documentElement.scrollTop;
+        }
+        scrollTop = (bodyScrollTop - documentScrollTop > 0) ? bodyScrollTop : documentScrollTop;
+        return scrollTop;
+    }
+    //可视窗口高度
+    function getWindowHeight() {
+        var windowHeight = 0;
+        if (document.compatMode == "CSS1Compat")
+        {
+            windowHeight = document.documentElement.clientHeight;
+        }
+        else
+        {
+            windowHeight = document.body.clientHeight;
+        }
+        return windowHeight;
+    }
+
+    //滚动条滚动高度
+    function getScrollHeight() {
+        var scrollHeight = 0, bodyScrollHeight = 0, documentScrollHeight = 0;
+        if (document.body)
+        {
+            bodyScrollHeight = document.body.scrollHeight;
+        }
+        if (document.documentElement)
+        {
+            documentScrollHeight = document.documentElement.scrollHeight;
+        }
+        scrollHeight = (bodyScrollHeight - documentScrollHeight > 0) ? bodyScrollHeight : documentScrollHeight;
+        return scrollHeight;
+    }
+    var scrollFunc = function (e) {
+        e = e || window.event;
+        if(e.wheelDelta <= -120)
+        {
+            if (getScrollHeight() == getWindowHeight() + getDocumentTop())
+            {
+
+            }
+        }
+
+    }
+</script>
+</html>
