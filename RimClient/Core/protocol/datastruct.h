@@ -328,6 +328,28 @@ struct FileTransProgress
     QString destNodeId;             /*!< 目的节点 */
 };
 
+/*!
+ *  @brief 提示信息类型
+ */
+enum NoticeType
+{
+    FAULT,      //错误
+    NORMAL,     //正常
+    INFO,       //普通提示
+    NONOTICE    //无标识
+};
+
+/*!
+ *  @brief 文件类型
+ */
+enum FileType
+{
+    FILE_TXT,                       /*!< 文本类型文件 */
+    FILE_COMPRESS,                  /*!< 压缩类型文件 */
+    FILE_FOLDER,                    /*!< 文件夹类型文件 */
+    FILE_UNDEFINE                   /*!< 未知类型文件 */
+};
+
 #ifdef __LOCAL_CONTACT__
 /*************************参数配置文件*********************************/
 /*!

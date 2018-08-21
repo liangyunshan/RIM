@@ -16,6 +16,7 @@
 #include <QJsonObject>
 #include <QApplication>
 #include <QHostAddress>
+#include <QJsonObject>
 #include <QJsonDocument>
 #include <QWebEngineView>
 #include <QWebEnginePage>
@@ -43,7 +44,6 @@
 #include "chat/transferfileitem.h"
 #include "thread/chatmsgprocess.h"
 #include "others/msgqueuemanager.h"
-#include "../protocol/datastruct.h"
 #include "chat/transferfilelistbox.h"
 #include "Network/msgwrap/wrapfactory.h"
 #include "actionmanager/actionmanager.h"
@@ -51,12 +51,14 @@
 #include "../thread/file716sendtask.h"
 #include "../network/netglobal.h"
 #include "../others/serialno.h"
+#include "chat/historymsgrecord.h"
 
 #define CHAT_MIN_WIDTH 450
 #define CHAT_MIN_HEIGHT 500
 #define CHAT_TOOL_HEIGHT 30
 #define CHAT_USER_ICON_SIZE 30
 #define TIMESTAMP_GAP 60            //显示新时间戳的消息时间间隔
+#define RIGHTSIDE_WIDTH 360         //右边栏宽度
 
 //716-TK兼容
 #include "../network/win32net/rudpsocket.h"
@@ -93,8 +95,8 @@ protected:
     RToolButton * msgNoticeButt;            //消息提醒设置按钮
     RToolButton *recordButt;                //消息记录按钮
     ToolBar * chatToolBar;                  //信息输入窗口工具栏
-    SimpleTextEdit * chatInputArea;         //信息输入窗口输入框
-    QTabWidget *historyRecord;              //历史聊天记录窗口
+    SimpleTextEdit * chatInputArea;         //信息输入窗口输入框            
+    HistoryMsgRecord *historyRecord;        //历史聊天记录窗口
     TransferFileListBox *fileList;          //文件传输列表
 
     SimpleUserInfo m_userInfo;              //当前聊天对象基本信息
@@ -286,7 +288,7 @@ void AbstractChatMainWidgetPrivate::initWidget()
 
     //聊天窗口右边栏（显示消息记录、发送文件子窗口）
     rightSideWidget = new QTabWidget(q_ptr);
-    rightSideWidget->setMinimumWidth(300);
+    rightSideWidget->setFixedWidth(RIGHTSIDE_WIDTH);
 //    rightSideWidget->setVisible(false);
     rightSideWidget->setTabsClosable(true);
     rightSideWidget->setStyleSheet("QTabWidget::pane{"
@@ -952,6 +954,40 @@ void AbstractChatMainWidget::updateMsgStatus(ushort serialNo)
 }
 
 /*!
+ * @brief 显示全部类型历史消息记录
+ * @param allHistory 全部类型历史消息记录
+ */
+void AbstractChatMainWidget::showAllHistoryRecord(const ChatInfoUnitList &allHistory)
+{
+    MQ_D(AbstractChatMainWidget);
+
+    if(d->historyRecord && d->historyRecord->isVisible())
+    {
+        foreach (ChatInfoUnit msgUnit, allHistory) {
+//            if(msgUnit.accountId == d->m_userInfo.accountId)
+            {
+                if(msgUnit.contentType == MSG_TEXT_TEXT)
+                {
+                    d->historyRecord->appendTextMsg(msgUnit);
+                }
+                else if(msgUnit.contentType == MSG_TEXT_AUDIO)
+                {
+                    d->historyRecord->appendVoiceMsg();
+                }
+                else if(msgUnit.contentType == MSG_TEXT_FILE)
+                {
+                    d->historyRecord->appendFileMsg(msgUnit);
+                }
+                else if(msgUnit.contentType == MSG_TEXT_IMAGE)
+                {
+                    d->historyRecord->appendImageMsg(msgUnit);
+                }
+            }
+        }
+    }
+}
+
+/*!
  * @brief 显示收到的语音消息
  * @param msg 收到的语音消息
  */
@@ -1050,31 +1086,11 @@ void AbstractChatMainWidget::showRightSideTab(RightTabType tabType)
     d->rightWidget->setVisible(true);
     switch (tabType) {
     case MsgRecord:
-        d->historyRecord = new QTabWidget;
-        d->historyRecord->setStyleSheet("QTabWidget::pane{"
-                                            "border:0px;}"
-                                        "QTabWidget::tab-bar{"
-                                            "left: 0px;}"
-                                        "QTabBar::tab{"
-                                            "border-radius: 2px;"
-                                            "border:0px;"
-                                            "width:50px;"
-                                            "height:12px;"
-                                            "margin-left:4px;"
-                                            "margin-right:2px;"
-                                            "margin-top:4px;}"
-                                        "QTabBar::tab:selected{"
-                                            "background-color: rgb(39,140,222);"
-                                            "color:white;}"
-                                        "QTabBar::tab:hover:!selected{"
-                                            "background-color: rgb(39,140,222);"
-                                            "color:black;}");
-        d->historyRecord->setAttribute(Qt::WA_DeleteOnClose);
-        d->historyRecord->addTab(new QWidget,tr("All"));
-        d->historyRecord->addTab(new QWidget,tr("Image"));
-        d->historyRecord->addTab(new QWidget,tr("File"));
+        d->historyRecord = new HistoryMsgRecord;
         d->rightSideWidget->addTab(d->historyRecord,tr("message record"));
         d->rightSideWidget->setCurrentWidget(d->historyRecord);
+        d->rightSideWidget->setContentsMargins(0,0,0,0);
+        d->historyRecord->setUserInfo(d->m_userInfo);
         break;
     case SendFile:
     case RecvFile:
@@ -1176,8 +1192,15 @@ void AbstractChatMainWidget::appendMsgRecord(const TextRequest &recvMsg, MsgTarg
     RUtil::setAbsoulteImgPath(t_localHtml,G_User->BaseInfo().accountId);
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
-    t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(RECV).arg(t_localHtml).arg(t_headPath)
-                                                            .arg(UNREAD).arg(recvMsg.textId);
+
+    QJsonObject mesObj;
+    mesObj.insert("target",RECV);
+    mesObj.insert("content",t_localHtml);
+    mesObj.insert("head",t_headPath);
+    mesObj.insert("state",UNREAD);
+    mesObj.insert("stateID",recvMsg.textId);
+    QString mesJson = QString(QJsonDocument(mesObj).toJson()).replace("\n","");
+    t_showMsgScript = QString("appendMesRecord('%1')").arg(mesJson);
 
     d->view->page()->runJavaScript(t_showMsgScript);
 }
@@ -1237,16 +1260,28 @@ void AbstractChatMainWidget::appendMsgRecord(const ChatInfoUnit &unitMsg, MsgTar
     {
         QString stateID = QString::number(unitMsg.serialNo);
         int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
-        t_showMsgScript = QString("appendMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                     .arg(t_readState).arg(stateID);
+
+        QJsonObject mesObj;
+        mesObj.insert("target",source);
+        mesObj.insert("content",t_localHtml);
+        mesObj.insert("head",t_headPath);
+        mesObj.insert("state",t_readState);
+        mesObj.insert("stateID",stateID);
+        QString mesJson = QString(QJsonDocument(mesObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("appendMesRecord('%1')").arg(mesJson);
     }
     else if(unitMsg.contentType == MSG_TEXT_FILE)
     {
         QString t_filePath = unitMsg.contents;
-        t_showMsgScript = QString("appendFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
-                                                                     .arg(1);
-    }
 
+        QJsonObject fileObj;
+        fileObj.insert("target",source);
+        fileObj.insert("content",t_filePath);
+        fileObj.insert("head",t_headPath);
+        fileObj.insert("result",1);
+        QString mesJson = QString(QJsonDocument(fileObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("appendFile('%1')").arg(mesJson);
+    }
     d->view->page()->runJavaScript(t_showMsgScript);
 }
 
@@ -1272,8 +1307,14 @@ void AbstractChatMainWidget::prependMsgRecord(const TextRequest &recvMsg, MsgTar
 
     t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
 
-    t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(RECV).arg(t_localHtml).arg(t_headPath)
-                                                                    .arg(UNREAD).arg(recvMsg.textId);
+    QJsonObject mesObj;
+    mesObj.insert("target",RECV);
+    mesObj.insert("content",t_localHtml);
+    mesObj.insert("head",t_headPath);
+    mesObj.insert("state",UNREAD);
+    mesObj.insert("stateID",recvMsg.textId);
+    QString mesJson = QString(QJsonDocument(mesObj).toJson()).replace("\n","");
+    t_showMsgScript = QString("prependMesRecord('%1')").arg(mesJson);
 
     d->view->page()->runJavaScript(t_showMsgScript);
 
@@ -1334,14 +1375,29 @@ void AbstractChatMainWidget::prependMsgRecord(const ChatInfoUnit &unitMsg, MsgTa
     {
         QString stateID = QString::number(unitMsg.serialNo);
         int t_readState = (unitMsg.msgstatus == ProtocolType::MSG_NOTREAD) ? UNREAD : MARKREAD;
-        t_showMsgScript = QString("prependMesRecord(%1,'%2','%3',%4,'%5')").arg(source).arg(t_localHtml).arg(t_headPath)
-                                                                        .arg(t_readState).arg(stateID);
+
+        QJsonObject mesObj;
+        mesObj.insert("target",source);
+        mesObj.insert("content",t_localHtml);
+        mesObj.insert("head",t_headPath);
+        mesObj.insert("state",t_readState);
+        mesObj.insert("stateID",stateID);
+        QString mesJson = QString(QJsonDocument(mesObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("prependMesRecord('%1')").arg(mesJson);
+        qDebug()<<"TextPrepend"<<t_showMsgScript;
     }
     else if(unitMsg.contentType == MSG_TEXT_FILE)
     {
         QString t_filePath = unitMsg.contents;
-        t_showMsgScript = QString("prependFile(%1,'%2','%3',%4)").arg(source).arg(t_filePath).arg(t_headPath)
-                                                                     .arg(1);
+
+        QJsonObject fileObj;
+        fileObj.insert("target",source);
+        fileObj.insert("content",t_filePath);
+        fileObj.insert("head",t_headPath);
+        fileObj.insert("result",1);
+        QString mesJson = QString(QJsonDocument(fileObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("prependFile('%1')").arg(mesJson);
+        qDebug()<<"FilePrepend"<<t_showMsgScript;
     }
 
     d->view->page()->runJavaScript(t_showMsgScript);
@@ -1390,7 +1446,14 @@ void AbstractChatMainWidget::appendVoiceMsg(QString recordFileName, MsgTarget so
         t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
 
-    QString t_showVoiceMsgScript = QString("appendVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
+    QJsonObject voiceObj;
+    voiceObj.insert("target",source);
+    voiceObj.insert("length",50);
+    voiceObj.insert("content",recordFileName);
+    voiceObj.insert("head",t_headPath);
+    QString mesJson = QString(QJsonDocument(voiceObj).toJson()).replace("\n","");
+    QString t_showVoiceMsgScript = QString("appendVoiceMsg('%1')").arg(mesJson);
+
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
 }
 
@@ -1413,7 +1476,14 @@ void AbstractChatMainWidget::prependVoiceMsg(QString recordFileName, AbstractCha
         t_headPath = G_User->getIconAbsoultePath(d->m_userInfo.isSystemIcon,d->m_userInfo.iconId);
     }
 
-    QString t_showVoiceMsgScript = QString("prependVoiceMsg(%1,'%2','%3','%4')").arg(source).arg(50).arg(recordFileName).arg(t_headPath);
+    QJsonObject voiceObj;
+    voiceObj.insert("target",source);
+    voiceObj.insert("length",50);
+    voiceObj.insert("content",recordFileName);
+    voiceObj.insert("head",t_headPath);
+    QString mesJson = QString(QJsonDocument(voiceObj).toJson()).replace("\n","");
+    QString t_showVoiceMsgScript = QString("prependVoiceMsg('%1')").arg(mesJson);
+
     d->view->page()->runJavaScript(t_showVoiceMsgScript);
 }
 
@@ -1467,7 +1537,12 @@ void AbstractChatMainWidget::appendImageMsg(const ChatInfoUnit &unitMsg, MsgTarg
 
     if(unitMsg.contentType == MSG_TEXT_IMAGE)
     {
-        t_showMsgScript = QString("appendImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+        QJsonObject imgObj;
+        imgObj.insert("target",source);
+        imgObj.insert("content",t_imgPath);
+        imgObj.insert("head",t_headPath);
+        QString mesJson = QString(QJsonDocument(imgObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("appendImgRecord('%1')").arg(mesJson);
     }
 
     d->view->page()->runJavaScript(t_showMsgScript);
@@ -1499,7 +1574,12 @@ void AbstractChatMainWidget::prependImageMsg(const ChatInfoUnit &unitMsg, MsgTar
 
     if(unitMsg.contentType == MSG_TEXT_IMAGE)
     {
-        t_showMsgScript = QString("prependImgRecord(%1,'%2','%3')").arg(source).arg(t_imgPath).arg(t_headPath);
+        QJsonObject imgObj;
+        imgObj.insert("target",source);
+        imgObj.insert("content",t_imgPath);
+        imgObj.insert("head",t_headPath);
+        QString mesJson = QString(QJsonDocument(imgObj).toJson()).replace("\n","");
+        t_showMsgScript = QString("prependImgRecord('%1')").arg(mesJson);
     }
 
     d->view->page()->runJavaScript(t_showMsgScript);
@@ -1551,7 +1631,7 @@ void AbstractChatMainWidget::appendChatNotice(QString content, NoticeType type)
  * @param content 信息内容
  * @param type 信息类型
  */
-void AbstractChatMainWidget::prependChatNotice(QString content, AbstractChatMainWidget::NoticeType type)
+void AbstractChatMainWidget::prependChatNotice(QString content, NoticeType type)
 {
     MQ_D(AbstractChatMainWidget);
 

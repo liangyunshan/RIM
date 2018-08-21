@@ -45,11 +45,13 @@ signals:
     void sendFileTransProgress(const FileTransProgress &progress);
     void sendRecvedAudio(const QString &file);
     void sendMoreQueryRecord(const ChatInfoUnit & ,bool hasNext);
+    void sendAllHistoryQueryRsult(const ChatInfoUnitList &);
 
 public slots:
     void shakeWindow();
     void queryRecordReady(ChatInfoUnitList);
     void queryMoreRecordReady(ChatInfoUnitList);
+    void queryAllHistoryReady(ChatInfoUnitList);
     void autoQueryRecord();
     void updateMsgStatus(ushort,ushort);
     void showMaximizedWindow(bool);

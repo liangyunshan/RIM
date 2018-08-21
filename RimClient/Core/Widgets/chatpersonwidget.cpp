@@ -128,6 +128,7 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(q_ptr,SIGNAL(sendMsgStatus(ushort)),mainWidget,SLOT(updateMsgStatus(ushort)));
     QObject::connect(q_ptr,SIGNAL(sendMoreQueryRecord(const ChatInfoUnit &,bool)),mainWidget,SLOT(showMoreQueryRecord(const ChatInfoUnit &,bool)));
     QObject::connect(q_ptr,SIGNAL(sendFileTransProgress(const FileTransProgress &)),mainWidget,SLOT(updateTransFileStatus(const FileTransProgress &)));
+    QObject::connect(q_ptr,SIGNAL(sendAllHistoryQueryRsult(const ChatInfoUnitList &)),mainWidget,SLOT(showAllHistoryRecord(ChatInfoUnitList)));
 
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
@@ -186,6 +187,8 @@ void ChatPersonWidget::initChatRecord()
             this,SLOT(updateMsgStatus(ushort,ushort)));
     connect(chatProcess,SIGNAL(C2CMoreResultReady(ChatInfoUnitList)),
             this,SLOT(queryMoreRecordReady(ChatInfoUnitList)));
+    connect(chatProcess,SIGNAL(C2CHistoryResultReady(ChatInfoUnitList)),
+            this,SLOT(queryAllHistoryReady(ChatInfoUnitList)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
 }
@@ -332,6 +335,18 @@ void ChatPersonWidget::queryMoreRecordReady(ChatInfoUnitList moreMsgs)
             d->mainWidget->setNextDateTime(RUtil::addMSecsToEpoch(unit.dtime));
         }
         emit sendMoreQueryRecord(unit,hasNext);
+    }
+}
+
+/*!
+ * @brief 转发历史记录查询结果
+ * @param history 历史记录查询结果
+ */
+void ChatPersonWidget::queryAllHistoryReady(ChatInfoUnitList history)
+{
+    if(!history.isEmpty())
+    {
+        emit sendAllHistoryQueryRsult(history);
     }
 }
 

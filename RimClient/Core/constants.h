@@ -205,6 +205,15 @@ const char Tool_Chat_SendMess[] = "Tool_Chat_SendMess";                         
 const char Button_Chat_Close_Window[] = "Button_Chat_Close_Window";                             //聊天窗口关闭按钮
 const char Button_Chat_Send[] = "Button_Chat_Send";                                             //聊天发送按钮
 
+const char Tool_History_Set[] = "Tool_History_Set";
+const char Tool_History_Search[] = "Tool_History_Search";
+const char Tool_History_Manage[] = "Tool_History_Manage";
+const char Tool_History_Calendar[] = "Tool_History_Calendar";
+const char Tool_History_First[] = "Tool_History_First";
+const char Tool_History_Previous[] = "Tool_History_Previous";
+const char Tool_History_Next[] = "Tool_History_Next";
+const char Tool_History_Last[] = "Tool_History_Last";
+
 const char MENU_PANEL_PERSON_TOOLBOX[] = "Menu.Panel.Person.ToolBox";
 const char MENU_PANEL_PERSON_TOOLGROUP[] = "Menu.Panel.Person.ToolGroup";
 const char MENU_PANEL_PERSON_TOOLITEM[] = "Menu.Panel.Person.ToolItem";
@@ -259,6 +268,10 @@ const char ACTION_PANEL_BOTTOM_GENERAL[] = "Action.Panel.Bottom.GeneralSetting";
 const char ACTION_PANEL_BOTTOM_NETSETTING[] = "Action.Panel.Bottom.NetSetting";                 //网络设置
 
 const char MENU_PANEL_BOTTOM_NETCONNECTOR[] = "Menu.Panel.Bottom.NetConnector";                 //网络连接器
+
+const char HISTORY_WEBVIEW_ALL[] = "All.HistoryRecord.Webview";
+const char HISTORY_WEBVIEW_IMAGE[] = "Image.HistoryRecord.Webview";
+const char HISTORY_WEBVIEW_FILE[] = "File.HistoryRecord.Webview";
 
 }
 

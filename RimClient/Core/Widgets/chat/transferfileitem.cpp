@@ -82,7 +82,7 @@ void TransferFileItemPrivate::initWidget()
 
     fileTypeLabel = new QLabel(contentWidget);
     fileTypeLabel->setStyleSheet("border-image: url("
-                                 ":/icon/resource/icon/Common_File.png);");
+                                 ":/icon/resource/icon/Text_File.png);");
     fileTypeLabel->setFixedSize(ITEM_MAX_HEIGHT-15,ITEM_MAX_HEIGHT-10);
 
     transferTypeLabel = new QLabel(contentWidget);
@@ -195,7 +195,7 @@ void TransferFileItem::setFileType(TransferFileItem::FileType type)
     switch (type) {
     case COMMONFILE:
         d->fileTypeLabel->setStyleSheet("border-image: url("
-                                        ":/icon/resource/icon/Common_File.png);");
+                                        ":/icon/resource/icon/Text_File.png);");
         break;
     case COMPRESSFILE:
         d->fileTypeLabel->setStyleSheet("border-image: url("
