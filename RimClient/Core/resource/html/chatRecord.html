@@ -317,6 +317,7 @@
         .exp_btn {
             display: inline-block;
             margin-left: 2px;
+            float: right;
             color:#fff;
             cursor:pointer;
             height:20px;
@@ -501,18 +502,21 @@
                 var valInput = textMessage;
                 var valCut = valInput.substr(0,200);
                 textMes.innerHTML = valCut + '...';
+                //展开/合并操作
+                var exp_btn = document.createElement('span')
                 var inputStorage = document.createElement('p');
                 inputStorage.innerHTML = valInput;
                 inputStorage.style.display = 'none';
-                var exp_btn = document.createElement('span')
-                exp_btn.innerHTML = '点击展开';
+                exp_btn.innerHTML = '<<点击展开';
                 exp_btn.appendChild(inputStorage);
                 addClass(exp_btn,'exp_btn');
-                textMes.appendChild(exp_btn);
+                newDialog.appendChild(textMes);
+                newDialog.appendChild(exp_btn);
             }
             else
             {
                 textMes.innerHTML = textMessage;
+                newDialog.appendChild(textMes);
             }
 
             // 读取状态容器
@@ -531,9 +535,9 @@
                     stateSpan.innerHTML = '已送达'
                 }
             }
+
             //添加内容
             newDiv.appendChild(avatarContainer);
-            newDialog.appendChild(textMes);
             newDiv.appendChild(newDialog);
             if(messageTarget === 0)
             {
@@ -594,9 +598,6 @@
             avatarContainer.setAttribute('src',avatarPath);
             avatarContainer.setAttribute('class','avatarPic');
             // 文字信息
-            //var textMes = document.createElement('div');
-            //textMes.className = 'textMesContainer';
-            //textMes.innerHTML = textMessage;
             var textMes = document.createElement('div');
             textMes.className = 'textMesContainer';
             if(textMessage.length > 200)
@@ -604,18 +605,21 @@
                 var valInput = textMessage;
                 var valCut = valInput.substr(0,200);
                 textMes.innerHTML = valCut + '...';
+                //展开合并操作
+                var exp_btn = document.createElement('span')
                 var inputStorage = document.createElement('p');
                 inputStorage.innerHTML = valInput;
                 inputStorage.style.display = 'none';
-                var exp_btn = document.createElement('span')
-                exp_btn.innerHTML = '点击展开';
+                exp_btn.innerHTML = '<<点击展开';
                 exp_btn.appendChild(inputStorage);
                 addClass(exp_btn,'exp_btn');
-                textMes.appendChild(exp_btn);
+                newDialog.appendChild(textMes);
+                newDialog.appendChild(exp_btn);
             }
             else
             {
                 textMes.innerHTML = textMessage;
+                newDialog.appendChild(textMes);
             }
             // 读取状态容器
             var stateSpan;
@@ -633,9 +637,9 @@
                     stateSpan.innerHTML = '已送达'
                 }
             }
+
             //添加内容
             newDiv.appendChild(avatarContainer);
-            newDialog.appendChild(textMes);
             newDiv.appendChild(newDialog);
             if(messageTarget === 0)
             {
@@ -1354,16 +1358,16 @@
             {
                 addClass(targetContainer, 'flag');
                 var inputStore = targetContainer.getElementsByTagName('p')[0];
-                targetContainer.parentNode.firstChild.nodeValue = inputStore.innerHTML;
-                targetContainer.innerHTML = '点击收起';
+                targetContainer.parentNode.firstChild.innerHTML = inputStore.innerHTML;
+                targetContainer.firstChild.nodeValue = '>>点击收起';
                 targetContainer.appendChild(inputStore);
             }
             else
             {
                 removeClass(targetContainer, 'flag');
-                var valTxt = targetContainer.parentNode.firstChild.nodeValue;
-                targetContainer.firstChild.nodeValue = '点击展开';
-                targetContainer.parentNode.firstChild.nodeValue = valTxt.substr(0,200) + '...';
+                var valTxt = targetContainer.parentNode.firstChild.innerHTML;
+                targetContainer.firstChild.nodeValue = '<<点击展开';
+                targetContainer.parentNode.firstChild.innerHTML = valTxt.substr(0,200) + '...';
             }
         }
     })
