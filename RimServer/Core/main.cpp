@@ -1,4 +1,4 @@
-﻿#include "widget.h"
+﻿#include "mainwindow.h"
 #include <QApplication>
 
 #include <iostream>
@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QSqlDriver>
 #include <QMessageBox>
+#include <QTranslator>
 
 #include "Util/rutil.h"
 #include "Util/rlog.h"
@@ -408,12 +409,40 @@ int main(int argc, char *argv[])
 #ifdef __LOCAL_CONTACT__
         RGlobal::G_RouteSettings = new ParameterSettings::RouteSettings;
         QString localConfigName = configFullPath + QDir::separator() + QStringLiteral("路由表.txt");
+        a.setProperty(Constant::LOCAL_ROUTE_CONFIG_FILE,localConfigName);
         if(!RSingleton<XMLParse>::instance()->parseRouteSettings(localConfigName,RGlobal::G_RouteSettings)){
             QMessageBox::warning(NULL,QObject::tr("Warning"),QObject::tr("Route settings read failed,system exit!"),
                                  QMessageBox::Yes,QMessageBox::Yes);
             exit(-1);
         }
 #endif
+
+        QTranslator translator;
+
+        QString translationPath = configFullPath + QString(Constant::CONFIG_LocalePath);
+        if(RUtil::createDir(translationPath))
+        {
+            QStringList uiLanguages;
+
+    #if (QT_VERSION >= 0x040801) || (QT_VERSION >= 0x040800 && !defined(Q_OS_WIN))
+            uiLanguages = QLocale::system().uiLanguages();
+    #endif
+
+            foreach(QString locale, uiLanguages)
+            {
+    #if (QT_VERSION >= 0x050000)
+                locale = QLocale(locale).name();
+    #else
+                locale.replace(QLatin1Char('-'), QLatin1Char('_'));
+    #endif
+                if(translator.load(QString(Constant::ApplicationName)+"_"+ locale,translationPath))
+                {
+                    a.installTranslator(&translator);
+                    a.setProperty("rimLocale", locale);
+                    break;
+                }
+            }
+        }
 
         RGlobal::G_SERVICE_TYPE = commandResult.serviceType;
 
@@ -487,7 +516,7 @@ int main(int argc, char *argv[])
             startFileSendThread(settingConfig);
         }
 
-        Widget widget;
+        MainWindow widget;
         widget.show();
 
         return a.exec();

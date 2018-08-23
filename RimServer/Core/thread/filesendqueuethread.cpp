@@ -16,7 +16,7 @@ std::mutex SendMutex;
 std::condition_variable SendConVariable;
 
 using namespace ParameterSettings;
-extern NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeClient * QueryNodeDescInfo(unsigned short nodeId,bool & result);
 
 FileSendManager::FileSendManager()
 {
@@ -197,10 +197,10 @@ void FileSendQueueThread::prepareSendTask()
                     task.socketId = fileInfo.sockId;
                     task.fptr = ptr;
                     bool result = false;
-                    NodeClient client = QueryNodeDescInfo(ptr->otherId.toUShort(),result);
+                    NodeClient * client = QueryNodeDescInfo(ptr->otherId.toUShort(),result);
                     if(result){
-                        task.format = client.messageFormat;
-                        task.method = client.communicationMethod;
+                        task.format = client->messageFormat;
+                        task.method = client->communicationMethod;
                     }
                     sendList.push_back(task);
                 }

@@ -18,6 +18,7 @@ TEMPLATE = app
 #读取本地联系人列表，为了解决并需求变动带来的冲突问题
 DEFINES += __LOCAL_CONTACT__
 
+TRANSLATIONS += $${TARGET}_zh_CN.ts
 RC_ICONS += $${TARGET}.ico
 
 CONFIG(debug, debug|release) {
@@ -39,7 +40,6 @@ CONFIG(debug, debug|release) {
 }
 
 SOURCES += main.cpp\
-        widget.cpp \
     rsingleton.cpp \
     sql/sqlprocess.cpp \
     sql/databasemanager.cpp \
@@ -72,9 +72,20 @@ SOURCES += main.cpp\
     thread/netconnector.cpp \
     thread/filesendqueuethread.cpp \
     broadcastnode.cpp \
-    file/globalconfigfile.cpp
+    file/globalconfigfile.cpp \
+    config/routetable.cpp \
+    config/routetableview.cpp \
+    config/routetableclientmodel.cpp \
+    config/routetableservermodel.cpp \
+    config/routetableserverdelegate.cpp \
+    config/routetableclientdelegate.cpp \
+    config/routetablehead.cpp \
+    config/routesettings.cpp \
+    actionmanager/actionmanager.cpp \
+    actionmanager/id.cpp \
+    mainwindow.cpp
 
-HEADERS  += widget.h \
+HEADERS  += \
     rsingleton.h \
     constants.h \
     sql/sqlprocess.h \
@@ -108,9 +119,22 @@ HEADERS  += widget.h \
     thread/netconnector.h \
     thread/filesendqueuethread.h \
     broadcastnode.h \
-    file/globalconfigfile.h
+    file/globalconfigfile.h \
+    config/routetable.h \
+    config/routetableview.h \
+    config/routetableclientmodel.h \
+    config/routetableservermodel.h \
+    config/routetableserverdelegate.h \
+    config/routetableclientdelegate.h \
+    config/routetablehead.h \
+    config/routesettings.h \
+    actionmanager/actionmanager.h \
+    actionmanager/id.h \
+    mainwindow.h
 
-FORMS    += widget.ui
+FORMS    += \
+    config/routetable.ui \
+    mainwindow.ui
 
 win32-msvc2013{
     LIBS += ../Lib/Util.lib

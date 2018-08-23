@@ -27,8 +27,8 @@ using namespace QDB495;
 using namespace QDB21;
 using namespace QDB2051;
 
-extern NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result);
-extern NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result);
+extern NodeClient * QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeServer * QueryServerDescInfoByClient(unsigned short nodeId,bool & result);
 
 Data716Process::Data716Process()
 {
@@ -139,15 +139,15 @@ void Data716Process::processOuterData(Database *db, int sockId, ProtocolPackage 
         if(findNode)
         {
             bool findServer = false;
-            NodeServer serverInfo = QueryServerDescInfoByClient(data.pack495.destAddr,findServer);
+            NodeServer *serverInfo = QueryServerDescInfoByClient(data.pack495.destAddr,findServer);
             if(findServer)
             {
-                if(serverInfo.nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
+                if(serverInfo->nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
                     //【2】在当前服务器节点下，但未在线
                     if(savedWhenOffline)
                         RSingleton<SQLProcess>::instance()->saveChat716Cache(db,data);
                 }else{
-                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo->nodeId);
 
                     if(conn.get() != nullptr){
                         RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
@@ -226,12 +226,12 @@ void Data716Process::processRouteChecking(Database *db, int sockId, unsigned sho
         if(findNode)
         {
             bool findServer = false;
-            NodeServer serverInfo = QueryServerDescInfoByClient(destAddr,findServer);
+            NodeServer * serverInfo = QueryServerDescInfoByClient(destAddr,findServer);
             if(findServer){
-                if(serverInfo.nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
+                if(serverInfo->nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
                      //对端未注册
                 }else{
-                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo->nodeId);
                     if(conn.get() != nullptr){
     //                    RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
                     }else{
@@ -364,16 +364,18 @@ void Data716Process::processFileData(Database *db, int sockId, ProtocolPackage &
 
                         if(findNode){
                             bool findServer = false;
-                            NodeServer serverInfo = QueryServerDescInfoByClient(data.pack495.destAddr,findServer);
+                            NodeServer * serverInfo = QueryServerDescInfoByClient(data.pack495.destAddr,findServer);
                             if(findServer){
-                                if(serverInfo.nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
+                                if(serverInfo->nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
                                     //【2】在当前服务器节点下，但未在线
                                     RSingleton<SQLProcess>::instance()->add716FileCache(db,desc->otherId,saveFileId);
                                 }else{
-                                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo.nodeId);
+                                    std::shared_ptr<SeriesConnection> conn = SeriesConnectionManager::instance()->getConnection(serverInfo->nodeId);
 
                                     if(conn.get() != nullptr){
-                                        RSingleton<LocalMsgWrap>::instance()->hanldeMsgProtcol(conn->socket(),data,false);
+                                        ParameterSettings::Simple716FileInfo finfo(conn->socket(),QString::number(conn->getNodeId()),saveFileId);
+                                        RSingleton<FileSendManager>::instance()->addFile(finfo);
+
                                     }else{
                                         ParameterSettings::Simple716FileInfo fileInfo = {-1,desc->otherId,saveFileId};
                                         cacheFileProtocol(db,serverInfo,fileInfo);
@@ -443,11 +445,11 @@ void Data716Process::processTranspondData(Database *db, int sockId, ProtocolPack
  * @param[in] NodeServer 服务器信息
  * @param[in] ProtocolPackage & 请求数据信息
  */
-void Data716Process::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &package)
+void Data716Process::cacheMsgProtocol(NodeServer * serverInfo, ProtocolPackage &package)
 {
     std::unique_lock<std::mutex> ul(textCacheMutex);
 
-    auto index = textServerCache.find(serverInfo.nodeId);
+    auto index = textServerCache.find(serverInfo->nodeId);
     if(index != textServerCache.end()){
         (*index).second.msgCache.push_back(package);
         //TODO 20180704 若第一次未连接成功，会造成之后数据就不会主动发起连接请求
@@ -457,7 +459,7 @@ void Data716Process::cacheMsgProtocol(NodeServer serverInfo, ProtocolPackage &pa
         cacheInfo.msgCache.push_back(package);
 
         cacheInfo.connStats = SCS_IN;
-        textServerCache.insert(std::pair<unsigned short,TextServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+        textServerCache.insert(std::pair<unsigned short,TextServerCacheInfo>(serverInfo->nodeId,cacheInfo));
 
         NetFunc func = std::bind(&Data716Process::respTextNetConnectResult,this,
                                  std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);
@@ -483,7 +485,7 @@ void Data716Process::respTextNetConnectResult(unsigned short nodeId,bool connect
             //【1】发送当前服务器的注册信息
             ProtocolPackage registPackage;
             registPackage.pack495.sourceAddr = RGlobal::G_RouteSettings->baseInfo.nodeId;
-            registPackage.pack495.destAddr = (*index).second.serverInfo.nodeId;
+            registPackage.pack495.destAddr = (*index).second.serverInfo->nodeId;
             registPackage.pack495.packType = T_DATA_REG;
             registPackage.orderNo = O_NONE;
             registPackage.fileType = QDB2051::F_NO_SUFFIX;
@@ -537,11 +539,11 @@ void Data716Process::addRegistNode(QByteArray & data,unsigned short nodeNums...)
  * @param[in] NodeServer 服务器信息
  * @param[in] ProtocolPackage & 请求数据信息
  */
-void Data716Process::cacheFileProtocol(Database * db,NodeServer serverInfo, Simple716FileInfo &fileIndo)
+void Data716Process::cacheFileProtocol(Database * db,NodeServer * serverInfo, Simple716FileInfo &fileIndo)
 {
     std::unique_lock<std::mutex> ul(fileCacheMutex);
 
-    auto index = fileServerCache.find(serverInfo.nodeId);
+    auto index = fileServerCache.find(serverInfo->nodeId);
     if(index != fileServerCache.end()){
         (*index).second.fileCache.push_back(fileIndo);
         RSingleton<SQLProcess>::instance()->add716FileCache(db,fileIndo.nodeId,fileIndo.fileId);
@@ -550,7 +552,7 @@ void Data716Process::cacheFileProtocol(Database * db,NodeServer serverInfo, Simp
         cacheInfo.serverInfo = serverInfo;
         cacheInfo.fileCache.push_back(fileIndo);
         cacheInfo.connStats = SCS_IN;
-        fileServerCache.insert(std::pair<unsigned short,FileServerCacheInfo>(serverInfo.nodeId,cacheInfo));
+        fileServerCache.insert(std::pair<unsigned short,FileServerCacheInfo>(serverInfo->nodeId,cacheInfo));
 
         NetFunc func = std::bind(&Data716Process::respFileNetConnectResult,this
                                  ,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3);

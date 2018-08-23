@@ -22,7 +22,7 @@ class NetConnector;
 typedef std::function<void(unsigned short,bool,int)> NetFunc;
 
 #ifdef __LOCAL_CONTACT__
-void RunNetConnetor(NetFunc func,ParameterSettings::NodeServer & server);
+void RunNetConnetor(NetFunc func, ParameterSettings::NodeServer *server);
 
 class NetConnector : public QThread
 {
