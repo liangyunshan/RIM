@@ -95,7 +95,7 @@ void Data716Process::processText(const ProtocolPackage &data)
     response.isEncryption = 0;
     response.isCompress = 0;
     response.textType = TEXT_NORAML;
-    response.sendData = QString::fromLocal8Bit( data.data );
+    response.sendData = QString::fromLocal8Bit(data.data);
 
     MessDiapatch::instance()->onRecvText(response);
 }

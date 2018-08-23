@@ -13,6 +13,7 @@
 
 #include "../../thread/file716sendtask.h"
 #include "../../head.h"
+#include "Util/rutil.h"
 
 #define ITEM_MAX_HEIGHT 56
 
@@ -82,7 +83,7 @@ void TransferFileItemPrivate::initWidget()
 
     fileTypeLabel = new QLabel(contentWidget);
     fileTypeLabel->setStyleSheet("border-image: url("
-                                 ":/icon/resource/icon/Common_File.png);");
+                                 ":/icon/resource/icon/Text_File.png);");
     fileTypeLabel->setFixedSize(ITEM_MAX_HEIGHT-15,ITEM_MAX_HEIGHT-10);
 
     transferTypeLabel = new QLabel(contentWidget);
@@ -195,7 +196,7 @@ void TransferFileItem::setFileType(TransferFileItem::FileType type)
     switch (type) {
     case COMMONFILE:
         d->fileTypeLabel->setStyleSheet("border-image: url("
-                                        ":/icon/resource/icon/Common_File.png);");
+                                        ":/icon/resource/icon/Text_File.png);");
         break;
     case COMPRESSFILE:
         d->fileTypeLabel->setStyleSheet("border-image: url("
@@ -318,22 +319,7 @@ void TransferFileItem::setFileSize(const float size)
     MQ_D(TransferFileItem);
 
     d->m_totalSize = size;
-    QString t_fileSize = QString();
-    if(size < 1024)
-    {
-        QString t_showSize = QString::number(size,'f',2);
-        t_fileSize = QString("(%1B)").arg(t_showSize);
-    }
-    else if(size > 1024)
-    {
-        QString t_showSize = QString::number(size/1024,'f',2);
-        t_fileSize = QString("(%1KB)").arg(t_showSize);
-    }
-    else if(size > 1024*1024)
-    {
-        QString t_showSize = QString::number(size/(1024*1024),'f',2);
-        t_fileSize = QString("(%1MB)").arg(t_showSize);
-    }
+    QString t_fileSize = RUtil::formatFileSize(size);
     d->fileSizeLabel->setText(t_fileSize);
     d->transferProgress->setMaximum(size);
 }

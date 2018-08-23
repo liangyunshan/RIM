@@ -32,7 +32,10 @@ public:
         SAVE_MSG,       //存储消息
         QUERY_MSG,      //查询消息
         UPDATE_MSG,     //更新消息
-        QUERY_MOREMSG   //查询更多消息
+        QUERY_MOREMSG,  //查询更多消息
+        QUERY_ALLHIS,   //全部类型历史记录查询
+        QUERY_IMGHIS,   //图片类型历史记录查询
+        QUERY_FILEHIS   //文件类型历史记录查询
     };
     struct TaskQueue{
         TaskQueue():actType(SAVE_MSG),start(0),count(1){
@@ -59,6 +62,7 @@ public:
     void appendGoupQueryTask(QString groupID, uint begin, uint count);
 
     void appendC2CMoreQueryTask(QString otherID, uint begin, uint count);
+    void appendC2CAllHistoryQueryTask(QString otherID, uint begin, uint count);
 
 protected:
     void run();
@@ -69,22 +73,28 @@ signals:
     void C2CMsgStatusChanged(ushort otherId,ushort serialNo);
     void GroupResultReady(ChatInfoUnitList);
     void C2CMoreResultReady(ChatInfoUnitList);
+    void C2CHistoryResultReady(ChatInfoUnitList);
 
 private:
     bool saveC2CTaskMsg(QString otherID,ChatInfoUnit &msgUnit);
     bool queryC2CTaskMsg(QString otherID,uint start, uint count);
     bool updateC2CTaskMsgStatus(QString otherID, ushort serialNo);
     bool queryC2CTaskMoreMsg(QString otherID,uint start, uint count);
+    bool queryC2CTaskAllHistory(QString otherID,uint start, uint count);
+    bool queryC2CTaskImgHistory(QString otherID,uint start, uint count);
+    bool queryC2CTaskFileHistory(QString otherID,uint start, uint count);
 
     bool saveGroupTaskMsg(ChatInfoUnit &msgUnit);
     bool queryGroupTaskMsg(QString groupID,uint start, uint count);
     bool queryGroupTaskMoreMsg(QString groupID,uint start, uint count);
+    bool queryGroupTaskAllHistory(QString otherID,uint start, uint count);
 
 private:
     QQueue<TaskQueue> m_TaskQueue;
     QWaitCondition runWaitCondition;
     QMutex m_Pause;
     ChatInfoUnitList chatMsgs;
+    ChatInfoUnitList allHistory;
 };
 
 #endif // CHATMSGPROCESS_H

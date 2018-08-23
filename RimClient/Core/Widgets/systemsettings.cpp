@@ -27,6 +27,7 @@
 #include "widget/rmessagebox.h"
 #include "setkeysequencedialog.h"
 #include "user/user.h"
+#include "rquickorderwidget.h"
 #include "../file/globalconfigfile.h"
 
 SystemSettingsPage::SystemSettingsPage(QWidget *parent):QWidget(parent)
@@ -240,12 +241,18 @@ void SystemSettingsPrivate::initWidget()
     /****************快捷键设置********************/
     SystemSettingsPage * shortCutPage = new SystemSettingsPage(basicWidget);
     shortCutPage->setDescInfo(QObject::tr("Shortcut"));
-
     RButton * shortcutButt = new RButton();
     shortcutButt->setText(QObject::tr("Shortcut Setting"));
     QObject::connect(shortcutButt,SIGNAL(pressed()),q_ptr,SLOT(respShortCut()));
-
     shortCutPage->addItem(shortcutButt);
+
+    /****************快捷命令设置********************/
+    SystemSettingsPage * quickOrderPage = new SystemSettingsPage(basicWidget);
+    quickOrderPage->setDescInfo(QObject::tr("QuickOrder"));
+    RButton * quickOrderButt = new RButton();
+    quickOrderButt->setText(QObject::tr("QuickOrder Setting"));
+    QObject::connect(quickOrderButt,SIGNAL(pressed()),q_ptr,SLOT(respQuickOrder()));
+    quickOrderPage->addItem(quickOrderButt);
 
     //TODO:需要将界面的背景替换为统一的白色
     p_setKeySequenceDialog = new SetKeySequenceDialog();
@@ -280,6 +287,7 @@ void SystemSettingsPrivate::initWidget()
     basicLayout->addWidget(statePage);
     basicLayout->addWidget(sessionPage);
     basicLayout->addWidget(shortCutPage);
+    basicLayout->addWidget(quickOrderPage);
     basicLayout->addWidget(soundPage);
     basicLayout->addWidget(filePage);
 
@@ -578,5 +586,14 @@ void SystemSettings::respSoundSetting()
 void SystemSettings::respFileSetting()
 {
 
+}
+
+/*!
+ * @brief 设置快捷回复命令
+ */
+void SystemSettings::respQuickOrder()
+{
+    RQuickOrderWidget::instance()->raise();
+    RQuickOrderWidget::instance()->showNormal();
 }
 

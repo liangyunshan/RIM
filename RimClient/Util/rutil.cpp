@@ -459,3 +459,31 @@ void RUtil::showInExplorer(QString &pathIn)
     QProcess::startDetached(explorerPath, param);
 
 }
+
+/*!
+ * @brief 格式化显示文件大小
+ * @param byteSize 文件大小，单位字节
+ * @return 显示的文件大小
+ */
+QString RUtil::formatFileSize(int byteSize)
+{
+    QString t_fileSize = QString();
+    if(byteSize < 1024)
+    {
+        QString t_showSize = QString::number(byteSize,'f',2);
+        t_fileSize = QString("(%1B)").arg(t_showSize);
+    }
+    else if(byteSize >= 1024 && byteSize < 1024*1024)
+    {
+        QString t_showSize = QString::number(byteSize/1024,'f',2);
+        t_fileSize = QString("(%1KB)").arg(t_showSize);
+    }
+    else if(byteSize >= 1024*1024)
+    {
+        QString t_showSize = QString::number(byteSize/(1024*1024),'f',2);
+        t_fileSize = QString("(%1MB)").arg(t_showSize);
+    }
+    return t_fileSize;
+}
+
+

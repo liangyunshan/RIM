@@ -109,6 +109,27 @@ void ChatMsgProcess::appendC2CMoreQueryTask(QString otherID, uint begin, uint co
 }
 
 /*!
+ * @brief 添加全部类型历史消息记录查询
+ * @param otherID 联系人账号id
+ * @param count 需要查询的消息条数
+ */
+void ChatMsgProcess::appendC2CAllHistoryQueryTask(QString otherID, uint begin, uint count)
+{
+    TaskQueue t_newQueryTask;
+    ChatInfoUnit t_unit;
+    t_unit.accountId = G_User->BaseInfo().accountId;
+    t_newQueryTask.otherID = otherID;
+    t_newQueryTask.tskType = C2C_TASK;
+    t_newQueryTask.actType = QUERY_ALLHIS;
+    t_newQueryTask.msg = t_unit;
+    t_newQueryTask.start = begin;
+    t_newQueryTask.count = count;
+    m_TaskQueue.enqueue(t_newQueryTask);
+
+    startMe();
+}
+
+/*!
  * @brief 更新单聊界面的信息的已读和未读状态
  * @param accountid 对方ID
  * @param serialNo 信息流水号
@@ -219,6 +240,28 @@ void ChatMsgProcess::run()
                 else
                 {
                     queryGroupTaskMoreMsg(m_task.msg.accountId,m_task.start,m_task.count);
+                }
+                break;
+            case QUERY_ALLHIS:
+                if(m_task.tskType == C2C_TASK)
+                {
+                    queryC2CTaskAllHistory(m_task.otherID,m_task.start,m_task.count);
+                }
+                else
+                {
+                    queryGroupTaskAllHistory(m_task.otherID,m_task.start,m_task.count);
+                }
+                break;
+            case QUERY_IMGHIS:
+                if(m_task.tskType == C2C_TASK)
+                {
+
+                }
+                break;
+            case QUERY_FILEHIS:
+                if(m_task.tskType == C2C_TASK)
+                {
+
                 }
                 break;
             default:
@@ -382,6 +425,92 @@ bool ChatMsgProcess::queryC2CTaskMoreMsg(QString otherID, uint start, uint count
 }
 
 /*!
+ * @brief 查询全部类型历史消息记录
+ * @param otherID 联系人账号id
+ * @param start 需要查询的消息的起始位置（最小值为0）
+ * @param count 需要查询的消息条数
+ * @return 查看全部类型历史消息记录操作结果
+ */
+bool ChatMsgProcess::queryC2CTaskAllHistory(QString otherID, uint start, uint count)
+{
+    allHistory.clear();
+
+    DataTable::RChatRecord rcr;
+    rcr.initTable("rchatrecord_"+otherID);
+    RSelect rst(rcr.table);
+    rst.select(rcr.table,{{rcr.id},
+                          {rcr.type},
+                          {rcr.accountId},
+                          {rcr.nickName},
+                          {rcr.time},
+                          {rcr.dateTime},
+                          {rcr.serialNo},
+                          {rcr.status},
+                          {rcr.data}})
+            .createCriteria();
+    rst.orderBy(rcr.table,rcr.id,SuperCondition::DESC);
+    rst.limit(start,count);
+
+    QSqlQuery query(G_User->database()->sqlDatabase());
+    if(query.exec(rst.sql()))
+    {
+        while(query.next())
+        {
+            ChatInfoUnit unitMsg;
+            unitMsg.id = query.value(rcr.id).toString();
+            unitMsg.contentType = static_cast<MsgCommand>(query.value(rcr.type).toInt());
+            unitMsg.accountId = query.value(rcr.accountId).toString();
+            unitMsg.nickName = query.value(rcr.nickName).toString();
+            unitMsg.dtime = query.value(rcr.time).toLongLong();
+            unitMsg.dateTime = query.value(rcr.dateTime).toString();
+            unitMsg.serialNo = query.value(rcr.serialNo).toInt();
+            unitMsg.msgstatus = (MsgStatus)query.value(rcr.status).toInt();
+            unitMsg.contents = query.value(rcr.data).toString();
+            allHistory.append(unitMsg);
+        }
+        if(allHistory.size())
+            emit C2CHistoryResultReady(allHistory);
+        return true;
+    }
+
+    return false;
+}
+
+/*!
+ * @brief 查询图片类型历史消息记录
+ * @param otherID 联系人账号id
+ * @param start 需要查询的消息的起始位置（最小值为0）
+ * @param count 需要查询的消息条数
+ * @return 查看图片类型历史消息记录操作结果
+ */
+bool ChatMsgProcess::queryC2CTaskImgHistory(QString otherID, uint start, uint count)
+{
+    //TODO LYS-20180814 实现查询单聊图片类型历史消息记录
+    Q_UNUSED(otherID);
+    Q_UNUSED(start);
+    Q_UNUSED(count);
+
+    return false;
+}
+
+/*!
+ * @brief 查询文件类型历史消息记录
+ * @param otherID 联系人账号id
+ * @param start 需要查询的消息的起始位置（最小值为0）
+ * @param count 需要查询的消息条数
+ * @return 查看文件类型历史消息记录操作结果
+ */
+bool ChatMsgProcess::queryC2CTaskFileHistory(QString otherID, uint start, uint count)
+{
+    //TODO LYS-20180814 实现查询单聊文件类型历史消息记录
+    Q_UNUSED(otherID);
+    Q_UNUSED(start);
+    Q_UNUSED(count);
+
+    return false;
+}
+
+/*!
  * @brief ChatMsgProcess::saveGroupTaskMsg 将任务队列中目标任务的群聊信息存储到数据库
  * @param msgUnit 任务中的群聊消息数据
  * @return 保存群聊信息操作结果
@@ -422,6 +551,23 @@ bool ChatMsgProcess::queryGroupTaskMoreMsg(QString groupID, uint start, uint cou
 {
     //TODO LYS-20180718 实现查询群聊信息记录表中更多群聊信息
     Q_UNUSED(groupID);
+    Q_UNUSED(start);
+    Q_UNUSED(count);
+
+    return false;
+}
+
+/*!
+ * @brief ChatMsgProcess::queryGroupTaskHistory
+ * @param otherID
+ * @param start
+ * @param count
+ * @return
+ */
+bool ChatMsgProcess::queryGroupTaskAllHistory(QString otherID, uint start, uint count)
+{
+    //TODO LYS-20180814 实现查询群聊历史消息记录
+    Q_UNUSED(otherID);
     Q_UNUSED(start);
     Q_UNUSED(count);
 

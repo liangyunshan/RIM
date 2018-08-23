@@ -20,6 +20,8 @@
 #include <QTextCursor>
 #include <QCryptographicHash>
 #include <QMetaClassInfo>
+#include <QTextDocumentFragment>
+#include <QTextBlock>
 
 #include "Util/rutil.h"
 #include "util/rsingleton.h"
@@ -27,17 +29,31 @@
 #include "global.h"
 #include "user/user.h"
 #include "constants.h"
+#include <QAction>
+#include <QMenu>
 
 #include <QDebug>
 
 #define SHOTIMAGE_WIDTH 80                  //截图显示宽度
 #define SHOTIMAGE_HEIGHT 80                 //截图显示高度
 
+int count = 0;
+
 BaseTextEdit::BaseTextEdit(QWidget *parent):
     QTextEdit(parent)
 {
     this->setStyleSheet("border:0px;border-radius:3px;");
     this->installEventFilter(this);
+
+    m_pCopyAction = new QAction(this);
+    m_pCopyAction->setText(tr("copy"));
+    connect(m_pCopyAction,SIGNAL(triggered(bool)),this,SLOT(copySelectData(bool)));
+    m_pPasteAction = new QAction(this);
+    m_pPasteAction->setText(tr("paste"));
+    connect(m_pPasteAction,SIGNAL(triggered(bool)),this,SLOT(pasteData(bool)));
+    m_pSelectAllAction = new QAction(this);
+    m_pSelectAllAction->setText(tr("select all"));
+    connect(m_pSelectAllAction,SIGNAL(triggered(bool)),this,SLOT(selectAllData(bool)));
 }
 
 bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
@@ -48,47 +64,7 @@ bool BaseTextEdit::eventFilter(QObject *obj, QEvent *event)
         {
             if(!this->isReadOnly())
             {
-                QClipboard *clipboard = QApplication::clipboard();
-                const QMimeData *mimeData = clipboard->mimeData();
-
-                if(mimeData->hasHtml())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasHtml()";
-                    this->textCursor().insertHtml(mimeData->html());
-                }
-                else if(mimeData->hasText())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasText()";
-                    if(!mimeData->hasUrls())
-                    {
-                        this->textCursor().insertText(mimeData->text());
-                    }
-                }
-                if(mimeData->hasImage())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasImage()";
-                    QImage image = qvariant_cast<QImage>(mimeData->imageData());
-
-                    insertCopyImage(image);
-                }
-
-                if(mimeData->hasColor())
-                {
-                    qDebug() << "Ctrl + V mimeData->hasColor()";
-                }
-
-                if(mimeData->hasUrls())
-                {
-                    QList<QUrl> urlList = mimeData->urls();
-                    for(int index=0;index<urlList.count();index++)
-                    {
-                        QString fileName = urlList.at(index).toLocalFile();
-                        if(!fileName.isEmpty())
-                        {
-                            emit sigDropFile(fileName);
-                        }
-                    }
-                }
+                pasteData(true);
                 return true;
             }
         }
@@ -221,4 +197,93 @@ void BaseTextEdit::dropEvent(QDropEvent *e)
             }
         }
     }
+}
+
+void BaseTextEdit::contextMenuEvent(QContextMenuEvent *e)
+{
+    QMenu menu;
+    if(this->textCursor().hasSelection())
+    {
+        m_pCopyAction->setEnabled(true);
+    }
+    else
+    {
+        m_pCopyAction->setEnabled(false);
+    }
+    menu.addAction(m_pCopyAction);
+    menu.addAction(m_pPasteAction);
+    menu.addAction(m_pSelectAllAction);
+    menu.exec(e->globalPos());
+}
+
+/*!
+ * @brief 复制
+ */
+void BaseTextEdit::copySelectData(bool)
+{
+    QVariant data= this->textCursor().document()
+            ->resource(QTextDocument::ImageResource,QUrl("image"));
+    qDebug()<<__FILE__<<__LINE__<<__FUNCTION__<<"\n"
+           <<""<<data
+          <<"\n";
+    this->copy();
+}
+
+/*!
+ * @brief 粘贴
+ */
+void BaseTextEdit::pasteData(bool)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+
+    if(mimeData->hasHtml())
+    {
+        qDebug() << "Ctrl + V mimeData->hasHtml()";
+        m_tempEdit.clear();
+        m_tempEdit.insertHtml(mimeData->html());
+        this->textCursor().insertText(m_tempEdit.toPlainText());
+        m_tempEdit.clear();
+    }
+    else if(mimeData->hasText())
+    {
+        qDebug() << "Ctrl + V mimeData->hasText()";
+        if(!mimeData->hasUrls())
+        {
+            this->textCursor().insertText(mimeData->text());
+        }
+    }
+    if(mimeData->hasImage())
+    {
+        qDebug() << "Ctrl + V mimeData->hasImage()";
+        QImage image = qvariant_cast<QImage>(mimeData->imageData());
+
+        insertCopyImage(image);
+    }
+
+    if(mimeData->hasColor())
+    {
+        qDebug() << "Ctrl + V mimeData->hasColor()";
+    }
+
+    if(mimeData->hasUrls())
+    {
+        QList<QUrl> urlList = mimeData->urls();
+        for(int index=0;index<urlList.count();index++)
+        {
+            QString fileName = urlList.at(index).toLocalFile();
+            if(!fileName.isEmpty())
+            {
+                emit sigDropFile(fileName);
+            }
+        }
+    }
+}
+
+/*!
+ * @brief 全选
+ */
+void BaseTextEdit::selectAllData(bool)
+{
+    this->selectAll();
 }

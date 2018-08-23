@@ -24,6 +24,7 @@
 #include "widget/rmessagebox.h"
 #include "messdiapatch.h"
 #include "Network/netconnector.h"
+#include "ripwidget.h"
 #include "../file/globalconfigfile.h"
 
 class NetSettingsPrivate : public GlobalData<NetSettings>
@@ -47,40 +48,32 @@ private:
         }
 
         void setIpAndPort(QString ip,QString port){
-            ipEdit->setText(ip);
+            ipEdit->setIP(ip);
             portEdit->setText(port);
         }
 
-        bool isValidIp(){return RUtil::validateIpFormat(ipEdit->text());}
+        bool isValidIp(){return RUtil::validateIpFormat(ipEdit->getIPString());}
         bool isValidPort(){
             if(portEdit->text().size() <= 0)
                 return false;
             return true;
         }
 
-        QString getIp(){return ipEdit->text();}
+        QString getIp(){return ipEdit->getIPString();}
         QString getPort(){return portEdit->text();}
 
     private:
         void initWidget(){
-
             ipTextLabel = new QLabel(this);
             ipTextLabel->setText(QObject::tr("Ip Address"));
-
-            ipEdit = new QLineEdit(this);
-
-            QString matchWholeIp = QString(Constant::FullIp_Reg).arg(Constant::SingleIp_Reg).arg(Constant::SingleIp_Reg);
-            QRegExp rx(matchWholeIp);
-            QRegExpValidator * ipValidator = new QRegExpValidator(rx);
-            ipEdit->setValidator(ipValidator);
+            ipEdit = new RIPWidget(this);
 
             portTextLabel = new QLabel(this);
             portTextLabel->setText(QObject::tr("Port"));
-
             portEdit = new QLineEdit(this);
-
             QIntValidator * portValidator = new QIntValidator(1024,65535);
             portEdit->setValidator(portValidator);
+            portEdit->setAlignment(Qt::AlignCenter);
 
             QGridLayout * gridLayout = new QGridLayout;
             gridLayout->addWidget(ipTextLabel,0,0,1,1);
@@ -92,9 +85,10 @@ private:
 
     private:
         QLabel * ipTextLabel;
-        QLineEdit * ipEdit;
         QLabel * portTextLabel;
         QLineEdit * portEdit;
+
+        RIPWidget *ipEdit;
 
     };
 

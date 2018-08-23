@@ -89,7 +89,7 @@
         <file>resource/icon/Tool_Panel_Network_Error.png</file>
         <file>resource/icon/Tool_Panel_Network_OK.png</file>
         <file>resource/icon/Tool_Chat_FileTrans.png</file>
-        <file>resource/icon/Common_File.png</file>
+        <file>resource/icon/Text_File.png</file>
         <file>resource/icon/Compress_File.png</file>
         <file>resource/icon/Folder_File.png</file>
         <file>resource/icon/File_Recv.png</file>
@@ -97,6 +97,27 @@
         <file>resource/icon/Close-tab.png</file>
         <file>resource/icon/Close-tab-hover.png</file>
         <file>resource/icon/Tool_Chat_Record.png</file>
+        <file>resource/icon/Tool_History_Calendar.png</file>
+        <file>resource/icon/Tool_History_First.png</file>
+        <file>resource/icon/Tool_History_Last.png</file>
+        <file>resource/icon/Tool_History_Manage.png</file>
+        <file>resource/icon/Tool_History_Next.png</file>
+        <file>resource/icon/Tool_History_Previous.png</file>
+        <file>resource/icon/Tool_History_Search.png</file>
+        <file>resource/icon/Tool_History_Set.png</file>
+        <file>resource/icon/Doc_File.png</file>
+        <file>resource/icon/Image_File.png</file>
+        <file>resource/icon/Pdf_File.png</file>
+        <file>resource/icon/Unknown_File.png</file>
+        <file>resource/icon/Xml_File.png</file>
+        <file>resource/icon/Tool_Chat_QuickOrder.png</file>
+        <file>resource/icon/settings_add.png</file>
+        <file>resource/icon/settings_delete.png</file>
+        <file>resource/icon/icon_quickorder_panel.png</file>
+        <file>resource/icon/icon_down.png</file>
+        <file>resource/icon/icon_left.png</file>
+        <file>resource/icon/icon_right.png</file>
+        <file>resource/icon/icon_up.png</file>
     </qresource>
     <qresource prefix="/state">
         <file>resource/icon/state/STATE_AWAY.png</file>
@@ -109,5 +130,7 @@
     <qresource prefix="/html">
         <file>resource/html/chatRecord.html</file>
         <file>resource/html/qwebchannel.js</file>
+        <file>resource/html/allHistory.html</file>
+        <file>resource/html/fileHisWindow.html</file>
     </qresource>
 </RCC>

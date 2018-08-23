@@ -26,6 +26,7 @@ class QMenuBar;
 class QToolBar;
 class QStatusBar;
 class QTimer;
+class RButton;
 
 class SetKeySequenceDialog : public Widget , public Observer
 {
@@ -55,7 +56,7 @@ private:
     QLabel *label_3;
     QTableWidget *tblw_KeyList;
     QHBoxLayout *horizontalLayout;
-    QPushButton *butt_ResetDefaultKey;
+    RButton *butt_ResetDefaultKey;
     QSpacerItem *horizontalSpacer;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout_2;
