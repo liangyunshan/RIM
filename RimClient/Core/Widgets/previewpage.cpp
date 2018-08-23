@@ -1,6 +1,9 @@
-#include "previewpage.h"
+﻿#include "previewpage.h"
 
 #include <QDesktopServices>
+
+#include <QDebug>
+#include <QDateTime>
 
 bool PreviewPage::acceptNavigationRequest(const QUrl&url,
                                          QWebEnginePage::NavigationType/*type*/,

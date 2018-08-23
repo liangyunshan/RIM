@@ -9,6 +9,7 @@
  *  @copyright NanJing RenGu.
  *  @note
  *      20180511:LYS:抽象化聊天窗口未完成
+ *      20180823:LYS:历史记录窗口关闭后收回对应内存
  */
 #ifndef ABSTRACTCHATMAINWIDGET_H
 #define ABSTRACTCHATMAINWIDGET_H

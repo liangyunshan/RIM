@@ -128,7 +128,6 @@ void ChatPersonWidgetPrivate::initWidget()
     QObject::connect(q_ptr,SIGNAL(sendMoreQueryRecord(const ChatInfoUnit &,bool)),mainWidget,SLOT(showMoreQueryRecord(const ChatInfoUnit &,bool)));
     QObject::connect(q_ptr,SIGNAL(sendFileTransProgress(const FileTransProgress &)),mainWidget,SLOT(updateTransFileStatus(const FileTransProgress &)));
     QObject::connect(q_ptr,SIGNAL(sendAllHistoryQueryRsult(const ChatInfoUnitList &)),mainWidget,SLOT(showAllHistoryRecord(ChatInfoUnitList)));
-
     contentLayout->addWidget(userInfoWidget);
     contentLayout->addWidget(toolBar);
     contentLayout->addWidget(mainWidget);
@@ -138,7 +137,7 @@ void ChatPersonWidgetPrivate::initWidget()
     m_bridge = new Document;
     m_bridge->setUi(mainWidget);
     QWebChannel *channel = new QWebChannel(mainWidget);
-    channel->registerObject(QStringLiteral("bridge"),m_bridge);
+    channel->registerObject(QStringLiteral("chatBridge"),m_bridge);
     mainWidget->setChatChannel(channel);
 }
 
@@ -152,7 +151,6 @@ ChatPersonWidget::ChatPersonWidget(QWidget *parent):
     QNetworkProxyFactory::setUseSystemConfiguration(false);
     d_ptr->userInfoWidget->installEventFilter(this);
     d_ptr->windowToolBar->installEventFilter(this);
-
     RSingleton<Subject>::instance()->attach(this);
 }
 

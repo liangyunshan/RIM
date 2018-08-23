@@ -357,7 +357,7 @@
     window.onload=function(){
         new QWebChannel(qt.webChannelTransport,function(channel)
         {
-             bridge = channel.objects.bridge;
+             bridge = channel.objects.chatBridge;
         });
 
         window.onmousewheel = scrollFunc;
