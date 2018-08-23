@@ -297,6 +297,7 @@ void HistoryMsgRecord::appendTextMsg(ChatInfoUnit &textMsg, HisoryType pageType)
 {
     MQ_D(HistoryMsgRecord);
 
+    RUtil::escapeLFQuote(textMsg.contents);
     RUtil::escapeDoubleQuote(textMsg.contents);
     QString t_runSCript = spliceAppendTextMsg(textMsg);
 
