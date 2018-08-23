@@ -69,11 +69,11 @@ protected:
     bool runningFlag;
 
 signals:
-    void C2CResultReady(ChatInfoUnitList);
+    void C2CResultReady(ChatInfoUnitList,QString);
     void C2CMsgStatusChanged(ushort otherId,ushort serialNo);
-    void GroupResultReady(ChatInfoUnitList);
-    void C2CMoreResultReady(ChatInfoUnitList);
-    void C2CHistoryResultReady(ChatInfoUnitList);
+    void GroupResultReady(ChatInfoUnitList,QString);
+    void C2CMoreResultReady(ChatInfoUnitList,QString);
+    void C2CHistoryResultReady(ChatInfoUnitList,QString);
 
 private:
     bool saveC2CTaskMsg(QString otherID,ChatInfoUnit &msgUnit);

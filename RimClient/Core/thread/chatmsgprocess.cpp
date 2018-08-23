@@ -344,7 +344,7 @@ bool ChatMsgProcess::queryC2CTaskMsg(QString otherID,uint start,uint count)
             chatMsgs.prepend(unitMsg);
         }
         if(chatMsgs.size())
-            emit C2CResultReady(chatMsgs);
+            emit C2CResultReady(chatMsgs,otherID);
         return true;
     }
 
@@ -414,10 +414,10 @@ bool ChatMsgProcess::queryC2CTaskMoreMsg(QString otherID, uint start, uint count
             unitMsg.serialNo = query.value(rcr.serialNo).toInt();
             unitMsg.msgstatus = (MsgStatus)query.value(rcr.status).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
-            chatMsgs.append(unitMsg);
+            chatMsgs.prepend(unitMsg);
         }
         if(chatMsgs.size())
-            emit C2CMoreResultReady(chatMsgs);
+            emit C2CMoreResultReady(chatMsgs,otherID);
         return true;
     }
 
@@ -466,10 +466,10 @@ bool ChatMsgProcess::queryC2CTaskAllHistory(QString otherID, uint start, uint co
             unitMsg.serialNo = query.value(rcr.serialNo).toInt();
             unitMsg.msgstatus = (MsgStatus)query.value(rcr.status).toInt();
             unitMsg.contents = query.value(rcr.data).toString();
-            allHistory.append(unitMsg);
+            allHistory.prepend(unitMsg);
         }
         if(allHistory.size())
-            emit C2CHistoryResultReady(allHistory);
+            emit C2CHistoryResultReady(allHistory,otherID);
         return true;
     }
 

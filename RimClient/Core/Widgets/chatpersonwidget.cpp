@@ -178,14 +178,14 @@ void ChatPersonWidget::onMessage(MessageType type)
 void ChatPersonWidget::initChatRecord()
 {
     ChatMsgProcess *chatProcess = RSingleton<ChatMsgProcess>::instance();
-    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList)),
-            this,SLOT(queryRecordReady(ChatInfoUnitList)));
+    connect(chatProcess,SIGNAL(C2CResultReady(ChatInfoUnitList,QString)),
+            this,SLOT(queryRecordReady(ChatInfoUnitList,QString)));
     connect(chatProcess,SIGNAL(C2CMsgStatusChanged(ushort,ushort)),
             this,SLOT(updateMsgStatus(ushort,ushort)));
-    connect(chatProcess,SIGNAL(C2CMoreResultReady(ChatInfoUnitList)),
-            this,SLOT(queryMoreRecordReady(ChatInfoUnitList)));
-    connect(chatProcess,SIGNAL(C2CHistoryResultReady(ChatInfoUnitList)),
-            this,SLOT(queryAllHistoryReady(ChatInfoUnitList)));
+    connect(chatProcess,SIGNAL(C2CMoreResultReady(ChatInfoUnitList,QString)),
+            this,SLOT(queryMoreRecordReady(ChatInfoUnitList,QString)));
+    connect(chatProcess,SIGNAL(C2CHistoryResultReady(ChatInfoUnitList,QString)),
+            this,SLOT(queryAllHistoryReady(ChatInfoUnitList,QString)));
     connect(chatProcess,SIGNAL(finished()),
             chatProcess,SLOT(deleteLater()));
 }
@@ -316,8 +316,12 @@ void ChatPersonWidget::shakeWindow()
 /*!
  * @brief 响应查询聊天记录结果
  */
-void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
+void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs,QString otherID)
 {
+    MQ_D(ChatPersonWidget);
+
+    if(otherID !=d->m_userInfo.accountId)
+        return;
     foreach(ChatInfoUnit unit,historyMsgs)
     {
         emit sendQueryRecord(unit);
@@ -325,10 +329,12 @@ void ChatPersonWidget::queryRecordReady(ChatInfoUnitList historyMsgs)
 
 }
 
-void ChatPersonWidget::queryMoreRecordReady(ChatInfoUnitList moreMsgs)
+void ChatPersonWidget::queryMoreRecordReady(ChatInfoUnitList moreMsgs,QString otherID)
 {
     MQ_D(ChatPersonWidget);
 
+    if(otherID !=d->m_userInfo.accountId)
+        return;
     for(int index=0;index<moreMsgs.count();index++)
     {
         ChatInfoUnit unit = moreMsgs.at(index);
@@ -345,8 +351,12 @@ void ChatPersonWidget::queryMoreRecordReady(ChatInfoUnitList moreMsgs)
  * @brief 转发历史记录查询结果
  * @param history 历史记录查询结果
  */
-void ChatPersonWidget::queryAllHistoryReady(ChatInfoUnitList history)
+void ChatPersonWidget::queryAllHistoryReady(ChatInfoUnitList history,QString otherID)
 {
+    MQ_D(ChatPersonWidget);
+
+    if(otherID !=d->m_userInfo.accountId)
+        return;
     if(!history.isEmpty())
     {
         emit sendAllHistoryQueryRsult(history);
