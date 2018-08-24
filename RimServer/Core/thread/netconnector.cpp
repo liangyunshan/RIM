@@ -7,18 +7,18 @@
 #include <memory>
 
 #ifdef __LOCAL_CONTACT__
-void RunNetConnetor(NetFunc func,ParameterSettings::NodeServer & server)
+void RunNetConnetor(NetFunc func,ParameterSettings::NodeServer * server)
 {
     do{
-        if(server.localIp.toLocal8Bit().size() > SOCK_CHAR_BUFF_LEN)
+        if(server->localIp.toLocal8Bit().size() > SOCK_CHAR_BUFF_LEN)
             break;
 
-        if(server.localPort.size() == 0 || server.localPort.toUShort() > USHRT_MAX)
+        if(server->localPort.size() == 0 || server->localPort.toUShort() > USHRT_MAX)
             break;
 
         char buff[SOCK_CHAR_BUFF_LEN] = {0};
-        memcpy(buff,server.localIp.toLocal8Bit().data(),server.localIp.toLocal8Bit().size());
-        unsigned short port = server.localPort.toUShort();
+        memcpy(buff,server->localIp.toLocal8Bit().data(),server->localIp.toLocal8Bit().size());
+        unsigned short port = server->localPort.toUShort();
 
         ServerNetwork::RSocket socket;
         if(socket.createSocket()){
@@ -26,18 +26,18 @@ void RunNetConnetor(NetFunc func,ParameterSettings::NodeServer & server)
                 std::shared_ptr<ServerNetwork::SeriesConnection> sc = std::make_shared<ServerNetwork::SeriesConnection>();
                 sc->setIp(buff);
                 sc->setPort(port);
-                sc->setNodeId(server.nodeId);
+                sc->setNodeId(server->nodeId);
                 sc->setSocket(socket.getSocket());
 
                 ServerNetwork::SeriesConnectionManager::instance()->addConnection(sc);
 
-                func(server.nodeId,true,socket.getSocket());
+                func(server->nodeId,true,socket.getSocket());
                 return;
             }
         }
     }while(0);
 
-    func(server.nodeId,false,-1);
+    func(server->nodeId,false,-1);
 }
 
 NetConnector::NetConnector(QObject * parent):

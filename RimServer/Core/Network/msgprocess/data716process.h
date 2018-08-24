@@ -50,7 +50,7 @@ private:
 
         }
         ServerConnStats connStats;
-        ParameterSettings::NodeServer serverInfo;
+        ParameterSettings::NodeServer * serverInfo;
         std::vector<ProtocolPackage> msgCache;
     };
 
@@ -59,7 +59,7 @@ private:
 
         }
         ServerConnStats connStats;
-        ParameterSettings::NodeServer serverInfo;
+        ParameterSettings::NodeServer * serverInfo;
         std::vector<ParameterSettings::Simple716FileInfo> fileCache;
     };
 
@@ -71,8 +71,8 @@ private:
     void processUserUnRegist(Database * db,int sockId,unsigned short sourceAddr);
     void processRouteChecking(Database * db, int sockId, unsigned short sourceAddr, unsigned short destAddr);
 
-    void cacheMsgProtocol(ParameterSettings::NodeServer serverInfo, ProtocolPackage & package);
-    void cacheFileProtocol(Database * db,ParameterSettings::NodeServer serverInfo, ParameterSettings::Simple716FileInfo & fileIndo);
+    void cacheMsgProtocol(ParameterSettings::NodeServer *serverInfo, ProtocolPackage & package);
+    void cacheFileProtocol(Database * db, ParameterSettings::NodeServer *serverInfo, ParameterSettings::Simple716FileInfo & fileIndo);
 
     void respTextNetConnectResult(unsigned short nodeId, bool connected, int socketId);
     void respFileNetConnectResult(unsigned short nodeId, bool connected, int socketId);
