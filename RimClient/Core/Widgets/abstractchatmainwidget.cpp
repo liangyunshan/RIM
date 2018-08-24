@@ -77,6 +77,7 @@ protected:
     {
         initWidget();
         fileList = NULL;
+        historyRecord = NULL;
     }
 
     void initWidget();
@@ -345,6 +346,14 @@ AbstractChatMainWidget::AbstractChatMainWidget(QWidget *parent) :
 
 AbstractChatMainWidget::~AbstractChatMainWidget()
 {
+    MQ_D(AbstractChatMainWidget);
+
+    if(d->historyRecord)
+    {
+        d->historyRecord->close();
+        delete d->historyRecord;
+        d->historyRecord = NULL;
+    }
 }
 
 /*!

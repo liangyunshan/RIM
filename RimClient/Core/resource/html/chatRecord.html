@@ -37,7 +37,7 @@
         .content{
             list-style: none;
             width: auto;
-            height: 100%;
+            height: auto;
             margin: 0px auto;
             overflow-x: hidden;
             overflow-y: auto;
@@ -255,6 +255,9 @@
             font-size: 16px;
             margin-right: 4px;
         }
+        .icon-shizhong{
+            color:#4EA9E9;
+        }
         .icon-cuowu{
             color:#E35850;
         }
@@ -314,14 +317,37 @@
             color:#85888A;
             cursor:pointer;
         }
-        .exp_btn {
+        .exp_btn{
             display: inline-block;
             margin-left: 2px;
             float: right;
             color:#fff;
-            cursor:pointer;
             height:20px;
             line-height: 20px;
+        }
+        #getMore{
+            text-align: center;
+            color:#4EA9E9;
+            padding:8px 18px 0 0;
+        }
+        span.underline {
+            position: relative;
+            cursor:pointer;
+        }
+        span.underline:after{
+            content: "";
+            width: 0;
+            height: 1px;
+            background: #2866BD;
+            position: absolute;
+            top: 100%;
+            right: 0%;
+            transition: all .8s;
+        }
+
+        span.underline:hover:after{
+            left: 0%;
+            width: 100%;
         }
         .dialogContainer{
             animation: 2s opacity2;
@@ -360,7 +386,8 @@
              bridge = channel.objects.chatBridge;
         });
 
-        window.onmousewheel = scrollFunc;
+        document.getElementById('content').onmousewheel = scrollFunc;
+        stickGetMore();
     }
 
     var input = document.getElementById('msg_input');//查找缓存
@@ -509,7 +536,7 @@
                 inputStorage.style.display = 'none';
                 exp_btn.innerHTML = '<<点击展开';
                 exp_btn.appendChild(inputStorage);
-                addClass(exp_btn,'exp_btn');
+                addClass(exp_btn,'exp_btn underline');
                 newDialog.appendChild(textMes);
                 newDialog.appendChild(exp_btn);
             }
@@ -606,13 +633,13 @@
                 var valCut = valInput.substr(0,200);
                 textMes.innerHTML = valCut + '...';
                 //展开合并操作
-                var exp_btn = document.createElement('span')
+                var exp_btn = document.createElement('span');
                 var inputStorage = document.createElement('p');
                 inputStorage.innerHTML = valInput;
                 inputStorage.style.display = 'none';
                 exp_btn.innerHTML = '<<点击展开';
                 exp_btn.appendChild(inputStorage);
-                addClass(exp_btn,'exp_btn');
+                addClass(exp_btn,'exp_btn underline');
                 newDialog.appendChild(textMes);
                 newDialog.appendChild(exp_btn);
             }
@@ -669,7 +696,7 @@
                 }
             }
 
-            newDiv.scrollIntoView();
+            //newDiv.scrollIntoView();
         }
 
     }
@@ -844,7 +871,7 @@
         noticeBox.appendChild(noticeText);
         noticeContainer.appendChild(noticeBox);
         contentContainer.insertBefore(noticeContainer,contentContainer.childNodes[0]);
-        noticeContainer.scrollIntoView();
+        //noticeContainer.scrollIntoView();
     }
     // 向后插入收/发文件夹消息
     function appendFile(mesJson) {
@@ -1080,6 +1107,12 @@
             var t_folderPath = target.getAttribute('dirPath');
             bridge.openFolder(t_folderPath);
         }
+
+        var moreMsgBtn = hasClass(target,'moreBtn');
+        if(moreMsgBtn)
+        {
+            bridge.getMoreRecord();
+        }
     })
     // 显示消息读取状态
     function setMesReadState(stateID) {
@@ -1090,7 +1123,7 @@
         }
         else
         {
-            return
+            return;
         }
     }
     // 设置聊天框背景色
@@ -1294,7 +1327,7 @@
         var div = document.createElement('div');
         div.style = 'clear:both';
         content_container.insertBefore(div,content_container.childNodes[0]);
-        div.scrollIntoView();
+        //div.scrollIntoView();
     }
     //处理滚动到顶部拉取更多消息记录到顶部
     //文档高度
@@ -1342,7 +1375,11 @@
 
     var scrollFunc = function (e) {
         e = e || window.event; 
-        if (getDocumentTop() == 0 && e.wheelDelta >= 120)
+
+        var contentDiv = document.getElementById('content');
+        if(!contentDiv)
+            return;
+        if (contentDiv. scrollTop === 0 && e.wheelDelta >= 120)
         {
             //当滚动条在顶部后鼠标滚轮滚动
             bridge.getMoreRecord();
@@ -1371,6 +1408,24 @@
             }
         }
     })
+
+    //置顶显示更多消息
+    function stickGetMore(){
+        var main_container = document.getElementById('main');
+        var content_container = document.getElementById('content');
+        var getMoreContainer = document.createElement('div');
+        getMoreContainer.setAttribute('id','getMore');
+        //图标
+        var colokIcon = document.createElement('i');
+        colokIcon.setAttribute('class','iconfont icon-shizhong');
+        //操作
+        var moreBtn = document.createElement('span');
+        addClass(moreBtn,'moreBtn underline');
+        moreBtn.innerHTML = '查看更多消息';
+        getMoreContainer.appendChild(colokIcon);
+        getMoreContainer.appendChild(moreBtn);
+        main_container.insertBefore(getMoreContainer,content_container);
+    }
 
     </script>
 </html>
