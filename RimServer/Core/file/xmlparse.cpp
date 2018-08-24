@@ -5,10 +5,42 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDomDocument>
+#include <QTextCodec>
+#include <QDebug>
 
 #include "Util/rlog.h"
 #include "Util/scaleswitcher.h"
 #include "protocol/datastruct.h"
+
+class RouteDom{
+public:
+    explicit RouteDom():rootNode("Route"),baseInfoNode("Baseinfo"),
+    serverNode("Server"),clientNode("Client"),nodeId("nodeId"),ip("ip"),
+    lon("lon"),lat("lat"),node("node"),port("port"),commethod("commethod"),messageFormat("messageFormat"),
+    server("server"),channel("channel"),method("method"),format("format"),type("type"){
+
+    }
+
+    QString rootNode;
+    QString baseInfoNode;
+    QString serverNode;
+    QString clientNode;
+
+    QString nodeId;
+    QString ip;
+    QString lon;
+    QString lat;
+
+    QString node;
+    QString port;
+    QString commethod;
+    QString messageFormat;
+    QString server;
+    QString channel;
+    QString method;
+    QString format;
+    QString type;
+};
 
 XMLParse::XMLParse(QObject *parent):QObject(parent)
 {
@@ -177,59 +209,166 @@ bool XMLParse::parseRouteSettings(const QString &fileName, ParameterSettings::Ro
     if(!validateParseFile(fileName,document))
         return false;
 
+    RouteDom routeDom;
     QDomElement rootDom = document.documentElement();
 
-    QDomNodeList baseInfoNode = rootDom.elementsByTagName("Baseinfo");
+    QDomNodeList baseInfoNode = rootDom.elementsByTagName(routeDom.baseInfoNode);
     if(baseInfoNode.size() == 1){
         QDomElement baseInfoElement = baseInfoNode.at(0).toElement();
 
-        QDomNodeList nodeIds = baseInfoElement.elementsByTagName(QStringLiteral("nodeId"));
+        QDomNodeList nodeIds = baseInfoElement.elementsByTagName(routeDom.nodeId);
         if(nodeIds.size() == 1)
             routeSettings->baseInfo.nodeId = ScaleSwitcher::fromHexToDec(nodeIds.at(0).toElement().text());
 
-        QDomNodeList ips = baseInfoElement.elementsByTagName(QStringLiteral("ip"));
+        QDomNodeList ips = baseInfoElement.elementsByTagName(routeDom.ip);
         if(ips.size() == 1)
             routeSettings->baseInfo.localIp = ips.at(0).toElement().text();
 
-        QDomNodeList lons = baseInfoElement.elementsByTagName(QStringLiteral("lon"));
+        QDomNodeList lons = baseInfoElement.elementsByTagName(routeDom.lon);
         if(lons.size() == 1)
             routeSettings->baseInfo.lon = lons.at(0).toElement().text().toDouble();
 
-        QDomNodeList lats = baseInfoElement.elementsByTagName(QStringLiteral("lat"));
+        QDomNodeList lats = baseInfoElement.elementsByTagName(routeDom.lat);
         if(lats.size() == 1)
             routeSettings->baseInfo.lat = lats.at(0).toElement().text().toDouble();
     }
 
-    QDomNodeList serverNode = rootDom.elementsByTagName("Server");
+    QDomNodeList serverNode = rootDom.elementsByTagName(routeDom.serverNode);
     if(serverNode.size() == 1){
         QDomNodeList serverNodes = serverNode.at(0).toElement().childNodes();
         for(int i = 0; i < serverNodes.count();i++){
             QDomElement server = serverNodes.at(i).toElement();
-            ParameterSettings::NodeServer ss;
-            ss.localIp = server.attribute("ip");
-            ss.nodeId = ScaleSwitcher::fromHexToDec(server.attribute("nodeId"));
-            ss.localPort = server.attribute("port");
-            ss.communicationMethod = static_cast<ParameterSettings::CommucationMethod> (server.attribute("commethod").toInt());
-            ss.messageFormat = static_cast<ParameterSettings::MessageFormat> (server.attribute("messageFormat").toInt());
-            routeSettings->servers.append(ss);
+            ParameterSettings::NodeServer * ss = new ParameterSettings::NodeServer;
+            ss->localIp = server.attribute(routeDom.ip);
+            ss->nodeId = ScaleSwitcher::fromHexToDec(server.attribute(routeDom.nodeId));
+            ss->localPort = server.attribute(routeDom.port);
+            ss->communicationMethod = static_cast<ParameterSettings::CommucationMethod> (server.attribute(routeDom.commethod).toInt());
+            ss->messageFormat = static_cast<ParameterSettings::MessageFormat> (server.attribute(routeDom.messageFormat).toInt());
+            routeSettings->servers.insert(ss->nodeId,ss);
         }
     }
 
-    QDomNodeList clientNode = rootDom.elementsByTagName("Client");
+    QDomNodeList clientNode = rootDom.elementsByTagName(routeDom.clientNode);
     if(clientNode.size() == 1){
         QDomNodeList clientNodes = clientNode.at(0).toElement().childNodes();
         for(int i = 0;i < clientNodes.size();i++){
             QDomElement client = clientNodes.at(i).toElement();
-            ParameterSettings::NodeClient cl;
-            cl.nodeId = ScaleSwitcher::fromHexToDec(client.attribute("nodeId"));
-            cl.serverNodeId = ScaleSwitcher::fromHexToDec(client.attribute("server"));
-            cl.channel = client.attribute(QStringLiteral("channel"));
-            cl.communicationMethod = static_cast<ParameterSettings::CommucationMethod>(client.attribute(QStringLiteral("method")).toInt());
-            cl.messageFormat = static_cast<ParameterSettings::MessageFormat>(client.attribute(QStringLiteral("format")).toInt());
-            cl.distributeMessageType = client.attribute(QStringLiteral("8201"));
+            ParameterSettings::NodeClient * cl = new ParameterSettings::NodeClient;
+            cl->nodeId = ScaleSwitcher::fromHexToDec(client.attribute(routeDom.nodeId));
+            cl->serverNodeId = ScaleSwitcher::fromHexToDec(client.attribute(routeDom.server));
+
+            cl->channel = client.attribute(routeDom.channel);
+            cl->communicationMethod = static_cast<ParameterSettings::CommucationMethod>(client.attribute(routeDom.method).toInt());
+            cl->messageFormat = static_cast<ParameterSettings::MessageFormat>(client.attribute(routeDom.format).toInt());
+            cl->distributeMessageType = client.attribute(routeDom.type);
+
+            ParameterSettings::NodeServer * ss = routeSettings->servers.value(cl->serverNodeId);
+            if(ss){
+                cl->server = ss;
+                ss->clients.push_back(cl);
+            }
+
             routeSettings->clients.append(cl);
         }
     }
+
+    return true;
+}
+
+/*!
+ * @brief 保存更新后的路由表
+ * @param[in] fileName 待保存的文件名
+ * @param[in] routeSettings 待保存的路由信息
+ * @return  true保存成功，false保存失败
+ */
+bool XMLParse::saveRouteSettings(const QString &fileName, ParameterSettings::RouteSettings *routeSettings)
+{
+    RouteDom routeDom;
+
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly)){
+        return false;
+    }
+
+    QTextStream stream(&file);
+    stream.setCodec(QTextCodec::codecForLocale());
+
+    QDomDocument doc("Route table");
+
+    QDomProcessingInstruction instruction = doc.createProcessingInstruction("xml","version='1.0' encoding='UTF-8'");
+    doc.appendChild(instruction);
+
+    QDomElement root = doc.createElement(routeDom.rootNode);
+    doc.appendChild(root);
+
+    //BaseInfo
+    {
+        QDomElement baseInfoElement = doc.createElement(routeDom.baseInfoNode);
+        QDomElement nodeId = doc.createElement(routeDom.nodeId);
+        QDomText nodeText = doc.createTextNode(ScaleSwitcher::fromDecToHex(routeSettings->baseInfo.nodeId));
+        nodeId.appendChild(nodeText);
+
+        QDomElement ipId = doc.createElement(routeDom.ip);
+        QDomText ipText = doc.createTextNode(routeSettings->baseInfo.localIp);
+        ipId.appendChild(ipText);
+
+        QDomElement lonId = doc.createElement(routeDom.lon);
+        QDomText lonText = doc.createTextNode(QString::number(routeSettings->baseInfo.lon));
+        lonId.appendChild(lonText);
+
+        QDomElement latId = doc.createElement(routeDom.lat);
+        QDomText latText = doc.createTextNode(QString::number(routeSettings->baseInfo.lat));
+        latId.appendChild(latText);
+
+        baseInfoElement.appendChild(nodeId);
+        baseInfoElement.appendChild(ipId);
+        baseInfoElement.appendChild(lonId);
+        baseInfoElement.appendChild(latId);
+
+        root.appendChild(baseInfoElement);
+    }
+
+    //Server
+    {
+        QDomElement serverElement = doc.createElement(routeDom.serverNode);
+        QMap<ushort,ParameterSettings::NodeServer *>::iterator iter = routeSettings->servers.begin();
+        while(iter != routeSettings->servers.end()){
+            ParameterSettings::NodeServer * server = iter.value();
+            QDomElement serverNode = doc.createElement(routeDom.node);
+            serverNode.setAttribute(routeDom.nodeId,ScaleSwitcher::fromDecToHex(server->nodeId));
+            serverNode.setAttribute(routeDom.ip,server->localIp);
+            serverNode.setAttribute(routeDom.port,server->localPort);
+            serverNode.setAttribute(routeDom.method,(int)server->communicationMethod);
+            serverNode.setAttribute(routeDom.messageFormat,(int)server->messageFormat);
+
+            serverElement.appendChild(serverNode);
+            iter++;
+        }
+        root.appendChild(serverElement);
+    }
+
+    //Client
+    {
+        QDomElement clientElement = doc.createElement(routeDom.clientNode);
+        QVector<ParameterSettings::NodeClient *>::iterator iter = routeSettings->clients.begin();
+        while(iter != routeSettings->clients.end()){
+            ParameterSettings::NodeClient * client = (*iter);
+            QDomElement clientNode = doc.createElement(routeDom.node);
+            clientNode.setAttribute(routeDom.nodeId,ScaleSwitcher::fromDecToHex(client->nodeId));
+            clientNode.setAttribute(routeDom.channel,client->channel);
+            clientNode.setAttribute(routeDom.method,(int)client->communicationMethod);
+            clientNode.setAttribute(routeDom.format,(int)client->messageFormat);
+            clientNode.setAttribute(routeDom.type,client->distributeMessageType);
+            if(client->server)
+                clientNode.setAttribute(routeDom.server,ScaleSwitcher::fromDecToHex(client->server->nodeId));
+
+            clientElement.appendChild(clientNode);
+            iter++;
+        }
+        root.appendChild(clientElement);
+    }
+
+    doc.save(stream,4);
 
     return true;
 }

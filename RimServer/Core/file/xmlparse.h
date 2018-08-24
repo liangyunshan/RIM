@@ -29,6 +29,7 @@ public:
 
     bool parseParaSettings(const QString & fileName, ParameterSettings::ParaSettings *paraSettings);
     bool parseRouteSettings(const QString & fileName, ParameterSettings::RouteSettings *routeSettings);
+    bool saveRouteSettings(const QString & fileName,ParameterSettings::RouteSettings *routeSettings);
 
 private:
     bool validateParseFile(const QString & fileName, QDomDocument &document);

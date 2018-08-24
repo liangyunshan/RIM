@@ -17,8 +17,8 @@ using namespace QDB21;
 using namespace ParameterSettings;
 using namespace ServerNetwork;
 
-extern NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result);
-extern NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result);
+extern NodeClient * QueryNodeDescInfo(unsigned short nodeId,bool & result);
+extern NodeServer * QueryServerDescInfoByClient(unsigned short nodeId,bool & result);
 
 Binary716_MsgParse::Binary716_MsgParse():
     DataParse()

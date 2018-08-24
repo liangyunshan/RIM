@@ -12,6 +12,7 @@
 #define DATASTRUCT_H
 
 #include <QString>
+#include <QMap>
 #include <QVector>
 
 namespace Datastruct {
@@ -207,29 +208,38 @@ struct ParaSettings{
     QVector<OuterNetConfig> outerNetConfig;     /*!< 外发信息配置 */
 };
 
+struct NodeClient;
+
 /*!
- *  @brief  Server节点信息
+ *  @brief 节点基本信息
+ *  @details 汇集了sever和client的基本信息
  */
-struct NodeServer
-{
-    unsigned short nodeId;      /*!< 本节点号 */
-    QString localIp;            /*!< 本机IP地址 */
-    QString localPort;          /*!< 本机监听端口号 */
+struct NodeBase{
+    unsigned short nodeId;                    /*!< 本节点号 */
     CommucationMethod communicationMethod;    /*!< 通信方式 */
     MessageFormat messageFormat;              /*!< 报文格式 */
 };
 
 /*!
+ *  @brief  Server节点信息
+ */
+struct NodeServer : public NodeBase
+{
+    QString localIp;            /*!< 本机IP地址 */
+    QString localPort;          /*!< 本机监听端口号 */
+    QVector<NodeClient *> clients;            /*!< 当前服务器下所有的节点信息 */
+};
+
+/*!
  *  @brief  Client节点信息
  */
-struct NodeClient
+struct NodeClient : public NodeBase
 {
-    unsigned short nodeId;             /*!< 本节点号 */
     unsigned short serverNodeId;       /*!< 所属服务器节点 */
-    QString channel;                          /*!< 通道 */
-    CommucationMethod communicationMethod;    /*!< 通信方式 */
-    MessageFormat messageFormat;              /*!< 报文格式 */
-    QString distributeMessageType;            /*!< 下发报文类别 */
+    QString channel;                   /*!< 通道 */
+    QString distributeMessageType;     /*!< 下发报文类别 */
+
+    NodeServer * server;               /*!< Server信息 */
 };
 
 /*!
@@ -238,9 +248,9 @@ struct NodeClient
  *  @warning 此信息一定要配置准确和及时更新，否则会出现信息不可达的问题。
  */
 struct RouteSettings{
-    BaseInfo baseInfo;               /*!< 基本信息 */
-    QVector<NodeServer> servers;     /*!< 服务器节点配置 */
-    QVector<NodeClient> clients;     /*!< 客户端节点配置 */
+    BaseInfo baseInfo;                     /*!< 基本信息 */
+    QMap<ushort,NodeServer *> servers;     /*!< 服务器节点配置 */
+    QVector<NodeClient *> clients;         /*!< 客户端节点配置 */
 };
 
 /*!

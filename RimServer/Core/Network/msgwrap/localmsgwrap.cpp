@@ -23,14 +23,14 @@ std::mutex QueryNodeMutex;
  * @param[in] result 查找结果，true表示查找成功，false表示查找失败
  * @return 所查找的节点号信息
  */
-NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result){
+NodeClient * QueryNodeDescInfo(unsigned short nodeId,bool & result){
     std::lock_guard<std::mutex> lg(QueryNodeMutex);
     result = false;
 
     auto findIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),
-                 [&nodeId](const NodeClient & client){
+                 [&nodeId](const NodeClient * client){
 
-        if(client.nodeId == nodeId)
+        if(client->nodeId == nodeId)
             return true;
         return false;
     });
@@ -42,23 +42,23 @@ NodeClient QueryNodeDescInfo(unsigned short nodeId,bool & result){
 
     if(nodeId == RGlobal::G_RouteSettings->baseInfo.nodeId){
         result = true;
-        NodeClient client;
-        client.nodeId = nodeId;
-        client.communicationMethod = C_TongKong;
-        client.messageFormat = M_495;
+        static NodeClient * client = new NodeClient;
+        client->nodeId = nodeId;
+        client->communicationMethod = C_TongKong;
+        client->messageFormat = M_495;
         return client;
     }
 
-    return NodeClient();
+    return NULL;
 }
 
 /*!
  * @brief 根据客户端节点查询节点所属服务器节点
- * @param[in] nodeId 待查询的节点
+ * @param[in] nodeId 待查询的客户端节点
  * @param[in] result 配置文件中是否存在当前服务器的父节点
  * @return 查找的服务器节点
  */
-NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result){
+NodeServer * QueryServerDescInfoByClient(unsigned short nodeId,bool & result){
     result = false;
 
 //    qDebug()<<"========start=========";
@@ -67,22 +67,16 @@ NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result){
 //    });
 //    qDebug()<<"========end=========";
 
-    auto clientIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),[&nodeId](const NodeClient & client){
-        return (client.nodeId == nodeId);
+    auto clientIndex = std::find_if(RGlobal::G_RouteSettings->clients.begin(),RGlobal::G_RouteSettings->clients.end(),[&nodeId](const NodeClient * client){
+        return (client->nodeId == nodeId);
     });
 
     if(clientIndex != RGlobal::G_RouteSettings->clients.end()){
-        auto serverIndex = std::find_if(RGlobal::G_RouteSettings->servers.begin(),RGlobal::G_RouteSettings->servers.end(),[&](const NodeServer & server){
-              return server.nodeId == (*clientIndex).serverNodeId;
-        });
-
-        if(serverIndex != RGlobal::G_RouteSettings->servers.end()){
-            result = true;
-            return (*serverIndex);
-        }
+        result = true;
+        return (*clientIndex)->server;
     }
 
-    return NodeServer();
+    return NULL;
 }
 
 /*!
@@ -91,19 +85,14 @@ NodeServer QueryServerDescInfoByClient(unsigned short nodeId,bool & result){
  * @param[in] result 配置文件中是否存在当前服务器节点
  * @return 查找的服务器节点
  */
-NodeServer QueryServerDescInfoByServerNodeId(unsigned short nodeId,bool & result){
+NodeServer* QueryServerDescInfoByServerNodeId(unsigned short nodeId,bool & result){
     result = false;
 
-    auto serverIndex = std::find_if(RGlobal::G_RouteSettings->servers.begin(),RGlobal::G_RouteSettings->servers.end(),[&nodeId](const NodeServer & server){
-        return (server.nodeId == nodeId);
-    });
-
-    if(serverIndex != RGlobal::G_RouteSettings->servers.end()){
+    NodeServer * server = RGlobal::G_RouteSettings->servers.value(nodeId);
+    if(server)
         result = true;
-        return (*serverIndex);
-    }
 
-    return NodeServer();
+    return server;
 }
 
 LocalMsgWrap::LocalMsgWrap():MsgWrap()
@@ -128,11 +117,11 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
 
     if(inServer){
         bool flag = false;
-        NodeClient nodeClient = QueryNodeDescInfo(package.pack495.destAddr,flag);
+        NodeClient * nodeClient = QueryNodeDescInfo(package.pack495.destAddr,flag);
         if(flag){
-            if(nodeClient.communicationMethod == C_NetWork && nodeClient.messageFormat == M_205){
+            if(nodeClient->communicationMethod == C_NetWork && nodeClient->messageFormat == M_205){
                 sUnit.method = C_UDP;
-            }else if(nodeClient.communicationMethod == C_TongKong && nodeClient.messageFormat == M_495){
+            }else if(nodeClient->communicationMethod == C_TongKong && nodeClient->messageFormat == M_495){
                 sUnit.method = C_TCP;
             }
         }else{
@@ -144,16 +133,16 @@ void LocalMsgWrap::hanldeMsgProtcol(int sockId,ProtocolPackage & package,bool in
         }
     }else{
         bool findServer = false;
-        NodeServer serverInfo = QueryServerDescInfoByClient(package.pack495.destAddr,findServer);
+        NodeServer * serverInfo = QueryServerDescInfoByClient(package.pack495.destAddr,findServer);
 
         if(!findServer){
             serverInfo = QueryServerDescInfoByServerNodeId(package.pack495.destAddr,findServer);
         }
 
         if(findServer){
-            if(serverInfo.communicationMethod == C_NetWork && serverInfo.messageFormat == M_205){
+            if(serverInfo->communicationMethod == C_NetWork && serverInfo->messageFormat == M_205){
                 sUnit.method = C_UDP;
-            }else if(serverInfo.communicationMethod == C_TongKong && serverInfo.messageFormat == M_495){
+            }else if(serverInfo->communicationMethod == C_TongKong && serverInfo->messageFormat == M_495){
                 sUnit.method = C_TCP;
             }
         }else{
